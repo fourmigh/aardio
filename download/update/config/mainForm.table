@@ -1,0 +1,9 @@
+﻿{
+chkReset=false;
+btnClose=true;
+chkRestart=true;
+lnkDown=true;
+afterLoad=null;
+beforeSave=null;
+btnStart=true
+}

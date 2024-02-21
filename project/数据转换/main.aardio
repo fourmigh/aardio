@@ -1,0 +1,83 @@
+import win.ui
+//import string.builder
+import win.clip
+/*DSG{{*/
+mainForm = win.form(text="数据转换";right=757;bottom=467)
+mainForm.add(
+btnConvert={cls="button";text="转换";left=601;top=149;right=686;bottom=184;z=5};
+cbClear={cls="checkbox";text="转换后清除";left=601;top=91;right=693;bottom=111;checked=1;z=9};
+cbHashmark={cls="checkbox";text="添加注释符";left=601;top=60;right=693;bottom=80;z=8};
+cbTL={cls="checkbox";text="包含TL";left=601;top=32;right=691;bottom=52;z=7};
+etBytes={cls="edit";left=131;top=32;right=556;bottom=94;edge=1;multiline=1;z=1};
+etDec={cls="edit";left=131;top=228;right=556;bottom=290;edge=1;multiline=1;z=10};
+etHex={cls="edit";left=131;top=141;right=556;bottom=203;edge=1;multiline=1;z=6};
+etString={cls="edit";left=129;top=328;right=554;bottom=390;edge=1;multiline=1;z=3};
+staticBytes={cls="static";text="Byte数组";left=28;top=32;right=109;bottom=94;notify=1;transparent=1;z=2};
+staticString={cls="static";text="String";left=26;top=328;right=107;bottom=390;notify=1;transparent=1;z=4}
+)
+/*}}*/
+
+mainForm.etBytes.onFocusGot = function(){ 
+	mainForm.etBytes.text = win.clip.read()
+	__convert()
+}
+mainForm.btnConvert.oncommand = function(id,event){
+	__convert()
+}
+
+__convert=function(){
+	var strBytes = mainForm.etBytes.text
+	strBytes = string.replace(strBytes, "20", "00")
+	strBytes = string.replace(strBytes, ".toByte\(\)", "")
+	if (not string.startWith(strBytes, "0x")){
+		strBytes = "0x" + strBytes
+		strBytes = string.replace(strBytes, " ", ",0x")
+	}
+	while(string.endWith(strBytes, ",")){
+		strBytes = string.slice(strBytes, 1, -2, true)
+	}
+	while(string.endWith(strBytes, ",0x")){
+		strBytes = string.slice(strBytes, 1, -4, true)
+	}
+	mainForm.etHex.text = strBytes
+	
+	//var sb = string.builder();
+	var sBytes = string.split(strBytes, ",")
+	var startIndex = 1
+	var size = #sBytes
+	if (mainForm.cbTL.checked){
+		startIndex = 3
+		size = size - 2
+	}
+	var bytes = raw.buffer(size);
+	var strDec = ""
+	for (i = startIndex;#sBytes;1){
+		if (mainForm.cbTL.checked){
+			bytes[i - 2] = tonumber(sBytes[i])
+		} else {
+			bytes[i] = tonumber(sBytes[i])
+		}
+		//sb.append(bytes[i]);
+		//sb.append("\n");
+		var b = bytes[i]
+		if (b >= 128){
+			b -= 256
+		}
+		strDec += b + ","
+	}
+	//mainForm.etString.text = sb.str();
+	mainForm.etDec.text = strDec
+	var result = string.str(bytes)
+	if (mainForm.cbHashmark.checked){
+		result = "//" + result
+	}
+	mainForm.etString.text = result
+	win.clip.write(result)
+	
+	if (mainForm.cbClear.checked){
+		mainForm.etBytes.text = null
+	}
+}
+
+mainForm.show();
+return win.loopMessage();

@@ -1,0 +1,141 @@
+import win.ui;
+import sys;
+import console;
+
+var formWidth = 800;
+var formHeight = 600;
+var buttonWidth = 200;
+var buttonHeight = 100;
+/*DSG{{*/
+mainForm = win.form(text="下班关机";left=0;top=0;right=800;bottom=600;border="dialog frame";clipch=1;composited=1;edge=1;frame=1;max=false;mode="popup")
+mainForm.add(
+button={cls="button";text="下班关机";left=563;top=371;right=760;bottom=471;flat=1;z=1}
+)
+/*}}*/
+
+var position = 0;
+mainForm.enableDpiScaling(false);
+
+mainForm.button.oncommand = function(id,event){
+	randomPos();
+}
+
+/*
+mainForm.button.oncommand = function(id,event){
+	
+	var x = (formWidth - buttonWidth) / 2;
+	var y = (formHeight - buttonHeight) / 2;
+	
+	//var x = math.random(0, formWidth - buttonWidth);
+	//var y = math.random(0, formHeight - buttonHeight);
+	var left = (formWidth - buttonWidth) / 2;
+	var top = (formHeight - buttonHeight) / 2;
+	
+	left = math.random(0, formWidth - buttonWidth);
+	top = math.random(0, formHeight - buttonHeight);
+	
+	var right = left + buttonWidth;
+	var bottom = top + buttonHeight;
+	
+	select(position) {
+		case 0 {
+			x = 0;
+			y = 0;
+			left = 0;
+			right = 200;
+			top = 0;
+			bottom = 100;
+		}
+		case 1 {
+			x = formWidth - buttonWidth;
+			y = 0;
+			left = 600;
+			right = 800;
+			top = 0;
+			bottom = 100;
+		}
+		case 2 {
+			x = formWidth - buttonWidth;
+			y = formHeight - buttonHeight;
+			left = 600;
+			right = 800;
+			top = 500;
+			bottom = 600;
+		}
+		case 3 {
+			x = 0;
+			y = formHeight - buttonHeight;
+			left = 0;
+			right = 200;
+			top = 500;
+			bottom = 600;
+		}
+		else {
+		}
+	}
+	
+	mainForm.button.left = left;
+	mainForm.button.right = right;
+	mainForm.button.top = top;
+	mainForm.button.bottom = bottom;
+	
+	mainForm.button.setPos(left, top);
+	console.log("mainForm.wh: " + formWidth + " : " + formHeight);
+	console.log("mainForm.lrtb: " + mainForm.left + " : " + mainForm.right + " : " + mainForm.top + " : " + mainForm.bottom);
+	console.log("button.wh: " + buttonWidth + " : " + buttonHeight);
+	console.log("button.lrtb: " + mainForm.button.left + " : " + mainForm.button.right + " : " + mainForm.button.top + " : " + mainForm.button.bottom);
+	console.log("button.xy: " + mainForm.button.getPos());
+	console.log(position + " --------------------------");
+	//sys.shutdown();
+	
+	position ++;
+	if (position >= 5) {
+		position = 0;
+	}
+}
+*/
+
+randomPos = function() {
+  var x = math.random(0, formWidth - buttonWidth);
+  var y = math.random(0, formHeight - buttonHeight);
+  
+  var x1 = mainForm.button.left;
+  var y1 = mainForm.button.top;
+  var w1 = buttonWidth;
+  var h1 = buttonHeight;
+  var x2 = x;
+  var y2 = y;
+  var w2 = buttonWidth;
+  var h2 = buttonHeight;
+  while(isRectangleOverlap(x1, y1, w1, h1, x2, y2, w2, h2)) {
+  	randomPos();
+  }
+  
+  mainForm.button.setPos(x, y);
+}
+
+isRectangleOverlap = function(x1, y1, w1, h1, x2, y2, w2, h2) {
+
+	var r2lby = y2 + h2;
+	var r1rty = y1;
+	var r1lby = y1 + h1;
+	var r2rty = y2;
+	
+	var r1lbx = x1;
+	var r2rtx = x2 + w2;
+	var r2lbx = x2;
+	var r1rtx = x1 + w1;
+	
+	if(r2lby >= r1rty || r1lby >= r2rty){
+		return false;
+	}
+	if(r1lbx >= r2rtx || r2lbx >= r1rtx){
+		return false;
+	}
+	return true;
+}
+
+randomPos();
+
+mainForm.show();
+return win.loopMessage();

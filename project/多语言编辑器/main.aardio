@@ -1,0 +1,147 @@
+import win.ui
+import console
+import fsys.dlg
+import web.json
+/*DSG{{*/
+mainForm = win.form(text="多语言编辑器Languages.CFG V1.0";right=849;bottom=467)
+mainForm.add(
+btnLangResSave={cls="button";text="保存Save";left=712;top=182;right=794;bottom=250;z=10};
+btnLanguageSave={cls="button";text="保存Save";left=593;top=19;right=675;bottom=87;z=7};
+btnLoad={cls="button";text="读取Load";left=701;top=19;right=794;bottom=87;z=12};
+etLangResContent={cls="edit";left=302;top=182;right=681;bottom=322;edge=1;multiline=1;z=11};
+etLanguageImageName={cls="edit";left=378;top=62;right=533;bottom=87;edge=1;multiline=1;z=6};
+etLanguageTitle={cls="edit";left=378;top=19;right=533;bottom=44;edge=1;multiline=1;z=4};
+etLanguageWelcome={cls="edit";left=378;top=103;right=533;bottom=128;edge=1;multiline=1;z=15};
+lbLanguages={cls="listbox";left=112;top=19;right=272;bottom=87;edge=1;items={};vscroll=1;z=2};
+lbResKey={cls="listbox";left=112;top=182;right=272;bottom=449;edge=1;hscroll=1;items={};vscroll=1;z=9};
+static={cls="static";text="语言列表
+LanguageList";left=16;top=19;right=90;bottom=82;transparent=1;z=1};
+static2={cls="static";text="title";left=295;top=19;right=373;bottom=39;transparent=1;z=3};
+static3={cls="static";text="imageName";left=295;top=62;right=371;bottom=82;transparent=1;z=5};
+static4={cls="static";text="语言资源
+ResKeys";left=16;top=182;right=76;bottom=218;transparent=1;z=8};
+static5={cls="static";text="welcome";left=295;top=103;right=371;bottom=123;transparent=1;z=14};
+tvLog={cls="static";left=295;top=302;right=866;bottom=431;transparent=1;z=13}
+)
+/*}}*/
+
+/**
+
+class Languages {
+    var Language: String = ""
+    var imageName: String = ""
+    var title: String = ""
+    var welcome = ""
+}
+
+var languages: ArrayList<Languages>? = null
+var languageMap: HashMap<String, HashMap<String, String>>? = null
+**/
+
+var LanguagesCFG = {}
+var resKeys = {}
+var keyLanguage = ""
+var keyRes = ""
+var filePath = ""
+
+mainForm.btnLoad.oncommand = function(id,event){
+	filePath = fsys.dlg.open()
+	log("filePath", filePath)
+	var content = string.load(filePath)
+	LanguagesCFG = web.json.parse(content)
+	log("languages", web.json.stringify(LanguagesCFG.languages))
+	//var tableLanguage = {}
+	mainForm.lbLanguages.clear()
+	mainForm.lbResKey.clear()
+	for (k,v in LanguagesCFG.languageMap) {
+		//table.push(tableLanguage, k)
+		mainForm.lbLanguages.add(k)
+		
+		for (kk,vv in v) {
+			if (not table.find(resKeys, kk)) {
+				table.push(resKeys, kk)
+				mainForm.lbResKey.add(kk)
+			}
+		}
+	}
+}
+
+log = function(tag, text) {
+	//mainForm.tvLog.text = "[" + tag + "]: " + text
+	//console.log(tag, text)
+}
+
+mainForm.lbLanguages.onSelChange = function() {
+	keyLanguage = owner.selText
+	resetContent()
+	//log("key", key)
+	var languages = LanguagesCFG.languages
+	//log("languages", web.json.stringify(languages))
+	for (i=1; #languages; 1) {
+		var language = languages[i]
+		//log("language", web.json.stringify(language))
+		if (language.Language == keyLanguage) {
+			mainForm.etLanguageTitle.text = language.title
+			mainForm.etLanguageWelcome.text = language.welcome
+			mainForm.etLanguageImageName.text = language.imageName
+			return 
+		}
+	}
+	mainForm.etLanguageTitle.text = ""
+	mainForm.etLanguageWelcome.text = ""
+	mainForm.etLanguageImageName.text = ""
+}
+
+resetContent = function() {
+	log("keyLanguage", keyLanguage)
+	var languageMap = LanguagesCFG.languageMap[keyLanguage]
+	log("keyRes", keyRes)
+	var content = languageMap[keyRes]
+	log("languageMap", web.json.stringify(languageMap))
+	log("content", content)
+	mainForm.etLangResContent.text = content
+}
+
+
+mainForm.lbResKey.onSelChange = function(){
+	keyRes = owner.selText
+	log("keyRes", keyRes)
+	resetContent()
+}
+
+mainForm.btnLanguageSave.oncommand = function(id,event){
+	//保存languages
+	var languages = LanguagesCFG.languages
+	var lang = {"Language":"", "imageName":"", "title":"", "welcome":""}
+	lang.Language = keyLanguage
+	lang.imageName = mainForm.etLanguageImageName.text
+	lang.title = mainForm.etLanguageTitle.text
+	lang.welcome = mainForm.etLanguageWelcome.text
+	for (i=#languages; 1; -1) {
+		var language = languages[i]
+		if (language.Language == keyLanguage) {
+			table.remove(languages, i)
+		}
+	}
+	table.push(languages, lang)
+	saveFile()
+}
+
+mainForm.btnLangResSave.oncommand = function(id,event){
+	//保存languageMap
+	var languageMap = LanguagesCFG.languageMap
+	var currentLanguageMap = languageMap[keyLanguage]
+	log("lastContent", currentLanguageMap[keyRes])
+	currentLanguageMap[keyRes] = mainForm.etLangResContent.text
+	log("currentContent", currentLanguageMap[keyRes])
+	saveFile()
+}
+
+saveFile = function() {
+	var file = filePath + ".tmp"
+	string.save(file, web.json.stringify(LanguagesCFG))
+}
+
+
+mainForm.show();
+return win.loopMessage();
