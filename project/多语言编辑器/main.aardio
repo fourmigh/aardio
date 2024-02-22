@@ -2,26 +2,27 @@ import win.ui
 import console
 import fsys.dlg
 import web.json
+import win.inputBox
 /*DSG{{*/
-mainForm = win.form(text="多语言编辑器Languages.CFG V1.0";right=849;bottom=467)
+mainForm = win.form(text="Languages.CFG Editor V1.1";right=849;bottom=599)
 mainForm.add(
-btnLangResSave={cls="button";text="保存Save";left=712;top=182;right=794;bottom=250;z=10};
-btnLanguageSave={cls="button";text="保存Save";left=593;top=19;right=675;bottom=87;z=7};
-btnLoad={cls="button";text="读取Load";left=701;top=19;right=794;bottom=87;z=12};
+btnLangResSave={cls="button";text="Save";left=712;top=182;right=794;bottom=250;z=10};
+btnLanguageSave={cls="button";text="Save";left=593;top=19;right=675;bottom=87;z=7};
+btnLoad={cls="button";text="Load";left=701;top=19;right=794;bottom=87;z=12};
+btnNewLanguage={cls="button";text="New Language";left=112;top=104;right=272;bottom=131;z=16};
+btnNewResKey={cls="button";text="New ResKey";left=112;top=467;right=272;bottom=494;z=17};
 etLangResContent={cls="edit";left=302;top=182;right=681;bottom=322;edge=1;multiline=1;z=11};
 etLanguageImageName={cls="edit";left=378;top=62;right=533;bottom=87;edge=1;multiline=1;z=6};
 etLanguageTitle={cls="edit";left=378;top=19;right=533;bottom=44;edge=1;multiline=1;z=4};
 etLanguageWelcome={cls="edit";left=378;top=103;right=533;bottom=128;edge=1;multiline=1;z=15};
 lbLanguages={cls="listbox";left=112;top=19;right=272;bottom=87;edge=1;items={};vscroll=1;z=2};
 lbResKey={cls="listbox";left=112;top=182;right=272;bottom=449;edge=1;hscroll=1;items={};vscroll=1;z=9};
-static={cls="static";text="语言列表
-LanguageList";left=16;top=19;right=90;bottom=82;transparent=1;z=1};
+static={cls="static";text="LanguageList";left=16;top=19;right=90;bottom=82;transparent=1;z=1};
 static2={cls="static";text="title";left=295;top=19;right=373;bottom=39;transparent=1;z=3};
 static3={cls="static";text="imageName";left=295;top=62;right=371;bottom=82;transparent=1;z=5};
-static4={cls="static";text="语言资源
-ResKeys";left=16;top=182;right=76;bottom=218;transparent=1;z=8};
+static4={cls="static";text="ResKeys";left=16;top=182;right=76;bottom=218;transparent=1;z=8};
 static5={cls="static";text="welcome";left=295;top=103;right=371;bottom=123;transparent=1;z=14};
-tvLog={cls="static";left=295;top=302;right=866;bottom=431;transparent=1;z=13}
+tvLog={cls="static";left=295;top=370;right=823;bottom=431;transparent=1;z=13}
 )
 /*}}*/
 
@@ -39,13 +40,16 @@ var languageMap: HashMap<String, HashMap<String, String>>? = null
 **/
 
 var LanguagesCFG = {}
-var resKeys = {}
 var keyLanguage = ""
 var keyRes = ""
 var filePath = ""
 
 mainForm.btnLoad.oncommand = function(id,event){
 	filePath = fsys.dlg.open()
+	reloadFile(filePath)
+}
+
+reloadFile = function(filePath){
 	log("filePath", filePath)
 	var content = string.load(filePath)
 	LanguagesCFG = web.json.parse(content)
@@ -53,6 +57,7 @@ mainForm.btnLoad.oncommand = function(id,event){
 	//var tableLanguage = {}
 	mainForm.lbLanguages.clear()
 	mainForm.lbResKey.clear()
+	var resKeys = {}
 	for (k,v in LanguagesCFG.languageMap) {
 		//table.push(tableLanguage, k)
 		mainForm.lbLanguages.add(k)
@@ -66,9 +71,10 @@ mainForm.btnLoad.oncommand = function(id,event){
 	}
 }
 
+
 log = function(tag, text) {
 	//mainForm.tvLog.text = "[" + tag + "]: " + text
-	//console.log(tag, text)
+	console.log(tag, text)
 }
 
 mainForm.lbLanguages.onSelChange = function() {
@@ -112,18 +118,19 @@ mainForm.lbResKey.onSelChange = function(){
 mainForm.btnLanguageSave.oncommand = function(id,event){
 	//保存languages
 	var languages = LanguagesCFG.languages
-	var lang = {"Language":"", "imageName":"", "title":"", "welcome":""}
-	lang.Language = keyLanguage
-	lang.imageName = mainForm.etLanguageImageName.text
-	lang.title = mainForm.etLanguageTitle.text
-	lang.welcome = mainForm.etLanguageWelcome.text
+	
+	var languageItem = {"Language":"", "imageName":"", "title":"", "welcome":""}
+	languageItem.Language = keyLanguage
+	languageItem.imageName = mainForm.etLanguageImageName.text
+	languageItem.title = mainForm.etLanguageTitle.text
+	languageItem.welcome = mainForm.etLanguageWelcome.text
 	for (i=#languages; 1; -1) {
 		var language = languages[i]
 		if (language.Language == keyLanguage) {
 			table.remove(languages, i)
 		}
 	}
-	table.push(languages, lang)
+	table.push(languages, languageItem)
 	saveFile()
 }
 
@@ -140,8 +147,56 @@ mainForm.btnLangResSave.oncommand = function(id,event){
 saveFile = function() {
 	var file = filePath + ".tmp"
 	string.save(file, web.json.stringify(LanguagesCFG))
+	return file 
 }
 
+inputBox = function(title) {
+	var input = win.inputBox()
+	input.text = title
+	input.info.text = ""
+	input.btnCancel.text = "Cancel"
+	input.btnOk.text = "OK"
+	return input.doModal()
+}
+
+stringlen = function(text){
+	if (text == null) {
+		return 0
+	}
+	return string.len(text)  
+}
+
+msgboxErr = function(text){
+	win.msgboxErr(text, "")
+}
+
+msgbox = function(text){
+	win.msgbox(text, "")
+}
+
+mainForm.btnNewLanguage.oncommand = function(id,event){
+	var result = inputBox("Input " + mainForm.btnNewLanguage.text)
+	log("inputBox", "stringlen : " + stringlen(result))
+	if (result <= 0) {
+		return
+	}
+	//检查重名
+	var languageMap = LanguagesCFG.languageMap
+	log("languageMap", web.json.stringify(languageMap))
+	if (languageMap == null) {
+		return
+	} 
+	for (k,v in languageMap) {
+		if (k == result) {
+			msgboxErr(result + " already exists.")
+			return 
+		}
+	}
+	
+	languageMap[result] = {}	
+	var filePath = saveFile()
+	reloadFile(filePath)
+}
 
 mainForm.show();
 return win.loopMessage();
