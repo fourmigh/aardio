@@ -28,6 +28,9 @@ tvLog={cls="static";left=295;top=370;right=823;bottom=431;transparent=1;z=13}
 
 /**
 
+V1.0：编辑功能
+V1.1：添加功能
+
 class Languages {
     var Language: String = ""
     var imageName: String = ""
@@ -43,6 +46,7 @@ var LanguagesCFG = {}
 var keyLanguage = ""
 var keyRes = ""
 var filePath = ""
+var resKeys = {}
 
 mainForm.btnLoad.oncommand = function(id,event){
 	filePath = fsys.dlg.open()
@@ -57,7 +61,13 @@ reloadFile = function(filePath){
 	//var tableLanguage = {}
 	mainForm.lbLanguages.clear()
 	mainForm.lbResKey.clear()
-	var resKeys = {}
+	resKeys = {}
+	keyLanguage = ""
+	keyRes = ""
+	mainForm.etLanguageTitle.text = ""
+	mainForm.etLanguageWelcome.text = ""
+	mainForm.etLanguageImageName.text = ""
+	mainForm.etLangResContent.text = ""
 	for (k,v in LanguagesCFG.languageMap) {
 		//table.push(tableLanguage, k)
 		mainForm.lbLanguages.add(k)
@@ -74,7 +84,7 @@ reloadFile = function(filePath){
 
 log = function(tag, text) {
 	//mainForm.tvLog.text = "[" + tag + "]: " + text
-	console.log(tag, text)
+	//console.log(tag, text)
 }
 
 mainForm.lbLanguages.onSelChange = function() {
@@ -102,6 +112,10 @@ resetContent = function() {
 	log("keyLanguage", keyLanguage)
 	var languageMap = LanguagesCFG.languageMap[keyLanguage]
 	log("keyRes", keyRes)
+	if (languageMap == null) {
+		mainForm.etLangResContent.text = ""
+		return 
+	}
 	var content = languageMap[keyRes]
 	log("languageMap", web.json.stringify(languageMap))
 	log("content", content)
@@ -118,6 +132,10 @@ mainForm.lbResKey.onSelChange = function(){
 mainForm.btnLanguageSave.oncommand = function(id,event){
 	//保存languages
 	var languages = LanguagesCFG.languages
+	if (languages == null) {
+		msgboxErr("Please load Languages.CFG first.")
+		return
+	}
 	
 	var languageItem = {"Language":"", "imageName":"", "title":"", "welcome":""}
 	languageItem.Language = keyLanguage
@@ -135,12 +153,15 @@ mainForm.btnLanguageSave.oncommand = function(id,event){
 }
 
 mainForm.btnLangResSave.oncommand = function(id,event){
+	if (stringlen(keyLanguage) <= 0) {
+		msgboxErr("Please select language first.")
+		return
+	}
 	//保存languageMap
-	var languageMap = LanguagesCFG.languageMap
-	var currentLanguageMap = languageMap[keyLanguage]
-	log("lastContent", currentLanguageMap[keyRes])
-	currentLanguageMap[keyRes] = mainForm.etLangResContent.text
-	log("currentContent", currentLanguageMap[keyRes])
+	var languageMap = LanguagesCFG.languageMap[keyLanguage]
+	log("lastContent", languageMap[keyRes])
+	languageMap[keyRes] = mainForm.etLangResContent.text
+	log("currentContent", languageMap[keyRes])
 	saveFile()
 }
 
@@ -175,17 +196,20 @@ msgbox = function(text){
 }
 
 mainForm.btnNewLanguage.oncommand = function(id,event){
-	var result = inputBox("Input " + mainForm.btnNewLanguage.text)
-	log("inputBox", "stringlen : " + stringlen(result))
-	if (result <= 0) {
-		return
-	}
-	//检查重名
+	
 	var languageMap = LanguagesCFG.languageMap
 	log("languageMap", web.json.stringify(languageMap))
 	if (languageMap == null) {
+		msgboxErr("Please load Languages.CFG first.")
 		return
-	} 
+	}
+	
+	var result = inputBox("Input " + mainForm.btnNewLanguage.text)
+	log("inputBox", "stringlen : " + stringlen(result))
+	if (stringlen(result) <= 0) {
+		return
+	}
+	//检查重名
 	for (k,v in languageMap) {
 		if (k == result) {
 			msgboxErr(result + " already exists.")
@@ -194,6 +218,27 @@ mainForm.btnNewLanguage.oncommand = function(id,event){
 	}
 	
 	languageMap[result] = {}	
+	var filePath = saveFile()
+	reloadFile(filePath)
+}
+
+mainForm.btnNewResKey.oncommand = function(id,event){
+	if (stringlen(keyLanguage) <= 0) {
+		msgboxErr("Please select language first.")
+		return 
+	}
+	var result = inputBox("Input " + mainForm.btnNewResKey.text)
+	if (stringlen(result) <= 0) {
+		return
+	}
+	//检查重名
+	if (table.find(resKeys, result)) {
+		msgboxErr(result + " already exists.")
+		return 
+	}
+	var languageMap = LanguagesCFG.languageMap[keyLanguage]
+	keyRes = result
+	languageMap[keyRes] = ""
 	var filePath = saveFile()
 	reloadFile(filePath)
 }
