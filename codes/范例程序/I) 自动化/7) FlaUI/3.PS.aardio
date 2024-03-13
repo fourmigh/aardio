@@ -1,0 +1,30 @@
+//PowerShell
+import FlaUI;
+import FlaUI.UIA3;
+
+//导入上面的 .NET 库自动支持 PowerShell，PS 里不再需要 Add-Type 导入
+var pScript = /* 
+	# 定义命名参数，参数前加$号，aardio 参数表里去掉$号
+	param($exename)  
+	
+	$app = [FlaUI.Core.Application]::Launch($exename)
+	$uia = New-Object FlaUI.UIA3.UIA3Automation
+	$mw = $app.GetMainWindow($uia)
+	Write-Host $mw.Title
+	$title = $mw.FindFirstChild($uia.ConditionFactory.ByControlType([FlaUI.Core.Definitions.ControlType]::TitleBar))
+	$buttons = $title.FindAllChildren($uia.ConditionFactory.ByControlType([FlaUI.Core.Definitions.ControlType]::Button))
+	$closeButton = $buttons[2].AsButton()
+	$closeButton.Invoke()
+	$uia.Dispose()
+	$app.Dispose()
+*/
+
+import dotNet.ps;
+var output,err = dotNet.ps(pScript,{
+	exename = "EXE 名字";
+});
+
+//打印错误信息
+import console; 
+console.log(err);
+console.pause();

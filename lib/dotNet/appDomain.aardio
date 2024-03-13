@@ -159,7 +159,14 @@ class appDomain{
 											owner[[methodName]] = asm[["import"]](typeName + "." + methodName); 
 										}
 										else {
-											owner[[methodName]] = asm[["import"]](typeName + "+" + methodName); 	
+											memberType = unwrapObject( this.utility.GetTypeByName(asm,typeName + "+" + methodName) ); 
+											if(memberType){//嵌套类
+												owner[[methodName]] = asm[["import"]](typeName + "+" + methodName); 
+												..com.Release(memberType);
+											} 	
+											else {//函数
+												return invoke(owner@._get,owner,methodName,true);
+											}
 										}
 									}
 									
@@ -205,18 +212,24 @@ class appDomain{
 					};
 					_call = function(...){ 
 						var obj,err = asm.__createInstanceTest(typeName,...);
-						if(obj) return obj;
+						if(obj) {
+							if(owner[["ctor"]]) owner[["ctor"]](obj);
+							return obj;
+						}
 						
 						if(!..string.startWith(typeName,asm.Name +".") && !(..string.indexOf(typeName,".")) ){
-							var obj,err = asm.__createInstanceTest( asm.Name +"."+ typeName,...);
+							obj,err = asm.__createInstanceTest( asm.Name +"."+ typeName,...);
 							if(obj){
 								typeName = asm.Name +"."+ typeName;
 							}
 							
-							return obj,err;
+							if(obj) {
+								if(owner[["ctor"]]) owner[["ctor"]](obj);
+								return obj;
+							}
 						}
 							
-						return null,err;
+						error(err,2);
 					}
 				} 
 				
@@ -305,21 +318,32 @@ class appDomain{
 	reference = function(path,data){
 		if(!this.delegateAssemblyResolve){
 			this[["(referencePaths)"]] = {};
+			this[["(referenceAssemblies)"]] = {};
+			
 			var match = ..string.match;
 			this.delegateAssemblyResolve = this.delegate.combine(
 				this.appDomainReal,"AssemblyResolve",function(sender,args){
 					var name = match(args.Name,"^[^,]+");
-					
 					var refs = this[["(referencePaths)"]];
 					var path = refs[name];
 					if(!path) return;
 					
-					if(type(path)=="function") {
-						path = invoke(path,refs,name,args.Name,args);
-						if(!type.isString(path)) return path;
+					var asm = this[["(referenceAssemblies)"]][name];
+					if(asm){
+						return asm;
 					}
 					
-					if(path) return this.loadFile(path); 
+					if(type(path)=="function") {
+						path = invoke(path,refs,name,args.Name,args);
+						if(!type.isString(path)) {
+							asm = path; 
+							path = null;
+						}
+					} 
+					
+					if(path) asm = this.loadFile(path);
+					this[["(referenceAssemblies)"]][name] = asm;
+					return asm;
 				} 
 			)
 		} 

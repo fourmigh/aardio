@@ -74,8 +74,7 @@ class chineseNumber{
 	import string.chineseNumber; 
 	this.dropdown.editBox.disableInputMethod();
 	this.dropdown.editBox.onChange = function(){
-		var items = {}; 
-		menu.setItemTexts(items);
+		var items = {};  
 		
 		var text = string.replace(owner.text,"[\s,\_]","");
     	var num = string.match(text,"^([+-]?0*\d+\.?\d*)$");
@@ -143,24 +142,28 @@ class chineseNumber{
     	}
      	
     	menu.setItemTexts(items);
-    	if(self.selIndex && self.selIndex<#items){
-    		menu.selIndex = self.selIndex
+    	if(!menu.isVisible()){
+    		if(self.prevSelIndex && self.prevSelIndex<=#items){
+    			menu.selIndex = self.prevSelIndex
+    		}
+    		else {
+    			menu.selIndex = 1;
+    		}	
     	}
-    	else {
-    		menu.selIndex = 1;
-    	}
+    	
     	
     	menu.popup(true) 
 	}
 	
 	import key;
 	menu.onOk = function(strip){ 
-		self.selIndex = menu.selIndex;
+		self.prevSelIndex = menu.selIndex;
 		
     	var text = strip.text;
     	this.onDestroy = function(){
     		if(this.oldFocus){
     		    ..winex.attach(this.oldFocus,true);
+    		    ..thread.delay(100);
     			..win.setFocus(this.oldFocus);
     			..winex.attach(this.oldFocus,false);
     		}
@@ -186,8 +189,9 @@ class chineseNumber{
 	
 	var scrX,scrY,scrWidth,scrHeight = ..win.getScreenPos(this.hwnd,hOwner)
 	var x,y,cx,cy = this.getPos();
-	if(y+200>scrHeight){
-		y = scrHeight -200;
+	var _,minHeight = this.dpiScale(0,200);
+	if(y + minHeight > scrHeight){
+		y = scrHeight - minHeight;
 		this.setPos(x,y);
 	}
 	
@@ -196,7 +200,7 @@ class chineseNumber{
 		this.setPos(x,y);
 	}
 	
-	this.oldFocus = rcCaret.hwnd : ..winex.getFocus(hOwner);
+	this.oldFocus = rcCaret[["hwnd"]] : ..winex.getFocus(hOwner);
 	this.show();
 	
 	..win.setTopmost(this.hwnd)

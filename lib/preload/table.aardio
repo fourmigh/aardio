@@ -316,6 +316,9 @@ namespace table{
 		if(kv) kv,get = get,kv;
 		return {@{_weak=kv:"kv";_get=get?function(k){ var v = get(k);owner[[k]]=v;return v;} }}
 	};
+	getCall = function(t,k){
+ 		return t[[k]] || invoke(t@._get,t,k,true);
+ 	};
 	
 	mixin = assign; // 废弃
 	mixr = assignDeep; // 废弃
@@ -373,7 +376,7 @@ unpackArgs(.(args) = 从索引1到最大索引返回所有元素值,包含中间
 spliceArgs(.(数组,位置,删除长度,参数表) = 类似splice函数替换数组片段,\n从索引1到最大索引取参数表所有元素插入数组指定位置,\n返回包含删除元素的数组
 spliceArgs(.(数组,位置,删除长度,参数表,开始索引,结束索引) = 类似splice函数替换数组片段,\n从开始到结束索引取出参数表元素插入数组指定位置,\n返回包含删除元素的数组
 eachArgs(.(args) = 迭代器,\n从索引1到最大索引迭代所有元素值,包含中间的null值
-shuffle(__) = 对参数中指定的数组原地打乱顺序\n返回原数组
+shuffle(__) = 对参数中指定的数组原地随机打乱排序,\n返回原数组
 map(tab,lambda) = @.map(__/*应用后面的 lambda 函数计算每个表成员的新值并返回新表,\n此函数不会修改参数中传入的表而是返回新表,\nlambda 函数的参数v为值,k为键\nnlambda 函数返回null时忽略不操作*/,lambda(v,k) v[1] )
 map(tab,function) = @.map(__/*应用后面的回调函数计算每个表成员的新值并返回新表,\n此函数不会修改参数中传入的表而是返回新表,\n回调函数的参数v为值,k为键,result为返回的表\n回调函数如果不返回值或返回null时忽略不操作\n因此可选通过result修改键值而不是返回新值*/,function(v,k,result){\n	\n})
 mapDeep(表) = @.mapDeep(__/*应用后面的回调函数计算新值并返回新表,\n此函数不会修改参数中传入的表而是返回新表,\n如果遇到成员值是一个表时,递归调用table.mapDeep函数处理成员表,\n回调函数的参数v为值,k为键,result为当前返回的表\n回调函数如果不返回值或返回null时忽略不操作\n因此可选通过result修改键值而不是返回新值*/,function(v,k,result){\n	\n})
@@ -385,4 +388,5 @@ removeByValue(.(数组,值) = 在数组中查找指定值,\n并移除第一个�
 removeByValue(.(数组,值,true) = 在数组中查找指定值并将找到的值全部移除,\n如果参数@2为 null，则使用 table.range 函数取最大索引，\n这会导致最大索引前的所有null值都作为数组元素处理，\n建议查看此函数源码以避免错误使用导致性能降低。\n\n此函数无返回值。
 clear(__) = 清空参数 @1 指定的表对象内所有键值
 flat(.(array,depth) = 展开@array 参数指定的数组中嵌套的数组并返回新数组,\n此函数不会修改传入参数而是返回新数组,\n可选用 @depth 参数指定要允许展开的嵌套深度,默认值为1
+getCall(.(object,funcName) = 如果对象实际包含 funcName 成员则直接返回。\n否则模拟 object.funcName() 格式触发 _get 元方法，获取函数对象（但不会调用该函数）。\n调用 _get 元方法时 ownerCall 参数为 true。\n\n适用于对 object.funcName() ， object["funcName"] 区分处理的对象，\n例如 .NET 对象。
 end intellisense**/

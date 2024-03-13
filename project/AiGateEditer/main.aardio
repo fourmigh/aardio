@@ -1,0 +1,96 @@
+import win.ui
+import console
+import fsys.dlg
+/*DSG{{*/
+mainForm = win.form(text="AiGateEditer V1.0";right=757;bottom=467)
+mainForm.add(
+btnLoad={cls="button";text="Load";left=637;top=101;right=733;bottom=146;z=7};
+btnSave={cls="button";text="Save";left=637;top=169;right=733;bottom=214;z=8};
+etDomainName={cls="edit";left=284;top=144;right=588;bottom=179;edge=1;multiline=1;z=6};
+groupbox={cls="groupbox";text="Lan or Cloud";left=67;top=101;right=251;bottom=216;ah=1;aw=1;cp=1;edge=1;z=2};
+rbCloud={cls="radiobutton";text="Cloud";left=87;top=162;right=147;bottom=179;z=4};
+rbLan={cls="radiobutton";text="Lan";left=87;top=125;right=134;bottom=139;z=3};
+static={cls="static";text="domain.name";left=36;top=33;right=249;bottom=89;font=LOGFONT(h=-34);transparent=1;z=1};
+static2={cls="static";text="IP or DomainName";left=284;top=101;right=401;bottom=124;transparent=1;z=5}
+)
+/*}}*/
+
+/*
+{
+    "lanOrCloud": false,
+    "domainName": "tristarai-gate.mi-office.com"
+}
+*/
+
+var filePath = ""
+var fileJson = {}
+
+msgboxErr = function(text){
+	win.msgboxErr(text, "")
+}
+
+msgbox = function(text){
+	win.msgbox(text, "")
+}
+
+log = function(tag, text) {
+	//mainForm.tvLog.text = "[" + tag + "]: " + text
+	//console.log(tag, text)
+}
+
+stringlen = function(text){
+	if (text == null) {
+		return 0
+	}
+	return string.len(text)  
+}
+
+reloadFile = function(filePath) {
+	log("filePath", filePath)
+	var content = string.load(filePath)
+	fileJson = web.json.parse(content)
+	log("fileJson", web.json.stringify(fileJson))
+	if (fileJson.lanOrCloud == true) {
+		mainForm.rbLan.checked = true
+		mainForm.rbCloud.checked = false
+	} else {
+		mainForm.rbLan.checked = false
+		mainForm.rbCloud.checked = true
+	}
+	mainForm.etDomainName.text = fileJson.domainName
+}
+
+saveFile = function() {
+	if (stringlen(filePath) <= 0) {
+		filePath = "domain.name"
+	}
+	var file = filePath + ".tmp"
+	log("saveFile", file)
+	string.save(file, web.json.stringify(fileJson))
+	return file 
+}
+
+mainForm.btnLoad.oncommand = function(id,event){
+	//读取domain.name文件
+	filePath = fsys.dlg.open()
+	reloadFile(filePath)
+}
+
+mainForm.btnSave.oncommand = function(id,event){
+	//保存domain.name文件
+	if (mainForm.rbLan.checked) {
+		fileJson.lanOrCloud = true
+	} else if (mainForm.rbCloud.checked) {
+		fileJson.lanOrCloud = false
+	}
+	fileJson.domainName = mainForm.etDomainName.text
+	if (stringlen(result) <= 0) {
+		fileJson.lanOrCloud = true
+	}
+	log("fileJson", web.json.stringify(fileJson))
+	filePath = saveFile()
+	msgbox("file saved: " + filePath)
+}
+
+mainForm.show();
+return win.loopMessage();
