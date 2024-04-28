@@ -1,0 +1,119 @@
+﻿import winex;
+import winex.key;
+import winex.mouse;
+import process.popen;
+import process.adb; 
+
+namespace process;
+
+class scrcpy{
+	ctor(){
+		this.arguments = ..process.arguments();
+		this.$shortcutMod = "LALT";
+	};
+	modKey = function(k,...){
+		if(this.hwnd){
+			if(..string.cmp(k,"SHIFT")==0){
+				k = "LSHIFT";
+			}
+			
+			if(this.$shortcutMod2){
+				..winex.key.combine(this.hwnd,this.$shortcutMod,this.$shortcutMod2,k,...)
+			}
+			else {
+				..winex.key.combine(this.hwnd,this.$shortcutMod,k,...)	
+			}
+		}	
+	};
+	open = function(){ 
+		if(!..process.adb.isConnected()){
+			if(!..process.adb.findDevice()){
+				return null,"未连接设备";
+			}
+		}
+		
+		this.arguments = ..process.arguments(this.arguments);
+		for(k,v in this.arguments){
+			if(v===true){
+				this.arguments[k] = ""
+			}
+		}
+		
+		
+		if(this.arguments.shortcutMod){
+			this.$shortcutMod = this.arguments.shortcutMod || this.arguments["--shortcut-mod"];
+			var mods = ..string.split(this.$shortcutMod,"+");
+			
+			if(#mods==2){
+				this.$shortcutMod = mods[1];
+				this.$shortcutMod2 = mods[2];
+			} 
+		}
+		 
+		var prcs,err = ..process.popen(self.path,this.arguments,{
+			showWindow = 1/*_SW_SHOWNORMAL*/;
+		}); 
+		 
+		if(prcs){  
+			this.hwnd = prcs.process.waitMainWindow();
+			 
+			if(this.hwnd){
+				..winex.attach(this.hwnd,true);
+			}
+ 
+		}
+	 
+		return prcs,err;
+	};
+	
+	
+}
+
+namespace scrcpy {
+	
+	path = ..io.appData("/aardio/std/scrcpy/20240409/scrcpy.exe",$"~\lib\process\scrcpy\.res\scrcpy.exe");
+	..io.appData("/aardio/std/scrcpy/20240409/scrcpy-server",$"~\lib\process\scrcpy\.res\scrcpy-server");
+	..io.appData("/aardio/std/scrcpy/20240409/SDL2.dll",$"~\lib\process\scrcpy\.res\SDL2.dll");
+	..io.appData("/aardio/std/scrcpy/20240409/swresample-4.dll",$"~\lib\process\scrcpy\.res\swresample-4.dll");
+	..io.appData("/aardio/std/scrcpy/20240409/libusb-1.0.dll",$"~\lib\process\scrcpy\.res\libusb-1.0.dll");
+	..io.appData("/aardio/std/scrcpy/20240409/icon.png",$"~\lib\process\scrcpy\.res\icon.png");
+	..io.appData("/aardio/std/scrcpy/20240409/avutil-58.dll",$"~\lib\process\scrcpy\.res\avutil-58.dll");
+	..io.appData("/aardio/std/scrcpy/20240409/avformat-60.dll",$"~\lib\process\scrcpy\.res\avformat-60.dll");
+	..io.appData("/aardio/std/scrcpy/20240409/avcodec-60.dll",$"~\lib\process\scrcpy\.res\avcodec-60.dll");
+	
+    help = function(){
+		..process.execute("~\lib\process\scrcpy\.res\scrcpy.exe","--help --pause-on-exit"); 
+	};
+	
+}
+
+/**details(必读)
+arguments 属性可指定的参数
+https://github.com/Genymobile/scrcpy/wiki/README.zh-Hans#%E5%8A%9F%E8%83%BD%E4%BB%8B%E7%BB%8D
+
+参数名允许使用小驼峰命名替代连字符风格，例如：
+
+```
+var srcpy = process.scrcpy();
+ 
+srcpy.arguments = {
+    shortcutMod = "lalt";
+	powerOffOnClose = true;
+}
+```
+
+modKey() 函数可用快捷键
+https://github.com/Genymobile/scrcpy/wiki/README.zh-Hans#%E5%BF%AB%E6%8D%B7%E9%94%AE
+end details**/
+
+/*****intellisense()
+process.scrcpy() = 启动 scrcpy 。\n!stdScrcpy.
+process.scrcpy.path = scrcpy.exe 路径。\nscrcpy 不支持中文目录，所以只能放 APPDATA 目录
+end intellisense*****/
+
+/*****intellisense(!stdScrcpy)
+arguments = 用于指定 scrcpy 启动参数表。\n参数表可包含参数名值对，也可以包含作为数组成员的字符串参数。\n参数名可以按 scrcpy 文档写法，\n也可以将连字符串风格参数名改为小驼峰风格命名（去掉前面的 --）
+open() = 启动进程，返回 process.popen 对象。\n!process_popen.
+modKey("__") = 发送快捷键。\n每个参数指定一个键名，第一个 MOD 键（默认为左 ALT ）不需要指定。\n例如 MOD + SHIFT + O 就写为 modKey("SHIFT","O") 就可以了
+hwnd = scrcpy 主窗口句柄，调用 open 函数后有效
+end intellisense*****/

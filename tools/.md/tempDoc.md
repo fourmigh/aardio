@@ -1,1100 +1,504 @@
-process帮助文档
+io帮助文档
 ===========================================
-
-<details>  <summary>相关范例</summary>  <p>
-范例程序 > 进程
-</p></details>
-
-
-<a id="process"></a>
-process 成员列表
+<a id="io"></a>
+io 成员列表
 -------------------------------------------------------------------------------------------------
-运行执行文件或关联文档。  
-如果省略所有参数则打开当前进程  
-失败则返回 null,错误信息,错误代码  
-成功返回进程对象
+文件、文件流相关函数库,  
+包含控制台标准输入输出流操作,  
+直接操作控制台请使用 console函数库，  
+这是自动导入的内核库,  
+[使用手册相关文档](chm://libraries/kernel/io/io.html)
 
-<h6 id="process( ,系统命令行)">process( ,系统命令行) </h6>
- 如果省略第一个参数,并仅指定命令行,则作为系统命令行启动运行
-
-<h6 id="process()">process() </h6>
- [返回对象:processObject](#processObject)
-
-<h6 id="process(执行文件,命令行参数,STARTUPINFO)">process(执行文件,命令行参数,STARTUPINFO) </h6>
- 命令行参数可以是字符串或由多个字符串组成的数组,  
-数组参数调用 process.joinArguments 合并,  
-不在双引号内、且包含空白或需要转义的参数转义处理后首尾添加双引号,  
-命令参数最大长度为 32765 个字符。  
-STARTUPINFO参数为process.STARTUPINFO 结构体,可选参数  
-如果该参数是普通table对象.将自动创建为STARTUPINFO结构体
-
-<h6 id="process(执行文件,命令行参数,更多命令行参数,...)">process(执行文件,命令行参数,更多命令行参数,...) </h6>
- 命令行参数可以是一个数组、一个或多个字符串参数,  
+<h6 id="io._exedir">io._exedir </h6>
+ 主程序所在目录,  
+返回完整长路径，不会返回8.3短路径，不会返回相对路径  
   
-数组或多个命令行参数调用 process.joinArguments 合并,  
-不在双引号内、且包含空白或需要转义的参数转义处理后首尾添加双引号,  
-命令参数最大长度为 32765 个字符
+目录路径以反斜杠结束
 
-<h6 id="process(进程ID,权限)">process(进程ID,权限) </h6>
- 打开指定ID的进程,  
-参数@2可选用一个数值指定请求的权限，  
-不指定权限时默认尝试 _PROCESS_ALL_ACCESS 权限,  
-如果失败则尝试以 _SYNCHRONIZE 权限打开进程,  
-_SYNCHRONIZE权限打开时只能使用 wait,waitOne函数,  
-非管理权限进程创建管理权限进程时只能以_SYNCHRONIZE权限打开进程
+<h6 id="io._exefile">io._exefile </h6>
+ 主程序文件名
 
-<h6 id="process(进程句柄,负责释放进程句柄)">process(进程句柄,负责释放进程句柄) </h6>
- 使用指定的进程句柄创建进程对象,  
-参数@2为可选参数,默认为true
+<h6 id="io._exepath">io._exepath </h6>
+ 主程序文件路径  
+返回完整长路径，不会返回8.3短路径，不会返回相对路径
 
-<h6 id="process.		ReadProcessMemory64">process.		ReadProcessMemory64 </h6>
- 
-    ::Ntdll.api("NtWow64ReadVirtualMemory64","int(POINTER hProcess,LONG base,struct &buf,long size,long & retSize)" )
+<h6 id="io.appData">io.appData </h6>
+ 获取  %LocalAppData% 目录下的绝对路径。  
+可选使用指定需要存入的数据
 
-<h6 id="process.	GetModuleFileNameEx">process.	GetModuleFileNameEx </h6>
- 
-    Psapi.api("GetModuleFileNameEx","INT(pointer hProcess,pointer hModule,ustring& lpFilename,INT size)" )
+<h6 id="io.appData">io.appData(path,data) </h6>
+ 将@path指定的相对路径转换为系统 %LocalAppData% 目录下的绝对路径,  
+可选使用 @data 指定需要存入的数据,  
+存入文件与目标文件长度不同或 PE 时间戳不同则允许替换旧文件,  
+指定 @data 参数后如果无法创建文件返回null,  
+最后返回转换所得的完整路径
 
-<h6 id="process.	MEMORY_BASIC_INFORMATION">process.	MEMORY_BASIC_INFORMATION </h6>
- 
-    class {
-     		addr BaseAddress;
-     		int AllocationBase;
-     		INT AllocationProtect;
-     		INT RegionSize;
-     		INT State;
-     		INT Protect;
-     		INT Type;
-    	}
+<h6 id="io.close">io.close() </h6>
+ 关闭控制台窗口。  
+程序退出也会自动关闭控制台窗口。  
+ 调用 execute("pause") 或 console.pause() 可等待用户按键以避免立即退出
 
-<h6 id="process.	THREADENTRY32">process.	THREADENTRY32 </h6>
- 
-    class {
-     	INT dwSize;
-     	INT cntUsage;
-     	INT th32ThreadID; // this thread
-     	INT th32OwnerProcessID; // Process this thread is associated with
-     	int tpBasePri;
-     	int tpDeltaPri;
-     	INT dwFlags;
-    	}
+<h6 id="io.createDir">io.createDir("/__") </h6>
+ 创建目录  
+如果有多个参数则首先用io.joinpath拼接  
+如果父目录尚未创建将自动创建  
+成功返回完整路径,失败返回空值
 
-<h6 id="process.::Advapi32 :">process.::Advapi32 : </h6>
- 
-    ..raw.loadDll("Advapi32.dll")
+<h6 id="io.curDir">io.curDir </h6>
+ 获取或修改当前目录
 
-<h6 id="process.CreateProcess">process.CreateProcess </h6>
- 
-    ::Kernel32.api("CreateProcess","int(ustring app, ustring &cmd, pointer processAttributes,pointer threadAttributes, bool inheritHandles, INT creationFlags,ustring environment, ustring lpCurrentDirectory, struct lpStartupInfo, struct& lpProcessInformation )");
+<h6 id="io.curDir">io.curDir() </h6>
+ 无参数获取当前目录
 
-<h6 id="process.CreateProcessWithLogonW">process.CreateProcessWithLogonW </h6>
- 
-    ::Advapi32.api("CreateProcessWithLogonW","int(ustring user,ustring domain,ustring pwd,INT flags,ustring app, ustring &cmd, INT creationFlags,ustring environment, ustring lpCurrentDirectory, struct lpStartupInfo, struct& lpProcessInformation )");
+<h6 id="io.curDir">io.curDir(dir) </h6>
+ 将 @dir 参数指定的目录路径转换为完整路径并设为当前目录  
+成功返回 true
 
-<h6 id="process.FindExecutable">process.FindExecutable </h6>
- 
-    ::Shell32.api("FindExecutable","int(ustring file,ustring directory,ustring &result)")
-
-<h6 id="process.GetExitCodeProcess">process.GetExitCodeProcess </h6>
- 
-    ::Kernel32.api("GetExitCodeProcess","bool(POINTER hProcess,INT &code)");
-
-<h6 id="process.GetPriorityClass">process.GetPriorityClass </h6>
- 
-    ::Kernel32.api("GetPriorityClass","INT(POINTER hProcess");
-
-<h6 id="process.IsWow64Process">process.IsWow64Process </h6>
- 
-    ::Kernel32.api( "IsWow64Process", "bool(pointer hProcess,bool &Wow64Process)");
-
-<h6 id="process.OpenProcess">process.OpenProcess </h6>
- 
-    ::Kernel32.api("OpenProcess","pointer(INT desiredAccess,bool inherit,INT pid)")
-
-<h6 id="process.PROCESS_INFORMATION">process.PROCESS_INFORMATION </h6>
- 
-    class {
-     		pointer hProcess;
-     		pointer hThread;
-     		INT dwProcessId;
-     		INT dwThreadId;
-    	}
-
-<h6 id="process.ReadProcessMemory">process.ReadProcessMemory </h6>
- 
-    ::Kernel32.api("ReadProcessMemory","int(POINTER hProcess,addr base,struct &buf,INT size,INT & retSize)" )
-
-<h6 id="process.ReadProcessMemoryByString">process.ReadProcessMemoryByString </h6>
- 
-    ::Kernel32.api("ReadProcessMemory","int(POINTER hProcess,addr base,string &buf,INT size,INT & retSize)" )
-
-<h6 id="process.ReadProcessMemoryByString64">process.ReadProcessMemoryByString64 </h6>
- 
-    ::Ntdll.api("NtWow64ReadVirtualMemory64","int(POINTER hProcess,LONG base,string &buf,long size,long & retSize)" )
-
-<h6 id="process.STARTUPINFO">process.STARTUPINFO </h6>
- 
-    class {
-     		INT cb = 68;
-     		ustring reserved;
-     		ustring desktop;
-     		ustring title;
-     		INT x;
-     		INT y;
-     		INT xSize;
-     		INT ySize;
-     		INT xCountChars;
-     		INT yCountChars;
-     		INT fillAttribute;
-     		INT flags;
-     		WORD showWindow;
-     		WORD cbReserved2;
-     		ustring lpReserved2;
-     		pointer stdInput;
-     		pointer stdOutput;
-     		pointer stdError; 
-     		creationFlag = 0;
-     		inheritHandles;
-    	};
-
-<h6 id="process.STARTUPINFO">process.STARTUPINFO() </h6>
- 创建进程启动参数  
+<h6 id="io.exist">io.exist </h6>
+ 判断文件路径是否存在，  
+也可以用于判断文件是否可读写。  
   
-[返回对象:startinfoObject](#startinfoObject)
+包含不可见字符的错误路径可用「工具>文本文件>十六进制编辑器」  
+或 string.hex 函数查看
 
-<h6 id="process.SetPriorityClass">process.SetPriorityClass </h6>
- 
-    ::Kernel32.api("SetPriorityClass","bool(POINTER hProcess,INT priorityClass)");
+<h6 id="io.exist">io.exist("文件路径") </h6>
+ 判断文件路径是否存在  
+存在则转换为绝对路径并返回该路径,不存在返回null  
+参数@1不是有效字符串返回null
 
-<h6 id="process.SetProcessAffinityMask">process.SetProcessAffinityMask </h6>
- 
-    ::Kernel32.api("SetProcessAffinityMask","INT(pointer hProcess,INT dwProcessAffinityMask)" )
+<h6 id="io.exist">io.exist("文件路径",2) </h6>
+ 测试文件是否可写  
+成功则转换为绝对路径并返回该路径,失败返回null  
+目录或只读文件直接返回null  
+参数@1不是有效字符串返回null
 
-<h6 id="process.TerminateProcess">process.TerminateProcess </h6>
- 
-    ::Kernel32.api("TerminateProcess","int(pointer hProcess,INT exitCode)")
+<h6 id="io.exist">io.exist("文件路径",4) </h6>
+ 测试文件是否可读  
+成功则转换为绝对路径并返回该路径,失败返回null  
+目录返回null  
+参数@1不是有效字符串返回null
 
-<h6 id="process.Thread32First">process.Thread32First </h6>
- 
-    ::Kernel32.api("Thread32First","int(pointer hsnap,struct& lppe)")
+<h6 id="io.exist">io.exist("文件路径",6) </h6>
+ 判断文件是否可读写  
+成功则转换为绝对路径并返回该路径,失败返回null  
+目录返回null  
+参数@1不是有效字符串返回null
 
-<h6 id="process.Thread32Next">process.Thread32Next </h6>
- 
-    ::Kernel32.api("Thread32Next","int(pointer hsnap,struct& lppe)")
-
-<h6 id="process.VirtualAllocEx">process.VirtualAllocEx </h6>
- 
-    ::Kernel32.api("VirtualAllocEx","addr(POINTER hProcess ,addr addr,int dwSize,int flAllocationType,int flProtect)")
-
-<h6 id="process.VirtualFreeEx">process.VirtualFreeEx </h6>
- 
-    ::Kernel32.api("VirtualFreeEx","int(POINTER hProcess,addr addr,int dwSize,int dwFreeType)")
-
-<h6 id="process.VirtualProtectEx">process.VirtualProtectEx </h6>
- 
-    ::Kernel32.api("VirtualProtectEx","bool(POINTER hProcess,addr addr, INT dwSize, INT flNewProtect, INT &lpflOldProtect )");
-
-<h6 id="process.VirtualQueryEx">process.VirtualQueryEx </h6>
- 
-    ::Kernel32.api("VirtualQueryEx","INT(pointer hProcess,addr addr,struct& buf,INT dwLength)" )
-
-<h6 id="process.WaitForInputIdle">process.WaitForInputIdle </h6>
- 
-    ::User32.api("WaitForInputIdle","INT(pointer hProcess,INT dwMilliseconds)");
-
-<h6 id="process.WriteProcessMemory">process.WriteProcessMemory </h6>
- 
-    ::Kernel32.api("WriteProcessMemory","int(POINTER hProcess,addr base,struct buf,INT size,INT & retSize)" )
-
-<h6 id="process.WriteProcessMemory64">process.WriteProcessMemory64 </h6>
- 
-    ::Ntdll.api("NtWow64WriteVirtualMemory64","int(POINTER hProcess,LONG base,struct buf,long size,long & retSize)" )
-
-<h6 id="process.WriteProcessMemoryByString">process.WriteProcessMemoryByString </h6>
- 
-    ::Kernel32.api("WriteProcessMemory","int(POINTER hProcess,addr base,string buf,INT size,INT & retSize)" )
-
-<h6 id="process.WriteProcessMemoryByString64">process.WriteProcessMemoryByString64 </h6>
- 
-    ::Ntdll.api("NtWow64WriteVirtualMemory64","int(POINTER hProcess,LONG base,string buf,long size,long & retSize)" )
-
-<h6 id="process.arguments">process.arguments() </h6>
- 返回一个命令行参数表对象。  
-或将参数指定的表（只能是未指定元表的纯表）转换为命令行参数表对象。  
-此参数表可用于指定 process 库所有启动进程函数的命令行参数。  
-表中无 / 或 - 前导字符的参数名将由小驼峰转换为连字符风格并加上 -- 前缀。  
-名值对参数将用空格分开参数名与参数值。  
-注意 -- 前缀的参数用等号和空格分隔参数值通常是等价的。  
-参数表的其他数组成员也会直接转换为命令行参数
-
-<h6 id="process.dup">process.dup(句柄,,目标进程句柄) </h6>
- 复制句柄到目标进程句柄
-
-<h6 id="process.dup">process.dup(句柄,源进程句柄) </h6>
- 从指定进程复制句柄到当前进程
-
-<h6 id="process.dup">process.dup(句柄,源进程句柄,目标进程句柄) </h6>
- 进程句柄参数省略则为当前进程句柄  
-函数支持更多可选参数如下:  
-(句柄,源进程,目标进程,是否可继承,选项,安全访问级别)  
-默认可继承,选项默认为_DUPLICATE_CLOSE_SOURCE | _DUPLICATE_SAME_ACCESS  
-如果不指定最后一个参数
-
-<h6 id="process.each">process.each </h6>
- 
-    for processEntry in process.each( ".*.exe" ) {   
-    //遍历所有进程  
-    	//io.print( processEntry.szExeFile  )  
-       
-    }
-
-<h6 id="process.eachModule">process.eachModule </h6>
- 
-    for moduleEntry in process.eachModule(/*进程ID*/) {   
-    //io.print( moduleEntry.szExePath  )  
-       
-    }
-
-<h6 id="process.eachThread">process.eachThread </h6>
- 
-    for threadEntry in process.eachThread(/*进程ID*/) {   
-    //io.print( threadEntry.th32ThreadID  )  
-       
-    }
-
-<h6 id="process.emptyWorkingSet">process.emptyWorkingSet() </h6>
- 将工作集中的内存尽可能移动到页面文件中,  
-应发在最小化或程序空闲内存确实暂不需要使用时调用,  
-不应频繁调用此函数
-
-<h6 id="process.environment">process.environment() </h6>
- 返回当前进程的所有环境变量组成的字符串  
-键与值之间使用等号分隔,每个键值对中间以'\0'分隔  
-尾部没有'\0'
-
-<h6 id="process.escapeArgument">process.escapeArgument("命令行参数") </h6>
- 转义命令行参数  
-关于命令行参数转义规则,请参考 string.cmdline 的说明
-
-<h6 id="process.execute">process.execute </h6>
- 运行exe应用程序,成功返回进程ID,  
-参数详细用法请参考本函数源码以及 WINAPI 中 ShellExecuteEx 函数用法  
-运行 UWP 应用请使用 com.shell.activateApp 函数  
+<h6 id="io.fullpath">io.fullpath("__") </h6>
+ 将相对路径转换为绝对路径，转换规则如下:  
   
-raw.execute 提供了与本函数类似的功能
-
-<h6 id="process.execute">process.execute("__", parameters="",operation="open",showCmd,workDir,hwnd) </h6>
- 参数 @1 为程序路径或系统命令。  
+如果路径以 \\ 开始，不作转换直接返回，路径前加 \\?\ 可避免转换并支持畸形路径，  
+如果路径以 // 开始，移除第一个斜杠后返回，不作其他转换，用于表示分区根目录,  
+如果以单个 \  / 字符开始，作为应用程序根目录下的相对路径转换并返回完整路径,  
+如果路径以 ~ 开始,作为当前运行的EXE根目录下的相对路径转换并返回完整路径,  
+其他路径按系统规则转换为完整路径,  
+传入空字符串或空值返回 null  
   
-可选参数 @parameters 可以是字符串或字符串数组，用于指定启动参数。  
-如果指定数组则由 process.joinArguments 自动处理转义并支持命名参数。  
-如果启动参数只指定一个文件路径，为避免可能包含空格或以反斜杆结尾等需要转义的情况，  
-建议写为 process.execute(exePath,{path}) 这种格式，让 aardio 自动处理转义。  
+注意相对路径 ".\" 易被改变，例如打开文件对话框可能改变相对路径。  
+而 aardio 提供的应用程序根目录表示确定的位置。
+
+<h6 id="io.getSize">io.getSize(__) </h6>
+ 获取参数@1指定路径的文件字节长度,  
+返回数值
+
+<h6 id="io.getSpecial">io.getSpecial(_CSIDL__) </h6>
+ 获取特殊文件夹,  
+参数@1使用 _CSIDL 开头的常量指定特殊文件夹的 CSIDL,  
+不指定参数@1则默认值为 _CSIDL_DESKTOP,  
+可选增加任意个拼接到目录后的子路径参数  
+这个函数与fsys.getSpecial函数用法接近,  
+但支持不定个数子路径参数, 不支持返回PIDL  
   
-可选参数 @operation 为启动模式  
-可选参数 @showCmd 使用 _SW_ 前缀常量，与win.show参数用法相同。  
-可选参数 @workdir 为工作目录  
-可选参数 @hwnd 可指定父窗口句柄
+fsys.knownFolder 可用于获取更多已知的特殊文件夹
 
-<h6 id="process.executeEx">process.executeEx("__", parameters="",operation="open",showCmd,workDir,hwnd,fmask) </h6>
- 运行 EXE 应用程序,返回 SHELLEXECUTEINFO 结构体,  
-参数 @1 指定要运行的执行程序路径,  
-参数 @2 可用一个字符串或字符串数组指定启动参数。  
-所有参数用法与 process.execute 函数相同。  
-关于 @fmask 详细用法请参考本函数源码（一般用不到）。  
-除参数 @1 以外所有参数可选
+<h6 id="io.getText">io.getText(__/*可选指定缓冲区大小*/) </h6>
+ 读取控制台文本  
+不包含尾部的回车换行,  
+相比使用io.stdin.read函数,io.getText 可更好的支持 Unicode 字符
 
-<h6 id="process.executeInvoke">process.executeInvoke(path, parameters,operation,showCmd,workDir,hwnd) </h6>
- 创建临时的后台线程运行应用程序  
-在打开程序前退出主线程可能无法执行操作,  
-参数与 process.execute 函数用法一样,除指定参数@1或参数@2,其他所有参数可选
+<h6 id="io.joinpath">io.joinpath(__,) </h6>
+ 用于拼接多个路径  
+该函数可以避免子目录首尾连接缺少、或多出反斜杠  
+此函数首先会将斜杆自动转换为反斜杆,  
+如果连接的非空路径之间没有至少一个反斜杆,则添加反斜杆,  
+如果连接处出现重复的反斜杆，则去掉其中一个,  
+也可指定一个目录,再指定需要按上述规则追加的反斜杠参数
 
-<h6 id="process.executeWait">process.executeWait("__", parameters="",operation="open",showCmd,workDir=",hwnd=0) </h6>
- 运行exe应用程序  
-并等待应用程序关闭  
-除参数@1以外所有参数可选，所有参数用法与 process.execute 相同
+<h6 id="io.libpath">io.libpath("__") </h6>
+ 将库路径转换为文件路径;  
+如果库存在则返回 2 个值:库文件路径,库文件所在目录  
+否则库路径返回null空值,按用户库合法格式返回目录路径,  
+返回的库目录路径以反斜杠结束.
 
-<h6 id="process.executeWaitInput">process.executeWaitInput("__", parameters="",operation="open",showCmd,workDir=",hwnd=0) </h6>
- 运行exe应用程序  
-并等待进程初始化完成并接受输入  
-除参数@1以外所有参数可，所有参数用法与 process.execute 相同
+<h6 id="io.lines">io.lines </h6>
+ 创建用于for in语句的迭代器,逐行读取文件,  
+按行拆分普通字符串请使用 string.lines 函数
 
-<h6 id="process.explore">process.explore("__/*目录路径*/") </h6>
- 使用资源管理器打开目录  
-打开WIN10应用这样写:process.explore("shell:appsFolder\appPath")  
-使用 com.shell.eachApp 可列出WIN10所有appPath
+<h6 id="io.lines">io.lines() </h6>
+ 无参数时逐行读取标准输入（控制台输入）
 
-<h6 id="process.exploreSelect">process.exploreSelect("__/*文件路径*/") </h6>
- 打开资源管理器,选定该文件
-
-<h6 id="process.find">process.find("__/*exe 文件名*/") </h6>
- 查找进程并返回进程对象,  
-参数@1指定要查找的进程启动文件名,注意应指定文件名而非文件路径,  
-文件名参数支持模式匹配语法,忽略大小写,
-
-<h6 id="process.find">process.find() </h6>
- [返回对象:processObject](#processObject)
-
-<h6 id="process.findExe">process.findExe("__/*文件路径*/") </h6>
- 查找文件关联的可执行程序
-
-<h6 id="process.findId">process.findId("__/*exe 文件名*/") </h6>
- 查找进程并返回进程 ID,  
-参数@1指定要查找的进程启动文件名,注意应指定文件名而非文件路径,  
-文件名参数支持模式匹配语法,忽略大小写
-
-<h6 id="process.firstThreadId">process.firstThreadId(__/*进程ID*/) </h6>
- 返回进程的首个线程 ID
-
-<h6 id="process.getHandle">process.getHandle() </h6>
- 获取当前进程伪句柄
-
-<h6 id="process.getId">process.getId() </h6>
- 获取当前进程 ID
-
-<h6 id="process.getInfo">process.getInfo </h6>
- 获取进程信息
-
-<h6 id="process.getInfo">process.getInfo() </h6>
- [返回对象:ProcessInfoObject](#ProcessInfoObject)
-
-<h6 id="process.getInfo">process.getInfo(handle) </h6>
- 获取进程信息，参数 @1 指定进程句柄
-
-<h6 id="process.getInfo">process.getInfo(handle,infoClass,infoStruct) </h6>
- 参数 @1 指定进程句柄。  
-如果参数 infoClass 指定非 null 数值，  
-并且 infoStruct 指定结构体。  
-在 Win8 以及之后系统获取信息到该结构体。  
-成功返回原结构体
-
-<h6 id="process.getParent">process.getParent() </h6>
- 获取父进程对象  
+<h6 id="io.lines">io.lines(文件对象） </h6>
+ 创建用于for in语句的迭代器,逐行读取文件,  
+参数请指定一个用io.open打开的文件流对象.  
   
-[返回对象:processObject](#processObject)
-
-<h6 id="process.getParentId">process.getParentId() </h6>
- 获取父进程 ID
-
-<h6 id="process.getPath">process.getPath(__/*进程ID*/) </h6>
- 返回执行程序文件完整路径
-
-<h6 id="process.is">process.is(__) </h6>
- 传入参数是否 process 对象
-
-<h6 id="process.isExe">process.isExe("__/*文件路径*/") </h6>
- 检测目标文件是否可执行文件  
-如果是可执行文件返回"PE32"或"PE64"  
-第二个返回值为子系统,GUI为2,CUI为3  
-失败或参数为 null 返回 null
-
-<h6 id="process.joinArguments">process.joinArguments(参数表) </h6>
- 参数可以是一个数组或多个非 null 参数,  
-调用 tostring 转换参数项为字符串,合并为单个命令行参数并返回,  
-不在双引号内、且包含空白字符或 ^ | & 等字符 的参数转义处理后首尾添加双引号  
+以文本模式打开文件,返回文本不含换行,  
+二进制模式仅移除换行分隔符,遇'\0'会丢弃后续字符.  
   
-如果参数是一个表，  
-则表中以键名以 - 或 / 开头的键值对自动合并为命令行参数，  
-键值对参数总是置于数组参数之前
+不负责关闭参数传入的文件对象
 
-<h6 id="process.kill">process.kill </h6>
- 查找并关闭进程,  
-注意有些进程需要管理权限才能找到,  
-例如资源管理器进程 "explorer.exe" 无管理权限有时会失败,  
-在代码第一行添加//RUNAS//可申请管理权限
-
-<h6 id="process.kill">process.kill(exePath,restart) </h6>
- 查找所有同名 exe 文件的进程，并关闭进程。  
-参数 @exePath 支持模式匹配语法,忽略大小写。  
-返回进程的完整路径。  
+<h6 id="io.lines">io.lines(文件路径） </h6>
+ 创建用于for in语句的迭代器,逐行读取文件  
+以文本模式打开文件,输入转换为单换行，输出转换为回车换行  
+遇到'\x1A（CTRL+Z）、'\0'等终止输入  
+返回的文本不包含换行  
   
-如果 @restart 参数为 true，  
-则杀进程成功后立即重新启动该进程
+循环结束立即关闭此函数打开的文件对象。  
+但是：如果使用 break,return 等语句中断循环，  
+则打开的文件对象可能不会立即关闭（稍后内存回收后关闭）。  
+改为传入文件对象作为参数，可自行控制何时关闭文件
 
-<h6 id="process.kill">process.kill(pid) </h6>
- 使用参数@pid指定进程ID,关闭该进程
-
-<h6 id="process.openUrl">process.openUrl(__) </h6>
- 调用默认浏览器打开网址,用于窗口程序,  
-如果不用这个方法创建线程去打开网址,可能会出现界面卡顿不流畅的现象,  
-在打开网址前退出主线程可能无法执行操作  
-控制台程序应调用 process.execute 以避免后台线程不能阻止控制台关闭
-
-<h6 id="process.regAs">process.regAs(`__/*命令参数*/`) </h6>
- 以管理权限执行 reg 命令
-
-<h6 id="process.shell">process.shell </h6>
- 运行exe应用程序,返回进程对象
-
-<h6 id="process.shell">process.shell("__", parameters="",operation="open",showCmd,workDir,hwnd,fmask) </h6>
- 参数 @1 指定要运行的执行程序路径,  
-参数 @2 可用一个字符串或字符串数组指定启动参数,  
-所有参数用法与 process.execute 函数相同。  
-关于 @fmask 详细用法请参考本函数源码（一般用不到）。  
-除参数 @1 以外所有参数可选
-
-<h6 id="process.shell">process.shell() </h6>
- [返回对象:processObject](#processObject)
-
-<h6 id="process.shellAs">process.shellAs </h6>
- 以管理权限运行 EXE 应用程序,返回进程对象
-
-<h6 id="process.shellAs">process.shellAs("__", parameters="",showCmd,workDir,hwnd,fmask) </h6>
- 参数 @1 指定要运行的执行程序路径,  
-参数 @2 可用一个字符串或字符串数组指定启动参数。  
-所有参数用法与 process.execute 函数相同。  
-关于 @fmask 详细用法请参考本函数源码（一般用不到）。  
-除参数 @1 以外所有参数可选
-
-<h6 id="process.shellAs">process.shellAs() </h6>
- [返回对象:processObject](#processObject)
-
-<h6 id="process.workDir">process.workDir </h6>
- 创建进程默认工作目录，  
-默认值为"/"，也即应用程序根目录。  
+<h6 id="io.localpath">io.localpath("__") </h6>
+ 如果路径使用了aardio专用格式转换为系统支持的完整路径,  
+否则返回空值，转换规则如下：  
   
-启动程序路径可直接访问时默认工作目录为应用程序所在目录，  
-反之启动程序路径传入 io.exist 返回 false 则默认工作目录为 process.workDir，  
-一般不建议改变默认工作目录，  
-更好的选择是在创建进程的选项参数中指定 workDir
+如果路径以 \\ 开始,不作转换,返回 null 空值,  
+如果路径以 // 开始，移除第一个斜杠后返回，不作其他转换，用于表示分区根目录,  
+如果以单个 \  / 字符开始，作为应用程序根目录下的相对路径转换并返回完整路径,  
+如果路径以 ~ 开始,作为当前运行的EXE根目录下的相对路径转换并返回完整路径,  
+其他格式路径不作转换返 null 空值
 
-<a id="processObject"></a>
-processObject 成员列表
+<h6 id="io.open">io.open </h6>
+ 打开文件,成功返回文件对象,  
+失败返回 null,错误信息,错误代码。  
+  
+此函数创建的文件对象也支持在API调用时  
+自动转换为系统文件句柄并返回一个指针
+
+<h6 id="io.open">io.open("/文件路径","读写模式",共享模式) </h6>
+ 参数@1指定路径,  
+路径首字符可用斜杠表示应用程序根目录，用~加斜杠表示EXE根目录。  
+如果~\或~/开头的EXE根目录路径不存在，自动转换为应用程序根目录下的路径重试。  
+  
+参数@2指定打开文件的读写模式，支持以下选项:  
+w+ 可读写模式，创建新文件清空源文件  
+w 只写模式，清空原文件  
+r+ 可读写模式，文件必须存在,不清空文件内容  
+r 只读模式,文件必须存在  
+a+ 可读写追加模式，可打开原文件移动指针到文件尾，也可创建新文件  
+a 只写追加模式，可打开原文件移动指针到文件尾，也可创建新文件  
+b二进制模式，不转换回车换行  
+t文本模式，输入使用单换行,输出使用回车换行,遇到'\x1A'（CTRL+Z）、'\0'字符终止输入  
+R 随机优化 S 连续优化  
+D 创建临时文件,关闭对象后删除文件  
+注意: r,w,a只能且必须选择其中一个作为读写模式的第一个字符  
+  
+参数@3 可选以 _SH_前缀常量指定共享模式
+
+<h6 id="io.open">io.open() </h6>
+ 第一个参数为空时打开控制台窗口,  
+可选使用第二个参数指定控制台标题  
+  
+此函数不会重定向 msvcrt.dll 定义的 stdin,stdout,stderr 到控制台，  
+改用 console.open 函数打开控制台可支持该功能
+
+[返回对象:fileObject](#fileObject)
+
+<h6 id="io.open">io.open(系统文件句柄,读写模式) </h6>
+ 系统文件句柄转换为文件对象  
+读写模式为字符串,同样使用"r","w","b"等标记  
+必须与原来的文件句柄使用相同的模式
+
+<h6 id="io.popen">io.popen() </h6>
+ [返回对象:fileObject](#fileObject)
+
+<h6 id="io.popen">io.popen(命令行,读写模式) </h6>
+ 执行参数 @1 指定的命令，成功返回进程管道对象。  
+失败返回 null,错误信息,错误代码。  
+  
+参数 @1 如果为完整路径且包含空格，应在首尾加上双引号。  
+读写模式为 "r" ( 或省略 )返回绑定目标进程输入流的管道对象，  
+读写模式为 "w" 返回绑定绑定目标进程输出流的管道对象。  
+  
+此函数不隐藏目标程序控制台，建议提前打开控制台。  
+建议改用更强大的 process.popen（支持隐藏控制台）
+
+<h6 id="io.print">io.print( __ , ... ) </h6>
+ 在控制台窗口以字符串形式输出变量的值
+
+<h6 id="io.print">io.print(."__") </h6>
+ 在控制台窗口输出信息
+
+<h6 id="io.remove">io.remove("__") </h6>
+ 删除参数@1指定路径的文件，在路径前加上 \\?\ 可支持畸形路径。  
+成功返回 true，失败返回 null，错误信息，错误代码 。  
+  
+此函数仅用于删除文件，  
+删除目录请改用 fsys.delete、fsys.deleteEx 或 fsys.remove 函数。
+
+<h6 id="io.rename">io.rename("__","") </h6>
+ 重命名  
+成功返回true,失败返回null
+
+重命名  
+成功返回true,失败返回 null，错误信息，错误代码
+
+<h6 id="io.specialData">io.specialData(path,data,csidl) </h6>
+ 将 @path 指定的相对路径转换为特殊文件夹下的绝对路径,  
+可选使用 @data 指定需要存入的数据,  
+存入文件与目标文件长度不同或 PE 时间戳不同则允许替换旧文件,  
+指定 @data 参数后如果无法创建文件返回null,  
+参数@csidl 使用 _CSIDL 开头的常量指定特殊文件夹的 CSIDL,  
+不指定@csidl 则默认值为 _CSIDL_DESKTOP,  
+最后返回转换所得的完整路径
+
+<h6 id="io.splitpath">io.splitpath() </h6>
+ [返回对象:ioSplitFileInfoObject](#ioSplitFileInfoObject)
+
+<h6 id="io.splitpath">io.splitpath(__) </h6>
+ 拆分文件路径为目录、文件名、后缀名、分区号等，  
+返回 io.pathInfo 对象，  
+返回对象可修改drive,path,name,ext等字段，  
+并可作为 tostring 函数的参数重新合成为文件路径
+
+<h6 id="io.stderr">io.stderr </h6>
+ 标准错误输出,  
+在二进制模式下不做任何转换,  
+但在文本模式下始终以 Unicode 编码输出文本,  
+  
+[返回对象:fileObject](#fileObject)
+
+<h6 id="io.stdin">io.stdin </h6>
+ 标准输入,  
+在二进制模式下不做任何转换,  
+但在文本模式下始终以 Unicode 编码读取返回UTF-8编码文本,  
+  
+自控制台读取字符时,使用io.getText可以更好的支持Unicode字符  
+  
+[返回对象:fileObject](#fileObject)
+
+<h6 id="io.stdout">io.stdout </h6>
+ 标准输出,  
+在二进制模式下不做任何转换,  
+但在文本模式下始终以 Unicode 编码输出文本,  
+  
+[返回对象:fileObject](#fileObject)
+
+<h6 id="io.tmpname">io.tmpname </h6>
+ 生成系统临时文件目录下的临时文件路径
+
+<h6 id="io.tmpname">io.tmpname(prefix,ext) </h6>
+ 生成临时文件路径，  
+可选用 @prefix 参数指定前缀名，  
+可选用 @ext 参数指定后缀名，后缀名应包含点
+
+<h6 id="io.updateData">io.updateData </h6>
+ 更新指定文件的数据
+
+<h6 id="io.updateData">io.updateData(data,path,...) </h6>
+ 更新指定 @path 指定路径的文件为 @data 指定的数据。  
+如果添加更多参数，则首先调用 io.joinpath 拼接到 @path 后面。  
+存入文件与目标文件长度不同或 PE 时间戳不同则允许替换旧文件。  
+替换失败返回 null，否则返回文件路径
+
+<h6 id="io.utf8">io.utf8 </h6>
+ 设为true允许控制台启用UTF8模式  
+所有线程设置必须相同,否则会导致重新打开控制台,  
+WIN10 以上系统默认值为 true  
+在 WIN10 以下的系统不建议设为 true,  
+console 标准库始终使用 unicode 输出文本  
+io.stdin,io.stdout,io.stderr 在默认的非二进制模式也使用 unicode 编码
+
+<a id="fileObject"></a>
+fileObject 成员列表
 -------------------------------------------------------------------------------------------------
 
-<h6 id="processObject.asm">processObject.asm(机器码数组,函数原型,调用约定) </h6>
- 使用table数组指定任意个机器码参数,使用分号隔开,  
-机器码可以是字符串,结构体,数值或指针,  
-函数原型可省略,调用约定默认为"cdecl"
+<h6 id="fileObject.close">fileObject.close() </h6>
+ 关闭文件流
 
-<h6 id="processObject.asmCdecl">processObject.asmCdecl(函数原型,任意多个机器码参数) </h6>
- 写入机器码返回函数对象  
-请参考:aardio工具->其他编译器->INTEL汇编语言->汇编转机器码
+<h6 id="fileObject.flush">fileObject.flush() </h6>
+ 输出缓冲区数据  
+成功返回 true，失败返回 null,错误信息,错误代码
 
-<h6 id="processObject.asmStdcall">processObject.asmStdcall(函数原型,任意多个机器码参数) </h6>
- 写入机器码返回函数对象  
-请参考:aardio工具->其他编译器->INTEL汇编语言->汇编转机器码
-
-<h6 id="processObject.asmThiscall">processObject.asmThiscall(函数原型,任意多个机器码参数) </h6>
- 写入机器码返回函数对象  
-请参考:aardio工具->其他编译器->INTEL汇编语言->汇编转机器码
-
-<h6 id="processObject.assignToJobObject">processObject.assignToJobObject(process.job.limitKill) </h6>
- 绑定到作业对象,成功返回 true  
-作业对象示例请参考标准库 process.job.limitKill 的源码。  
-也可直接调用 killOnExit 函数绑定 process.job.limitKill
-
-<h6 id="processObject.closeMainWindow">processObject.closeMainWindow() </h6>
- 关闭进程的主窗口，忽略隐藏窗口
-
-<h6 id="processObject.ctrlEvent">processObject.ctrlEvent(0) </h6>
- 发送Ctrl+C(SIGINT信号)  
-信号将传递到与目标进程控制台连接的所有非分离控制台进程  
-64位目标进程会导致当前控制台暂时关闭
-
-<h6 id="processObject.ctrlEvent">processObject.ctrlEvent(1) </h6>
- 发送Ctrl+Break(SIGBREAK信号)  
-信号将传递到与目标进程控制台连接的所有非分离控制台进程  
-64位目标进程会导致当前控制台暂时关闭
-
-<h6 id="processObject.eachModule">processObject.eachModule </h6>
- 
-    for moduleEntry in processObject.eachModule() {   
-    //io.print( moduleEntry.szExePath  )  
-       
-    }
-
-<h6 id="processObject.eachQuery">processObject.eachQuery(开始地址,结束地址,搜索数据,保护类型,访问类型) </h6>
- 
-    for( addr,len,str,i,j,pattern,protect,mtype  
-    	in processObject.eachQuery(  , ,"/*搜索模式*/" ) ){  
-    	  
-    }
-
-<h6 id="processObject.eachThread">processObject.eachThread </h6>
- 
-    for threadEntry in processObject.eachThread() {   
-    //io.print( threadEntry.th32ThreadID  )  
-       
-    }
-
-<h6 id="processObject.emptyWorkingSet">processObject.emptyWorkingSet() </h6>
- 将工作集中的内存尽可能移动到页面文件中,  
-应发在最小化或程序空闲内存确实暂不需要使用时调用,  
-不应频繁调用此函数
-
-<h6 id="processObject.free">processObject.free() </h6>
- 释放进程对象。  
-不是关闭进程,仅仅是释放对进程的控制句柄。
-
-<h6 id="processObject.getExitCode">processObject.getExitCode() </h6>
- 该函数调用成功有两个返回值:进程退出代码,进程是否已退出
-
-<h6 id="processObject.getInfo">processObject.getInfo </h6>
- 获取进程信息
-
-<h6 id="processObject.getInfo">processObject.getInfo() </h6>
- 获取进程信息
-
-[返回对象:ProcessInfoObject](#ProcessInfoObject)
-
-<h6 id="processObject.getInfo">processObject.getInfo(infoClass,infoStruct) </h6>
- 如果参数 infoClass 指定非 null 数值，  
-并且 infoStruct 指定结构体。  
-在 Win8 以及之后系统获取信息到该结构体。  
-成功返回原结构体。  
+<h6 id="fileObject.mode">fileObject.mode() </h6>
+ 不指定参数时返回表示文件读写模式的数值，  
+对于标准输入输出流,aardio在二进制模式不转换编码,在文本模式负责自动转换编码  
   
-此用法内部调用 ::Kernel32.GetProcessInformation  
-细节请参考该 API 文档
+普通文件对象 aardio 以 UTF8 编码或二进制模式读写,  
+不会自动转换文本编码。
 
-<h6 id="processObject.getMainWindow">processObject.getMainWindow() </h6>
- 返回进程的主窗口以及窗口进程ID，找不到则搜寻子进程主窗口。  
-查找时忽略隐藏窗口。  
+<h6 id="fileObject.mode">fileObject.mode(mode) </h6>
+ 修改文件模式  
+参数可设为二进制模式 _O_BINARY 或 文本模式 _O_TEXT,  
   
-也可以调用 winex.mainWindows 获取主窗口。  
-winex.mainWindows 查找规则略有不同，请参考源码
+其他_O_WTEXT,_O_U16TEXT,_O_U8TEXT要求UTF-16读写，  
+用于多字节或二进制操作会导致程序异常  
+返回表示文件读写模式的数值，  
+失败返回 null,错误信息,错误代码。  
+指定错误的模式参数时会抛出异常
 
-<h6 id="processObject.getMainWindow">processObject.getMainWindow(类名) </h6>
- 返回进程的指定类名的主窗口以及窗口进程ID，找不到则搜寻子进程主窗口。  
-类名参数支持模式匹配语法
-
-<h6 id="processObject.getModuleBaseAddress">processObject.getModuleBaseAddress(模块名) </h6>
- 返回模块基址,  
-模块名忽略大小写,  
-不指定模块名则返回应用程序基址
-
-<h6 id="processObject.getParentId">processObject.getParentId() </h6>
- 获取父进程 ID
-
-<h6 id="processObject.getPath">processObject.getPath() </h6>
- 返回执行程序文件完整路径。  
-如果该进程以管理权限运行，  
-则调用函数的进程也必须以管理权限运行  
-才能获取到路径
-
-<h6 id="processObject.getPriorityClass">processObject.getPriorityClass() </h6>
- 返回进程优先级
-
-<h6 id="processObject.getUiInfo">processObject.getUiInfo() </h6>
- 获取UI线程窗口焦点,光标等信息  
+<h6 id="fileObject.read">fileObject.read </h6>
+ 自文件读取数据。  
+支持不定个数参数，每个参数指定一个读取标志并增加一个返回值。  
   
-[返回对象:guithreadinfoObject](#guithreadinfoObject)
-
-<h6 id="processObject.handle">processObject.handle </h6>
- 进程句柄
-
-<h6 id="processObject.id">processObject.id </h6>
- 进程 ID
-
-<h6 id="processObject.isWow64">processObject.isWow64() </h6>
- 进程是否在64位系统上运行的32进程
-
-<h6 id="processObject.isX64">processObject.isX64() </h6>
- 是否64位进程
-
-<h6 id="processObject.kill">processObject.kill() </h6>
- 杀除进程
-
-<h6 id="processObject.killOnExit">processObject.killOnExit() </h6>
- 主进程退出时自动退出此进程
-
-<h6 id="processObject.malloc">processObject.malloc(长度) </h6>
- 在目标进程分配内存空间
-
-<h6 id="processObject.malloc">processObject.malloc(长度,访问类型) </h6>
- 在目标进程分配内存空间
-
-<h6 id="processObject.malloc">processObject.malloc(长度,访问类型,分配类型) </h6>
- 在目标进程分配内存空间
-
-<h6 id="processObject.mfree">processObject.mfree(指针) </h6>
- 释放malloc成员函数分配的内存指针
-
-<h6 id="processObject.mfree">processObject.mfree(指针,释放长度,0x4000) </h6>
- 释放malloc成员函数分配的内存指针  
-不建议手工指定长度
-
-<h6 id="processObject.protect">processObject.protect(__/*内存地址*/,4/*_PAGE_READWRITE*/,1) </h6>
- 修改内存保护属性,返回原来的保护属性,  
-第三个参数指定内存长度
-
-<h6 id="processObject.query">processObject.query(开始地址,结束地址,搜索数据,保护类型,访问类型) </h6>
- 查找下一个有效内存地址,所有参数可选,  
-搜索数据可以是字符串或结构体  
-返回值: addr,len,str,i,j,pattern,protect,mtype
-
-<h6 id="processObject.readNumber">processObject.readNumber(__/*内存地址*/) </h6>
- 读取一个int整数,32位  
-打开进程需要指定 _PROCESS_VM_READ 权限
-
-<h6 id="processObject.readNumber">processObject.readNumber(__/*内存地址*/,"BYTE") </h6>
- 读取一个字节,8位无符号  
-打开进程需要指定 _PROCESS_VM_READ 权限
-
-<h6 id="processObject.readNumber">processObject.readNumber(__/*内存地址*/,"INT") </h6>
- 读取一个int整数,32位无符号  
-打开进程需要指定 _PROCESS_VM_READ 权限
-
-<h6 id="processObject.readNumber">processObject.readNumber(__/*内存地址*/,"LONG") </h6>
- 读取一个long类型整数,64位无符号  
-打开进程需要指定 _PROCESS_VM_READ 权限
-
-<h6 id="processObject.readNumber">processObject.readNumber(__/*内存地址*/,"WORD") </h6>
- 读取一个word类型整数,16位无符号  
-打开进程需要指定 _PROCESS_VM_READ 权限
-
-<h6 id="processObject.readNumber">processObject.readNumber(__/*内存地址*/,"byte") </h6>
- 读取一个字节,8位  
-打开进程需要指定 _PROCESS_VM_READ 权限
-
-<h6 id="processObject.readNumber">processObject.readNumber(__/*内存地址*/,"long") </h6>
- 读取一个long类型整数,64位  
-打开进程需要指定 _PROCESS_VM_READ 权限
-
-<h6 id="processObject.readNumber">processObject.readNumber(__/*内存地址*/,"word") </h6>
- 读取一个word类型整数,16位  
-打开进程需要指定 _PROCESS_VM_READ 权限
-
-<h6 id="processObject.readString">processObject.readString(内存地址,长度) </h6>
- 读取定长字符串  
-打开进程需要指定 _PROCESS_VM_READ 权限
-
-<h6 id="processObject.readStringUtf16">processObject.readStringUtf16(内存地址,长度) </h6>
- 读取定长Unicode字符串  
-转换为UTF8编码  
-注意长度以字符为单位  
-打开进程需要指定 _PROCESS_VM_READ 权限
-
-<h6 id="processObject.readStruct">processObject.readStruct(内存地址,结构体) </h6>
- 读取定义的结构体  
-打开进程需要指定 _PROCESS_VM_READ 权限
-
-<h6 id="processObject.remoteApi">processObject.remoteApi </h6>
- 在外部进程内创建远程调用函数
-
-<h6 id="processObject.remoteApi("void">processObject.remoteApi("void()","dll名","函数名") </h6>
- 参数(函数原型,加载DLL模块名,函数名,调用约定)   
-不指定调用约定时默认使用stdcall调用约定  
-不会在API函数名字后面自动添加或移除"A","W"编码声明后缀,  
-并且要注意搜索DLL时默认搜索路径包含目标EXE所在目录,而非当前EXE目录
-
-<h6 id="processObject.remoteApi("void">processObject.remoteApi("void()","dll名","函数名","cdecl,borland") </h6>
- 参数(函数原型,加载DLL模块名,函数名,调用约定)   
-不会在API函数名字后面自动添加或移除"A","W"编码声明后缀,  
-并且要注意搜索DLL时默认搜索路径包含目标EXE所在目录,而非当前EXE目录
-
-<h6 id="processObject.remoteApi("void">processObject.remoteApi("void()",CALL地址,调用约定) </h6>
- 参数(函数原型,CALL地址,调用约定)   
-不指定调用约定在数时默认使用stdcall调用约定
-
-<h6 id="processObject.remoteApi("void">processObject.remoteApi("void(INT thisAddr)","dll名","函数名","thiscall") </h6>
- 参数(函数原型,加载DLL模块名,函数名,调用约定)  
-thiscall使用第一个参数指定this指针地址  
-不会在API函数名字后面自动添加或移除"A","W"编码声明后缀,  
-并且要注意搜索DLL时默认搜索路径包含目标EXE所在目录,而非当前EXE目录
-
-<h6 id="processObject.resume">processObject.resume() </h6>
- 恢复运行
-
-<h6 id="processObject.sendMessage">processObject.sendMessage(hwnd,message,wParam,lParam) </h6>
- 向外部进程窗口发送消息  
-lParam如果是结构体则复制到目标进程内存,  
-结构体如果包含指针应当自行调用 process.malloc 分配内存并复制  
-发送消息涉及的用法太多,尤其是涉及到访问外部进程内存,  
-所涉及的知识量不能通过看几句函数说明获得,  
-普通用户请不要学习或使用此函数
-
-<h6 id="processObject.setAffinity">processObject.setAffinity(1) </h6>
- 指定进程运行的CPU内核
-
-<h6 id="processObject.setInfo">processObject.setInfo(infoClass,infoStruct) </h6>
- 设置进程信息，成功返回 true。  
-infoClass 指定数值，infoStruct 指定结构体。  
-此函数内部调用 ::Kernel32.SetProcessInformation 。  
-详细用法请参考 API 文档。  
-在低于 Win8 的系统不执行操作
-
-<h6 id="processObject.setPriorityClass">processObject.setPriorityClass(0x80/*_HIGH_PRIORITY_CLASS*/) </h6>
- 设置进程优先级
-
-<h6 id="processObject.stillActive">processObject.stillActive() </h6>
- 进程是否仍在运行
-
-<h6 id="processObject.suspend">processObject.suspend() </h6>
- 暂停进程
-
-<h6 id="processObject.terminate">processObject.terminate() </h6>
- 强行终止进程  
-可在参数中指定退出代码
-
-<h6 id="processObject.tid">processObject.tid </h6>
- 返回进程的主线程 ID
-
-<h6 id="processObject.wait">processObject.wait() </h6>
- 等待进程关闭,  
-可选使用一个毫秒值参数设定超时  
-超时或失败返回 false,  
-进程已退出则返回值1为true,返回值2为退出代码
-
-<h6 id="processObject.waitMainWindow">processObject.waitMainWindow </h6>
- 等待并返回进程主窗口以及窗口进程ID。  
-也可调用 winex.mainWindows 且指定参数 @2 为 true 以等待主窗口。  
-winex.mainWindows 查找规则略有不同，请参考源码
-
-<h6 id="processObject.waitMainWindow">processObject.waitMainWindow(类名,等待窗口句柄) </h6>
- 等待并返回进程主窗口以及窗口进程ID。  
-所有参数可选。  
-可选指定要等待的类名,类名参数支持模式匹配语法,  
-不指定类名时忽略隐藏窗口,  
-可选指定等待窗口句柄,该窗口关闭时些函数不再等待并直接返回结果
-
-<h6 id="processObject.waitOne">processObject.waitOne() </h6>
- 等待进程关闭,不阻塞UI消息循环,  
-可选使用一个毫秒值参数设定超时  
-超时或失败返回 false,  
-进程已退出则返回值1为true,返回值2为退出代码
-
-<h6 id="processObject.write">processObject.write(内存地址,任意个字符串或结构体参数) </h6>
- 写入数据,成功返回写入尾部内存地址,  
-失败返回空
-
-<h6 id="processObject.writeNumber">processObject.writeNumber(__/*内存地址*/,0) </h6>
- 写入一个int整数,32位
-
-<h6 id="processObject.writeNumber">processObject.writeNumber(__/*内存地址*/,0,"BYTE") </h6>
- 写入一个字节,8位无符号
-
-<h6 id="processObject.writeNumber">processObject.writeNumber(__/*内存地址*/,0,"INT") </h6>
- 写入一个int整数,32位无符号
-
-<h6 id="processObject.writeNumber">processObject.writeNumber(__/*内存地址*/,0,"LONG") </h6>
- 写入一个long类型整数,64位无符号
-
-<h6 id="processObject.writeNumber">processObject.writeNumber(__/*内存地址*/,0,"WORD") </h6>
- 写入一个word类型整数,16位无符号
-
-<h6 id="processObject.writeNumber">processObject.writeNumber(__/*内存地址*/,0,"byte") </h6>
- 写入一个字节,8位
-
-<h6 id="processObject.writeNumber">processObject.writeNumber(__/*内存地址*/,0,"long") </h6>
- 写入一个long类型整数,64位
-
-<h6 id="processObject.writeNumber">processObject.writeNumber(__/*内存地址*/,0,"word") </h6>
- 写入一个word类型整数,16位
-
-<h6 id="processObject.writeString">processObject.writeString(内存地址,字符串,长度) </h6>
- 写入字符串,长度为可选参数,  
-省略内存地址参数则自动分配内存,  
-该函数返回写入内存地址,写入长度
-
-<h6 id="processObject.writeStringUtf16">processObject.writeStringUtf16(内存地址,字符串) </h6>
- 写入Unicode字符串  
-参数可以为默认的UTF8编码文本
-
-<h6 id="processObject.writeStruct">processObject.writeStruct(内存地址,结构体) </h6>
- 写入定义的结构体,  
-省略内存地址参数则自动分配内存,  
-该函数返回写入内存地址,写入长度
-
-<a id="ProcessInfoObject"></a>
-ProcessInfoObject 成员列表
--------------------------------------------------------------------------------------------------
-
-<h6 id="ProcessInfoObject.exitStatus">ProcessInfoObject.exitStatus </h6>
- 进程退出代码
-
-<h6 id="ProcessInfoObject.pebBaseAddress">ProcessInfoObject.pebBaseAddress </h6>
- PEB 地址,  
-注意 64 位进程这里返回 math.size64 对象,  
-32 位进程返回数值
-
-<h6 id="ProcessInfoObject.prarentId">ProcessInfoObject.prarentId </h6>
- 父进程ID
-
-<a id="heapEntry"></a>
-heapEntry 成员列表
--------------------------------------------------------------------------------------------------
-
-<h6 id="heapEntry.dwAddress">heapEntry.dwAddress </h6>
- 
-    Linear address of start of block
-
-<h6 id="heapEntry.dwBlockSize">heapEntry.dwBlockSize </h6>
- 
-    Size of block in bytes
-
-<h6 id="heapEntry.dwFlags">heapEntry.dwFlags </h6>
- 
-    dwLockCount =
-
-<h6 id="heapEntry.dwResvd">heapEntry.dwResvd </h6>
- 
-    th32ProcessID = owning process
-
-<h6 id="heapEntry.dwSize">heapEntry.dwSize </h6>
- 结构体大小;
-
-<h6 id="heapEntry.hHandle">heapEntry.hHandle </h6>
- 
-    Handle of this heap block
-
-<h6 id="heapEntry.th32HeapID">heapEntry.th32HeapID </h6>
- 
-    heap block is in
-
-<a id="heapList"></a>
-heapList 成员列表
--------------------------------------------------------------------------------------------------
-
-<h6 id="heapList.dwFlags">heapList.dwFlags </h6>
- 
-    
-
-<h6 id="heapList.dwSize">heapList.dwSize </h6>
- 结构体大小;
-
-<h6 id="heapList.th32HeapID">heapList.th32HeapID </h6>
- 
-    heap (in owning process's context!)
-
-<h6 id="heapList.th32ProcessID">heapList.th32ProcessID </h6>
- 
-    owning process
-
-<a id="moduleEntry"></a>
-moduleEntry 成员列表
--------------------------------------------------------------------------------------------------
-
-<h6 id="moduleEntry.GlblcntUsage">moduleEntry.GlblcntUsage </h6>
- 
-    ProccntUsage =
-
-<h6 id="moduleEntry.dwSize">moduleEntry.dwSize </h6>
- 结构体大小
-
-<h6 id="moduleEntry.modBaseAddr">moduleEntry.modBaseAddr </h6>
- 模块基址;
-
-<h6 id="moduleEntry.modBaseSize">moduleEntry.modBaseSize </h6>
- hModule = 模块句柄
-
-<h6 id="moduleEntry.szExePath">moduleEntry.szExePath </h6>
- 
-    
-
-<h6 id="moduleEntry.szModule">moduleEntry.szModule </h6>
- 
-    0;
-
-<h6 id="moduleEntry.th32ModuleID">moduleEntry.th32ModuleID </h6>
- 模块ID;
-
-<h6 id="moduleEntry.th32ProcessID">moduleEntry.th32ProcessID </h6>
- 进程ID,INT数据类型
-
-<a id="processEntryObject"></a>
-processEntryObject 成员列表
--------------------------------------------------------------------------------------------------
-
-<h6 id="processEntryObject.cntThreads">processEntryObject.cntThreads </h6>
- 此进程开启的线程计数
-
-<h6 id="processEntryObject.dwSize">processEntryObject.dwSize </h6>
- 结构体长度，以字节为单位
-
-<h6 id="processEntryObject.pcPriClassBase">processEntryObject.pcPriClassBase </h6>
- 进程优先级,INT数据类型
-
-<h6 id="processEntryObject.szExeFile">processEntryObject.szExeFile </h6>
- 进程启动文件名,不是文件完整路径
-
-<h6 id="processEntryObject.th32ParentProcessID">processEntryObject.th32ParentProcessID </h6>
- 父进程的 ID
-
-<h6 id="processEntryObject.th32ProcessID">processEntryObject.th32ProcessID </h6>
- 进程ID,INT数据类型
-
-<a id="startinfoObject"></a>
-startinfoObject 成员列表
--------------------------------------------------------------------------------------------------
-
-<h6 id="startinfoObject.createNoWindow">startinfoObject.createNoWindow </h6>
- 应用程序不创建控制台窗口
-
-<h6 id="startinfoObject.creationFlag">startinfoObject.creationFlag </h6>
- 
-    startinfoObject.creationFlag = CREATE //创建进程的参数,参考API CreateProcess的说明
-
-<h6 id="startinfoObject.desktop">startinfoObject.desktop </h6>
- 标识启动应用程序所在的桌面的名字
-
-<h6 id="startinfoObject.domain">startinfoObject.domain </h6>
- 域名
-
-<h6 id="startinfoObject.environment">startinfoObject.environment </h6>
- 新进程的环境变量  
-以键值对组成的字符串,多个键值对间请以'\0'分隔  
-键与值之间以=号分隔  
-也可以传入包含键值对的表对象
-
-<h6 id="startinfoObject.fillAttribute">startinfoObject.fillAttribute </h6>
- 控制台窗口使用的文本和背景颜色
-
-<h6 id="startinfoObject.flags">startinfoObject.flags </h6>
- 
-    startinfoObject.flags = _STARTF_USE //指定结构体中哪些成员生效
-
-<h6 id="startinfoObject.inheritEnvironment">startinfoObject.inheritEnvironment </h6>
- 如果此属性的值恒等于false,且同时指定了environment的值,  
-那么创建的子进程不会继承父进程的环境变量  
-此属性不指定值时默认值为true
-
-<h6 id="startinfoObject.inheritHandles">startinfoObject.inheritHandles </h6>
- 默认值为真,所有有可被继承属性的内核对象都会被复制到子进程(实际上是内核对象引用计数加一)
-
-<h6 id="startinfoObject.logonFlags">startinfoObject.logonFlags </h6>
- 登录选项,默认为 _LOGON_WITH_PROFILE
-
-<h6 id="startinfoObject.password">startinfoObject.password </h6>
- 登录密码
-
-<h6 id="startinfoObject.processAttributes">startinfoObject.processAttributes </h6>
- SECURITY_ATTRIBUTES结构体指针,一般不建议设置  
-如需设置请使用raw.malloc将结构体转换为指针
-
-<h6 id="startinfoObject.showWindow">startinfoObject.showWindow </h6>
- 显示参数，  
-支持以_SW_ 前缀的常量  
-_SW_HIDE 表示隐藏窗口（默认值）。  
-此属性用于指定是否显示控制台以外的窗口，  
-flags 字段必须指定 _STARTF_USESHOWWINDOW 才会生效
-
-<h6 id="startinfoObject.stdError">startinfoObject.stdError </h6>
- 标准错误输出(可用于创建管道)
-
-<h6 id="startinfoObject.stdInput">startinfoObject.stdInput </h6>
- 标准输入（可用于创建管道）
-
-<h6 id="startinfoObject.stdOutput">startinfoObject.stdOutput </h6>
- 标准输出（可用于创建管道）
-
-<h6 id="startinfoObject.suspended">startinfoObject.suspended </h6>
- 是否休眠创建进程的主线程  
-如果为真自动添加_CREATE_SUSPENDED参数
-
-<h6 id="startinfoObject.threadAttributess">startinfoObject.threadAttributess </h6>
- SECURITY_ATTRIBUTES结构体指针,一般不建议设置  
-如需设置请使用raw.malloc将结构体转换为指针
-
-<h6 id="startinfoObject.title">startinfoObject.title </h6>
- 控制台标题
-
-<h6 id="startinfoObject.username">startinfoObject.username </h6>
- 登录用户名
-
-<h6 id="startinfoObject.waitInputTimeout">startinfoObject.waitInputTimeout </h6>
- 进程启动后等待初始化完成的最大超时  
-默认为0xFFFFFFFF(无限等待),设为0则不等待
-
-<h6 id="startinfoObject.workDir">startinfoObject.workDir </h6>
- 进程工作目录,  
-默认值为 process.workDir
-
-<h6 id="startinfoObject.x">startinfoObject.x </h6>
- x坐标(子进程使用默认坐标时、或控制台窗口支持)
-
-<h6 id="startinfoObject.xCountChars">startinfoObject.xCountChars </h6>
- 控制台宽度(字符单位)
-
-<h6 id="startinfoObject.xSize">startinfoObject.xSize </h6>
- 窗口宽(子进程使用默认坐标时、或控制台窗口支持)
-
-<h6 id="startinfoObject.y">startinfoObject.y </h6>
- y坐标(子进程使用默认坐标时、或控制台窗口支持)
-
-<h6 id="startinfoObject.yCountChars">startinfoObject.yCountChars </h6>
- 控制台高度(字符单位)
-
-<h6 id="startinfoObject.ySize">startinfoObject.ySize </h6>
- 窗口高(子进程使用默认坐标时、或控制台窗口支持)
-
-<a id="threadEntry"></a>
-threadEntry 成员列表
--------------------------------------------------------------------------------------------------
-
-<h6 id="threadEntry.cntUsage">threadEntry.cntUsage </h6>
- 引用计数
-
-<h6 id="threadEntry.dwFlags">threadEntry.dwFlags </h6>
- th32OwnerProcessID = 进程ID
-
-<h6 id="threadEntry.dwSize">threadEntry.dwSize </h6>
- 结构体大小
-
-<h6 id="threadEntry.th32OwnerProcessID">threadEntry.th32OwnerProcessID </h6>
- 
-    Process this thread is associated with
-
-<h6 id="threadEntry.th32ThreadID">threadEntry.th32ThreadID </h6>
- 线程ID
-
-<h6 id="threadEntry.tpBasePri">threadEntry.tpBasePri </h6>
- 
-    tpDeltaPri =
-
-
-自动完成常量
--------------------------------------------------------------------------------------------------
-_CREATE_NEW_CONSOLE=0x10  
-_CREATE_NEW_PROCESS_GROUP=0x200  
-_CREATE_NO_WINDOW=0x8000000  
-_CREATE_PROCESS_DEBUG_EVENT=3  
-_CREATE_SUSPENDED=4  
-_MEM_4MB_PAGES=0x80000000  
-_MEM_COMMIT=0x1000  
-_MEM_DECOMMIT=0x4000  
-_MEM_FREE=0x10000  
-_MEM_LARGE_PAGES=0x20000000  
-_MEM_MAPPED=0x40000  
-_MEM_PHYSICAL=0x400000  
-_MEM_PRIVATE=0x20000  
-_MEM_RELEASE=0x8000  
-_MEM_RESERVE=0x2000  
-_MEM_RESET=0x80000  
-_MEM_ROTATE=0x800000  
-_MEM_TOP_DOWN=0x100000  
-_MEM_WRITE_WATCH=0x200000  
-_PAGE_EXECUTE=0x10  
-_PAGE_EXECUTE_READ=0x20  
-_PAGE_EXECUTE_READWRITE=0x40  
-_PAGE_EXECUTE_WRITECOPY=0x80  
-_PAGE_GUARD=0x100  
-_PAGE_NOACCESS=1  
-_PAGE_NOCACHE=0x200  
-_PAGE_READONLY=2  
-_PAGE_READWRITE=4  
-_PAGE_WRITECOMBINE=0x400  
-_PAGE_WRITECOPY=8  
-_PROCESS_ALL_ACCESS=0x1FFFFF  
-_PROCESS_CREATE_PROCESS=0x80  
-_PROCESS_CREATE_THREAD=2  
-_PROCESS_DUP_HANDLE=0x40  
-_PROCESS_QUERY_INFORMATION=0x400  
-_PROCESS_QUERY_LIMITED_INFORMATION=0x1000  
-_PROCESS_SET_INFORMATION=0x200  
-_PROCESS_SET_QUOTA=0x100  
-_PROCESS_SET_SESSIONID=4  
-_PROCESS_SUSPEND_RESUME=0x800  
-_PROCESS_TERMINATE=1  
-_PROCESS_VM_OPERATION=8  
-_PROCESS_VM_READ=0x10  
-_PROCESS_VM_WRITE=0x20  
-_STANDARD_RIGHTS_REQUIRED=0xF0000  
-_SYNCHRONIZE=0x100000  
-_TH32CS_INHERIT=0x80000000  
-_TH32CS_SNAPALL=0xF  
-_TH32CS_SNAPHEAPLIST=1  
-_TH32CS_SNAPMODULE=8  
-_TH32CS_SNAPMODULE32=0x10  
-_TH32CS_SNAPPROCESS=2  
-_TH32CS_SNAPTHREAD=4  
+参数为"%s"读取并返回一行，参数数为 "%d" 读取一个数值。  
+参数为数值则读取指定字节长度的数据并返回字符串。  
+参数为结构体则读取数据并填充结构体的值。  
+  
+函数执行失败返回 null,错误信息,错误代码
+
+<h6 id="fileObject.read">fileObject.read("%d") </h6>
+ 从当前位置,向后读取下一个数值，支持多参数。  
+失败返回 null,错误信息,错误代码
+
+<h6 id="fileObject.read">fileObject.read("%s") </h6>
+ 从当前位置,向后读取下一行，支持多参数。  
+失败返回 null,错误信息,错误代码
+
+<h6 id="fileObject.read">fileObject.read() </h6>
+ 从当前位置,向后读取下一行。  
+失败返回 null,错误信息,错误代码
+
+<h6 id="fileObject.read">fileObject.read(-1) </h6>
+ 向后读取到文件尾部。  
+失败返回 null,错误信息,错误代码。  
+参数为负数表示从文件尾部倒计数位置,支持多参数  
+读取普通文件全部数据使用 string.load 函数更快。  
+readBuffer() 函数则拥有最快的读取速度。
+
+<h6 id="fileObject.read">fileObject.read(0) </h6>
+ 检测是否读取到文件尾
+
+<h6 id="fileObject.readBuffer">fileObject.readBuffer </h6>
+ 读取数据到buffer,成功返回读取长度,失败返回null
+
+<h6 id="fileObject.readBuffer">fileObject.readBuffer(buffer指针,读取长度) </h6>
+ 直接读数据到内存  
+参数@1可以是 buffer,或内存指针,  
+如果是指针则必须指定读取长度,否则长度参数可选  
+成功返回读取长度
+
+<h6 id="fileObject.readTo">fileObject.readTo(__) </h6>
+ 读取到指定结束字符前面的所有字符,  
+  
+参数@1指定结束字符的字节码（数值）,  
+单引号包含字符并加#号取字节码，例如 '\0'#  
+如果没有指定参数,则参数默认为'\0'#  
+  
+返回字符串不包含结束字符,但文件指针会移到该字符后面,  
+如果未遇到指定字符,则读取到文件尾
+
+<h6 id="fileObject.readUnicode">fileObject.readUnicode(读取字符数) </h6>
+ 读取UTF 16编码数据,如果文件头有BOM会自动移除,  
+参数按字符计数，不是按字节计数,  
+如果已到文件尾读取长度可能小于参数指定的长度
+
+<h6 id="fileObject.readUnicode">fileObject.readUnicode(读取字符数,true) </h6>
+ 读取Unicode数据,并直接返回UTF 16编码的字符串,  
+参数按字符计数，不是按字节计数
+
+<h6 id="fileObject.readback">fileObject.readback() </h6>
+ 从当前位置,向前读取上一行  
+仅支持UTF8或ANSI换行符,不支持UTF16换行符
+
+<h6 id="fileObject.readback">fileObject.readback(-1) </h6>
+ 向前读取到文件头部  
+负数表示从文件头部倒计数位置
+
+<h6 id="fileObject.readback">fileObject.readback(0) </h6>
+ 检测是否读取到文件头
+
+<h6 id="fileObject.readback">fileObject.readback(__) </h6>
+ 正数参数表示从当前位置向前读取n个字节
+
+<h6 id="fileObject.reopen">fileObject.reopen("CONOUT$","w__") </h6>
+ 可使用"CONOUT$"重定向到控制台输出缓冲区,  
+使用"CONOUT$"重定向到控制台输入缓冲区,  
+重定向到控制台只能使用文本模式  
+参数@2不可使用ccs标记指定编码  
+成功返回 true，失败返回 null,错误信息,错误代码
+
+<h6 id="fileObject.reopen">fileObject.reopen("__/*文件路径*/","w+") </h6>
+ 重定向文件流  
+成功返回 true，失败返回 null,错误信息,错误代码
+
+<h6 id="fileObject.seek">fileObject.seek("cur",__) </h6>
+ 移动至相对当前位置的指定偏移量，偏移量应当是一个普通数值。  
+1表示向后移动1字节,-1表示向前倒退1字节,  
+成功返回当前位置（相对于文件开始计数）,  
+失败返回null,错误信息,注意超越文件尾是允许的
+
+<h6 id="fileObject.seek">fileObject.seek("end") </h6>
+ 移动指针至结束处,并返回文件长度  
+获取文件大小推荐使用 size() 函数
+
+<h6 id="fileObject.seek">fileObject.seek("end",__) </h6>
+ 移动至相对结束处的指定偏移量，  
+偏移量应当是一个普通数值。  
+成功返回当前位置（相对于文件开始计数）,  
+失败返回 null,错误信息,错误代码。注意超越文件尾是允许的
+
+<h6 id="fileObject.seek">fileObject.seek("set") </h6>
+ 移动指针到开始
+
+<h6 id="fileObject.seek">fileObject.seek("set",__) </h6>
+ 移动至相对开始处的指定偏移量。  
+注意0表示文件开始,1表示第一个字节后面,准备读取的是应该是第2字节,  
+成功返回当前位置（相对于文件开始计数）,  
+失败返回 null,错误信息,错误代码。注意超越文件尾是允许的。  
+  
+偏移量应当是一个普通数值。  
+普通数值的整数上限为 8PB，没有可能会写这么大的文件。  
+所以偏移量不支持、也不必要使用 math.size64 对象
+
+<h6 id="fileObject.seek">fileObject.seek() </h6>
+ 得到当前位置（相对于文件开始计数）
+
+<h6 id="fileObject.seteof">fileObject.seteof() </h6>
+ 将当前文件位置设为文件末尾,  
+用于快速改变文件大小  
+成功返回true
+
+<h6 id="fileObject.setvbuf">fileObject.setvbuf("full",__) </h6>
+ 设为完全缓冲模式，  
+读缓冲区直致为空再从流读入数据，写满缓冲区后向流写入数据  
+参数@2使用字节数指定缓冲区大小
+
+<h6 id="fileObject.setvbuf">fileObject.setvbuf("line",) </h6>
+ 设为行缓冲模式，  
+每次从流中读取或写入一行数据  
+参数@2使用字节数指定缓冲区大小
+
+<h6 id="fileObject.setvbuf">fileObject.setvbuf("no") </h6>
+ 禁用缓冲
+
+<h6 id="fileObject.size">fileObject.size() </h6>
+ 返回文件指针当前位置到文件尾的大小,该函数不会改变文件指针当前位置，  
+此函数不需要指定任何参数
+
+<h6 id="fileObject.size64">fileObject.size64() </h6>
+ 自当前位置计算到文件尾的大小,返回math.size64正整数对象  
+该函数不会改变文件指针当前位置  
+  
+[返回对象:mathSize64Object](#mathSize64Object)
+
+<h6 id="fileObject.type">fileObject.type() </h6>
+ 获取文件对象的类型  
+例如控制台，管道，本地文件....等等  
+返回值请参考_FILE_TYPE_前缀的常量
+
+<h6 id="fileObject.write">fileObject.write </h6>
+ 写数据
+
+<h6 id="fileObject.write">fileObject.write(__, ) </h6>
+ 写数据,支持一个或多个参数  
+参数可以是字符串,数值,或结构体。  
+成功返回 true，失败返回 null,错误信息,错误代码
+
+<h6 id="fileObject.writeBuffer">fileObject.writeBuffer </h6>
+ 写入buffer数据,成功返回写入长度,失败返回null
+
+<h6 id="fileObject.writeBuffer">fileObject.writeBuffer(buffer指针,写入长度) </h6>
+ 直接写数据到内存  
+参数@1可以是 buffer,或内存指针,  
+如果是指针则必须指定写入长度,否则长度参数可选  
+成功返回写入长度
