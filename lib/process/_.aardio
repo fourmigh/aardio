@@ -98,9 +98,8 @@ class process {
 			sa.creationFlag =  (sa.creationFlag : 0) | 0x400/*_CREATE_UNICODE_ENVIRONMENT*/; 
 			if(sa.createNoWindow){
 				sa.creationFlag = sa.creationFlag | 0x8000000/*_CREATE_NO_WINDOW*/;
-			}
-			
-		
+			} 
+
 			if( !sa.username ){
 				ret = CreateProcess(pfile ,parameters
    				, sa.processAttributes 
@@ -190,9 +189,9 @@ class process {
 			this.free();
 		}
 	};
-	kill = function(){
+	kill = function(exitcode){
 		this.suspend();
-		this.terminate();
+		this.terminate(exitcode);
 	};
 	ctrlEvent = function(event){
 		if( _WIN_64 && !this.isWow64() ){
@@ -556,6 +555,9 @@ class process {
 	};
 	assignToJobObject = function(job){
 		return ::Kernel32.AssignProcessToJobObjectB(job,this.handle);
+	};
+	killOnExit = function(){
+		return this.assignToJobObject(..process.job.limitKill); 
 	};
 	isX64 = function(){
 		return this.__isX64 ;
@@ -1131,12 +1133,18 @@ namespace process{
 	    		entry = nextSnap(entry) ;
 	    	} 
  			
-		},freeItor   ;
+		},freeItor;
 	
 	}  
 	
 	findId = function(exename){
-		for entry in each(exename)  return entry.th32ProcessID;  
+		var pid;
+		for entry in each(exename)  {
+			pid = entry.th32ProcessID;  
+			break;
+		}
+		
+		return pid;
 	}
 	
 	find = function(exename){
@@ -1179,14 +1187,28 @@ namespace process{
 		return '"' + o + '"';	
 	} 
 	
+	var argumentsMeta = { _tostring = lambda() joinArguments(owner);_type="object" }
+	arguments = function(args){
+		args = args || {};
+		if(!args@)args@ = argumentsMeta;
+		return args;
+	}
+	
 	joinArguments = function(parameters,...){
 		if( ... !== null ) parameters = { parameters; ... }
 		if( type(parameters) == type.table ){
+			var isPArgs = parameters@===argumentsMeta;
+			
 			var out = {}
 			for k,v in ..table.eachName(parameters){
 				if(k[1]=='-'# || k[1]=='/'#){
-					..table.push(out,k,v!==""?tostring(v):null);
+					..table.push(out,k,tostring(v));
 				} 
+				elseif(isPArgs) {
+					..table.push(out,"--" + ..string.replace(k,"[A-Z]",function(c){
+						return "-" + ..string.lower(c);
+					} ),tostring(v));
+				}
 			}
 			
 			..table.append(out,parameters); 
@@ -1232,6 +1254,8 @@ namespace process{
 	workDir = ..io.fullpath("/")
 }
 
+import process.job.limitKill;
+
 /**details(相关范例)
 范例程序 > 进程
 end details**/
@@ -1251,6 +1275,7 @@ process.find() = !process.
 process.shell() = !process.
 process.shellAs() = !process.
 process.is(__) = 传入参数是否 process 对象
+process.arguments() = 返回一个命令行参数表对象。\n或将参数指定的表（只能是未指定元表的纯表）转换为命令行参数表对象。\n此参数表可用于指定 process 库所有启动进程函数的命令行参数。\n表中无 / 或 - 前导字符的参数名将由小驼峰转换为连字符风格并加上 -- 前缀。\n名值对参数将用空格分开参数名与参数值。\n注意 -- 前缀的参数用等号和空格分隔参数值通常是等价的。\n参数表的其他数组成员也会直接转换为命令行参数
 !process.stillActive() = 进程是否仍在运行
 !process.getInfo( = 获取进程信息
 !process.getInfo(.() = 获取进程信息
@@ -1325,7 +1350,8 @@ process.is(__) = 传入参数是否 process 对象
 !process.waitMainWindow( = 等待并返回进程主窗口以及窗口进程ID。\n也可调用 winex.mainWindows 且指定参数 @2 为 true 以等待主窗口。\nwinex.mainWindows 查找规则略有不同，请参考源码
 !process.waitMainWindow(.(类名,等待窗口句柄) = 等待并返回进程主窗口以及窗口进程ID。\n所有参数可选。\n可选指定要等待的类名,类名参数支持模式匹配语法,\n不指定类名时忽略隐藏窗口,\n可选指定等待窗口句柄,该窗口关闭时些函数不再等待并直接返回结果
 !process.closeMainWindow() = 关闭进程的主窗口，忽略隐藏窗口
-!process.assignToJobObject(.(process->job->limitKill) = 绑定到作业对象,成功返回true\n作业对象示例请参考标准库 process.job.limitKill 的源码。
+!process.assignToJobObject(.(process->job->limitKill) = 绑定到作业对象,成功返回 true\n作业对象示例请参考标准库 process.job.limitKill 的源码。\n也可直接调用 killOnExit 函数绑定 process.job.limitKill
+!process.killOnExit() = 主进程退出时自动退出此进程
 !process.ctrlEvent(0)=发送Ctrl+C(SIGINT信号)\n信号将传递到与目标进程控制台连接的所有非分离控制台进程\n64位目标进程会导致当前控制台暂时关闭
 !process.ctrlEvent(1)=发送Ctrl+Break(SIGBREAK信号)\n信号将传递到与目标进程控制台连接的所有非分离控制台进程\n64位目标进程会导致当前控制台暂时关闭
 !process.emptyWorkingSet() = 将工作集中的内存尽可能移动到页面文件中,\n应发在最小化或程序空闲内存确实暂不需要使用时调用,\n不应频繁调用此函数
@@ -1339,16 +1365,16 @@ getInfo( = 获取进程信息
 getInfo(.(handle) = 获取进程信息，参数 @1 指定进程句柄
 getInfo(.(handle,infoClass,infoStruct) = 参数 @1 指定进程句柄。\n如果参数 infoClass 指定非 null 数值，\n并且 infoStruct 指定结构体。\n在 Win8 以及之后系统获取信息到该结构体。\n成功返回原结构体
 getInfo() = !stdProcessInfo.
-shellAs( = 以管理权限运行exe应用程序,返回进程对象
-shellAs(.("__", parameters="",showCmd,workDir,hwnd,fmask) = 参数@1指定要运行的执行程序路径,\n参数@2可用一个字符串或字符串数组指定启动参数,\n其他参数详细用法请参考本函数源码以及WINAPI中ShellExecuteEx函数用法\n除参数@1以外所有参数可选
+shellAs( = 以管理权限运行 EXE 应用程序,返回进程对象
+shellAs(.("__", parameters="",showCmd,workDir,hwnd,fmask) = 参数 @1 指定要运行的执行程序路径,\n参数 @2 可用一个字符串或字符串数组指定启动参数。\n所有参数用法与 process.execute 函数相同。\n关于 @fmask 详细用法请参考本函数源码（一般用不到）。\n除参数 @1 以外所有参数可选
 shell( = 运行exe应用程序,返回进程对象
-shell(.("__", parameters="",operation="open",showCmd,workDir,hwnd,fmask) = 参数@1指定要运行的执行程序路径,\n参数@2可用一个字符串或字符串数组指定启动参数,\n其他参数详细用法请参考本函数源码以及WINAPI中ShellExecuteEx函数用法\n除参数@1以外所有参数可选
-executeEx(.("__", parameters="",operation="open",showCmd,workDir,hwnd,fmask) = 运行exe应用程序,返回SHELLEXECUTEINFO结构体,\n参数@1指定要运行的执行程序路径,\n参数@2可用一个字符串或字符串数组指定启动参数,\n其他参数详细用法请参考本函数源码以及WINAPI中ShellExecuteEx函数用法\n除参数@1以外所有参数可选
+shell(.("__", parameters="",operation="open",showCmd,workDir,hwnd,fmask) = 参数 @1 指定要运行的执行程序路径,\n参数 @2 可用一个字符串或字符串数组指定启动参数,\n所有参数用法与 process.execute 函数相同。\n关于 @fmask 详细用法请参考本函数源码（一般用不到）。\n除参数 @1 以外所有参数可选
+executeEx(.("__", parameters="",operation="open",showCmd,workDir,hwnd,fmask) = 运行 EXE 应用程序,返回 SHELLEXECUTEINFO 结构体,\n参数 @1 指定要运行的执行程序路径,\n参数 @2 可用一个字符串或字符串数组指定启动参数。\n所有参数用法与 process.execute 函数相同。\n关于 @fmask 详细用法请参考本函数源码（一般用不到）。\n除参数 @1 以外所有参数可选
 execute( = 运行exe应用程序,成功返回进程ID,\n参数详细用法请参考本函数源码以及 WINAPI 中 ShellExecuteEx 函数用法\n运行 UWP 应用请使用 com.shell.activateApp 函数\n\nraw.execute 提供了与本函数类似的功能
-execute(.("__", parameters="",operation="open",showCmd,workDir,hwnd) = 参数@1为程序路径或系统命 令\n参数@parameters 可以是字符串或字符串数组，用于指定启动参数,\n参数@operation 为启动模式\n参数@showCmd使用_SW_前缀常量与win.show参数用法相同\n参数@workdir为工作目录\n参数@hwnd 为父窗口句柄
-executeWait(.("__", parameters="",operation="open",showCmd,workDir=",hwnd=0) = 运行exe应用程序\n并等待应用程序关闭\n除参数@1以外所有参数可选
-executeWaitInput(.("__", parameters="",operation="open",showCmd,workDir=",hwnd=0) = 运行exe应用程序\n并等待进程初始化完成并接受输入\n除参数@1以外所有参数可选
-executeInvoke(.(path, parameters,operation,showCmd,workDir,hwnd) = 创建临时的后台线程运行应用程序\n在打开网址前退出主线程可能无法执行操作,\n参数与process.execute函数用法一样,除指定参数@1或参数@2,其他所有参数可选
+execute(.("__", parameters="",operation="open",showCmd,workDir,hwnd) = 参数 @1 为程序路径或系统命令。\n\n可选参数 @parameters 可以是字符串或字符串数组，用于指定启动参数。\n如果指定数组则由 process.joinArguments 自动处理转义并支持命名参数。\n如果启动参数只指定一个文件路径，为避免可能包含空格或以反斜杆结尾等需要转义的情况，\n建议写为 process.execute(exePath,{path}) 这种格式，让 aardio 自动处理转义。\n\n可选参数 @operation 为启动模式\n可选参数 @showCmd 使用 _SW_ 前缀常量，与win.show参数用法相同。\n可选参数 @workdir 为工作目录\n可选参数 @hwnd 可指定父窗口句柄
+executeWait(.("__", parameters="",operation="open",showCmd,workDir=",hwnd=0) = 运行exe应用程序\n并等待应用程序关闭\n除参数@1以外所有参数可选，所有参数用法与 process.execute 相同
+executeWaitInput(.("__", parameters="",operation="open",showCmd,workDir=",hwnd=0) = 运行exe应用程序\n并等待进程初始化完成并接受输入\n除参数@1以外所有参数可，所有参数用法与 process.execute 相同
+executeInvoke(.(path, parameters,operation,showCmd,workDir,hwnd) = 创建临时的后台线程运行应用程序\n在打开程序前退出主线程可能无法执行操作,\n参数与 process.execute 函数用法一样,除指定参数@1或参数@2,其他所有参数可选
 openUrl(__) = 调用默认浏览器打开网址,用于窗口程序,\n如果不用这个方法创建线程去打开网址,可能会出现界面卡顿不流畅的现象,\n在打开网址前退出主线程可能无法执行操作\n控制台程序应调用 process.execute 以避免后台线程不能阻止控制台关闭
 exploreSelect("__/*文件路径*/") = 打开资源管理器,选定该文件
 explore("__/*目录路径*/") = 使用资源管理器打开目录\n打开WIN10应用这样写:process.explore("shell:appsFolder\appPath")\n使用 com.shell.eachApp 可列出WIN10所有appPath
@@ -1387,9 +1413,9 @@ xCountChars = 控制台宽度(字符单位)
 yCountChars = 控制台高度(字符单位)
 fillAttribute = 控制台窗口使用的文本和背景颜色
 flags = @.flags = _STARTF_USE__ //指定结构体中哪些成员生效\n
-showWindow = 显示参数\n支持以_SW_前缀的常量\n_SW_HIDE表示隐藏窗口(默认值)
-stdInput = 标准输入(可用于创建管道)
-stdOutput = 标准输出(可用于创建管道)
+showWindow = 显示参数，\n支持以_SW_ 前缀的常量\n_SW_HIDE 表示隐藏窗口（默认值）。\n此属性用于指定是否显示控制台以外的窗口，\nflags 字段必须指定 _STARTF_USESHOWWINDOW 才会生效
+stdInput = 标准输入（可用于创建管道）
+stdOutput = 标准输出（可用于创建管道）
 stdError = 标准错误输出(可用于创建管道) 
 waitInputTimeout = 进程启动后等待初始化完成的最大超时\n默认为0xFFFFFFFF(无限等待),设为0则不等待
 creationFlag = @.creationFlag = CREATE__ //创建进程的参数,参考API CreateProcess的说明
@@ -1404,7 +1430,7 @@ username = 登录用户名
 password = 登录密码
 domain = 域名
 logonFlags = 登录选项,默认为 _LOGON_WITH_PROFILE
-createNoWindow = 不为应用程序创建控制台窗口
+createNoWindow = 应用程序不创建控制台窗口
 end intellisense**/
 
 /*intellisense(!processEntry) 

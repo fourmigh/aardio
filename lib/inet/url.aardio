@@ -25,16 +25,25 @@ append = function(base,relative,...){
 appendExtraInfo = function(url,param){
     if(type(param)==="table"){param=stringifyParameters(param)}
 	if(!#param) return url;
+	
 	var turl = split(url);
-	if( #turl.extraInfo ) turl.extraInfo = turl.extraInfo + "&" + param;
-	else turl.extraInfo = "?" + param;
-	return tostring(turl);	
+	if(turl) {
+		if( #turl.extraInfo ) turl.extraInfo = turl.extraInfo + "&" + param;
+		else turl.extraInfo = "?" + param;
+		return tostring(turl);	
+	}
+	
+	return url + "?" + param;
 }
 
 UrlCanonicalize = Shlwapi.api("UrlCanonicalizeW","int(ustring url,ustring& out,INT& size, INT flags)" )
 canonicalize = function(url,flag=0){
 	var hr,url = UrlCanonicalize(url,0x1000,0x800,flag)
 	if( !hr ) return url;
+}
+
+cmp = function(url,url2){
+	return ..string.cmp(canonicalize( decode(url) ),canonicalize( decode(url2) ));
 }
 
 hashNum = function(url){
@@ -179,14 +188,14 @@ var _urlinfo ={
 			push(t,owner.path);
 		}
 		
+		if(#owner.location)push(t,"#",owner.location);
+		
 		if(type(owner.extraInfo)=="table"){
 			push(t,"?",stringifyParameters(owner.extraInfo));
 		}
 		else {
 			push(t,owner.extraInfo);
 		}
-		
-		if(#owner.location)push(t,"#",encode(owner.location));
 		
 		return ..string.join(t); 
 	}
@@ -247,17 +256,24 @@ getFileName = function(url,d){
 	return #tpath.file ? tpath.file : d : "index.html";
 }
 
+getFilePath = function(url){
+	var turl = split(url)
+	if(turl.schemeNum==5/*_INTERNET_SCHEME_FILE*/){
+		return ..string.trimleft(decode(turl.path),"/");
+	} 
+}
+
 /**intellisense(inet.url)
 is(url,_URLIS__) = 检测URL 
-joinpath( = 当对于当前URL的相对路径转换为完整URL\n注意该函数忽略文件名,简单拼接请使用append函数替代
-joinpath(.("当前URL",相对路径,_URL__) = 当对于当前URL的相对路径转换为完整URL\n相对路径如果为空则直接返回参数@1,\n可选使用参数三指定转换选项
-appendExtraInfo(.(url,附加参数) = 在URL后追加参数\n参数首字符不能是问号\n参数@2也可以指定一个包含多个参数键值对的表
+joinpath( = 当对于当前URL的相对路径转换为完整 URL 。\n注意该函数忽略文件名,简单拼接请使用 append 函数替代
+joinpath(.("当前URL",相对路径,_URL__) = 当对于当前 URL 的相对路径转换为完整 URL 。\n相对路径如果为空则直接返回参数 @1,\n可选使用参数三指定转换选项
+appendExtraInfo(.(url,附加参数) = 在 URL 后追加参数。\n参数首字符不能是问号。\n参数@2也可以指定一个包含多个参数键值对的表。\n\n如果 @url 参数仅指定路径而非合法 URL，\n则简单添加 ? 号后拼接参数
 append( = 拼接URL
-append(.(url目录,url子路径,->->->) = 支持不定个数参数\n第一个参数无论是否以"/"字符结束都认为是一个目录
-canonicalize(__/*URL*/) = URL规范化转换\n扩展和适当置换路径中包含的所有..和.
-canonicalize("当前URL",_URL__) = URL规范化转换\n参数三指定转换选项
+append(.(url目录,url子路径,->->->) = 支持不定个数参数。\n第一个参数无论是否以"/"字符结束都认为是一个目录。
+canonicalize(__/*URL*/) = URL规范化转换\n扩展和适当置换路径中包含的所有 .. 和 . 
+canonicalize("当前URL",_URL__) = URL规范化转换\n参数@3指定转换选项
 hashNum(__/*url*/) = 返回哈希数值
-split(__/*输入URL*/) = 拆分URL返回包含协议、路径、端口、参数等的表对象\n返回的表对象可以调用tostring重新生成URL\n可传入空值以获取用于拼接URL的表
+split(__/*输入URL*/) = 拆分URL返回包含协议、路径、端口、参数等的表对象\n返回的表对象可以调用 tostring 重新生成 URL\n可传入空值以获取用于拼接URL的表
 split() = !inet_urlcrack. 
 stringify(urlInfo) = @.stringify(\n	scheme = "https";\n	user = "";\n	password ="";\n	host ="__/*使用参数表构建并返回URL字符串*/";\n	location = "";\n	extraInfo = {\n		name = value;\n	};\n)
 splitParameters( = 拆分URL参数并返回名值对组成的表对象\n名字都转换为小写,如果名字尾部有[]或[键名]则值转换为表\n如果只指定名字不指定值,则值为空字符串
@@ -268,13 +284,15 @@ encode(.(字符串,输出代码页) = 除字母数字以及-._~等非保留字�
 decode(.(字符串,输入代码页) = URL解码并返回文本,失败返回空值,\n参数二指定输入编码(codepage),省略自动检测输入编码\n此函数返回数据转换为UTF8编码
 encodeMbcs(.(字符串,输出代码页) = 如果字符串包含多字节字符,\n使用URL编码其中的汉字和%符号,\n参数二指定输出编码(codepage),默认为65001(UTF8代码页)
 decodeUnicode(.(字符串) = 解码%uXXXX或%uXX编码的字符串\n失败返回空值
-encodeUri(.(字符串,输出代码页) = URL编码,\n字母数字以及URL非保留字符、URL保留字符都不编码,\n参数二指定输出编码(codepage),默认为65001(UTF8代码页)
+encodeUri(.(字符串,输出代码页) = URL编码,\n字母数字以及 URL 非保留字符、URL 保留字符都不编码（RFC3986）,\n参数二指定输出编码(codepage),默认为65001(UTF8代码页)
 getFileName(.(网址,默认文件名) = 获取URL中的文件名\n参数2可选,默认为"index.html"
+getFilePath(__) = 如果 URL 为 file: 协议开头，\n则返回 URL 解码后的文件路径，否则返回 null
+cmp(__) = 比较参数@1与参数@2指定的网址是否相同。\n相同则返回 0 ，否则返回其他数值。\n比较前进行 URL 解码，并调用 inet.url.canonicalize 规范格式，\n比较时忽略大小写
 end intellisense**/
 
 /*intellisense(!inet_urlcrack)
 scheme = 协议
-schemeNum = 协议(数值)\n重新拼接URL时忽略此参数
+schemeNum = 协议（数值）。\n可用值为 _INTERNET_SCHEME_ 前缀的常量定义。\n重新拼接 URL 时忽略此参数
 host = 域名
 user = 用户名
 password = 密码
@@ -310,25 +328,25 @@ _URL_DONT_UNESCAPE=@0x20000/*_URL_DONT_UNESCAPE*/
 _URL_ESCAPE_AS_UTF8=@0x40000/*_URL_ESCAPE_AS_UTF8*/
 _URL_ESCAPE_PERCENT=@0x1000/*_URL_ESCAPE_PERCENT*/
 _URL_ESCAPE_SEGMENT_ONLY=@0x2000/*_URL_ESCAPE_SEGMENT_ONLY*/
-_URL_PARTFLAG_KEEPSCHEME=@0x1/*_URL_PARTFLAG_KEEPSCHEME*/
-_URL_APPLY_DEFAULT=@0x1/*_URL_APPLY_DEFAULT*/
-_URL_APPLY_GUESSSCHEME=@0x2/*_URL_APPLY_GUESSSCHEME*/
-_URL_APPLY_GUESSFILE=@0x4/*_URL_APPLY_GUESSFILE*/
-_URL_APPLY_FORCEAPPLY=@0x8/*_URL_APPLY_FORCEAPPLY*/ 
+_URL_PARTFLAG_KEEPSCHEME=@1/*_URL_PARTFLAG_KEEPSCHEME*/
+_URL_APPLY_DEFAULT=@1/*_URL_APPLY_DEFAULT*/
+_URL_APPLY_GUESSSCHEME=@2/*_URL_APPLY_GUESSSCHEME*/
+_URL_APPLY_GUESSFILE=@4/*_URL_APPLY_GUESSFILE*/
+_URL_APPLY_FORCEAPPLY=@8/*_URL_APPLY_FORCEAPPLY*/ 
 _INTERNET_SCHEME_PARTIAL=@0xFFFFFFFE/*_INTERNET_SCHEME_PARTIAL*/
 _INTERNET_SCHEME_UNKNOWN=@0xFFFFFFFF/*_INTERNET_SCHEME_UNKNOWN*/
 _INTERNET_SCHEME_DEFAULT=@0x0/*_INTERNET_SCHEME_DEFAULT*/
-_INTERNET_SCHEME_FTP=@0x1/*_INTERNET_SCHEME_FTP*/
-_INTERNET_SCHEME_GOPHER=@0x2/*_INTERNET_SCHEME_GOPHER*/
-_INTERNET_SCHEME_HTTP=@0x3/*_INTERNET_SCHEME_HTTP*/
-_INTERNET_SCHEME_HTTPS=@0x4/*_INTERNET_SCHEME_HTTPS*/
-_INTERNET_SCHEME_FILE=@0x5/*_INTERNET_SCHEME_FILE*/
-_INTERNET_SCHEME_NEWS=@0x6/*_INTERNET_SCHEME_NEWS*/
-_INTERNET_SCHEME_MAILTO=@0x7/*_INTERNET_SCHEME_MAILTO*/
-_INTERNET_SCHEME_SOCKS=@0x8/*_INTERNET_SCHEME_SOCKS*/
-_INTERNET_SCHEME_JAVASCRIPT=@0x9/*_INTERNET_SCHEME_JAVASCRIPT*/
+_INTERNET_SCHEME_FTP=@1/*_INTERNET_SCHEME_FTP*/
+_INTERNET_SCHEME_GOPHER=@2/*_INTERNET_SCHEME_GOPHER*/
+_INTERNET_SCHEME_HTTP=@3/*_INTERNET_SCHEME_HTTP*/
+_INTERNET_SCHEME_HTTPS=@4/*_INTERNET_SCHEME_HTTPS*/
+_INTERNET_SCHEME_FILE=@5/*_INTERNET_SCHEME_FILE*/
+_INTERNET_SCHEME_NEWS=@6/*_INTERNET_SCHEME_NEWS*/
+_INTERNET_SCHEME_MAILTO=@7/*_INTERNET_SCHEME_MAILTO*/
+_INTERNET_SCHEME_SOCKS=@8/*_INTERNET_SCHEME_SOCKS*/
+_INTERNET_SCHEME_JAVASCRIPT=@9/*_INTERNET_SCHEME_JAVASCRIPT*/
 _INTERNET_SCHEME_VBSCRIPT=@0xA/*_INTERNET_SCHEME_VBSCRIPT*/
 _INTERNET_SCHEME_RES=@0xB/*_INTERNET_SCHEME_RES*/
-_INTERNET_SCHEME_FIRST=@0x1/*_INTERNET_SCHEME_FIRST*/
+_INTERNET_SCHEME_FIRST=@1/*_INTERNET_SCHEME_FIRST*/
 _INTERNET_SCHEME_LAST=@0xB/*_INTERNET_SCHEME_LAST*/
 end intellisense**/

@@ -17,7 +17,7 @@ _size64_meta._mod = function(b){
 };
 
 _size64_meta._div = function(b){
-	return size64(owner).div(b);
+	return size64(owner).divf(b);
 };
 
 _size64_meta._mul = function(b){
@@ -42,7 +42,15 @@ _size64_meta.swap = function(){
 };
 
 _size64_meta.divf = function(b){
-	return tonumber( owner / b )  + ( tonumber(  owner % b ) / tonumber(b) )
+	if(!tonumber(b)) return tonumber(owner)/0;
+	
+	var a = size64(owner)  
+	if(a>=b){
+		return tonumber( a.div(b) )  + ( tonumber(  owner % b ) / tonumber(b) ); 
+	}
+	else {
+		return 1 / size64(b).divf(a); 
+	}
 }
 
 isSize64  = function(v){

@@ -31,7 +31,7 @@ class struct {
 				this[["_structObject"]] = ..table.assign({},cls);
 			}
 			
-			var t,n = ..string.match(this[["_structObject"]]._struct,"(\a+)\s+([^,\[\s]+)\[");
+			var t,n = ..raw.typeOfArray(this[["_structObject"]]);
 			if(t && n){
 				this[["_arrayValue"]] = {_struct = t + " v";[n]=this[["_structObject"]][n][[1]]}
 			}

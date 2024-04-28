@@ -165,7 +165,7 @@ class java{
 		return this.jBooleanClass.createInstanceEx("void(boolean)",v);
 	};		
 	array = function(atype,...){ 
-	 	var jtype = typeNameFromAardio(atype)
+	 	var jtype = aardioTypToJava(atype)
 	 	
 		var arr = ...
 		if(type(arr)!="table" || (arr@ ? arr@._topointer) ){
@@ -268,7 +268,7 @@ class java{
 			return {};
 		}
 	
-		var jtype = typeNameFromAardio(atype) 
+		var jtype = aardioTypToJava(atype) 
 		if( jtype == "Object" ){ 
 			var array = {};
 			for(i=1;len;1){
@@ -868,13 +868,13 @@ namespace java {
 		F = "float"; 
 	}
 	
-	typeNameFromAardio = function(t){
+	aardioTypToJava = function(t){
 		if(!#t) return "Void"; 
 		if( ..string.find(t,"\;") ) return "Object"; 
 		return typename_a2j[t] || "Object"
 	} 
 	
-	typeNameToAardio = function(t){
+	aardioTypeFromJava = function(t){
 		if( typename_a2j[t] ) return t;
 		t = typename_j2a[t];
 		if( t ) return t;
