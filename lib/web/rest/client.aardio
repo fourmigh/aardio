@@ -411,6 +411,9 @@ class client{
 	
 		return true;
 	};
+	setCookie = function(...){
+		return ..inet.setCookie(...);
+	};
 	close = function(){
 		this._http.close();
 	};
@@ -561,7 +564,7 @@ web.rest.client(.("UserAgent","代理服务器","绕过代理的主机",连接�
 !web_restClient.encodeKey = 自定义替换 API 网址变量值使用的编码函数,\n此函数接收一个资源名参数,返回编码后的资源名,\n必须在定义 API 对象之前指定,\n默认已指定为 inet.url.encodeMbcs 函数
 !web_restClient.defaultUrlTemplate = 默认API网址模板
 !web_restClient.extraParameters = 指定附加到所有请求参数中的默认参数\n该值应当是一个表,请求参数指定表对象时或为null才会附加extraParameters
-!web_restClient.extraUrlParameters  = 指定附加到所有请求URL的默认参数\n该值可以是一个表或字符串
+!web_restClient.extraUrlParameters  = 指定附加到所有请求 URL 的默认参数。\n该值可以是一个表或字符串。\n表参数使用 inet.url.stringifyParameters 转换为字符串。\n表中的值如果是函数则每次请求都调用该函数取值
 !web_restClient.acceptType = 期望返回的MIME内容类型,多个类型用逗号分隔
 !web_restClient.contentType = 写入HTTP头ContentType属性的内容类型\n设为null空值,或每次请求完成将自动重置为defaultContentType
 !web_restClient.defaultContentType = 默认内容类型
@@ -576,6 +579,9 @@ web.rest.client(.("UserAgent","代理服务器","绕过代理的主机",连接�
 !web_restClient.setAuth(.("API Key","Secret Key") = 设置 API Key，Secret Key。\n此函数会清空 setAuthToken 设置的认证令牌（token）
 !web_restClient.setAuthToken( = 设置认证令牌（token）
 !web_restClient.setAuthToken(.(token,tokenType) = 设置认证令牌（token）。\n@token 可指定令牌，也可以指定返回令牌的网址。\n@tokenType 为可选参数，默认为"Bearer"。\n如果指定了令牌，则会添加请求头 "Authorization:Bearer 令牌"。\n@tokenType 也可以指定为空字符串。\n\n此函数会清空 setAuth 设置的用户名与密码
+!web_restClient.setCookie( = 调用 inet.setCookie 设置 Cookies 。\nweb.rest,inet.http,web.form 等共享 Cookies 设置。\n\n此函数用法与 inet.setCookie 函数完全相同。\n这里仅列出几种常用的参数用法，\n其他用法请查看 inet.setCookie 函数说明
+!web_restClient.setCookie(.("网址","值","键",过期时间或天数) = 设定指定网址的 Cookie。\n第一个参数指定 Cookie 生效的网址。\n如果不指定值则删除删除指定名字的会话 cookie 与持久 Cookie，\n如果指定名字与值则设置 Cookie，如果不指定过期时间则仅设置会话 Cookie，\n否则设置为持久 Cookie。\n可选参数 @4 使用 time 对象指定过期时间，或用数值指定过期天数
+!web_restClient.setCookie(.(webView) = 传入 web.view 可直接获取浏览器控件的 Cookies\n作为 inet.setCookie 的参数，设置为 inet.http 可用的 Cookies 。\nweb.form,web.rest,inet.http 共享此 Cookies 设置
 !web_restClient.? = web.rest.client 或继承自 web.rest.client 的对象的其他成员函数或属性。\n请查看相关库函数文档或源码
 !web_restClient.ok() = 最后一次请求是否成功\n服务器应答并且状态码为2XX该函数返回真
 !web_restClient.lastStatusCode = 获取最近一次请求返回的HTTP状态码\n100 ~ 101 为信息提示\n200 ~ 206 表示请求成功\n300 ~ 305 表示重定向\n400 ~ 415 表求客户端请求出错\n500 ~ 505 表示服务端错误

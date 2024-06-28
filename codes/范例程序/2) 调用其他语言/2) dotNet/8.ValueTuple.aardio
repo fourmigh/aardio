@@ -1,11 +1,10 @@
-//泛型 / ValueTuple 
+//自动泛型 / ValueTuple 
 import console;
 import dotNet; 
 
 /*
 ValueTuple 要 .NET 4.7 以上才能支持（ Windows 10 1703 开始自带.Net 4.7 ）。
 也可以自行下载 System.ValueTuple.dll 并通过 dotNet.reference() 函数引入，可支持 .NET 4.4 以及更新版本。
-Win10 自带 .NET 4.6，Win7 在市场上已经接近消失，现在开发软件再处处考虑 Win7 兼容是不必要的。
 */
 import System.ValueTuple; 
 
@@ -23,14 +22,6 @@ var tuple = System.ValueTuple.Create(
 	参考「 编译 / 类型」范例。
 	*/
 );
-
-/*
-aardio 能且只能通过参数自动匹配 .NET 泛型函数。
-aardio 不是 C#，aardio 也不能完全替代 C# 的所有语法特性。
-
-如果 aardio 自带范例没有展示的功能就说明 aardio 不支持，请改为调用 C# 实现。
-不会有任何 aardio 能做到的功能 —— 没有放到范例里，或者找不到。
-*/
 
 console.log("查看对象类型",tuple.GetType())
 

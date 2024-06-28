@@ -9,12 +9,11 @@ edit={cls="edit";left=11;top=16;right=1140;bottom=625;edge=1;multiline=1;z=1}
 /*}}*/
 
 /*
-其实 Python 并不支持真正的多线程，
-Pyhto n的多线程 GIL 管理也不方便，处理不好就会崩溃、死锁。
-这是 Python 的限制与 aardio 无关！不信可以换个编程语言试试。
-要解决 Python 这个限制很容易，Python 开源的，请放开手干！！！
+Python 存在全局锁，并非真正意义的多线程，
+Pyhton 的多线程 GIL 管理也不方便，处理不好就会崩溃、死锁。
+这是 Python 的限制与 aardio 无关！
 
-所以更好的方式是在单线程中运行 Python，
+更好的方式是在单线程中运行 Python，
 如果在界面线程中，Python 需要做耗时操作，
 那么可以使用工作线程运行 Python，下面是一个演示：
 */

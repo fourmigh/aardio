@@ -1,22 +1,19 @@
 ﻿//修改集合值
-import console;
-import fsys.dlg;
-import com;
+import console.int; 
+import com.doc;
 
-var path = fsys.dlg.open("*.docx|*.docx||");
-if(!path) return;
- 
-var wordApp = com.CreateObject("word.Application");
-wordApp.Visible = true;
+var docx = com.doc("/test.docx")
+docx.Visible = true;
+  
+//加 set 前缀修改集合值（带参数属性）
+docx.ActiveDocument.setBuiltinDocumentProperties("Title", "新标题"); 
 
-//打开WORD文档
-var wordDocument = wordApp.Documents.Open(path);
- 
-wordDocument.BuiltinDocumentProperties("Title").setValue("1");//无法赋值，不支持集合 
-wordDocument.setBuiltinDocumentProperties("Title", "新标题"); //正确写法
+//这个 value 比较特别，直接写属性会报错（需要 DocumentProperty 类型 ）
+//docx.ActiveDocument.BuiltinDocumentProperties("Title").value = "新标题";
 
-var title = wordDocument.BuiltinDocumentProperties("Title").getValue();
+//读属性可直接返回字符串，但 getBuiltinDocumentProperties("Title") 返回的又是 DocumentProperty
+var title = docx.ActiveDocument.BuiltinDocumentProperties("Title").value;
 console.log("新标题: " ,title ); 
 
-wordDocument.Save();  
-wordApp.quit(); 
+docx.Save();  
+docx.quit(); 

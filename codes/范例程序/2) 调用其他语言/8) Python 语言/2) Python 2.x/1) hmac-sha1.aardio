@@ -2,8 +2,7 @@
 import console.int;
 import py2; 
 
-py2.main.testData = '可以这样预先指定 Python 全局变量'u; 
-//Python2 对 UTF-8 不友好，所以上面用 Uniocde(UTF-16) 字符串。
+py2.main.testData = "可以这样预先指定 Python 全局变量";
  
 //Python 代码，注意 Python 对空格有严格要求，乱按空格报错不是 bug。 
 var pyCode = /** 
@@ -18,17 +17,17 @@ def getList(a,b):
 */
 py2.exec( pyCode ) 
 
-//从 py3.main 模块调用 Python 代码定义的函数 
+//从 py2.main 模块调用 Python 代码定义的函数 
 var pyList = py2.main.getList(12,23);
 
 //可以如下遍历 pyObject 对象。
 for( pyItem in pyList.each() ){
-	 var v = pyItem.parseValue(); 
+	console.log(pyItem) //基础类型已转换为纯 aardio 值，其他为 py2.object
 }
 
 //pyObject 支持 table.eachIndex 创建的迭代器
 for i,pyItem in table.eachIndex(pyList){
-	var v = pyItem.parseValue(); 
+	console.log( i,pyItem ) //基础类型已转换为纯 aardio 值，其他为 py2.object
 }
  
 //转换为纯 aardio 值

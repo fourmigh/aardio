@@ -13,7 +13,7 @@ winform.edit.limit = 0xFFFFF;
 var wmPlayer = com.CreateObject("WMPlayer.OCX"); 
 
 //输出 COM 对象支持的属性和方法
-winform.edit.print( com.DumpTypeInfo(wmPlayer) ) 
+//winform.edit.print( com.DumpTypeInfo(wmPlayer) ) 
 //也可以通过 console.dump(wmPlayer) 自动调用 com.DumpTypeInfo(wmPlayer) 
 
 //输出更详细的 COM 对象类型库文档

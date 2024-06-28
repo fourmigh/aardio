@@ -119,14 +119,18 @@ class zip{
 	compress = function(compressPath,proc,password,level=9,bufSize = 0xA00000){
 		var compressPath = ..io.exist(compressPath);
 		if(!compressPath)error("压缩源文件路径错误",2); 
-	  	if(!localDir)localDir = ..fsys.getParentDir(compressPath);
+	  	
 	  	
 		if( !..fsys.isDir(compressPath) ){ 
+			if(!localDir)localDir = ..fsys.getParentDir(compressPath);
+			
 			for len in this.eachWriteFile(compressPath,password,bufSize,level){
 				if(proc)proc( len,compressPath );
 			}
 		}
 		else { 
+			if(!localDir)localDir = compressPath;
+			
 			..fsys.enum(compressPath, "*.*",
 				function(dir,file,fullpath,findData){ 
 					if(file){  
@@ -168,7 +172,7 @@ namespace zip{
 }
 
 /**intellisense()
-zlib.zip(.(zip路径,根目录,是否追加) = 创建压缩文件对象\n参数二,参数三都可以省略
+zlib.zip(.(zip路径,根目录,是否追加) = 创建压缩文件对象。\n参数二,参数三都可以省略。\n如果不指定根目录，首先调用 compress 函数时将自动指定。\n如果首次压缩的是目录，则该目录设为根目录，否则文件的父目录设为根目录。
 zlib.zip() = !zlib_zip.
 !zlib_zip.beginWrite(.(文件路径,压缩密码,压缩级别) = 开始添加压缩文件,\n密码为可选参数,压缩级别可省略,默认为0
 !zlib_zip.endWrite() = 添加压缩文件完成

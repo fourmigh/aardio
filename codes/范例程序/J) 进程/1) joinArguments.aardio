@@ -19,7 +19,7 @@ console.dump("看，最后面多了一个引号",argv.L)
  
 /*
 如果指定多个启动参数（或一个字符串数组）以替代一个启动参数。
-aardio 都会自动调用 process.joinArguments() 函数合并多参数并自动处理转义。
+aardio 都会自动调用 string.args.join() 函数合并多参数并自动处理转义。
 不用再考虑空格、引号这些带来的问题。
 
 所以正确写法如下：

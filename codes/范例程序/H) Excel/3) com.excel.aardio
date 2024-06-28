@@ -31,6 +31,10 @@ for(i,values in excel.eachValue(1) ){
 	console.log("行号"+i,table.tostring(values));  
 }
 
+//下面两种方法都可以输入常量，_xl 前缀会触发智能提示（推荐这种）
+excel.Calculation = -4105/*_xlCalculationAutomatic*/
+excel.Calculation = excel.xlCalculationAutomatic;
+
 excel.Quit(); //退出
 //所有存储 Excel 创建或返回对象的变量离开作用域并被回收后才会完全退出 Excel ,可调用 collectgarbage("collect") 提前回收资源
 

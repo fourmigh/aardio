@@ -16,19 +16,19 @@ try{
     	var wow64RevertWow64FsRedirection = ::Kernel32.api( "Wow64RevertWow64FsRedirection", "bool(pointer oldValue)"); 
     	disableRedirection = function(proc,...){
         	var ret,oldValue = wow64DisableWow64FsRedirection();
-        	var a = proc( ... );
+        	var r1,r2,r3 = proc( ... );
         	wow64RevertWow64FsRedirection(oldValue)	
-        	return a; 
+        	return r1,r2,r3; 
     	}
     	
     	disableRedirectionEx = function(cb){
-			return lambda(...) disableRedirection(cb,...);
+			return function(...) return disableRedirection(cb,...);
 		}
     }
 }
 
 process = function(...){
-	return disableRedirection(lambda(...)..process(...),...)
+	return disableRedirection(function(...){ return ..process(...)},...)
 }
 
 /**intellisense(fsys)

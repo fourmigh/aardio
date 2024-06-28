@@ -1,13 +1,13 @@
-//.Net 接口
+//.NET 接口
 import console;
-console.showLoading("正在编译 .Net DLL");
+console.showLoading("正在编译 .NET DLL");
 
 import dotNet; 
 import com.cad;
 var cad = com.cad();
 cad.Visible = true;  
  
-//创建 C# 语言编译器
+//创建 C# 语言编译器（AutoCAD 2025 及之后版本请改用 VS 编译）
 var compiler = cad.NetCompiler("C#");
 
 //设置待编译C#源码（ 注释可赋值为字符串，注释标记首尾星号数目要一致 ）
@@ -57,7 +57,7 @@ var assembly = compiler.CompileOrFail("/aardioTestNetApi.dll");
 
 //加载 C# 生成的 DLL
 cad.NetLoad("/aardioTestNetApi.dll");
-
+cad.NetLoad(
 //调用 .NET 创建的 LISP 函数
 cad.SendCommand(`(aardioTestNetApi "abc" "def")`);
 cad.ShowForeground();

@@ -163,7 +163,7 @@ namespace wmi{
 }
 	
 /**intellisense()
-com.wmi = WMI / Windows Management Instrumentation 客户端\n参考文档 https://docs.microsoft.com/en-us/windows/win32/wmisdk/wmi-reference
+com.wmi = WMI / Windows Management Instrumentation 客户端。\n用法也可可参考 com.monitor 库源码，以及『 范例 / COM 组件 / WMI 』。\n参考文档 https://docs.microsoft.com/en-us/windows/win32/wmisdk/wmi-reference
 com.wmi( = 创建 WMI 客户端对象,失败返回 null
 com.wmi(.(path,computer) = 创建并返回 WMI 客户端对象,失败返回 null,\n所有参数可省略,\n@path 默认为 "\root\cimv2"\n@computer 默认为"."
 com.wmi() = !stdComObject.

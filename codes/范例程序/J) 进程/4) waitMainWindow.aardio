@@ -14,16 +14,17 @@ winform.btnRun.oncommand = function(id,event){
 			import process;
 			import winex; 
 			
-			var prcs = process.shell("wordpad.exe")
+			var prcs = process.shell("wordpad.exe");
+			if(!prcs) return winform.msgboxErr("未安装写字板");
 			
-			winform.btnRun.disabledText = "等待写字板主窗口..."
+			winform.btnRun.disabledText = "等待写字板主窗口...";
 			prcs.waitMainWindow(); 
 			
-			winform.btnRun.disabledText = "等待写字板关闭..."
+			winform.btnRun.disabledText = "等待写字板关闭...";
 			prcs.wait();
 			 
 			winform.btnRun.disabledText = null;
-			winform.btnRun.text = "已完成"
+			winform.btnRun.text = "已完成";
 		}
 		,winform
 	)  

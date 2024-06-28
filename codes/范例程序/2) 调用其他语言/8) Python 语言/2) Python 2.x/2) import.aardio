@@ -43,7 +43,7 @@ console.log(py2.lasterr())
 var str = myHttp.getHtml("http://www.aardio.com" );
 
 import console;
-console.log( str.toString() );
+console.log( str  );
 console.pause()
 
 /*

@@ -57,4 +57,11 @@ console.log( num.Value );
 
 //支持 tostring(),tonumber() 转换。
 console.log(tostring(num),tonumber(num)); 
+
+/*
+DispatchableObject 对象可调用 byRef 函数设置是否传址（ ref,out 参数），
+返回值为对象自身。不指定参数则返回一个表示当前传参设置是否为传址的布尔值。
+*/
+num.byRef(true) 
+
 console.pause();

@@ -15,6 +15,10 @@ class rsa{
 		
 		this.allocBuffer(128);
 	};
+	importPemKeyFile = function(path){
+		var p = ..string.load(path);
+		return this.importPemKey(p);
+	};
 	importPemKey = function(pem){
 		var h = ..string.match(pem,"<@-----BEGIN@>\s+(.+?)<@-----@>");		
 		if(h=="PUBLIC KEY"){
@@ -28,7 +32,7 @@ class rsa{
 		}
 		elseif(h=="PRIVATE KEY"){
 			if this.importPrivateKeyPkcs8FromPem(pem) return h;
-		}
+		} 
 	};	
 	getKeySpec = function(){
 		return this.getKeyAlgId() == 0x2400/*_CALG_RSA_SIGN*/? 2/*_AT_SIGNATURE*/ : 1/*_AT_KEYEXCHANGE*/;
@@ -176,7 +180,8 @@ crypt.rsa() = 创建RSA加密容器,不建议指定参数,\n!cryptrsa.
 end intellisense**/
 
 /**intellisense(!cryptrsa)
-importPemKey(__) = 参数@1使用字符串指定PEM格式密钥\n如果导入成功返回PEM格式头
+importPemKey(__) = 参数 @1 使用字符串指定 PEM 格式密钥。\n如果导入成功返回 PEM 格式头
+importPemKeyFile(__) = 参数 @1 使用字符串指定 PEM 格式密钥文件。\n如果导入成功返回 PEM 格式头
 exportPublicKeyX509(__) = 导出 X509 PKCS#8 格式公钥,\n可选用参数@1指定密钥类型为 _AT_SIGNATURE 或 _AT_KEYEXCHANGE,\n建议不指定参数自动获取默认设置,\n返回值为buffer类型
 exportPublicKeyX509ToPem(__) = 导出 PEM/X509 PKCS#8 格式公钥,\n可选用参数@1指定密钥类型为 _AT_SIGNATURE 或 _AT_KEYEXCHANGE,\n建议不指定参数自动获取默认设置,\n返回值为string类型
 importPublicKeyX509(__) = 导入 X509 PKCS#8 格式公钥,\n参数@1为string或buffer类型公钥数据

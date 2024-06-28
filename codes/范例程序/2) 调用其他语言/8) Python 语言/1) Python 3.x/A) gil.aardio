@@ -16,7 +16,7 @@ Python 多线程有很多限制，用起来也复杂，一般不建议用。
 要点1、一定要在主线程导入 Python 库
 主线程会负责创建 Python 虚拟机，主线程退出不能再在任何线程调用 Python.
 */
-import py3;
+import py3;//不同线程导入不同版本的 Python 会崩溃
 
 /*
 要点2、一定要在主线程释放GIL，之后任何python调用都在在py.lock里执行

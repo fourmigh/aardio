@@ -24,6 +24,7 @@ var fileMime  = {
     ["jpg"] = "image/jpeg"; 
     ["jpe"] = "image/jpeg";
     ["jpz"] = "image/jpeg";
+    ["webp"] = " image/webp";
     ["avi"] = "video/x-msvideo";
     ["mid"] = "audio/midi";
     ["midi"] = "audio/x-midi";

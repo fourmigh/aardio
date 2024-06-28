@@ -15,9 +15,7 @@ class access {
 			var ext =  ..string.match(path,"[^.]+$");
 			ext = ext ? ..string.lower(ext); 
 			var excelFormat = ({xls="xls";xlsx="xlsx";xlsm="xlsm";xlsb="xlsb"}) [ext]; 
-			
-			
-	
+
 			if( ( ! ..string.find(path,"\;") && !... )
 				&& ( ( param === null ) || ( type(param) == type.table ) )
 	    	) { 
@@ -30,11 +28,17 @@ class access {
 					}
 				}
 	 		
-				if(  !tList.find("Provider")  && !tList.find("Driver") ) {
+	 			var _,_,provider = tList.find("Provider"); 
+				if(  !provider && !tList.find("Driver") ) {
 					var isText = ({csv=1;tab=1;txt=1;asc=1})[ext]; 
 					if( ! ( ..fsys.isDir(path) || isText ) ){
 						if( (excelFormat && excelFormat != "xls")  or ( ext == "accdb" ) ){
-							tList.Provider="Microsoft.ACE.OLEDB.12.0"; 
+							if(..access.oleDb[["install"]]){
+								tList.Provider = ..access.oleDb.install(,true);
+							}
+							else {
+								tList.Provider = "Microsoft.ACE.OLEDB.16.0"
+							} 
 						}
 						else{
 							tList.Provider="Microsoft.Jet.OLEDB.4.0"; 
@@ -45,22 +49,31 @@ class access {
 						if(!tList.Extensions && !tList.extensions ){
 							tList.Extensions = "asc,csv,tab,txt";
 						} 
-					}
-				 	
+					} 
 				}
+				elseif( ..string.cmp(provider,"Microsoft.ACE.OLEDB.16.0") === 0 ) {
+					if(..access.oleDb[["install"]]) ..access.oleDb.install();
+				}
+				
 				if(excelFormat && !tList.find("Extended Properties") ) {
+					var _,_,hdr = tList.find("HDR");
+					if(!hdr) hdr = "Yes";//第一行作为列名（Header Row Directive）
+					else tList.remove("HDR");
+					
 					if( excelFormat == "xls" ){
-						tList["Extended Properties"] = "'Excel 8.0;HDR=Yes'";
+						tList["Extended Properties"] = "'Excel 8.0;HDR="+hdr+"'";
 					}
 					else {
+						var xmlVersion = "12.0";//Xml 格式只存在这一个版本，不能改为 16.0
+						
 						if( excelFormat == "xlsx" ){
-							tList["Extended Properties"] = '"Excel 12.0 Xml;HDR=YES"';
+							tList["Extended Properties"] = '"Excel '+xmlVersion+' Xml;HDR='+hdr+'"';
 						}
 						elseif( excelFormat == "xlsm" ){
-							tList["Extended Properties"] = '"Excel 12.0 Macro;HDR=YES"';
+							tList["Extended Properties"] = '"Excel '+xmlVersion+' Macro;HDR='+hdr+'"';
 						} 
 						else {
-							tList["Extended Properties"] = '"Excel 12.0;HDR=YES"';
+							tList["Extended Properties"] = '"Excel '+xmlVersion+';HDR='+hdr+'"';
 						}
 					}
 				}
@@ -144,6 +157,21 @@ class access {
 			if( tbl ) return tbl.getName(),tbl.getType(),tbl;
 		} 
 	}; 
+	firstTableName = function(dType){
+		return this.firstTableObject(dType)[["name"]]; 
+	};
+	firstTableObject = function(dType,cache){ 
+		var cat = this.getCatalog();
+		cat.Tables.Refresh();
+		
+		if(!dType) dType = "TABLE";
+		for index,tbl in ..com.each(cat.Tables) {
+			if( tbl.Type = "TABLE" ){
+				if(cache) this._tables[ tbl.Name] = tbl;
+				return tbl;
+			}
+		}	
+	};
 	findTableObject = function(name,cache=true){
 		if(cache && this._tables[name] ) return this._tables[name];
 		
@@ -589,7 +617,7 @@ end details**/
 
 /**intellisense()
 access = 使用系统自带组件连接access数据库,可支持excel\n[数据库连接串大全](https://www.connectionstrings.com/access/)
-access("数据库路径") = 打开数据库连接,\n数据库路径可以指定mdb,xls等文件格式,\n如果指定的数据库不存在将自动创建数据库文件
+access("数据库路径") = 打开数据库连接。\n数据库路径可以指定 mdb,xls等文件格式,\n如果指定的数据库不存在将自动创建数据库文件\n\n如果在其他参数前添加一个 false 参数，则不打开连接，仅返回连接语句。
 access("数据库路径",其他连接参数) = @ access("__/*数据库路径(mdb,xls等)*/",{ \n	["Mode"]="Share Deny Read|Share Deny Write"; \n	["Jet OLEDB:Database Password"] = "123456"; \n}) 
 access("数据库连接语句",其他格式化参数) = @access("Provider=Microsoft.Jet.OleDb.4.0;Data Source=%s;Jet OLEDB:Database Password=%s;",\n	"/test.db","__/*密码*/" );
 打开数据库连接,\n如果指定的数据库不存在将自动创建数据库文件\n如果存在格式化参数，则调用string.fomat格式化连接串
@@ -624,6 +652,8 @@ connection.Errors = 错误集合
 connection.Errors.count = 错误数
 connection.Errors(.(0) = 参数指定错误索引
 connection.Errors() = !ado_conn_err.
+firstTableName() = 返回数据库的第一个表名。。\n参数 @1 可选用一个字符串指定表类型，默认为 "TABLE"。
+firstTableObject() = 返回数据库中的第一个表对象。\n参数 @1 可选用一个字符串指定表类型，默认为 "TABLE"。\n!ADOX_Catalog_tbl.
 findTableObject() = !ADOX_Catalog_tbl.
 findTableObject(.("表名") = 返回表对象
 eachTableObject = @for(tbName,tbType,tbObj in ??.eachTableObject() ){
@@ -689,6 +719,10 @@ NativeError = 数据源错误代码
 end intellisense**/
 
 /**intellisense(!ADOX_Catalog_tbl)
+Name = 表名
+Type = 表示表类型的字符串。\n例如  "TABLE", "SYSTEM TABLE", 或 "GLOBAL TEMPORARY"
+Keys = 键集合
+Indexes = 索引集合
 Columns = 列集合
 Columns.Count = 总数
 Columns(.("列名") = 参数也可以写数值索引

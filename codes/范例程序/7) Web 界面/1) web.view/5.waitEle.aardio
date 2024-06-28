@@ -1,4 +1,4 @@
-//waitEle 用法演示
+//waitEle
 import win.ui;
 /*DSG{{*/
 var winform = win.form(text="Edge 浏览器控件 - web.view";right=1097;bottom=690;bgcolor=16777215)

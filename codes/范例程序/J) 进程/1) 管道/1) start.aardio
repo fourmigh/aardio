@@ -22,9 +22,8 @@ winform.button.oncommand = function(id,event){
 	
 	/*
 	启动外部程序，隐藏黑窗口，并返回可读写的进程管道。
-	
 	参数@2 可用字符串指定进程启动参数，多个参数用空格分格。
-	如果 参数@3 是字符串，则自 参数@2 开始合并参数，并以空格分开，单参数含空格或需转义时首尾添加双引号。
+	如果参数 @1 是表对象，或存在更多个非 null 参数，则合成所有参数为单个启动命令行参数。
 	*/
 	var prcs,err = process.popen("findstr",winform.edit.text); 
 	

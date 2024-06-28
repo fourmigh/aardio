@@ -1,8 +1,9 @@
-//嵌入子窗口
+//嵌入窗口
 import dotNet;  
 var compiler = dotNet.createCompiler("C#");
 compiler.Reference("System.Drawing.dll","System.Data.dll","System.Windows.Forms.dll");
 compiler.addSource("/0.WindowsFormsApp1.cs");
+compiler.import("WindowsFormsApp1");
 
 import win.ui;
 /*DSG{{*/
@@ -12,7 +13,6 @@ custom={cls="custom";text="自定义控件";left=26;top=23;right=799;bottom=416;
 )
 /*}}*/
 
-compiler.import("WindowsFormsApp1");
 var netform = WindowsFormsApp1.Form1();
 
 //下面这一句将 .NET 窗口嵌入 aardio 窗口。

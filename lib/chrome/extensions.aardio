@@ -4,10 +4,56 @@ import fsys;
 
 namespace chrome.extensions;
 
-get = function(profile="Default"){
-	var extensionsPath = ..io.appData("\Google\Chrome\User Data\" + profile + "\Extensions\");
-	if(!extensionsPath) return {};
+getPath = function(kw,profile){
+	var info = find(kw,profile);
+	return info[["fullpath"]]
+}
+
+open = function(kw,profile){
+	var path = getPath(kw,profile);
+	if(path){
+		..raw.execute("Explorer.exe",'"'+ ..string.trim(path,"\/") + '"');
+	}
+}
+
+find = function(kw,profile){
+	return findEdge(kw,profile) || findChrome(kw,profile);
+}
+
+findChrome = function(kw,profile){
+	var items = get();
 	
+	var i,v = ..table.find(items,function(v){
+		if(v.name && ..string.cmpMatch(v.name,kw) ) return true;
+		if(v.description && ..string.cmpMatch(v.description,kw) ) return true;
+		if(v.id && ..string.cmpMatch(v.id,kw) ) return true; 
+	})
+	
+	return v;
+} 
+
+findEdge = function(kw,profile){
+	var items = getEdge();
+	
+	var i,v = ..table.find(items,function(v){
+		if(v.name && ..string.cmpMatch(v.name,kw) ) return true;
+		if(v.description && ..string.cmpMatch(v.description,kw) ) return true;
+		if(v.key && ..string.cmpMatch(v.key,kw) ) return true;
+	})
+	
+	return v;
+} 
+
+get = function(profile="Default",extensionsPath){
+	if(!extensionsPath){
+		if(profile) extensionsPath = ..io.appData("\Google\Chrome\User Data\" + profile + "\Extensions\");
+		if(!extensionsPath) return {};
+	}
+	
+	if(!..io.exist(extensionsPath) ){
+		return;
+	} 
+
 	var files,folders = ..fsys.list(extensionsPath);
 	var result = {}
 	for(i=1;#folders;1){
@@ -18,8 +64,10 @@ get = function(profile="Default"){
 		var lastName = vFolders[#vFolders]
 		var fullpath = vFolders[lastName]; 
 		var manifestData = ..string.load( ..io.joinpath(fullpath,"manifest.json") )
+		 
 		if(manifestData){
 			var manifestInfo = ..web.json.parse(manifestData); 
+			manifestInfo.id = name;
 			manifestInfo.fullpath = fullpath;
 			..table.push(result,manifestInfo);
 		}
@@ -28,6 +76,26 @@ get = function(profile="Default"){
 	return result;	
 }
 
-/**intellisense()
-chrome.extensions.get() = 返回chrome已安装的扩展程序数组
+getEdge = function(profile="Default"){
+	if(profile) {
+		extensionsPath = ..io.appData("\Microsoft\Edge\User Data\" + profile + "\Extensions\");
+		
+		if(!..io.exist(extensionsPath) ){
+			return;
+		}
+		return get(,extensionsPath);
+	}
+}
+
+/**intellisense(chrome.extensions)
+get() = 返回 Chrome 已安装的扩展程序数组。\n可用参数 @2 自定义 profile，可用参数 @2 自定义扩展所在目录。\n\n可用 # 操作符取数组长度判断返回结果是否为空。
+getPath(.(kw,profile) = 获取 Edge 与 Chrome 浏览器扩展所在目录路径。 \n@kw 可指定系统浏览器扩展 ID、或名称、描述包含的关键字（忽略大小写）。 \n@profile 指定配置，默认为 "Default"。
+open(.(kw,profile) = 获取 Edge 与 Chrome 浏览器扩展所在目录路径并打开目录。 \n@kw 可指定系统浏览器扩展 ID、或名称、描述包含的关键字（忽略大小写）。 \n@profile 指定配置，默认为 "Default"。
+find(.(kw,profile) = 获取 Edge 与 Chrome 浏览器扩展安装信息。 \n@kw 可指定系统浏览器扩展 ID、或名称、描述包含的关键字（忽略大小写）。 \n@profile 指定配置，默认为 "Default"。
+findChrome(.(kw,profile) = 获取 Chrome 浏览器扩展安装信息。 \n@kw 可指定系统浏览器扩展 ID、或名称、描述包含的关键字（忽略大小写）。 \n@profile 指定配置，默认为 "Default"。
+findEdge(.(kw,profile) = 获取 Edge 浏览器扩展安装信息。 \n@kw 可指定系统浏览器扩展 ID、或名称、描述包含的关键字（忽略大小写）。 \n@profile 指定配置，默认为 "Default"。
 end intellisense**/
+
+/*****intellisense()
+chrome.extensions= 已安装的浏览器扩展。\n相关库： web.nativeMessaging, fsys.crx
+end intellisense*****/

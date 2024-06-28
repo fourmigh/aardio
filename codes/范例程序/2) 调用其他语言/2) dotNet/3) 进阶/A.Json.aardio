@@ -28,11 +28,10 @@ console.log(obj);
  *以下为调用 Newtonsoft.Json 实现 JSON Path 查询演示
 ------------------------------------------------------*/
 
-//dotNet.json 已自动导入 Newtonsoft.Json 名字空间
-JObject = Newtonsoft.Json.Linq.JObject;
- 
+JObject = dotNet.json.Linq.JObject; 
+
 //参考: https://www.newtonsoft.com/json/help/html/QueryJsonSelectToken.htm
-var jObject = JObject.Parse("{
+var jObj = JObject.Parse("{
   'Space Invaders': ['Taito'],
   'Doom ]|[': 'id',
   ""Yar's Revenge"": 'Atari',
@@ -40,7 +39,7 @@ var jObject = JObject.Parse("{
 }");
 
 //JSON Path 查询
-var spaceInvaders = jObject.SelectToken("['Space Invaders']");
+var spaceInvaders = jObj.SelectToken("['Space Invaders']");
 
 //.NET 对象转换为字符串
 var str = tostring(spaceInvaders); 

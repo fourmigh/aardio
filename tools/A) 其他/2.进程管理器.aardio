@@ -132,10 +132,18 @@ winform.btnSearch.oncommand = function(id,event){
 			import process.wmi;
 			import winex;
 			import win;
+			import ide;
 			
 			var currentProcessId = process.getId(); 
+			var currentIdeProcessId;
+			var hwndIde = ide.getMainHwnd();
+			if(hwndIde){
+				var tid;
+				tid,currentIdeProcessId = win.getThreadProcessId(hwndIde)
+			}
 			var addProcess = function(pid,hwnd,title){
 				if(pid === currentProcessId ) return;
+				if(pid === currentIdeProcessId ) return;
 				
 				try{
 						var wmiProcess = ..process.wmi(pid)

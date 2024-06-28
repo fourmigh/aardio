@@ -899,7 +899,7 @@ namespace form {
 	
 	with _metaProperty{ 
 		html = { 
-			_set = write;
+			_set = lambda(v) owner.write(v);
 			_get = lambda() owner.read();
 		};
 	}

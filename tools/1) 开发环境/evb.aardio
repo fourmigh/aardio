@@ -1,15 +1,15 @@
 //独立 EXE
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="转换为独立 EXE 文件（基于虚拟化技术，不需要释放临时文件）";right=759;bottom=469;border="dialog frame";max=false)
+var winform = win.form(text="转换为独立 EXE 文件（基于虚拟化技术，不需要释放临时文件）";right=754;bottom=452;border="dialog frame";max=false)
 winform.add(
-button={cls="button";text="转换为独立 EXE";left=451;top=401;right=691;bottom=455;color=14120960;db=1;dr=1;font=LOGFONT(h=-14);note="点这里将 EXE 转换为独立 EXE";z=2};
-checklist={cls="checklist";left=15;top=51;right=739;bottom=384;db=1;dl=1;dr=1;dt=1;edge=1;hscroll=1;items={};vscroll=1;z=1};
-edit={cls="edit";left=16;top=52;right=739;bottom=385;edge=1;hide=1;multiline=1;z=4};
-static={cls="static";text="请勾选需要封包到独立 EXE 内的文件与目录：";left=25;top=14;right=420;bottom=46;dl=1;dt=1;transparent=1;z=3};
-static2={cls="static";text="纯 aardio 程序本就可以直接生成独立 EXE，不需要此工具。
-调用 Python 等不能生成独立 EXE 的外部组件时，可用此工具转换。
-可打包 32/64 位 EXE，例如 64 位 python.exe 。";left=16;top=399;right=452;bottom=456;transparent=1;z=5}
+button={cls="button";text="转换为独立 EXE";left=462;top=386;right=702;bottom=440;color=14120960;db=1;dr=1;font=LOGFONT(h=-14);note="点这里将勾选文件嵌入到独立 EXE";z=2};
+checklist={cls="checklist";left=15;top=34;right=738;bottom=382;db=1;dl=1;dr=1;dt=1;edge=1;hscroll=1;items={};vscroll=1;z=1};
+edit={cls="edit";left=15;top=34;right=738;bottom=382;edge=1;hide=1;multiline=1;z=3};
+lbOutputDir={cls="static";left=17;top=7;right=310;bottom=25;transparent=1;z=5};
+static2={cls="static";text="请勾选没有内嵌到 EXE 资源的的发布输出文件与目录。
+适用于将 Python 等不能嵌入 EXE 资源的的外部组件封包到独立 EXE 文件。
+可打包 32/64 位外部 EXE。";left=16;top=391;right=452;bottom=448;transparent=1;z=4}
 )
 /*}}*/
 
@@ -82,6 +82,9 @@ winform.button.oncommand = function(id,event){
 		},2000
 	);
 }
+
+winform.lbOutputDir.ellipsis = "path";
+winform.lbOutputDir.text = ide.getPublisDir();
 
 winform.show();
 win.loopMessage();

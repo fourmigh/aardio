@@ -32,7 +32,7 @@ func main() {
 **********/
 
 //上面的 go.main 会自动保存到文件，然后编译 Go 源码生成同名 EXE 文件
-go.build("/goRpc.go");
+go.buildStrip("/goRpc.go");
 
 //判断是否单独运行此示例
 if(...) console.close();

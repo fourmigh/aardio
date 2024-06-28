@@ -42,7 +42,7 @@ winform.button.oncommand = function(id,event){
 	var pyBytes = py3.main.render();
 	
 	//设置图像，参数@2为 false 禁止缓存图像
-	winform.plus.setBackground( pyBytes.parseValue(),false );
+	winform.plus.setBackground( pyBytes,false );
 }
 
 winform.show(); 

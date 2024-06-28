@@ -33,7 +33,7 @@ console.dump(  pyObject.parseValue()  )
 var pyObject = py2.main.getString("测试中文")
 
 //Python 里是什么编码，这里就是什么编码，纯字符串类型 Python 对象在转换为  aardio 字符串时不会转换编码。
-console.dump( pyObject.parseValue() );
+console.dump( pyObject );
 
 console.pause(); 
 /*

@@ -374,8 +374,7 @@ class http{
 		//RFC6266,RFC5987,RFC2231
 		var disposition = owner.readHeader("Content-disposition")
 		if( disposition ){
-			var charset;
-			_type,charset,filename =  ..string.match(disposition,"([^;\s]+?)\s*\;.*!\wfilename\s*\*\s*\=\s*(<[a-zA-Z0-Z\-]+>)%''([^\s\;]+)");
+			var _type,charset,filename =  ..string.match(disposition,"([^;\s]+?)\s*\;.*!\wfilename\s*\*\s*\=\s*(<[a-zA-Z0-Z\-]+>)%''([^\s\;]+)");
 			if(filename){
 				filename = ..inet.url.decode(filename,..string.cmp("UTF-8",charset)==0 ? 65001 : 0)
 			}

@@ -604,7 +604,7 @@ getDpi = function(hdcIn,hwnd){
 }
 
 try{
-	::Shcore = ..raw.loadDll("Shcore.dll") 
+	::Shcore := ..raw.loadDll("Shcore.dll") 
 	GetDpiForMonitor  = ::Shcore.api("GetDpiForMonitor","int(addr hmonitor,int type,INT &dpiX,INT &dpiY)" )
 	
 	if( GetDpiForMonitor ){

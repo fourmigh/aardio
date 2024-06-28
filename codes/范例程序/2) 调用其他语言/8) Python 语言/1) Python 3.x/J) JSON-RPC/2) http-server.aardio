@@ -10,7 +10,11 @@ edit={cls="edit";left=13;top=18;right=734;bottom=444;edge=1;multiline=1;z=1}
 import wsock;
 winform.freePort = wsock.getFreePort();
 
-//启动 JSON-RPC 服务端线程( Python )
+/*
+启动 JSON-RPC 服务端线程( Python )
+一个线程跑 Python，别的线程就不要跑 Python。 
+Pyhton 多线程操作不慎会崩溃，而且也不能算是真的多线程，所以请避开这个坑。 
+*/
 thread.invoke( 
 	function(winform){
 		import py3;

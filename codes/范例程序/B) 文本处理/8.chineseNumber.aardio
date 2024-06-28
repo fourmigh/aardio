@@ -1,4 +1,4 @@
-﻿//中文化数值
+﻿//中文数值
 import console; 
 import string.chineseNumber; 
 var zh = string.chineseNumber(); 

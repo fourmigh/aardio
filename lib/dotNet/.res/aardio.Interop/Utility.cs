@@ -24,20 +24,34 @@ namespace aardio.Interop
     {
         private object underlyingObject;
         private Type type;
-        public DispatchableObject(object obj, bool byRef) { underlyingObject = obj; type = underlyingObject.GetType(); ByRef = byRef; }
+        public DispatchableObject(object obj, bool byRef) {
+            type = obj.GetType();
+
+            if (type == Utility.DispatchableObjectType)
+            {
+                obj = (obj as DispatchableObject).Value;
+                type = obj.GetType();
+            }
+
+            underlyingObject = obj; 
+            type = underlyingObject.GetType(); 
+            ByRef = byRef; 
+        }
         public bool ByRef; 
         
         [DispId(0)]
-        public object this[int index]
+        public object this[params object[] args]
         {
             get
             {
-                if (underlyingObject is Array arr) return arr.GetValue(index);
-                return null;
+                return type.InvokeMember("Item", BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public, null, underlyingObject, args);
+               //if (underlyingObject is Array arr) return arr.GetValue(index);
+               //return null;
             }
             set
             {
-                if (underlyingObject is Array arr) arr.SetValue(value,index); 
+                type.InvokeMember("Item", BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public, null, underlyingObject, args);
+                //if (underlyingObject is Array arr) arr.SetValue(value,index); 
             }
         } 
 
@@ -88,7 +102,7 @@ namespace aardio.Interop
         static Type UIntPtrType = typeof(System.UIntPtr);
 
         public static object WrapNonPrimitiveValueToAnyObjectRef(object ret)
-        { 
+        {
             if (ret == null) return ret;
 
             Type t = ret.GetType();
@@ -96,19 +110,26 @@ namespace aardio.Interop
 
             if (!t.IsValueType)
             {
-               if(t.IsArray){
+                if (t.IsArray) {
                     Type tEle = t.GetElementType();
                     Array arr = ret as Array;
 
-                    if (arr.GetLength(0) ==0 ) return new aardio.Interop.DispatchableObject(ret, false);
-                    if (tEle.IsPrimitive || tEle.IsEnum || (typeof(string) == tEle) ) return ret;
+                    if (arr.GetLength(0) == 0) return new aardio.Interop.DispatchableObject(ret, false);
+                    if (tEle.IsPrimitive || tEle.IsEnum || (typeof(string) == tEle)) return ret;
 
                     if (tEle.IsArray)
                     {
-                        object first = WrapNonPrimitiveValueToAnyObjectRef(arr.GetValue(0));
-                        if( (first!=null) && (first.GetType() == DispatchableObjectType))
+                        if (t.GetArrayRank() == 1)
                         {
                             return new aardio.Interop.DispatchableObject(ret, false);
+                        }
+
+                        object first = WrapNonPrimitiveValueToAnyObjectRef(arr.GetValue(0));
+                        if (first != null) {
+                            if (first.GetType() == DispatchableObjectType)
+                            {
+                                return new aardio.Interop.DispatchableObject(ret, false);
+                            }
                         }
                     }
                     else
@@ -117,7 +138,7 @@ namespace aardio.Interop
                         return new DispatchableObject(ret, false);
                     }
                 }
-                else if(t.IsClass)
+                else if (t.IsClass)
                 {
                     try
                     {
@@ -130,34 +151,35 @@ namespace aardio.Interop
                     }
                     catch (Exception)
                     {
-                        return ret;
+                        return new aardio.Interop.DispatchableObject(ret, false);
+                        //return ret;
                     }
                 }
-                
 
-                 return ret;
+
+                return ret;
             }
-            
+
             if (t == ColorType) return ((System.Drawing.Color)ret).ToArgb();
-            return new DispatchableObject(ret,false);
+            return new DispatchableObject(ret, false);
         }
 
-        public object CreateAnyObject(object v,bool byRef = false)
-        { 
+        public object CreateAnyObject(object v, bool byRef = false)
+        {
             return new DispatchableObject(v, byRef);
         }
-        
-        private void setOutValue(object []outArgs,object [] invokeArgs2)
+
+        private void setOutValue(object[] outArgs, object[] invokeArgs2)
         {
             for (int i = 0; i < outArgs.Length; i++)
             {
-                if(outArgs[i] != null )
+                if (outArgs[i] != null)
                 {
                     (outArgs[i] as DispatchableObject).Value = invokeArgs2[i];
                 }
             }
         }
-        
+
         public CCodeCompiler CreateCompiler(string provideType)
         {
             object obj = this.loadAssembly("System").CreateInstance(provideType);
@@ -168,10 +190,65 @@ namespace aardio.Interop
             return new CCodeCompiler(obj as CodeDomProvider);
         }
 
+        public object GetGenericTypeByName(object assembly, string typeName,object[] typeObjects)
+        {
+            Type t = null;
+
+            int typeLength = typeObjects.Length;
+            if (typeLength <= 0) return GetTypeByName(assembly, typeName);
+
+            try
+            {
+                t = (assembly as Assembly).GetType(typeName, false);
+                if(t == null)   t = Type.GetType(typeName, false); 
+
+                if ( t!= null)
+                {
+
+                    Type[] types = new Type[typeLength];
+
+                    for (int i = 0; i < typeLength; i++)
+                    {
+                        if(typeObjects[i] is string)
+                        {
+                            types[i] = Type.GetType(typeObjects[i] as string, true);
+                        }
+                        else
+                        {
+                            types[i] = typeObjects[i] as Type;
+                        }
+                    }
+
+                    t = t.MakeGenericType(types);
+                }
+            }
+            catch (TypeLoadException)
+            {
+                
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            return t;
+        }
 
         public object GetTypeByName(object assembly, string typeName)
         {
-            return (assembly as Assembly).GetType(typeName,false);
+            Type t = null;
+            try { 
+                t = (assembly as Assembly).GetType(typeName, false);
+                if (t == null) t = Type.GetType(typeName, false);
+            }
+            catch (TypeLoadException)
+            {
+
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            return t;
         }
 
         public object GetClassTypeByName(object assembly, string typeName)
@@ -180,6 +257,127 @@ namespace aardio.Interop
             if (t != null && t.IsClass) return t;
             return null;
         }
+
+        public object CallByMethodInfo(object tAnyObject, MethodInfo method, int invokeAttr, object args, object target)
+        { 
+            {
+                Type tAny = (tAnyObject == null)  ? target.GetType(): tAnyObject as Type;
+
+                ArrayList argArrayList = (args as ArrayList);
+
+                if ((tAny == DispatchableObjectType) && (target != null))
+                {
+                    DispatchableObject dispObj = (target as DispatchableObject);
+                    target = dispObj.Value;
+                    //tAny = target.GetType();
+                }
+
+                bool hasOutValues = false;
+                object[] outArgs = new object[argArrayList.Count];
+                Type[] argTypeArray = new Type[argArrayList.Count];
+                for (int i = 0; i < argArrayList.Count; i++)
+                {
+                    argTypeArray[i] = argArrayList[i] != null ? argArrayList[i].GetType() : null;
+                    if (argTypeArray[i] == DispatchableObjectType)
+                    {
+                        DispatchableObject v = (argArrayList[i] as DispatchableObject);
+                        if (v.ByRef)
+                        {
+                            outArgs[i] = argArrayList[i];
+                            hasOutValues = true;
+                        }
+
+                        argArrayList[i] = v.Value;
+                    }
+                }
+                if (!hasOutValues) outArgs = null;
+ 
+
+
+                MethodInfo[] ms = { method };
+                bool failed = true;
+
+                object[] invokeArgs2 = null;
+                object ret = InvokeMemberBaseMethodInfo(method.Name, ms, argArrayList, ref failed, target, invokeAttr, ref invokeArgs2);
+                if (!failed)
+                {
+                    ret = WrapNonPrimitiveValueToAnyObjectRef(ret);
+                    if ((outArgs != null) && (invokeArgs2 != null)) setOutValue(outArgs, invokeArgs2);
+                    return ret;
+                }
+            }
+
+            return null;
+        }
+
+        public object GetGenericMethod(object tAnyObject, string methodName, int invokeAttr, object[] typeObjects,object target )
+        {
+            try
+            {
+                Type tAny = (tAnyObject == null) ? target.GetType() : tAnyObject as Type;
+
+                if ((tAny == DispatchableObjectType) && (target != null))
+                {
+                    DispatchableObject dispObj = (target as DispatchableObject);
+                    target = dispObj.Value;
+                    tAny = target.GetType();
+                }
+
+                int typeLength = typeObjects.Length;
+                Type[] argTypes = new Type[typeLength];
+
+                for (int i = 0; i < typeLength; i++)
+                {
+                    if (typeObjects[i] is Type)
+                    {
+                        argTypes[i] = typeObjects[i] as Type;
+                    }
+                    else if (typeObjects[i] is string)
+                    {
+                        argTypes[i] = Type.GetType(typeObjects[i] as string, true);
+                    }
+                    else
+                    {
+                        argTypes[i] = typeObjects[i].GetType(); 
+                        if(argTypes[i] == DispatchableObjectType)
+                        {
+                            DispatchableObject dispObj = (typeObjects[i] as DispatchableObject);
+                            argTypes[i] = target.GetType();
+                        }
+                    }
+                }
+
+                MethodInfo[] ms = tAny.GetMethods((BindingFlags)invokeAttr | BindingFlags.IgnoreReturn);
+
+                for (int i = 0; i < ms.Length; i++)
+                {
+                    if (ms[i] is MethodInfo method)
+                    {
+                        if (methodName != method.Name) continue;
+                        if (!method.IsGenericMethod) continue;
+                        var genericArguments = method.GetGenericArguments();
+                        if (genericArguments.Length != typeLength) continue;
+
+                        var concreteMethod = method.MakeGenericMethod(argTypes);
+
+                        return concreteMethod;
+                    }
+                } 
+
+            }
+            catch (TargetInvocationException targetEx)
+            {
+                if (targetEx.InnerException != null)
+                {
+                    throw targetEx.InnerException;
+                }
+            }
+
+            return null; 
+        }
+
+
+
 
         public object InvokeMember2(object tAnyObject , object assemblyName, string typeName, string methodName, int invokeAttr, object args, object target)
         {
@@ -306,15 +504,92 @@ namespace aardio.Interop
             }
             catch (TargetInvocationException targetEx)
             {
-                if (targetEx.InnerException != null)
-                {
+                if (targetEx.InnerException != null) {
+                    
+                    if (targetEx.InnerException is MissingMethodException)
+                    {
+                        if( CheckObjectMethod(target, methodName, invokeAttr))
+                        {
+                            if (System.Threading.Thread.CurrentThread.CurrentCulture.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
+                            {
+                                throw new ArgumentException($"找到了函数'{methodName}'，但是调用参数的类型不匹配。");
+                            }
+                            else
+                            {
+                                throw new ArgumentException($"Method '{methodName}' found but no overload matches the provided parameter types.");
+                            }
+                        }
+                    }
+              
                     throw targetEx.InnerException;
                 }
             }
+            catch(MissingMethodException e){
+                if (CheckObjectMethod(target, methodName, invokeAttr))
+                { 
+                    if (System.Threading.Thread.CurrentThread.CurrentCulture.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
+                    { 
+                        throw new ArgumentException($"找到了函数'{methodName}'，但是调用参数的类型不匹配。");
+                    }
+                    else
+                    { 
+                        throw new ArgumentException($"Method '{methodName}' found but no overload matches the provided parameter types.");
+                    }
+                }
+
+                throw e;
+            }
 
             return null;
+        } 
+         public bool CheckObjectMember(object target, string propName, int invokeAttr)
+        {
+
+            try
+            {
+                Type tAny = target.GetType();
+                if ((tAny == DispatchableObjectType))
+                {
+                    DispatchableObject dispObj = (target as DispatchableObject);
+                    target = dispObj.Value;
+                    tAny = target.GetType();
+                }
+
+                var memberInfo = tAny.GetMember(propName, (BindingFlags)invokeAttr);
+                return (memberInfo.Length > 0);
+            } 
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
+        public bool CheckObjectMethod(object target, string methodName, int invokeAttr)
+        {
+
+            try
+            {
+                Type tAny = target.GetType();
+                if ((tAny == DispatchableObjectType) )
+                {
+                    DispatchableObject dispObj = (target as DispatchableObject);
+                    target = dispObj.Value;
+                    tAny = target.GetType();
+                }
+
+                var method = tAny.GetMethod(methodName, (BindingFlags)invokeAttr);
+                return (method != null);
+            }
+            catch(AmbiguousMatchException)
+            {
+                return true;
+            }
+            catch( Exception)
+            {
+                return false;
+            }  
+        }
+         
 
         public object RoundTrip(object target)
         {  
@@ -801,7 +1076,7 @@ namespace aardio.Interop
 
             for (int i = 0; i < ms.Length; i++)
             {
-                if ((ms[i].Name != methodName) || ms[i].IsGenericMethod) continue;
+                if ((ms[i].Name != methodName) || ms[i].IsGenericMethodDefinition) continue;
                 var parameters = ms[i].GetParameters();
 
                 if (parameters.Length == argArrayList.Count)
@@ -867,7 +1142,7 @@ namespace aardio.Interop
 
             for (int i = 0; i < ms.Length; i++)
             {
-                if ((ms[i].Name != methodName) || ms[i].IsGenericMethod) continue;
+                if ((ms[i].Name != methodName) || ms[i].IsGenericMethodDefinition) continue;
 
                 var parameters = ms[i].GetParameters();
                 if (parameters.Length > argArrayList.Count)
@@ -943,7 +1218,7 @@ namespace aardio.Interop
 
             for (int i = 0; i < ms.Length; i++)
             {
-                if ((ms[i].Name != methodName) || ms[i].IsGenericMethod) continue;
+                if ((ms[i].Name != methodName) || ms[i].IsGenericMethodDefinition) continue;
 
                 var parameters = ms[i].GetParameters();
                 if (parameters.Length == argArrayList.Count)
@@ -1061,7 +1336,7 @@ namespace aardio.Interop
 
             for (int i = 0; i < ms.Length; i++)
             {
-                if ((ms[i].Name != methodName) || ms[i].IsGenericMethod) continue;
+                if ((ms[i].Name != methodName) || ms[i].IsGenericMethodDefinition) continue;
 
                 var parameters = ms[i].GetParameters();
                 if (parameters.Length > argArrayList.Count)
@@ -1195,7 +1470,7 @@ namespace aardio.Interop
                     var methodParameters = method.GetParameters(); 
                     if (method.Name == methodName && argArrayList.Count <= methodParameters.Length)
                     {
-                        if (!method.IsGenericMethod) continue;
+                        if (!method.IsGenericMethodDefinition) continue;
 
                         var genericArguments = method.GetGenericArguments();
                         var genericParameters = new Type[genericArguments.Length];  
@@ -1255,8 +1530,16 @@ namespace aardio.Interop
             {
                 if (ms[i].Name == methodName && ms[i].GetParameters().Length == argArrayList.Count)
                 {
-                    if (!ms[i].IsGenericMethod)
-                    {
+                    if (!ms[i].IsGenericMethodDefinition)
+                    { 
+                        ParameterInfo[] parameters = ms[i].GetParameters();
+                        if (parameters.Length > 0 && Attribute.IsDefined(parameters[parameters.Length - 1], typeof(ParamArrayAttribute)))
+                        {
+                            failed = true;
+                            return null;
+                        }
+
+
                         failed = false;
                         invokeArgs2 = argArrayList.ToArray();
                         if (methodName == ".ctor") return (ms[i] as ConstructorInfo).Invoke(invokeArgs2);

@@ -10,7 +10,7 @@ class mshtml{
 			this.document = ..com.IsObject(doc)  ?  doc : doc.getDoc(...)   
 		}
 		else {
-			this.document = ..com.CreateObject("{25336920-03F9-11cf-8FD0-00AA00686F13}") 
+			this.document = ..com.CreateObject("{25336920-03F9-11cf-8FD0-00AA00686F13}") //ProgID:htmlfile 
 		}
 	}; 
 	@_metaProperty;
@@ -153,8 +153,8 @@ namespace mshtml{
 }
 
 /***intellisense()
-web.mshtml = MSHTML支持库
-web.mshtml() = 创建HTML文档对象\n!mshtm.
+web.mshtml = MSHTML（htmlfile）支持库
+web.mshtml() = 创建 HTML文档对象\n!mshtm.
 web.mshtml(doc) = 创建HTML文档对象\n可选指定一个document对象
 web.mshtml(wb,框架名) = 创建HTML文档对象\n可选指定一个wb窗体,以及框架名
 !mshtm.write("__") =  将字符串值写入网页、不允许追加

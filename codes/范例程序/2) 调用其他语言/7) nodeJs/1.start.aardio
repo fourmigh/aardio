@@ -1,4 +1,4 @@
-//入门
+//startEnviron
 import console;  
 import nodeJs;
 
@@ -10,7 +10,7 @@ https://learnxinyminutes.com/docs/zh-cn/javascript-cn/
 
 var js = /******
 
-console.log(process.argv);
+console.log(process.argv.slice(2));
 
 var startEnviron = require('startEnviron');
 console.log(startEnviron.dest);
@@ -26,7 +26,7 @@ nodeJs.startEnviron({
 })
 
 //执行JS，这里指定的启动参数在 JS 代码中可用 process.argv 获取。
-var prcs = nodeJs.exec(js,"--args1=1","--args2=1");
+var prcs = nodeJs.exec(js,"args1","args2");
 prcs.logResponse();
 
 console.pause(true);

@@ -22,12 +22,12 @@ var pyList = py3.main.getList(12,23);
 
 //可以如下遍历 pyObject 对象。
 for( pyItem in pyList.each() ){
-	 var v = pyItem.parseValue(); 
+	console.log(pyItem) //基础类型已转换为纯 aardio 值，其他为 py2.object
 }
 
 //pyObject 支持 table.eachIndex 创建的迭代器
 for i,pyItem in table.eachIndex(pyList){
-	var v = pyItem.parseValue(); 
+	console.log( i,pyItem ) //基础类型已转换为纯 aardio 值，其他为 py2.object
 }
  
 //转换为纯 aardio 值

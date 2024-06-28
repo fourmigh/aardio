@@ -29,7 +29,7 @@ if( ..string.startWith(m,"image/",true)){
         function(){
             var path = fsys.lnk.search("photoshop.exe");
             if(path){
-                ..process.execute(path,process.escapeArgument(filepath)); 
+                ..process.execute(path,{ filepath } ); 
                 opened = true;
             }
         }

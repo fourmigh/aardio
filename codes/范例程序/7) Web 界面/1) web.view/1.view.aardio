@@ -18,7 +18,8 @@ https://quickref.me/css
 web.view 入门教程：
 https://mp.weixin.qq.com/s/iYXPJgagXax9VgiIYaRfRw
 */
-import web.view;
+if(!_WIN10_LATER) import web.view.7; //兼容 Win7 以及之后版本，不支持新版 WebView2 的功能。 
+else import web.view;//支持 Win10 以及之后版本，导入这个就别导入前面的 web.view.7;  
 
 /*
 参数 @1 指定嵌入窗口（可以是 winform 或 static,custom 等控件对象）。
@@ -112,7 +113,7 @@ Win11 已自带 WebView2，Win10 1803 以及之后的系统早已自动推送 We
 
 只要简洁，不求完美！<br>
 Win7 在市场上已经接近消失，现在开发软件再处处考虑 Win7 兼容是不必要的。<br>
-当然：目前 aardio 的 web.view 仍然支持在 Win7 上快速自动安装 WebView2 。<br> 
+web.view 支持库不再支持 Win7，可通过 web.view.7 扩展库导入兼容 Win7 的旧版 web.view 。 
 <br>
 在网页上点右键菜单项<b>（Inspect / 检查）</b>或按 F12 键可以打开网页开发工具（ DevTools ），<br>
 在开发工具的「设置 / 语言」<b>（Settings / Language」）</b>界面可切换开发工具的界面语言。<br>

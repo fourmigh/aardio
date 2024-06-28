@@ -65,6 +65,16 @@ class popen{
 		this.stdErr.mode( o ? 0x4000/*_O_TEXT*/ : 0x8000/*_O_BINARY*/);
 		this.stdIn.mode( i ? 0x4000/*_O_TEXT*/ : 0x8000/*_O_BINARY*/);
 	};
+	writeUtf8 = function(...){  
+		if( this.stdIn ){
+			var ok,e,en = this.stdIn.write(...); 
+			if(ok) return this.stdIn.flush(); 
+			return ok,e,en;
+		}
+		else {
+			return null,"管道已关闭",6
+		}
+	};
 	write = function(...){ 
 		var ok,e,en;
 		if( this.stdIn ){
@@ -130,6 +140,11 @@ class popen{
 			return null,"管道已关闭",6
 		}
 	};
+	readUtf8 = function(...){
+		if(!this.stdOut) return;
+		if(...==-1) this.writeClose();
+		return this.stdOut.read(...); 
+	}; 
 	read = function(...){
 		if(!this.stdOut){
 			return;
@@ -139,32 +154,47 @@ class popen{
 		var out = {  this.stdOut.read(...) }
 		if(this.codepage!==65001){
 			for i,v in ..table.eachArgs(out){
-				out[i] = ..string.fromto(v,this.codepage,65001);
+				out[i] = ..string.fromto(v,( (v[2]===0)  && ( #v>=2) )? 1200  : this.codepage,65001);
 			}			
 		}
 		else {
-			if(out[1] && out[1][1] == 0xEF){
-				out[1] = ..string.removeBom(out[1]);
-			}
+			var str = out[1];
+			if(str){
+				if( str[1] == 0xEF){
+					out[1] = ..string.removeBom(str);
+				}	
+				elseif( (str[2]===0)  && ( #str>=2) ){
+					out[1] = ..string.fromto(str,1200,65001);
+					this.readUtf8 = this.read;
+				} 
+			} 
 		}
 
 		return ..table.unpackArgs(out);
-	};
-	lines = function(pattern){
+	}; 
+	lines = function(pattern,usePeek){
+		 	
+		var read = this.read;
+		if(usePeek){ 
+			read = function(){ 
+				return this.peekTo('\n');
+			} 	
+		}
+		
 		if(!pattern) return function(){
-			var l = this.read() 
+			var l = read() 
 			if(l) return ..string.trimright(l);
 		}
 
 		return function() {
-			while( var l = this.read() ) {
-				l = ..string.trimright(l);
+			while( var l = read() ) {
+				l = ..string.trimright(l); 
 				if(..string.find(l,pattern)){
 					return ..string.match(l,pattern);
 				}
 			}
 		}
-	};
+	}; 
 	readErr = function(...){
 		if(!this.stdErr){
 			return;
@@ -172,7 +202,7 @@ class popen{
 		
 		var out = {  this.stdErr.read(...) }
 		for i,v in ..table.eachArgs(out){
-			out[i] = ..string.fromto(v,this.codepage,65001);
+			out[i] = ..string.fromto(v,( (v[2]===0)  && ( #v>=2) ) ? 1200  : this.codepage,65001);
 		}
 		return ..table.unpackArgs(out); 
 	};
@@ -210,15 +240,28 @@ class popen{
 			return this.readErr(total); 
 	};
 	peekTo = function(tag,proc,timeout){ 
-		var str,err = "","";
+		var str,err = this.$peekToBuffer:"","";
+		this.$peekToBuffer = null;
+		
+		var pos = ..string.indexOf(str,tag)  
+		if(pos){
+			var ret = ..string.slice(str,1,pos-1);
+			if(#ret){
+				var remain = ..string.slice(str,pos+#tag+1);
+				if(#remain) this.$peekToBuffer = remain;
+	
+				if(!#err) err = null;
+				return ret,err;	
+			} 
+		}
+	
 		var s,e; 
 		var time = 0;
 		var endWith = ..string.endWith;
 		var closed;
 		if(!tag) tag = ">";
-		
-		do{ 
-			if(!this.process) return;
+	
+		while(this.process){  
 			closed = this.process.waitOne(1000);
 			s,e = this.peek(0);
 			
@@ -237,12 +280,28 @@ class popen{
 			elseif(timeout ? timeout > 0 ) {
 				time = time + 1000;
 				if( time > timeout ){ 
+					if(!#err) err = null;
 					return str,err;
 				}
 			}
-		}while(  !( closed || ..win[["closed"]]  || endWith(str,tag) || endWith(err,tag) ) ) 
+
+			if(closed || ..win[["closed"]]  ){
+				return null,..string.concat(str,err);
+			}
+			
+			
+			var pos = ..string.indexOf(str,tag) 
+			if(pos){
+				var ret = ..string.slice(str,1,pos-1);
+				var remain = ..string.slice(str,pos+#tag+1);
+				if(#remain) this.$peekToBuffer = remain;
+				
+				if(!#err) err = null; 
+				return ret,err;
+			}
+		} 
 		 
-		return str,err;
+		return null,..string.concat(str,err);
 	}; 
 	each = function(interval,timeout){
 		if( interval === null ) interval=1;
@@ -307,9 +366,8 @@ class popen{
 					if(err) ..io.stderr.write( err );
 				} 	
 			}
-			
 		}
-		
+		 
 		for( all,out,err in this.each(interval) ){
     		echo( all,out,err );//回显
 		}
@@ -388,7 +446,14 @@ class popen{
 		var ret = ..thread.waitOne(this.process.handle,timeout)  
 		sleep(10);
 		
-		if( ret ){
+		if(ret){
+			if(this.echoTimerId) {
+				while(this.echoTimerId){
+					..thread.delay(10);
+				}
+				
+				return ret;
+			}
 			return true,this.read(-1),this.readErr(-1),(this.process.getExitCode());
 		} 
 	};
@@ -467,10 +532,10 @@ namespace popen{
 	
 	bind64 = function(fileName,codepage){
 		return function(cmdline,...){
-			var prcs;
-			if(type(...)==type.string ) prcs =  ..fsys.wow64.disableRedirection(lambda(cmdline,...) ..process.popen(fileName,cmdline,...),cmdline,...);
-			else prcs =  ..fsys.wow64.disableRedirection(lambda() ..process.popen(fileName,cmdline));
-			if(codepage!==null) prcs.codepage = codepage
+			var prcs,err =  ..fsys.wow64.disableRedirection(lambda(cmdline,...) ..process.popen(fileName,cmdline,...),cmdline,...);
+ 			if(!prcs) return null,err;
+ 			
+			prcs.codepage = codepage;
 			return prcs;
 		}
 	}
@@ -495,7 +560,7 @@ end details**/
  
 /**intellisense()
 process.popen = 创建进程管道并调用目标程序，\n可隐藏子进程的控制台黑窗口。\n\n成功返回可读写的进程管道对象，\n失败返回 3 个值：null,错误信息,错误代码
-process.popen( = 创建进程管道并调用目标程序，\n可隐藏子进程的控制台黑窗口。\n\n成功返回可读写的进程管道对象，\n失败返回 3 个值：null,错误信息,错误代码
+process.popen( = 创建进程管道并调用目标程序，\n可隐藏子进程的控制台黑窗口。\n\n成功返回可读写的进程管道对象，\n失败返回 3 个值：null,错误信息,错误代码。\n\n个别系统 64 位程序，需要改用 process.popen.wow64 以避免目录重定向。
 process.popen(.( ,系统命令行) = 创建可读写的进程管道对象。\n如果省略第一个参数,并仅指定命令行,则作为系统命令行启动运行
 process.popen(.(执行文件,命令行参数,更多命令行参数,->->->) = 命令行参数可以是一个数组、一个或多个字符串参数,\n\n数组或多个命令行参数调用 process.joinArguments 合并,\n不在双引号内、且包含空白或需要转义的参数转义处理后首尾添加双引号,\n命令参数最大长度为 32765 个字符
 process.popen(.(执行文件,命令行参数,startupInfo) = 命令行参数可以是字符串或由多个字符串组成的数组,\n数组参数调用 process.joinArguments 合并,\n不在双引号内、且包含空白或需要转义的参数转义处理后首尾添加双引号,\n命令参数最大长度为 32765 个字符。\nSTARTUPINFO参数为 process.STARTUPINFO 结构体,可选参数\n如果该参数是普通 table 对象.将自动转换为 STARTUPINFO 结构体。\n//@startupInfo 指定{ showWindow = 1/*_SW_NORMAL*/ } 可显示控制台以外的窗口
@@ -518,8 +583,12 @@ process.popen.wow64() = !process_popen.
 process.popen.ps() = !process_popen.
 process.popen.ps1() = !process_popen.
 process.popen.detached() = !process_popen.
+process.popen.wsl() = !process_popen.
 !process_popen.codepage = 进程输入输出使用的代码页,默认为0
 !process_popen.textMode(.(output,input) = 参数 @output 指定进程输出是否使用文本模式\n参数 @input 指定进程输入是否使用文本模式\n输入输出默认都是二进制模式\n\n文本模式下'\x1A'(CTRL+Z),'\0'表示终止文本,\n并且读入时自动转换回车换行为换行,\n写出时自动转换换行符为回车换行
+!process_popen.reaUtf8(__) = 所有参数用法与 read 函数相同。\n此函数直接读入，不作任何编码转换。
+!process_popen.read(0) = 检测是否读取到文件尾
+!process_popen.read(__) = 正数参数表示从当前位置向后读取n个字节，\n支持多参数。
 !process_popen.read() = 从当前位置,向后读取下一行\n默认为二进制模式,行尾可能有回车符号,\n可使用 textMode 函数修改
 !process_popen.read("%s") = 从当前位置,向后读取下一行\n支持多参数
 !process_popen.read("%d") = 从当前位置,向后读取下一个数值\n支持多参数
@@ -530,30 +599,29 @@ process.popen.detached() = !process_popen.
 !process_popen.each( 间隔时间,超时时间 ) = @for( all,out,err in ??.each() ){
     io.stdout.write( out,err );__/*读取进程输出直到进程关闭，不阻塞界面线程消息*/
 }
-!process_popen.lines(模式表达式) = @for i,k,v in ??.lines("^(\s*)(\S.*?)[\s.]*\:\s*(.*)"){
-	__/*按行读取进程输出,移除每行尾部的空白字符,\n指定模式表达式则返回匹配结果，否则直接返回当前读取的文本。\n如果模式匹配用圆括号创建捕获分组，则每个捕获分组对应一个返回值。\n\n以上示例模式表达式匹配用 : 号分隔键值对的行，\n其中 \s 匹配空白字符，大写的 \S 匹配非空白字符*/
+!process_popen.lines(模式表达式,允许处理窗口消息) = @for i,k,v in ??.lines("^(\s*)(\S.*?)[\s.]*\:\s*(.*)"){
+	__/*按行读取进程输出,移除每行尾部的空白字符,\n指定模式表达式则返回匹配结果，否则直接返回当前读取的文本。\n如果模式匹配用圆括号创建捕获分组，则每个捕获分组对应一个返回值。\n\n以上示例模式表达式匹配用 : 号分隔键值对的行，\n其中 \s 匹配空白字符，大写的 \S 匹配非空白字符\n\n如果参数 @2 为 true 则读取进程输出时不会阻塞窗口消息*/
 }
 !process_popen.beforeClose = @.beforeClose = function(){
 	owner.process.terminate();__/*释放管道以前触发此事件,可强制关闭进程*/
 }
 !process_popen.logger = 指定 logResponse 的默认回显对象\n该对象必须有log或write成员函数用于输出回显\nlogger 对象用于logResponse 时将同步获取输出并等待进程结束\n\n如果不指定此属性,且已导入 console 则默认输出到控制台
 !process_popen.logResponse( = 回显进程的标准输出以及错误输出
-!process_popen.logResponse(.(回显函数,间隔时间) = 自动同动获取进程输出,并直到进程结束,所有参数可省略,\n如果之前定义了logger成员对象，则调用logger输出进程回显\n未指定logger对象则默认回显到控制台
-!process_popen.logResponse(.(异步回显文本框,间隔时间) = 不会阻塞并等待进程结束,\n而是在传入文本框控件上创建定时器异步回显进程输出,\n回显文本框必须指定edit或richedit控件,间隔时间可省略。\n\n调用此函数后不应再调用 waitOne 函数以避免该函数提前读取输出
+!process_popen.logResponse(.(回显函数,间隔时间) = 自动同动获取进程输出,并直到进程结束,所有参数可省略。\n\n回显函数有 3 个回调参数 all,out,err。\nall 为所有输出,out 为标准输出，err 为错误输出。\n可用 #err 判断是否出错。\n\n如果不指定回显函数，且之前定义了 logger 属性，则调用 logger 对象输出进程回显。\n未指定 logger 对象则默认回显到控制台。\n此函数不会自动打开控制台
+!process_popen.logResponse(.(异步回显文本框,间隔时间) = 不会阻塞并等待进程结束,\n而是在传入文本框控件上创建定时器异步回显进程输出,\n回显文本框必须指定edit或richedit控件,间隔时间可省略。\n\n如果正在进行异步回显，则调用 waitOne 函数不会读取任何输出。\n并且 waitOne 函数会等待异步回显结束
 !process_popen.stopLogResponse() = 清除异步回显文本框的定时器。\n关闭进程对象时也会自动清除此定时器
 !process_popen.peek(__) = 检测标准输出管道中可读取的数据长度。\n有数据则读取数据,无数据则返回空值\n如果 stderr 中有错误信息,则第二个返回值为错误信息\n此函数不会因为等待输入而阻塞\n参数可指定等待目标进程执行的延时时间
 !process_popen.peekTo( = 读取数据直到数据以指定的字符串结束
 !process_popen.peekTo(.(">",回显函数,超时) = 读取数据，直到数据以 参数@1 指定的字符串结束。\n不阻塞当前线程窗口消息。\n\n返回标准输出,第二个返回值为错误信息\n可选使用参数@2指定回显函数,回显函数有两个参数,分别为标准输出,错误信息\n可选用参数@3指定无输出时的超时限制\n该函数在进程退出后也会返回
 !process_popen.peekErr(__) = 检测标准错误输出管道中可读取的数据长度。\n有数据则读取错误信息,无数据则返回空值\n此函数不会因为等待输入而阻塞\n参数可指定等待目标进程执行的延时时间
-!process_popen.read(0) = 检测是否读取到文件尾
-!process_popen.read(__) = 正数参数表示从当前位置向后读取n个字节，\n支持多参数
 !process_popen.expect(  = 等待直到模式匹配标准输出成功，返回匹配结果。\n如果遇到错误输出返回null以及错误信息。\n此函数不阻塞界面线程消息
 !process_popen.expect(.("模式表达式",超时,文本最大长度) = 超时参数是以毫秒为单位的估算值，可省略。\n参数@3可省略，默认为1024
 !process_popen.print(__) = 清空标准输出然后写数据\n多个参数中间添加空格,尾部添加换行\n\n成功返回 true，失败返回 null ，错误代码，错误信息。
 !process_popen.printf(__) = 清空标准输出然后写数据\n调用string.format函数格式化全部参数,尾部添加换行\n\n成功返回 true，失败返回 null ，错误代码，错误信息。
-!process_popen.write(__) = 写数据,支持一个或多个参数\n成功返回 true，失败返回 null ，错误代码，错误信息。\n如果目标进程已关闭，但标准输入管道未释放仍可能返回 true。\n\n\nwaitOne 函数返回 true，或 each ，expect 等函数检测到进程退出，\n或readAll 或 read 函数参数为 -1 时\n会自动关闭目标进程标准输入管道\n并导致 write 函数返回 null 值
+!process_popen.write(__) = 写数据,支持一个或多个参数。\n成功返回 true，失败返回 null ，错误代码，错误信息。\n如果目标进程已关闭，但标准输入管道未释放仍可能返回 true。\n\n\nwaitOne 函数返回 true，或 each ，expect 等函数检测到进程退出，\n或readAll 或 read 函数参数为 -1 时\n会自动关闭目标进程标准输入管道\n并导致 write 函数返回 null 值
+!process_popen.writeUtf8(__) = 写入 UTF8 编码数据，不作编码转换，支持一个或多个参数。。\n成功返回 true，失败返回 null ，错误代码，错误信息。\n如果目标进程已关闭，但标准输入管道未释放仍可能返回 true。\n\n\nwaitOne 函数返回 true，或 each ，expect 等函数检测到进程退出，\n或readAll 或 read 函数参数为 -1 时\n会自动关闭目标进程标准输入管道\n并导致 write 函数返回 null 值
 !process_popen.writeClose(__) = 写数据并关闭进程输入流,\n可选指定一个或多个参数\n不指定参数则直接关闭输入流\n注意:有些进程会一直等待输入流关闭再继续下一下操作
-!process_popen.waitOne() = 等待进程关闭，不会阻塞当前线程窗口消息。\n可用一个毫秒值参数设定超时。\n\n超时或失败返回 null，进程已退出则返回值1为true，\n返回值2为标准输出,返回值3为错误输出,返回值4为退出代码\n\n如果被调用进程写满输出缓冲区，而调用进程没有读取，\n则被调用进程会一直等待，此函数将无法返回。\n改用 readAll 函数读取输入可避免该问题。\n\n注意调用此函数后，可能在异步 logResponse 之前读取输出
+!process_popen.waitOne() = 等待进程关闭，不会阻塞当前线程窗口消息。\n可用一个毫秒值参数设定超时。\n\n超时或失败返回 null，进程已退出则返回值1为true，\n返回值2为标准输出,返回值3为错误输出,返回值4为退出代码\n\n如果被调用进程写满输出缓冲区，而调用进程没有读取，\n则被调用进程会一直等待，此函数将无法返回。\n改用 readAll 函数读取输入可避免该问题。\n\n注意如果正在调用异步 logResponse 回显到窗口对象。\n则 waitOne 函数仅返回单个值，不读取任何输出
 !process_popen.wait() = 等待进程关闭,可选使用一个毫秒值参数设定超时。\n超时或失败返回 null，进程退出则返回值1为true，\n返回值2为标准输出，返回值3为错误输出，返回值4为退出代码\n\n如被调用进程写满输出缓冲区，而调用进程没有读取，\n则被调用进程会一直等待，此函数将无法返回。\n改用 readAll 函数读取输入可避免该问题。
 !process_popen.stillActive() = 检查进程是否仍在运行，仍在运行返回 true
 !process_popen.getExitCode() = 该函数调用成功有两个返回值:进程退出代码,进程是否已退出

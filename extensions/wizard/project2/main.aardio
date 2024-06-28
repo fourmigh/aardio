@@ -208,6 +208,10 @@ if(_ARGV.opt == "test"){\r\n
 			string.save(pathMain,strMain)	
 		}
 	} 
+	
+	if(tbs.selForm.onProjectCreated){ 
+		tbs.selForm.onProjectCreated(dstDir,pathMain);
+	}
 	 
 	/*-------------------------------
 	 * 修改自定义工程属性结束

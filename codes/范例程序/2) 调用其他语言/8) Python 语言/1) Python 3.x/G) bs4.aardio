@@ -40,12 +40,7 @@ def getTitle(url):
 
 var pyStr = py3.main.getTitle("https://www.aardio.com" );
 
-/*
-pyStr 是一个 Python 对象，
-使用 pyStr.parseValue() 或者 pyStr.toString() 都可以转换为 aardio 字符串。
-使用 tostring(pyStr) 也可以转换为 aardio 字符串。
-*/
-mainForm.edit.print( tostring(pyStr) );
+mainForm.edit.print( pyStr );
 
 mainForm.show();
 return win.loopMessage();

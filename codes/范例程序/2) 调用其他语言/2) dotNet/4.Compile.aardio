@@ -15,7 +15,7 @@ compiler.Reference("System.dll");
  
 //设置 C# 源码（ 注释赋值为字符串，首尾星号数目要匹配 ）
 compiler.Source = /******  
-<? /* 代码开始为模板标记，则启用模板语法 chm://the%20language/template_syntax.html */ ?>
+<? /* Source 值为字符串则启用模板语法 chm://the%20language/template_syntax.html */ ?>
 using System;
 
 namespace CSharpLibrary  
@@ -105,7 +105,7 @@ null值、数值、字符串、枚举、 System.Drawing.Color 等简单值类型
 com.NetObject 分为：
 1、普通 .NET 对象，传入 com.IsNetObject() 返回1 
 2、封包其他原始 .NET 对象的 DispatchableObject 对象，传入 com.IsNetObject() 返回2
-一些 aardio 无法直接转换的 .NET 对象（例如 struct,ValueTuple）会被自动封包到 DispatchableObject 内 (在传回 .NET 时会自动解包)。
+一些 aardio 无法直接转换的 .NET 对象（例如 struct,ValueTuple,交错数组）会被自动封包到 DispatchableObject 内 (在传回 .NET 时会自动解包)。
 
 .NET / aardio 底层交互基于 COM 接口， 
 但 COM 接口 难以兼容 .NET 对象复杂的数据类型与语法特性（例如无法支持函数重载）， 

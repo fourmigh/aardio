@@ -1,4 +1,4 @@
-﻿//cmdline.argv2 命令行参数
+﻿//cmdline.argv2 命令行参数解析
 import string.cmdline;
 
 namespace string.cmdline;

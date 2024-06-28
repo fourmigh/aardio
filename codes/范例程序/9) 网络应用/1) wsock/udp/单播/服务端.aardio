@@ -1,26 +1,27 @@
-import console;
+import console.int;
 import wsock.udp.client;
 
-console.log("UDP服务端已启动")
- 
+console.log("UDP服务端已启动") 
 var udpServer = wsock.udp.client();   
 
-//调用bind()将该套接口和 本地网络地址联系在一起
-if( !udpServer.bind( "0.0.0.0",50 ) ){
+//绑定 IP 端口，注意同一套接字不能重复绑定
+var ok,err,errCode = udpServer.bind( "0.0.0.0",50 );
+if( !ok ){
 	udpServer.close();
-	console.log("未监听成功");
-	console.pause();
-	return false;
+	 
+	console.log("未监听成功",err,errCode); 
+	return;
 }
  
+//接收数据
 var str = udpServer.recvfrom(1024)
 console.log("服务器收到:",str)
-  
-sleep(1000) 
-udpServer.sendto("ok1");
- 
-sleep(1000)
-udpServer.sendto("ok2"); 
+thread.delay(1000) 
 
+//发送数据
+udpServer.sendto("ok1");
+thread.delay(1000)
+
+//发送数据
+udpServer.sendto("ok2"); 
 udpServer.close(); 
-console.pause();

@@ -113,6 +113,10 @@ namespace ide{
 						..win.msgboxTimeout("库 " + libName ++ msg,"aardio"); 
 					}
 				} 
+				else {
+					..raw.execute(downloadUrl);
+				}
+				
 			} mutex.release();
 			
 			if(..io.libpath(libName) ){	

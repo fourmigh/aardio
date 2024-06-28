@@ -1,26 +1,22 @@
 //用剪贴板发送文本
-
-import process
+import key;
+import win.clip;
+import process;
 import winex;
-
+ 
 //打开写字板
-process.executeWaitInput("wordpad.exe");
-h,richedit = winex.waitActive(,,"WordPadClass","RICHEDIT50W");
+process.executeWaitInput("notepad.exe");
 
-import key
-import win.clip
-function shift_insert(str){
-	win.clip.write(str)
-	key.combine("SHIFT","INS")
+//等待激活的窗口句柄，文本框句柄
+var hwnd,hEdit = winex.waitActive(,,"Notepad"
+	,"<RichEditD2DPT>|<Edit>");//模式语法：类名为 RichEditD2DPT 或 Edit
+ 
+function ctrlV(str){
+	win.clip.write(str);
+	key.combine("CTRL","V");	
 }
 
-function ctrl_v(str){
-	win.clip.write(str)
-	key.combine("CTRL","V")	
-}
-
-shift_insert("测试用shift+insert键发送字符串")
-shift_insert("测试用ctrl+v发送字符串")
+ctrlV("测试用 Ctrl+V 发送字符串");
 
 /*
 其他发送字符串函数：
