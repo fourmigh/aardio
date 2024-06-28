@@ -1,0 +1,35 @@
+import win.ui;
+import console
+import fsys.dlg
+/*DSG{{*/
+mainForm = win.form(text="JsonTariffEngineEditer";right=757;bottom=467;)
+mainForm.add(
+button={cls="button";text="Load";left=17;top=15;right=97;bottom=52;z=1;};
+
+)
+/*}}*/
+
+log = function(tag, text) {
+	//mainForm.tvLog.text = "[" + tag + "]: " + text
+	console.log(tag, text)
+}
+
+var filePath = ""
+var fileJson = {}
+
+reloadFile = function(filePath) {
+	log("filePath", filePath)
+	var content = string.load(filePath)
+	fileJson = web.json.parse(content)
+	log("fileJson", web.json.stringify(fileJson))
+	
+}
+
+mainForm.button.oncommand = function(id,event){
+	//加载*.trfjs文件
+	filePath = fsys.dlg.open()
+	reloadFile(filePath)
+}
+
+mainForm.show();
+return win.loopMessage();
