@@ -2,16 +2,18 @@ import win.ui;
 import console
 import fsys.dlg
 /*DSG{{*/
-mainForm = win.form(text="JsonTariffEngineEditer";right=757;bottom=467;)
+mainForm = win.form(text="JsonTariffEngineEditer";left=0;top=0;right=800;bottom=600;)
 mainForm.add(
-button={cls="button";text="Load";left=17;top=15;right=97;bottom=52;z=1;};
+btnLoad={cls="button";text="Load";left=23;top=17;right=103;bottom=54;z=1;};
+btnSave={cls="button";text="Save";left=688;top=538;right=768;bottom=575;z=2;};
+tabRuleType={cls="tab";left=20;top=65;right=768;bottom=524;edge=1;z=3;};
 
 )
 /*}}*/
 
 log = function(tag, text) {
 	//mainForm.tvLog.text = "[" + tag + "]: " + text
-	console.log(tag, text)
+	//console.log(tag, text)
 }
 
 var filePath = ""
@@ -19,17 +21,31 @@ var fileJson = {}
 
 reloadFile = function(filePath) {
 	log("filePath", filePath)
+	if (filePath == null) {
+		return
+	}
 	var content = string.load(filePath)
+	if (content == null) {
+		return
+	}
 	fileJson = web.json.parse(content)
 	log("fileJson", web.json.stringify(fileJson))
 	
 }
 
-mainForm.button.oncommand = function(id,event){
+mainForm.btnLoad.oncommand = function(id,event){
 	//加载*.trfjs文件
 	filePath = fsys.dlg.open()
 	reloadFile(filePath)
 }
+
+mainForm.btnSave.oncommand = function(id,event){
+	
+}
+
+mainForm.tabRuleType.loadForm("\dlg\tabHoliday.aardio");
+mainForm.tabRuleType.loadForm("\dlg\tabTier.aardio");
+mainForm.tabRuleType.loadForm("\dlg\tabFlat.aardio");
 
 mainForm.show();
 return win.loopMessage();
