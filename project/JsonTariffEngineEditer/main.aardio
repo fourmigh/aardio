@@ -4,33 +4,59 @@ import fsys.dlg
 /*DSG{{*/
 mainForm = win.form(text="JsonTariffEngineEditer";left=0;top=0;right=800;bottom=600;)
 mainForm.add(
+btnAdd={cls="button";text="Add";left=23;top=538;right=103;bottom=575;z=3;};
 btnLoad={cls="button";text="Load";left=23;top=17;right=103;bottom=54;z=1;};
 btnSave={cls="button";text="Save";left=688;top=538;right=768;bottom=575;z=2;};
-tabRuleType={cls="tab";left=20;top=65;right=768;bottom=524;edge=1;z=3;};
+etMaxAmount={cls="edit";left=280;top=64;right=429;bottom=96;edge=1;multiline=1;z=7;};
+lbRule={cls="listbox";left=170;top=153;right=429;bottom=474;edge=1;items={};z=9;};
+lbTariff={cls="listbox";left=27;top=99;right=148;bottom=474;edge=1;items={};z=4;};
+static={cls="static";text="TariffList";left=27;top=74;right=120;bottom=96;font=LOGFONT(h=-14;weight=700);transparent=1;z=5;};
+static2={cls="static";text="RuleList";left=166;top=119;right=259;bottom=141;font=LOGFONT(h=-14;weight=700);transparent=1;z=8;};
+static3={cls="static";text="maxAmount:";left=166;top=74;right=259;bottom=96;font=LOGFONT(h=-14;weight=700);transparent=1;z=6;};
 
 )
 /*}}*/
 
 log = function(tag, text) {
 	//mainForm.tvLog.text = "[" + tag + "]: " + text
-	//console.log(tag, text)
+	console.log(tag, text)
 }
+logJson = function(tag, json) {
+	text = web.json.stringify(json)
+	log(tag, text)
+}
+
 
 var filePath = ""
 var fileJson = {}
+var keyTariff = ""
 
 reloadFile = function(filePath) {
 	log("filePath", filePath)
-	if (filePath == null) {
-		return
-	}
 	var content = string.load(filePath)
 	if (content == null) {
 		return
-	}
+	} 
 	fileJson = web.json.parse(content)
-	log("fileJson", web.json.stringify(fileJson))
+	//log("fileJson", web.json.stringify(fileJson))
+	for (k,v in fileJson) {
+		mainForm.lbTariff.add(k)
+	}
+}
+
+mainForm.lbTariff.onSelChange = function() {
+	keyTariff = owner.selText
+	mainForm.etMaxAmount.text = fileJson[keyTariff].maxAmount
+	var rules = fileJson[keyTariff].rules
 	
+	logJson("Rule.rules", rules)
+	var index = 0
+	for(i=1;#rules;1) {
+		var rule = rules[i]
+		log("Rule.index", i)
+		logJson("Rule.rule", rule)
+		mainForm.lbRule.add(i + "." + rule.name)
+	}
 }
 
 mainForm.btnLoad.oncommand = function(id,event){
@@ -42,10 +68,6 @@ mainForm.btnLoad.oncommand = function(id,event){
 mainForm.btnSave.oncommand = function(id,event){
 	
 }
-
-mainForm.tabRuleType.loadForm("\dlg\tabHoliday.aardio");
-mainForm.tabRuleType.loadForm("\dlg\tabTier.aardio");
-mainForm.tabRuleType.loadForm("\dlg\tabFlat.aardio");
 
 mainForm.show();
 return win.loopMessage();
