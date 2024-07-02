@@ -7,8 +7,9 @@ mainForm.add(
 btnAdd={cls="button";text="Add";left=23;top=538;right=103;bottom=575;z=3;};
 btnLoad={cls="button";text="Load";left=23;top=17;right=103;bottom=54;z=1;};
 btnSave={cls="button";text="Save";left=688;top=538;right=768;bottom=575;z=2;};
-etMaxAmount={cls="edit";left=280;top=64;right=429;bottom=96;edge=1;multiline=1;z=7;};
-lbRule={cls="listbox";left=170;top=153;right=429;bottom=474;edge=1;items={};z=9;};
+etMaxAmount={cls="edit";left=280;top=64;right=425;bottom=96;edge=1;multiline=1;z=7;};
+etRule={cls="edit";left=456;top=149;right=768;bottom=469;edge=1;multiline=1;z=10;};
+lbRule={cls="listbox";left=166;top=149;right=425;bottom=474;edge=1;items={};z=9;};
 lbTariff={cls="listbox";left=27;top=99;right=148;bottom=474;edge=1;items={};z=4;};
 static={cls="static";text="TariffList";left=27;top=74;right=120;bottom=96;font=LOGFONT(h=-14;weight=700);transparent=1;z=5;};
 static2={cls="static";text="RuleList";left=166;top=119;right=259;bottom=141;font=LOGFONT(h=-14;weight=700);transparent=1;z=8;};
@@ -26,19 +27,18 @@ logJson = function(tag, json) {
 	log(tag, text)
 }
 
-
 var filePath = ""
 var fileJson = {}
 var keyTariff = ""
 
 reloadFile = function(filePath) {
-	log("filePath", filePath)
+	//log("filePath", filePath)
 	var content = string.load(filePath)
 	if (content == null) {
 		return
 	} 
 	fileJson = web.json.parse(content)
-	//log("fileJson", web.json.stringify(fileJson))
+	//logJson("fileJson", fileJson)
 	for (k,v in fileJson) {
 		mainForm.lbTariff.add(k)
 	}
@@ -49,13 +49,30 @@ mainForm.lbTariff.onSelChange = function() {
 	mainForm.etMaxAmount.text = fileJson[keyTariff].maxAmount
 	var rules = fileJson[keyTariff].rules
 	
-	logJson("Rule.rules", rules)
-	var index = 0
+	//logJson("Rule.rules", rules)
+	mainForm.lbRule.clear()
 	for(i=1;#rules;1) {
 		var rule = rules[i]
-		log("Rule.index", i)
-		logJson("Rule.rule", rule)
-		mainForm.lbRule.add(i + "." + rule.name)
+		//log("Rule.index", i)
+		//logJson("Rule.rule", rule)
+		mainForm.lbRule.add(i)
+	}
+}
+
+mainForm.lbRule.onSelChange = function() {
+	var indexRule = owner.selText
+	//log("Rule.index", indexRule)
+	//log("Rule.keyTariff", keyTariff)
+	var rules = fileJson[keyTariff].rules
+	//logJson("Rule.rules", rules)
+	var rule = rules[tonumber(indexRule)]
+	//logJson("Rule.rule", rule)
+	mainForm.etRule.text = web.json.stringify(rule)
+	if (rule.type == "flat") {
+		..rule = rule
+		var editRule = win.loadForm("\dlg\editRuleFlat.aardio");
+		var result = editRule.doModal();
+		//log("Rule.editRule.doModal", result)
 	}
 }
 
@@ -66,6 +83,10 @@ mainForm.btnLoad.oncommand = function(id,event){
 }
 
 mainForm.btnSave.oncommand = function(id,event){
+	
+}
+
+mainForm.btnAdd.oncommand = function(id,event){
 	
 }
 

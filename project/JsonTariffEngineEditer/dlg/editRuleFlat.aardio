@@ -1,0 +1,59 @@
+import win.ui;
+import console
+/*DSG{{*/
+var winform = win.form(text="Edit Rule Flat";right=628;bottom=302;)
+winform.add(
+btnOK={cls="button";text="OK";left=474;top=220;right=554;bottom=257;z=7;};
+etRuleName={cls="edit";left=258;top=65;right=411;bottom=87;edge=1;z=13;};
+etRuleRate={cls="edit";left=258;top=103;right=411;bottom=125;edge=1;z=2;};
+rbTypeFlat={cls="radiobutton";text="Flat";left=424;top=27;right=472;bottom=44;z=11;};
+rbTypeHoliday={cls="radiobutton";text="Holiday";left=258;top=27;right=328;bottom=42;z=9;};
+rbTypeTier={cls="radiobutton";text="Tier";left=344;top=27;right=388;bottom=42;z=10;};
+rbUnitDay={cls="radiobutton";text="Day";left=258;top=147;right=304;bottom=164;z=4;};
+rbUnitHour={cls="radiobutton";text="Hour";left=338;top=147;right=391;bottom=164;z=5;};
+rbUnitMinute={cls="radiobutton";text="Minute";left=424;top=147;right=490;bottom=164;z=6;};
+static={cls="static";text="rule.rate:";left=115;top=102;right=215;bottom=131;font=LOGFONT(h=-18;weight=700);transparent=1;z=1;};
+static2={cls="static";text="rule.unit:";left=115;top=142;right=215;bottom=171;font=LOGFONT(h=-18;weight=700);transparent=1;z=3;};
+static3={cls="static";text="rule.type:";left=115;top=21;right=215;bottom=50;font=LOGFONT(h=-18;weight=700);transparent=1;z=8;};
+static4={cls="static";text="rule.name:";left=115;top=61;right=215;bottom=90;font=LOGFONT(h=-18;weight=700);transparent=1;z=12;};
+
+)
+/*}}*/
+
+log = function(tag, text) {
+	console.log(tag, text)
+}
+logJson = function(tag, json) {
+	text = web.json.stringify(json)
+	log(tag, text)
+}
+
+var rule = ..rule
+winform.etRuleName.text = rule.name
+var ruleType = string.lower(rule.type)
+if (ruleType == "holiday") {
+	winform.rbTypeHoliday.checked = true
+} elseif (ruleType == "tier") {
+	winform.rbTypeTier.checked = true
+} elseif (ruleType == "flat") {
+	winform.rbTypeFlat.checked = true
+}
+var ruleUnit = string.lower(rule.unit)
+if (ruleUnit == "day") {
+	winform.rbUnitDay.checked = true
+} elseif(ruleUnit == "hour") {
+	winform.rbUnitHour.checked = true
+} elseif(ruleUnit == "minute") {
+	winform.rbUnitMinute.checked = true
+}
+
+winform.etRuleRate.text = rule.rate
+
+winform.btnOK.oncommand = function(id,event) {
+	
+	winform.endModal(true)
+}
+
+winform.show();
+win.loopMessage();
+return winform;
