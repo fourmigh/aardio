@@ -695,7 +695,7 @@
 -2138440671|1368|647|codes\范例程序\9) 网络应用\0) 网络管理\3) wmi.network.aardio
 1626839924|3082|1310|codes\范例程序\9) 网络应用\0) 网络管理\4) wmi.adapter.aardio
 1577788320|2727|1356|codes\范例程序\9) 网络应用\0) 网络管理\5) connections.aardio
--1812712631|1034|623|codes\范例程序\9) 网络应用\0) 网络管理\6) wlanEnumInterfaces.aardio
+1178387676|1128|699|codes\范例程序\9) 网络应用\0) 网络管理\6) wlanEnumInterfaces.aardio
 721304670|3578|1567|codes\范例程序\9) 网络应用\0) 网络管理\A) sys.upnp.nat.aardio
 233575813|918|370|codes\范例程序\9) 网络应用\0) 网络管理\B) firewall.aardio
 -18021204|177|126|codes\范例程序\9) 网络应用\0) 网络管理\C) netstat.aardio
@@ -928,7 +928,7 @@
 1685184349|1353|835|codes\范例程序\F) COM 组件\3) 嵌入控件进阶\2.InkEdit.aardio
 514342123|1039|716|codes\范例程序\F) COM 组件\3) 嵌入控件进阶\4.pdf.aardio
 1231876079|609|449|codes\范例程序\F) COM 组件\5) WMI 应用\meta_class.aardio
--441369398|1256|557|codes\范例程序\F) COM 组件\5) WMI 应用\SWbemSink.aardio
+-1500129470|1266|617|codes\范例程序\F) COM 组件\5) WMI 应用\SWbemSink.aardio
 692694635|2212|1015|codes\范例程序\F) COM 组件\5) WMI 应用\SysInfo.aardio
 -699046203|2205|997|codes\范例程序\F) COM 组件\5) WMI 应用\UserAccount.aardio
 -1287950421|1298|791|codes\范例程序\F) COM 组件\6) Excel\1) Excel.aardio
@@ -958,7 +958,7 @@
 0|0|0|codes\范例程序\G) 操作系统\3) 打印机\
 0|0|0|codes\范例程序\G) 操作系统\4) 系统设置\
 0|0|0|codes\范例程序\G) 操作系统\5) 桌面\
-0|0|0|codes\范例程序\G) 操作系统\9) 安卓子系统\
+0|0|0|codes\范例程序\G) 操作系统\6) 事件日志\
 -1056745835|1194|624|codes\范例程序\G) 操作系统\1) 注册表\0.reg.aardio
 -1457738073|992|569|codes\范例程序\G) 操作系统\1) 注册表\1.wow64.aardio
 143187063|856|546|codes\范例程序\G) 操作系统\1) 注册表\2.lastkey.aardio
@@ -984,8 +984,8 @@
 -1261011943|463|324|codes\范例程序\G) 操作系统\5) 桌面\A) Restart-Explorer.aardio
 499775969|637|422|codes\范例程序\G) 操作系统\5) 桌面\B) VirDesktop.aardio
 1241140517|1036|542|codes\范例程序\G) 操作系统\5) 桌面\C) MultiDesktop.aardio
-2121770736|2345|1094|codes\范例程序\G) 操作系统\9) 安卓子系统\1.setup.aardio
--1567212651|1302|743|codes\范例程序\G) 操作系统\9) 安卓子系统\2.installApk.aardio
+-971696075|1479|599|codes\范例程序\G) 操作系统\6) 事件日志\1.NTLogEvent.aardio
+543206292|796|493|codes\范例程序\G) 操作系统\6) 事件日志\2.EventLogReader.aardio
 -1105115855|2350|1299|codes\范例程序\H) Excel\0) ReoGrid.aardio
 1170472717|1091|667|codes\范例程序\H) Excel\1) NPOI.aardio
 598213195|2483|1225|codes\范例程序\H) Excel\2) SheetJS.aardio
@@ -1062,10 +1062,10 @@
 -1974914867|727552|308373|config\CFG.BIN
 0|0|0|config\intellisense\
 0|0|0|config\lang\
-298352151|15|34|config\SYS.CFG
+-1884492876|15|34|config\SYS.CFG
 -1857708118|3541|748|config\SYS.THEME
 0|0|0|config\themes\
-1856602353|119925|31031|config\intellisense\kernel.txt
+-1894499605|120442|31114|config\intellisense\kernel.txt
 -1079170837|5336|2040|config\intellisense\unimportant.txt
 946221732|9375|1953|config\intellisense\web.layout.behavior.txt
 35049853|11002|2229|config\intellisense\web.sciter.behavior.txt
@@ -1726,7 +1726,7 @@
 0|0|0|extensions\wizard\project2\template\winform-blank\res\
 -1985223173|1085|662|extensions\wizard\project2\template\winform-blank\lib\config.aardio
 0|0|0|extensions\wizard\project2\template\winform-blank\lib\fonts\
-1659352883|766787|761544|help\aardio.chm
+428718407|767249|762033|help\aardio.chm
 -79648214|10296|3081|help\关于 aardio.txt
 0|0|0|help\用户许可协议\
 -793218609|3349|1321|help\用户许可协议\aardio开源代码许可证.txt
@@ -1812,7 +1812,7 @@
 1251404223|8215|2103|lib\com\smtp.aardio
 1499728080|5100|1573|lib\com\tlbDoc.aardio
 943578949|1068|596|lib\com\typeAttrs.aardio
-81806829|9954|2724|lib\com\wmi.aardio
+1956301702|13807|3003|lib\com\wmi.aardio
 2032107127|20438|6052|lib\com\cad\_.aardio
 908410521|8693|2952|lib\com\doc\_.aardio
 1640386841|1704|798|lib\com\interface\IApplicationActivationManager.aardio
@@ -2089,7 +2089,7 @@
 -386291437|7257|2220|lib\preload\struct.aardio
 1880915491|27479|8270|lib\preload\table.aardio
 1804332873|13723|4575|lib\preload\thread.aardio
-665822449|15820|5662|lib\preload\_.aardio
+-558546942|15913|5677|lib\preload\_.aardio
 -1882500609|5123|1985|lib\process\admin.aardio
 0|0|0|lib\process\apiHook\
 1685550576|1158|628|lib\process\atom.aardio
@@ -2249,7 +2249,7 @@
 0|0|0|lib\string\keywords\.res\
 346408694|3915|1185|lib\string\keywords\_.aardio
 1260423917|3584|905|lib\string\keywords\.res\keywords.dll
-1839814212|8669|2480|lib\sys\acl.aardio
+1474854157|8824|2538|lib\sys\acl.aardio
 134205612|2094|1050|lib\sys\baseBoard.aardio
 -1979592531|1571|822|lib\sys\comPort.aardio
 517768898|1687|866|lib\sys\cp210x.aardio
@@ -2282,7 +2282,6 @@
 -91611673|3789|1188|lib\sys\vc14.aardio
 -1617475950|5784|2161|lib\sys\volume.aardio
 -1251140010|1461|859|lib\sys\wallpaper.aardio
-166324106|3497|1461|lib\sys\wsa.aardio
 -1224990289|2072|918|lib\sys\_.aardio
 -278388968|2070|752|lib\sys\locale\abbrevNames.aardio
 1145111531|5808|1871|lib\sys\locale\_.aardio
@@ -2296,6 +2295,7 @@
 -2082484242|201|162|lib\System\DateTime.aardio
 87179635|266|186|lib\System\DateTimeOffset.aardio
 36523920|197|158|lib\System\Delegate.aardio
+0|0|0|lib\System\Diagnostics\
 0|0|0|lib\System\Drawing\
 475630078|2137|765|lib\System\Environment.aardio
 0|0|0|lib\System\IO\
@@ -2312,6 +2312,7 @@
 -1066673230|2126|1139|lib\System\Data\_.aardio
 -2010897240|2404|916|lib\System\Data\.res\build.aardio
 1424520258|4096|1554|lib\System\Data\.res\DataTableUtil.dll
+-302268459|217|157|lib\System\Diagnostics\Eventing.aardio
 -1022234645|165|135|lib\System\Drawing\_.aardio
 0|0|0|lib\System\IO\Compression\
 -1319806884|4934|1299|lib\System\IO\_.aardio

@@ -197,6 +197,10 @@ time.iso8601 = function(t){
 	return time.gmt (t,"!%Y-%m-%dT%H:%M:%SZ") || time.gmt(t,"!%Y-%m-%d");
 }
 
+time.utc = function(t){
+	return  time(t,"!%Y/%m/%d %H:%M:%S") || time(t,"!%Y-%m-%d");
+}
+
 def λ = lambda;
 
 _IMPORTURL = {};

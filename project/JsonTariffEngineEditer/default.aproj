@@ -2,7 +2,5 @@
 <project ver="10" name="JsonTariffEngineEditer" libEmbed="true" icon="..." ui="win" output="JsonTariffEngineEditer.exe" CompanyName="单位名称" FileDescription="JsonTariffEngineEditer" LegalCopyright="Copyright (C) 作者 2024" ProductName="JsonTariffEngineEditer" InternalName="JsonTariffEngineEditer" FileVersion="0.0.0.1" ProductVersion="0.0.0.1" publishDir="/dist/" dstrip="false">
 	<file name="main.aardio" path="main.aardio" comment="main.aardio"/>
 	<folder name="资源文件" path="res" embed="true"/>
-	<folder name="窗体文件" path="dlg" comment="目录" embed="true" local="false" ignored="false">
-		<file name="tabHoliday.aardio" path="dlg\tabHoliday.aardio" comment="dlg\tabHoliday.aardio"/>
-	</folder>
+	<folder name="窗体文件" path="dlg" comment="目录" embed="true" local="false" ignored="false"/>
 </project>
