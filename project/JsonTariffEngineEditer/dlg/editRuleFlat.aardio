@@ -33,6 +33,7 @@ winform.rbTypeFlat.setParent(winform.gbRuleType)
 winform.rbUnitDay.setParent(winform.gbRuleUnit)
 winform.rbUnitHour.setParent(winform.gbRuleUnit)
 winform.rbUnitMinute.setParent(winform.gbRuleUnit)
+winform.gbRuleType.disabled = true
 
 log = function(tag, text) {
 	console.log(tag, text)

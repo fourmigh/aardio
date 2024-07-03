@@ -111,6 +111,26 @@ mainForm.lbTariff.onSelChange = function() {
 	}
 }
 
+editRule = function(rule){
+	..rule = rule
+	var formFile = ""
+	if (rule.type == "flat") {
+		formFile = "\dlg\editRuleFlat.aardio"
+	} elseif (rule.type == "holiday") {
+		formFile = "\dlg\editRuleHoliday.aardio"
+	} else {
+		return 
+	}
+	
+	var editRule = win.loadForm(formFile);
+	var result = editRule.doModal();
+	if (result) {
+		rule = ..rule			
+		rules[indexRule] = rule
+		mainForm.etRule.text = formatJsonObject(rule)
+	}
+}
+
 mainForm.lbRule.onSelChange = function() {
 	var indexRule = tonumber(owner.selText)
 	//log("Rule.index", indexRule)
@@ -120,17 +140,7 @@ mainForm.lbRule.onSelChange = function() {
 	var rule = rules[indexRule]
 	//logJson("Rule.rule", rule)
 	mainForm.etRule.text = formatJsonObject(rule)
-	if (rule.type == "flat") {
-		..rule = rule
-		var editRule = win.loadForm("\dlg\editRuleFlat.aardio");
-		var result = editRule.doModal();
-		//log("Rule.editRule.doModal", result)
-		if (result) {
-			rule = ..rule			
-			rules[indexRule] = rule
-			mainForm.etRule.text = formatJsonObject(rule)
-		}
-	}
+	editRule(rule)
 }
 
 mainForm.btnLoad.oncommand = function(id,event){
