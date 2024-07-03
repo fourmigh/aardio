@@ -6,9 +6,9 @@ winform.add(
 btnOK={cls="button";text="OK";left=498;top=320;right=578;bottom=357;z=7;};
 cbRuleDailyCap={cls="checkbox";left=258;top=193;right=282;bottom=210;z=15;};
 cbRuleDailySettlement={cls="checkbox";left=316;top=233;right=340;bottom=250;z=18;};
-etRuleDailyCap={cls="edit";left=295;top=188;right=448;bottom=210;edge=1;z=16;};
+etRuleDailyCap={cls="edit";left=295;top=188;right=448;bottom=210;edge=1;num=1;z=16;};
 etRuleName={cls="edit";left=258;top=65;right=411;bottom=87;edge=1;z=13;};
-etRuleRate={cls="edit";left=258;top=103;right=411;bottom=125;edge=1;z=2;};
+etRuleRate={cls="edit";left=258;top=103;right=411;bottom=125;edge=1;num=1;z=2;};
 gbRuleType={cls="groupbox";left=254;top=11;right=479;bottom=52;edge=1;group=1;z=19;};
 gbRuleUnit={cls="groupbox";left=254;top=131;right=497;bottom=172;edge=1;group=1;z=20;};
 rbTypeFlat={cls="radiobutton";text="Flat";left=424;top=27;right=472;bottom=44;z=11;};
@@ -90,15 +90,34 @@ winform.btnOK.oncommand = function(id,event) {
 		rule.unit = "minute"
 	}
 	if (winform.cbRuleDailyCap.checked) {
-		rule.dailyCap = tonumber(winform.etRuleDailyCap.text)
+		var dailyCap = winform.etRuleDailyCap.text
+		if (dailyCap == null) {
+			rule.dailyCap = null
+		} else {
+			rule.dailyCap = tonumber(dailyCap)
+		}
+		
 	} else {
 		rule.dailyCap = null
 	}
 	rule.dailySettlement = winform.cbRuleDailySettlement.checked
 	
+	var rate = winform.etRuleRate.text
+	if (rate == null) {
+		rule.rate = null
+	} else {
+		rule.rate = tonumber(rate)
+	}
+	
+	rule.name = winform.etRuleName.text
+	
 	..rule = rule
 	
 	winform.endModal(true)
+}
+
+winform.cbRuleDailyCap.oncommand = function(id,event){
+	winform.etRuleDailyCap.show(winform.cbRuleDailyCap.checked)
 }
 
 winform.show();
