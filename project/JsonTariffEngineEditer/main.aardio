@@ -8,7 +8,7 @@ btnAdd={cls="button";text="Add";left=23;top=538;right=103;bottom=575;z=3;};
 btnLoad={cls="button";text="Load";left=23;top=17;right=103;bottom=54;z=1;};
 btnSave={cls="button";text="Save";left=688;top=538;right=768;bottom=575;z=2;};
 etMaxAmount={cls="edit";left=280;top=64;right=425;bottom=96;edge=1;multiline=1;num=1;z=7;};
-etRule={cls="edit";left=456;top=149;right=768;bottom=469;edge=1;multiline=1;z=10;};
+etRule={cls="edit";left=456;top=149;right=768;bottom=469;edge=1;multiline=1;vscroll=1;z=10;};
 lbRule={cls="listbox";left=166;top=149;right=425;bottom=474;edge=1;items={};z=9;};
 lbTariff={cls="listbox";left=27;top=99;right=148;bottom=474;edge=1;items={};z=4;};
 static={cls="static";text="TariffList";left=27;top=74;right=120;bottom=96;font=LOGFONT(h=-14;weight=700);transparent=1;z=5;};
@@ -18,14 +18,6 @@ static3={cls="static";text="maxAmount:";left=166;top=74;right=259;bottom=96;font
 )
 /*}}*/
 
-log = function(tag, text) {
-	//mainForm.tvLog.text = "[" + tag + "]: " + text
-	console.log(tag, text)
-}
-logJson = function(tag, json) {
-	text = formatJsonObject(json)
-	log(tag, text)
-}
 stringifyJson = function(obj) {
 	var objFormat = {}
 	for (key, value in obj) {
@@ -119,12 +111,14 @@ editRule = function(rule){
 		formFile = "\dlg\editRuleFlat.aardio"
 	} elseif (rule.type == "holiday") {
 		formFile = "\dlg\editRuleHoliday.aardio"
+	} elseif (rule.type == "tier") {
+		formFile = "\dlg\editRuleTier.aardio"
 	} else {
 		return 
 	}
 	
-	var editRuleForm = win.loadForm(formFile);
-	var result = editRuleForm.doModal();
+	var editRuleForm = win.loadForm(formFile)
+	var result = editRuleForm.doModal()
 	if (result) {
 		var ruleResult = ..rule
 		fileJson[keyTariff].rules[indexRule] = ruleResult

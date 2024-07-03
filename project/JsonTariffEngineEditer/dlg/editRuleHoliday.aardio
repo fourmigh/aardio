@@ -1,18 +1,18 @@
 import win.ui;
 import console
 /*DSG{{*/
-var winform = win.form(text="Edit Rule Flat";right=622;bottom=390;)
+var winform = win.form(text="Edit Rule Holiday";right=622;bottom=390;)
 winform.add(
 btnAdd={cls="button";text="Add";left=186;top=192;right=266;bottom=229;z=12;};
 btnOK={cls="button";text="OK";left=498;top=320;right=578;bottom=357;z=1;};
 btnRemove={cls="button";text="Remove";left=186;top=132;right=266;bottom=169;z=11;};
 calendar={cls="calendar";left=286;top=132;right=578;bottom=306;edge=1;z=13;};
 etRuleName={cls="edit";left=258;top=65;right=411;bottom=87;edge=1;z=7;};
-gbRuleType={cls="groupbox";left=254;top=11;right=479;bottom=52;edge=1;group=1;z=8;};
+gbRuleType={cls="groupbox";left=251;top=13;right=476;bottom=54;edge=1;group=1;z=8;};
 lbRuleDays={cls="listbox";left=35;top=132;right=168;bottom=330;edge=1;items={};vscroll=1;z=10;};
-rbTypeFlat={cls="radiobutton";text="Flat";left=424;top=27;right=472;bottom=44;z=5;};
-rbTypeHoliday={cls="radiobutton";text="Holiday";left=258;top=27;right=328;bottom=42;z=3;};
-rbTypeTier={cls="radiobutton";text="Tier";left=354;top=27;right=398;bottom=42;z=4;};
+rbTypeFlat={cls="radiobutton";text="Flat";left=424;top=27;right=472;bottom=47;z=5;};
+rbTypeHoliday={cls="radiobutton";text="Holiday";left=258;top=27;right=328;bottom=47;z=3;};
+rbTypeTier={cls="radiobutton";text="Tier";left=354;top=27;right=398;bottom=46;z=4;};
 static={cls="static";text="rule.days:";left=28;top=97;right=128;bottom=126;font=LOGFONT(h=-18;weight=700);transparent=1;z=9;};
 static3={cls="static";text="rule.type:";left=112;top=21;right=212;bottom=50;font=LOGFONT(h=-18;weight=700);transparent=1;z=2;};
 static4={cls="static";text="rule.name:";left=112;top=61;right=212;bottom=90;font=LOGFONT(h=-18;weight=700);transparent=1;z=6;};
@@ -24,14 +24,6 @@ winform.rbTypeHoliday.setParent(winform.gbRuleType)
 winform.rbTypeTier.setParent(winform.gbRuleType)
 winform.rbTypeFlat.setParent(winform.gbRuleType)
 winform.gbRuleType.disabled = true
-
-log = function(tag, text) {
-	//console.log(tag, text)
-}
-logJson = function(tag, json) {
-	text = web.json.stringify(json)
-	log(tag, text)
-}
 
 var modified = false
 var selDay = ""

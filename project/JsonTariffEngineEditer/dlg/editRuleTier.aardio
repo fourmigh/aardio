@@ -1,0 +1,170 @@
+import win.ui;
+import console
+/*DSG{{*/
+var winform = win.form(text="Edit Rule Tier";right=622;bottom=390;)
+winform.add(
+btnEndTime={cls="button";text="End Time";left=453;top=141;right=533;bottom=178;z=14;};
+btnOK={cls="button";text="OK";left=498;top=320;right=578;bottom=357;z=1;};
+btnStartTime={cls="button";text="Start Time";left=453;top=95;right=533;bottom=132;z=11;};
+cbFriday={cls="checkbox";text="Friday";left=510;top=208;right=568;bottom=232;z=21;};
+cbMonday={cls="checkbox";text="Monday";left=145;top=208;right=234;bottom=232;z=17;};
+cbSaturday={cls="checkbox";text="Saturday";left=145;top=241;right=234;bottom=265;z=23;};
+cbSunday={cls="checkbox";text="Sunday";left=236;top=241;right=325;bottom=265;z=22;};
+cbThursday={cls="checkbox";text="Thursday";left=419;top=208;right=508;bottom=232;z=20;};
+cbTuesday={cls="checkbox";text="Tuesday";left=236;top=208;right=325;bottom=232;z=18;};
+cbWednesday={cls="checkbox";text="Wednesday";left=328;top=208;right=417;bottom=232;z=19;};
+etEndTime={cls="edit";left=258;top=149;right=411;bottom=171;edge=1;z=13;};
+etRuleName={cls="edit";left=258;top=65;right=411;bottom=87;edge=1;z=7;};
+etStartTime={cls="edit";left=258;top=103;right=411;bottom=125;edge=1;z=10;};
+gbDays={cls="groupbox";left=133;top=190;right=577;bottom=270;edge=1;z=16;};
+gbRuleType={cls="groupbox";left=250;top=12;right=475;bottom=55;edge=1;group=1;z=8;};
+rbTypeFlat={cls="radiobutton";text="Flat";left=424;top=27;right=472;bottom=50;z=5;};
+rbTypeHoliday={cls="radiobutton";text="Holiday";left=258;top=27;right=328;bottom=46;z=3;};
+rbTypeTier={cls="radiobutton";text="Tier";left=354;top=27;right=398;bottom=47;z=4;};
+static={cls="static";text="rule.startTime:";left=72;top=103;right=215;bottom=132;font=LOGFONT(h=-18;weight=700);transparent=1;z=9;};
+static2={cls="static";text="rule.endTime:";left=72;top=149;right=215;bottom=178;font=LOGFONT(h=-18;weight=700);transparent=1;z=12;};
+static3={cls="static";text="rule.type:";left=112;top=21;right=212;bottom=50;font=LOGFONT(h=-18;weight=700);transparent=1;z=2;};
+static4={cls="static";text="rule.name:";left=112;top=61;right=212;bottom=90;font=LOGFONT(h=-18;weight=700);transparent=1;z=6;};
+static5={cls="static";text="rule.days:";left=31;top=199;right=119;bottom=228;font=LOGFONT(h=-18;weight=700);transparent=1;z=15;};
+
+)
+/*}}*/
+
+winform.rbTypeHoliday.setParent(winform.gbRuleType)
+winform.rbTypeTier.setParent(winform.gbRuleType)
+winform.rbTypeFlat.setParent(winform.gbRuleType)
+winform.cbMonday.setParent(winform.gbDays)
+winform.cbTuesday.setParent(winform.gbDays)
+winform.cbWednesday.setParent(winform.gbDays)
+winform.cbThursday.setParent(winform.gbDays)
+winform.cbFriday.setParent(winform.gbDays)
+winform.cbSaturday.setParent(winform.gbDays)
+winform.cbSunday.setParent(winform.gbDays)
+winform.gbRuleType.disabled = true
+
+log = function(tag, text) {
+	//console.log(tag, text)
+}
+logJson = function(tag, json) {
+	text = web.json.stringify(json)
+	log(tag, text)
+}
+
+var rule = ..rule
+winform.etRuleName.text = rule.name
+var ruleType = string.lower(rule.type)
+if (ruleType == "holiday") {
+	winform.rbTypeHoliday.checked = true
+} elseif (ruleType == "tier") {
+	winform.rbTypeTier.checked = true
+} elseif (ruleType == "flat") {
+	winform.rbTypeFlat.checked = true
+}
+winform.etStartTime.text = rule.startTime
+winform.etEndTime.text = rule.endTime
+for (i=1;#rule.days;1) {
+	var day = rule.days[i]
+	if (day == "Monday") {
+		winform.cbMonday.checked = true
+	} elseif (day == "Tuesday") {
+		winform.cbTuesday.checked = true
+	} elseif (day == "Wednesday") {
+		winform.cbWednesday.checked = true
+	} elseif (day == "Thursday") {
+		winform.cbThursday.checked = true
+	} elseif (day == "Friday") {
+		winform.cbFriday.checked = true
+	} elseif (day == "Saturday") {
+		winform.cbSaturday.checked = true
+	} elseif (day == "Sunday") {
+		winform.cbSunday.checked = true
+	}
+}
+
+winform.btnOK.oncommand = function(id,event) {
+	
+	if (winform.rbTypeHoliday.checked) {
+		rule.type = "holiday"
+	} elseif (winform.rbTypeTier.checked) {
+		rule.type = "tier"
+	} elseif (winform.rbTypeFlat.checked) {
+		rule.type = "flat"
+	}
+	
+	rule.name = winform.etRuleName.text
+	//for (i=1;#rule.days;1) {
+		//table.pop(rule.days)
+	//}
+	logJson("rule.days.pop.before", rule.days)
+	rule.days = {}
+	logJson("rule.days.pop.after", rule.days)
+	if (winform.cbMonday.checked) {
+		table.push(rule.days, winform.cbMonday.text)
+		logJson("rule.days.cbMonday", rule.days)
+	}
+	if (winform.cbTuesday.checked) {
+		table.push(rule.days, winform.cbTuesday.text)
+		logJson("rule.days.cbTuesday", rule.days)
+	}
+	if (winform.cbWednesday.checked) {
+		table.push(rule.days, winform.cbWednesday.text)
+		logJson("rule.days.cbWednesday", rule.days)
+	}
+	if (winform.cbThursday.checked) {
+		table.push(rule.days, winform.cbThursday.text)
+		logJson("rule.days.cbThursday", rule.days)
+	}
+	if (winform.cbFriday.checked) {
+		table.push(rule.days, winform.cbFriday.text)
+		logJson("rule.days.cbFriday", rule.days)
+	}
+	if (winform.cbSaturday.checked) {
+		table.push(rule.days, winform.cbSaturday.text)
+		logJson("rule.days.cbSaturday", rule.days)
+	}
+	if (winform.cbSunday.checked) {
+		table.push(rule.days, winform.cbSunday.text)
+		logJson("rule.days.cbSunday", rule.days)
+	}
+	if (#rule.days == 0) {
+		rule.days = null
+	}
+	
+	..rule = rule
+	
+	winform.endModal(true)
+}
+
+..ruleTime = ""
+
+getTime = function(startOrEnd, time){
+	
+	..ruleTime = time
+	
+	var formFile = "\dlg\editTime.aardio"
+	var editTimeForm = win.loadForm(formFile)
+	var result = editTimeForm.doModal()
+	if (result) {
+		var time = ..ruleTime
+		if (startOrEnd) {
+			rule.startTime = time
+			winform.etStartTime.text = time
+		} else {
+			rule.endTime = time
+			winform.etEndTime.text = time
+		}
+		
+	}
+}
+
+
+winform.btnStartTime.oncommand = function(id,event){
+	getTime(true, winform.etStartTime.text)
+}
+winform.btnEndTime.oncommand = function(id,event){
+	getTime(false, winform.etEndTime.text)
+}
+
+winform.show();
+win.loopMessage();
+return winform;

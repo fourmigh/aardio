@@ -9,11 +9,11 @@ cbRuleDailySettlement={cls="checkbox";left=316;top=233;right=340;bottom=250;z=18
 etRuleDailyCap={cls="edit";left=295;top=188;right=448;bottom=210;edge=1;num=1;z=16;};
 etRuleName={cls="edit";left=258;top=65;right=411;bottom=87;edge=1;z=13;};
 etRuleRate={cls="edit";left=258;top=103;right=411;bottom=125;edge=1;num=1;z=2;};
-gbRuleType={cls="groupbox";left=254;top=11;right=479;bottom=52;edge=1;group=1;z=19;};
+gbRuleType={cls="groupbox";left=250;top=13;right=475;bottom=54;edge=1;group=1;z=19;};
 gbRuleUnit={cls="groupbox";left=254;top=131;right=497;bottom=172;edge=1;group=1;z=20;};
-rbTypeFlat={cls="radiobutton";text="Flat";left=424;top=27;right=472;bottom=44;z=11;};
-rbTypeHoliday={cls="radiobutton";text="Holiday";left=258;top=27;right=328;bottom=42;z=9;};
-rbTypeTier={cls="radiobutton";text="Tier";left=354;top=27;right=398;bottom=42;z=10;};
+rbTypeFlat={cls="radiobutton";text="Flat";left=424;top=27;right=472;bottom=47;z=11;};
+rbTypeHoliday={cls="radiobutton";text="Holiday";left=258;top=27;right=328;bottom=48;z=9;};
+rbTypeTier={cls="radiobutton";text="Tier";left=354;top=27;right=398;bottom=48;z=10;};
 rbUnitDay={cls="radiobutton";text="Day";left=258;top=147;right=304;bottom=164;z=4;};
 rbUnitHour={cls="radiobutton";text="Hour";left=338;top=147;right=391;bottom=164;z=5;};
 rbUnitMinute={cls="radiobutton";text="Minute";left=424;top=147;right=490;bottom=164;z=6;};
