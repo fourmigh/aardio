@@ -26,8 +26,19 @@ logJson = function(tag, json) {
 	text = web.json.stringify(json)
 	log(tag, text)
 }
+stringifyJson = function(obj) {
+	var objFormat = {}
+	for (key, value in obj) {
+		if (value == null) {
+			continue
+		}
+		objFormat[key] = value
+	}
+	return web.json.stringify(objFormat) 
+}
 formatJsonObject = function(jsonObject) {
-	return formatJsonString(web.json.stringify(jsonObject))
+	var json = stringifyJson(jsonObject)
+	return formatJsonString(json)
 }
 formatJsonString = function(jsonStr) {
 	var indentStr = "    "; // 定义缩进字符串，这里使用4个空格
@@ -101,12 +112,12 @@ mainForm.lbTariff.onSelChange = function() {
 }
 
 mainForm.lbRule.onSelChange = function() {
-	var indexRule = owner.selText
+	var indexRule = tonumber(owner.selText)
 	//log("Rule.index", indexRule)
 	//log("Rule.keyTariff", keyTariff)
 	var rules = fileJson[keyTariff].rules
 	//logJson("Rule.rules", rules)
-	var rule = rules[tonumber(indexRule)]
+	var rule = rules[indexRule]
 	//logJson("Rule.rule", rule)
 	mainForm.etRule.text = formatJsonObject(rule)
 	if (rule.type == "flat") {
@@ -114,6 +125,11 @@ mainForm.lbRule.onSelChange = function() {
 		var editRule = win.loadForm("\dlg\editRuleFlat.aardio");
 		var result = editRule.doModal();
 		//log("Rule.editRule.doModal", result)
+		if (result) {
+			rule = ..rule			
+			rules[indexRule] = rule
+			mainForm.etRule.text = formatJsonObject(rule)
+		}
 	}
 }
 

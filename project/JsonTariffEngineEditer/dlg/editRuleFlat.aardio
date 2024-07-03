@@ -75,6 +75,29 @@ winform.etRuleRate.text = rule.rate
 
 winform.btnOK.oncommand = function(id,event) {
 	
+	if (winform.rbTypeHoliday.checked) {
+		rule.type = "holiday"
+	} elseif (winform.rbTypeTier.checked) {
+		rule.type = "tier"
+	} elseif (winform.rbTypeFlat.checked) {
+		rule.type = "flat"
+	}
+	if (winform.rbUnitDay.checked) {
+		rule.unit = "day"
+	} elseif (winform.rbUnitHour.checked) {
+		rule.unit = "hour"
+	} elseif (winform.rbUnitMinute.checked) {
+		rule.unit = "minute"
+	}
+	if (winform.cbRuleDailyCap.checked) {
+		rule.dailyCap = tonumber(winform.etRuleDailyCap.text)
+	} else {
+		rule.dailyCap = null
+	}
+	rule.dailySettlement = winform.cbRuleDailySettlement.checked
+	
+	..rule = rule
+	
 	winform.endModal(true)
 }
 
