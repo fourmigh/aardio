@@ -26,6 +26,46 @@ logJson = function(tag, json) {
 	text = web.json.stringify(json)
 	log(tag, text)
 }
+formatJsonObject = function(jsonObject) {
+	return formatJsonString(web.json.stringify(jsonObject))
+}
+formatJsonString = function(jsonStr) {
+	var indentStr = "    "; // 定义缩进字符串，这里使用4个空格
+    var newLine = '\r\n' // 定义换行符
+    var result = ""; // 格式化后的字符串
+    var arr = jsonStr // 将JSON字符串转换为字符数组
+
+    var level = 0; // 记录当前的缩进层级
+
+	for(i=1;#arr;1) {
+        var char = string.charAt(arr, i)
+        if (char == "{" || char == "[") {
+            level ++
+            result = result + char + newLine
+            for (j=1;level;1) {
+                result = result + indentStr
+            }
+        } elseif(char == "}" || char == "]") {
+            level --
+        	result = result + newLine
+        	for (j=1;level;1) {
+                result = result + indentStr
+            }
+            result = result + char
+        } elseif(char == ",") {
+            result = result + char + newLine
+            for (j=1;level;1) {
+                result = result + indentStr
+            }
+        } elseif(char == ":") {
+        	result = result + char + " "
+        } else {
+        	result = result + char
+        }
+    }
+    return result;
+}
+
 
 var filePath = ""
 var fileJson = {}
@@ -39,6 +79,7 @@ reloadFile = function(filePath) {
 	} 
 	fileJson = web.json.parse(content)
 	//logJson("fileJson", fileJson)
+	mainForm.lbTariff.clear()
 	for (k,v in fileJson) {
 		mainForm.lbTariff.add(k)
 	}
@@ -67,7 +108,7 @@ mainForm.lbRule.onSelChange = function() {
 	//logJson("Rule.rules", rules)
 	var rule = rules[tonumber(indexRule)]
 	//logJson("Rule.rule", rule)
-	mainForm.etRule.text = web.json.stringify(rule)
+	mainForm.etRule.text = formatJsonObject(rule)
 	if (rule.type == "flat") {
 		..rule = rule
 		var editRule = win.loadForm("\dlg\editRuleFlat.aardio");
