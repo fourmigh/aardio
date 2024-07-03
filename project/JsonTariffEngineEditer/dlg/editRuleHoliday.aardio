@@ -33,6 +33,7 @@ logJson = function(tag, json) {
 	log(tag, text)
 }
 
+var modified = false
 var selDay = ""
 var rule = ..rule
 var days = {}
@@ -58,6 +59,13 @@ winform.lbRuleDays.onSelChange = function() {
 
 winform.btnOK.oncommand = function(id,event) {
 	
+	log("winform.btnOK", "oncommand")
+	if (not modified) {
+		log("winform.btnOK", "not modified")
+		return 
+	}
+	
+	log("winform.btnOK", "modified")
 	if (winform.rbTypeHoliday.checked) {
 		rule.type = "holiday"
 	} elseif (winform.rbTypeTier.checked) {
@@ -67,9 +75,14 @@ winform.btnOK.oncommand = function(id,event) {
 	}
 	
 	rule.name = winform.etRuleName.text
+	log("winform.btnOK", rule.name)
 	
+	rule.days = days
+	
+	log("winform.btnOK", "..rule = rule")
 	..rule = rule
 	
+	log("winform.btnOK", "endModal")
 	winform.endModal(true)
 }
 
@@ -78,6 +91,7 @@ winform.btnRemove.oncommand = function(id,event){
 		if (days[i] == selDay) {
 			table.remove(days, i)
 			winform.lbRuleDays.delete()
+			modified = true
 			return
 		} 
 	}
@@ -115,12 +129,12 @@ winform.btnAdd.oncommand = function(id,event){
 	
 	table.push(days, formatTime)
 	table.sort(days)
-	//winform.lbRuleDays.add(formatTime)
 	winform.lbRuleDays.clear()
 	for (i=1;#days;1) {
 		var day = days[i]
 		winform.lbRuleDays.add(day)
 	}
+	modified = true
 }
 
 winform.show();

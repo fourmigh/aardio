@@ -81,6 +81,7 @@ formatJsonString = function(jsonStr) {
 var filePath = ""
 var fileJson = {}
 var keyTariff = ""
+var indexRule = 0
 
 reloadFile = function(filePath) {
 	//log("filePath", filePath)
@@ -122,17 +123,17 @@ editRule = function(rule){
 		return 
 	}
 	
-	var editRule = win.loadForm(formFile);
-	var result = editRule.doModal();
+	var editRuleForm = win.loadForm(formFile);
+	var result = editRuleForm.doModal();
 	if (result) {
-		rule = ..rule			
-		rules[indexRule] = rule
-		mainForm.etRule.text = formatJsonObject(rule)
+		var ruleResult = ..rule
+		fileJson[keyTariff].rules[indexRule] = ruleResult
+		mainForm.etRule.text = formatJsonObject(ruleResult)
 	}
 }
 
 mainForm.lbRule.onSelChange = function() {
-	var indexRule = tonumber(owner.selText)
+	indexRule = tonumber(owner.selText)
 	//log("Rule.index", indexRule)
 	//log("Rule.keyTariff", keyTariff)
 	var rules = fileJson[keyTariff].rules
