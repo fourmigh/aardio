@@ -97,9 +97,7 @@ reloadFile = function(filePath) {
 	refresh()
 }
 
-mainForm.lbTariff.onSelChange = function() {
-	keyTariff = owner.selText
-	mainForm.etMaxAmount.text = fileJson[keyTariff].maxAmount
+refreshRules = function() {
 	var rules = fileJson[keyTariff].rules
 	
 	//logJson("Rule.rules", rules)
@@ -110,6 +108,12 @@ mainForm.lbTariff.onSelChange = function() {
 		//logJson("Rule.rule", rule)
 		mainForm.lbRule.add(i)
 	}
+}
+
+mainForm.lbTariff.onSelChange = function() {
+	keyTariff = owner.selText
+	mainForm.etMaxAmount.text = fileJson[keyTariff].maxAmount
+	refreshRules()
 }
 
 editRule = function(rule){
@@ -190,13 +194,23 @@ addOrEditTariffName = function(action) {
 	}
 }
 
-
 mainForm.btnAddTariff.oncommand = function(id,event){
 	addOrEditTariffName("add")
 }
 
 mainForm.btnAddRule.oncommand = function(id,event){
-	
+	var formFile = "\dlg\editTypeName.aardio"
+	var editTypeName = win.loadForm(formFile)
+	var result = editTypeName.doModal()
+	if (result) {
+		var rule = ..rule
+		var tariff = fileJson[keyTariff]
+		if (tariff.rules == null) {
+			tariff.rules = {}
+		}
+		table.push(tariff.rules, rule)
+		refreshRules()
+	}
 }
 
 mainForm.btnEditbtnTariff.oncommand = function(id,event){

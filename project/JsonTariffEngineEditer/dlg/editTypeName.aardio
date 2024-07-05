@@ -2,38 +2,38 @@ import win.ui;
 /*DSG{{*/
 var winform = win.form(text="Edit RateTier";right=480;bottom=173;)
 winform.add(
-btnOK={cls="button";text="OK";left=364;top=113;right=444;bottom=150;z=5;};
-btnRemove={cls="button";text="Remove";left=364;top=29;right=444;bottom=66;z=6;};
-etDuration={cls="edit";left=181;top=30;right=334;bottom=52;edge=1;num=1;z=4;};
-etRate={cls="edit";left=181;top=78;right=334;bottom=100;edge=1;num=1;z=3;};
-static={cls="static";text="duration:";left=54;top=26;right=154;bottom=55;font=LOGFONT(h=-18;weight=700);transparent=1;z=1;};
-static2={cls="static";text="rate:";left=54;top=75;right=154;bottom=104;font=LOGFONT(h=-18;weight=700);transparent=1;z=2;};
+btnOK={cls="button";text="OK";left=364;top=113;right=444;bottom=150;z=1;};
+etRuleName={cls="edit";left=206;top=66;right=359;bottom=88;edge=1;z=7;};
+gbRuleType={cls="groupbox";left=198;top=14;right=423;bottom=55;edge=1;group=1;z=8;};
+rbTypeFlat={cls="radiobutton";text="Flat";left=372;top=28;right=420;bottom=48;z=5;};
+rbTypeHoliday={cls="radiobutton";text="Holiday";left=206;top=28;right=276;bottom=49;z=3;};
+rbTypeTier={cls="radiobutton";text="Tier";left=302;top=28;right=346;bottom=49;z=4;};
+static3={cls="static";text="rule.type:";left=60;top=22;right=160;bottom=51;font=LOGFONT(h=-18;weight=700);transparent=1;z=2;};
+static4={cls="static";text="rule.name:";left=60;top=62;right=160;bottom=91;font=LOGFONT(h=-18;weight=700);transparent=1;z=6;};
 
 )
 /*}}*/
 
+winform.rbTypeHoliday.setParent(winform.gbRuleType)
+winform.rbTypeTier.setParent(winform.gbRuleType)
+winform.rbTypeFlat.setParent(winform.gbRuleType)
+
 winform.btnOK.oncommand = function(id,event){
-	var duration = winform.etDuration.text
-	if (duration == null) {
-		return
+	var rule = {}
+	if (winform.rbTypeHoliday.checked) {
+		rule.type = "holiday"
+	} elseif (winform.rbTypeTier.checked) {
+		rule.type = "tier"
+	} elseif (winform.rbTypeFlat.checked) {
+		rule.type = "flat"
+	} else {
+		return 
 	}
-	var rate = winform.etRate.text
-	if (rate == null) {
-		return
-	}
-	rateTier.duration = tonumber(duration)
-	rateTier.rate = tonumber(rate)
-	..rateTier = rateTier
-	winform.endModal("ok")
+	
+	rule.name = winform.etRuleName.text
+	..rule = rule
+	winform.endModal(true)
 }
-
-winform.btnRemove.oncommand = function(id,event){
-	winform.endModal("remove")
-}
-
-var rateTier = ..rateTier
-winform.etDuration.text = rateTier.duration
-winform.etRate.text = rateTier.rate
 
 winform.show();
 win.loopMessage();
