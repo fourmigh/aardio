@@ -35,14 +35,6 @@ winform.rbUnitHour.setParent(winform.gbRuleUnit)
 winform.rbUnitMinute.setParent(winform.gbRuleUnit)
 winform.gbRuleType.disabled = true
 
-log = function(tag, text) {
-	console.log(tag, text)
-}
-logJson = function(tag, json) {
-	text = web.json.stringify(json)
-	log(tag, text)
-}
-
 var rule = ..rule
 winform.etRuleName.text = rule.name
 var ruleType = string.lower(rule.type)

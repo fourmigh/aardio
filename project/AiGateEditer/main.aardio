@@ -2,22 +2,23 @@ import win.ui
 import console
 import fsys.dlg
 /*DSG{{*/
-mainForm = win.form(text="AiGateEditer V1.0";right=757;bottom=467)
+mainForm = win.form(text="AiGateEditer V1.0";right=757;bottom=467;)
 mainForm.add(
-btnLoad={cls="button";text="Load";left=637;top=101;right=733;bottom=146;z=7};
-btnSave={cls="button";text="Save";left=637;top=310;right=733;bottom=355;z=8};
-etCopyright={cls="edit";left=283;top=191;right=587;bottom=226;edge=1;multiline=1;z=10};
-etDomainName={cls="edit";left=283;top=126;right=587;bottom=161;edge=1;multiline=1;z=6};
-etGarageCode={cls="edit";left=283;top=320;right=587;bottom=355;edge=1;multiline=1;z=14};
-etTenantCode={cls="edit";left=283;top=255;right=587;bottom=290;edge=1;multiline=1;z=12};
-groupbox={cls="groupbox";text="Lan or Cloud";left=67;top=101;right=251;bottom=216;ah=1;aw=1;cp=1;edge=1;z=2};
-rbCloud={cls="radiobutton";text="Cloud";left=87;top=162;right=147;bottom=179;z=4};
-rbLan={cls="radiobutton";text="Lan";left=87;top=125;right=134;bottom=139;z=3};
-static={cls="static";text="domain.name";left=36;top=33;right=249;bottom=89;font=LOGFONT(h=-34);transparent=1;z=1};
-static2={cls="static";text="IP or DomainName";left=269;top=101;right=386;bottom=124;transparent=1;z=5};
-static3={cls="static";text="Copyright";left=269;top=166;right=386;bottom=189;transparent=1;z=9};
-static4={cls="static";text="TenantCode";left=269;top=230;right=386;bottom=253;transparent=1;z=11};
-static5={cls="static";text="GarageCode";left=269;top=295;right=386;bottom=318;transparent=1;z=13}
+btnLoad={cls="button";text="Load";left=637;top=101;right=733;bottom=146;z=7;};
+btnSave={cls="button";text="Save";left=637;top=310;right=733;bottom=355;z=8;};
+etCopyright={cls="edit";left=283;top=191;right=587;bottom=226;edge=1;multiline=1;z=10;};
+etDomainName={cls="edit";left=283;top=126;right=587;bottom=161;edge=1;multiline=1;z=6;};
+etGarageCode={cls="edit";left=283;top=320;right=587;bottom=355;edge=1;multiline=1;z=14;};
+etTenantCode={cls="edit";left=283;top=255;right=587;bottom=290;edge=1;multiline=1;z=12;};
+groupbox={cls="groupbox";text="Lan or Cloud";left=67;top=101;right=251;bottom=216;ah=1;aw=1;cp=1;edge=1;z=2;};
+rbCloud={cls="radiobutton";text="Cloud";left=87;top=162;right=147;bottom=179;z=4;};
+rbLan={cls="radiobutton";text="Lan";left=87;top=125;right=134;bottom=139;z=3;};
+static={cls="static";text="domain.name";left=36;top=33;right=249;bottom=89;font=LOGFONT(h=-34);transparent=1;z=1;};
+static2={cls="static";text="IP or DomainName";left=269;top=101;right=386;bottom=124;transparent=1;z=5;};
+static3={cls="static";text="Copyright";left=269;top=166;right=386;bottom=189;transparent=1;z=9;};
+static4={cls="static";text="TenantCode";left=269;top=230;right=386;bottom=253;transparent=1;z=11;};
+static5={cls="static";text="GarageCode";left=269;top=295;right=386;bottom=318;transparent=1;z=13;};
+
 )
 /*}}*/
 

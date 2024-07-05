@@ -26,7 +26,7 @@ stringifyJson = function(obj) {
 		}
 		objFormat[key] = value
 	}
-	return web.json.stringify(objFormat) 
+	return web.json.stringify(objFormat)
 }
 formatJsonObject = function(jsonObject) {
 	var json = stringifyJson(jsonObject)
@@ -67,6 +67,10 @@ formatJsonString = function(jsonStr) {
         }
     }
     return result;
+}
+
+log = function(tag, text) {
+	console.log(tag, text)
 }
 
 
@@ -121,8 +125,10 @@ editRule = function(rule){
 	var result = editRuleForm.doModal()
 	if (result) {
 		var ruleResult = ..rule
+		var json = formatJsonObject(ruleResult)
+		ruleResult = web.json.parse(json)
 		fileJson[keyTariff].rules[indexRule] = ruleResult
-		mainForm.etRule.text = formatJsonObject(ruleResult)
+		mainForm.etRule.text = json
 	}
 }
 
@@ -144,8 +150,14 @@ mainForm.btnLoad.oncommand = function(id,event){
 	reloadFile(filePath)
 }
 
+saveFile = function() {
+	var file = filePath + ".tmp"
+	var json = formatJsonObject(fileJson)
+	string.save(file, json)
+	return file 
+}
 mainForm.btnSave.oncommand = function(id,event){
-	
+	saveFile()
 }
 
 mainForm.btnAdd.oncommand = function(id,event){

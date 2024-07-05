@@ -8,7 +8,7 @@ namespace process;
 
 class scrcpy{
 	ctor(){
-		this.arguments = ..process.arguments();
+		this.arguments = ..string.args(,true,,false);
 		this.$shortcutMod = "LALT";
 	};
 	modKey = function(k,...){
@@ -32,13 +32,7 @@ class scrcpy{
 			}
 		}
 		
-		this.arguments = ..process.arguments(this.arguments);
-		for(k,v in this.arguments){
-			if(v===true){
-				this.arguments[k] = ""
-			}
-		}
-		
+		this.arguments = ..string.args(this.arguments,true,,false);  
 		
 		if(this.arguments.shortcutMod){
 			this.$shortcutMod = this.arguments.shortcutMod || this.arguments["--shortcut-mod"];

@@ -1,8 +1,8 @@
 {
 qrencode={version="1.0.0.3"};
-["process.adb"]={version="2024.4.9.5"};
+["process.adb"]={version="2024.5.15.0"};
 ["string.markdown"]={version="1.0.0.9"};
-["process.scrcpy"]={version="2024.4.9.0"};
+["process.scrcpy"]={version="2024.5.12.0"};
 ["process.evb"]={version="2024.1.23.0"};
-["golang.mdns"]={version="2.0.0.1"}
+["golang.mdns"]={version="2.0.0.3"}
 }
