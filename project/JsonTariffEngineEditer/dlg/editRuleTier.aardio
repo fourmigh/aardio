@@ -94,29 +94,8 @@ refresh()
 
 var selRateTier = ""
 
-editRateTier = function() {
-	//log("findRateTier.action", action)
-	for (i=1;#rule.rateTiers;1) {
-		var rateTier = rule.rateTiers[i]
-		var text = web.json.stringify(rateTier)
-		if (text == selRateTier) {
-			//log("findRateTier.selRateTier", selRateTier)
-			..rateTier = rateTier
-			var formFile = "\dlg\editRateTier.aardio"
-			var editRateTierForm = win.loadForm(formFile)
-			var result = editRateTierForm.doModal()
-			if (result) {
-				rateTier = ..rateTier
-				rule.rateTiers[i] = rateTier
-				refresh()
-			}
-			break
-		}
-	}
-}
-
 removeRateTier = function() {
-	//log("findRateTier.action", action)
+	//log("editRateTierForm.doModal", "removeRateTier")
 	var rateTiers = {}
 	for (i=1;#rule.rateTiers;1) {
 		var rateTier = rule.rateTiers[i]
@@ -131,6 +110,30 @@ removeRateTier = function() {
 		table.push(rule.rateTiers, rateTier)
 	}
 	refresh()
+}
+
+editRateTier = function() {
+	//log("findRateTier.action", action)
+	for (i=1;#rule.rateTiers;1) {
+		var rateTier = rule.rateTiers[i]
+		var text = web.json.stringify(rateTier)
+		if (text == selRateTier) {
+			//log("findRateTier.selRateTier", selRateTier)
+			..rateTier = rateTier
+			var formFile = "\dlg\editRateTier.aardio"
+			var editRateTierForm = win.loadForm(formFile)
+			var result = editRateTierForm.doModal()
+			//log("editRateTierForm.doModal", result)
+			if (result == "ok") {
+				rateTier = ..rateTier
+				rule.rateTiers[i] = rateTier
+				refresh()
+			} else if (result == "remove") {
+				removeRateTier()
+			}
+			break
+		}
+	}
 }
 
 winform.lbRateTier.onSelChange = function() {
@@ -213,10 +216,6 @@ winform.btnEndTime.oncommand = function(id,event){
 
 winform.btnAdd.oncommand = function(id,event){
 	
-}
-
-winform.btnRemove.oncommand = function(id,event){
-	removeRateTier()
 }
 
 winform.show();

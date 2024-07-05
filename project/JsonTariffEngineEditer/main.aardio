@@ -4,7 +4,9 @@ import fsys.dlg
 /*DSG{{*/
 mainForm = win.form(text="JsonTariffEngineEditer";left=0;top=0;right=800;bottom=600;)
 mainForm.add(
-btnAdd={cls="button";text="Add";left=23;top=538;right=103;bottom=575;z=3;};
+btnAddRule={cls="button";text="Add";left=166;top=490;right=246;bottom=527;z=11;};
+btnAddTariff={cls="button";text="Add";left=27;top=490;right=107;bottom=527;z=3;};
+btnEditbtnTariff={cls="button";text="Edit";left=28;top=537;right=108;bottom=574;z=12;};
 btnLoad={cls="button";text="Load";left=23;top=17;right=103;bottom=54;z=1;};
 btnSave={cls="button";text="Save";left=688;top=538;right=768;bottom=575;z=2;};
 etMaxAmount={cls="edit";left=280;top=64;right=425;bottom=96;edge=1;multiline=1;num=1;z=7;};
@@ -60,8 +62,6 @@ formatJsonString = function(jsonStr) {
             for (j=1;level;1) {
                 result = result + indentStr
             }
-        } elseif(char == ":") {
-        	result = result + char + " "
         } else {
         	result = result + char
         }
@@ -79,6 +79,13 @@ var fileJson = {}
 var keyTariff = ""
 var indexRule = 0
 
+refresh = function() {
+	mainForm.lbTariff.clear()
+	for (k,v in fileJson) {
+		mainForm.lbTariff.add(k)
+	}
+}
+
 reloadFile = function(filePath) {
 	//log("filePath", filePath)
 	var content = string.load(filePath)
@@ -87,10 +94,7 @@ reloadFile = function(filePath) {
 	} 
 	fileJson = web.json.parse(content)
 	//logJson("fileJson", fileJson)
-	mainForm.lbTariff.clear()
-	for (k,v in fileJson) {
-		mainForm.lbTariff.add(k)
-	}
+	refresh()
 }
 
 mainForm.lbTariff.onSelChange = function() {
@@ -160,8 +164,43 @@ mainForm.btnSave.oncommand = function(id,event){
 	saveFile()
 }
 
-mainForm.btnAdd.oncommand = function(id,event){
+addOrEditTariffName = function(action) {
+	if (action == "add") {
+		..tariffName = null
+	} elseif (action == "edit") {
+		..tariffName = keyTariff
+	}
+
+	var formFile = "\dlg\editTariffName.aardio"
+	var editTariffName = win.loadForm(formFile)
+	var tariffName = editTariffName.doModal()
+	if (tariffName == null) {
+		return
+	}
+	if (action == "add") {
+		keyTariff = tariffName
+		fileJson[keyTariff] = {}
+		refresh()
+	} elseif (action == "edit") {
+		var value = fileJson[keyTariff]
+		fileJson[keyTariff] = null
+		keyTariff = tariffName
+		fileJson[tariffName] = value
+		refresh()
+	}
+}
+
+
+mainForm.btnAddTariff.oncommand = function(id,event){
+	addOrEditTariffName("add")
+}
+
+mainForm.btnAddRule.oncommand = function(id,event){
 	
+}
+
+mainForm.btnEditbtnTariff.oncommand = function(id,event){
+	addOrEditTariffName("edit")
 }
 
 mainForm.show();

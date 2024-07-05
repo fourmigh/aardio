@@ -1,0 +1,40 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="Edit RateTier";right=480;bottom=173;)
+winform.add(
+btnOK={cls="button";text="OK";left=364;top=113;right=444;bottom=150;z=5;};
+btnRemove={cls="button";text="Remove";left=364;top=29;right=444;bottom=66;z=6;};
+etDuration={cls="edit";left=181;top=30;right=334;bottom=52;edge=1;num=1;z=4;};
+etRate={cls="edit";left=181;top=78;right=334;bottom=100;edge=1;num=1;z=3;};
+static={cls="static";text="duration:";left=54;top=26;right=154;bottom=55;font=LOGFONT(h=-18;weight=700);transparent=1;z=1;};
+static2={cls="static";text="rate:";left=54;top=75;right=154;bottom=104;font=LOGFONT(h=-18;weight=700);transparent=1;z=2;};
+
+)
+/*}}*/
+
+winform.btnOK.oncommand = function(id,event){
+	var duration = winform.etDuration.text
+	if (duration == null) {
+		return
+	}
+	var rate = winform.etRate.text
+	if (rate == null) {
+		return
+	}
+	rateTier.duration = tonumber(duration)
+	rateTier.rate = tonumber(rate)
+	..rateTier = rateTier
+	winform.endModal("ok")
+}
+
+winform.btnRemove.oncommand = function(id,event){
+	winform.endModal("remove")
+}
+
+var rateTier = ..rateTier
+winform.etDuration.text = rateTier.duration
+winform.etRate.text = rateTier.rate
+
+winform.show();
+win.loopMessage();
+return winform;

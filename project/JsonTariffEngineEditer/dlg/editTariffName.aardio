@@ -1,0 +1,21 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="Edit Tariff Name";right=477;bottom=85;)
+winform.add(
+btnOK={cls="button";text="OK";left=367;top=22;right=447;bottom=59;z=3;};
+etTariffName={cls="edit";left=181;top=30;right=334;bottom=52;edge=1;z=2;};
+static={cls="static";text="tariffName:";left=54;top=26;right=163;bottom=55;font=LOGFONT(h=-18;weight=700);transparent=1;z=1;};
+
+)
+/*}}*/
+
+winform.btnOK.oncommand = function(id,event) {
+	winform.endModal(winform.etTariffName.text)
+}
+
+var tariffName = ..tariffName
+winform.etTariffName.text = tariffName
+
+winform.show();
+win.loopMessage();
+return winform;

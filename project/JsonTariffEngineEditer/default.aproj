@@ -8,5 +8,7 @@
 		<file name="editRateTier.aardio" path="dlg\editRateTier.aardio" comment="dlg\editRateTier.aardio"/>
 		<file name="editRuleTier.aardio" path="dlg\editRuleTier.aardio" comment="dlg\editRuleTier.aardio"/>
 		<file name="editTime.aardio" path="dlg\editTime.aardio" comment="dlg\editTime.aardio"/>
+		<file name="editTariffName.aardio" path="dlg\editTariffName.aardio" comment="dlg\editTariffName.aardio"/>
+		<file name="editTypeName.aardio" path="dlg\editTypeName.aardio" comment="dlg\editTypeName.aardio"/>
 	</folder>
 </project>
