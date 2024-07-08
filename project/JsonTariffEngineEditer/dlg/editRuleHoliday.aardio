@@ -51,13 +51,13 @@ winform.lbRuleDays.onSelChange = function() {
 
 winform.btnOK.oncommand = function(id,event) {
 	
-	log("winform.btnOK", "oncommand")
+	//log("winform.btnOK", "oncommand")
 	if (not modified) {
-		log("winform.btnOK", "not modified")
+		//log("winform.btnOK", "not modified")
 		return 
 	}
 	
-	log("winform.btnOK", "modified")
+	//log("winform.btnOK", "modified")
 	if (winform.rbTypeHoliday.checked) {
 		rule.type = "holiday"
 	} elseif (winform.rbTypeTier.checked) {
@@ -67,14 +67,14 @@ winform.btnOK.oncommand = function(id,event) {
 	}
 	
 	rule.name = winform.etRuleName.text
-	log("winform.btnOK", rule.name)
+	//log("winform.btnOK", rule.name)
 	
 	rule.days = days
 	
-	log("winform.btnOK", "..rule = rule")
+	//log("winform.btnOK", "..rule = rule")
 	..rule = rule
 	
-	log("winform.btnOK", "endModal")
+	//log("winform.btnOK", "endModal")
 	winform.endModal(true)
 }
 
@@ -97,19 +97,19 @@ parseDate = function(dateTable) {
 }
 formatDate = function(dateTable) {
 	var year, month, day = parseDate(dateTable)
-	log("parseDate.year", year)
-	log("parseDate.month", month)
-	log("parseDate.day", day)
+	//log("parseDate.year", year)
+	//log("parseDate.month", month)
+	//log("parseDate.day", day)
 	var formattedMonth = month < 10 and "0" + month or month
-	log("parseDate.formattedMonth", formattedMonth)
+	//log("parseDate.formattedMonth", formattedMonth)
 	var formattedDay = day < 10 and "0" + day or day
-	log("parseDate.formattedDay", formattedDay)
+	//log("parseDate.formattedDay", formattedDay)
 	return year + "-" + formattedMonth + "-" + formattedDay
 }
 
 winform.btnAdd.oncommand = function(id,event){
 	var time = winform.calendar.time
-	logJson("parseDate.time", time)
+	//logJson("parseDate.time", time)
 	var formatTime = formatDate(time)
 	
 	for (i=1;#days;1) {

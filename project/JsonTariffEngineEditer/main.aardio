@@ -73,6 +73,9 @@ log = function(tag, text) {
 	console.log(tag, text)
 }
 
+msgbox = function(text){
+	win.msgbox(text, "")
+}
 
 var filePath = ""
 var fileJson = {}
@@ -165,7 +168,8 @@ saveFile = function() {
 	return file 
 }
 mainForm.btnSave.oncommand = function(id,event){
-	saveFile()
+	filePath = saveFile()
+	msgbox("file saved: " + filePath)
 }
 
 addOrEditTariffName = function(action) {
