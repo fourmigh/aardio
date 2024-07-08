@@ -21,6 +21,21 @@ thread.invoke(
 		ide.command.join( ide.processGroup() );
 		
 		sleep(500);
+		
+		import fsys;
+		fsys.enum( "~/", "*.dll",
+			function(dir,filename,fullpath,findData){ 
+				if(filename){ 
+					import win;
+					import winex;
+					var hIde = ide.getMainHwnd();
+					
+					//篡改 aardio 开发环境并在网络上传播者一切后果自负。
+					win.msgboxErr('aardio 根目录检测到非法的第三方 DLL 文件。IDE 即将退出！',,hIde);
+					winex.close(hIde);
+				}
+			},false
+		);
 
 		sleep(1000);
 		

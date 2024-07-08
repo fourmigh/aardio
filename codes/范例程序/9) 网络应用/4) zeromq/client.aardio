@@ -1,9 +1,6 @@
 //客户端
-import zeromq
-import console;
-subscribe("beforeUnload",function(){
-	console.pause();
-} );
+import zeromq;
+import console.int;
  
 var context = zeromq.context(10) 
 //request模式socket与服务端的reply模式配对使用

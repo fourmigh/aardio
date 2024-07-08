@@ -10,9 +10,12 @@ etCopyright={cls="edit";left=283;top=191;right=587;bottom=226;edge=1;multiline=1
 etDomainName={cls="edit";left=283;top=126;right=587;bottom=161;edge=1;multiline=1;z=6;};
 etGarageCode={cls="edit";left=283;top=320;right=587;bottom=355;edge=1;multiline=1;z=14;};
 etTenantCode={cls="edit";left=283;top=255;right=587;bottom=290;edge=1;multiline=1;z=12;};
-groupbox={cls="groupbox";text="Lan or Cloud";left=67;top=101;right=251;bottom=216;ah=1;aw=1;cp=1;edge=1;z=2;};
+gbBO={cls="groupbox";text="Lan or Cloud";left=67;top=101;right=251;bottom=197;ah=1;aw=1;cp=1;edge=1;z=2;};
+gbLogMode={cls="groupbox";text="Log Mode";left=67;top=218;right=251;bottom=314;ah=1;aw=1;cp=1;edge=1;z=15;};
 rbCloud={cls="radiobutton";text="Cloud";left=87;top=162;right=147;bottom=179;z=4;};
 rbLan={cls="radiobutton";text="Lan";left=87;top=125;right=134;bottom=139;z=3;};
+rbLogFile={cls="radiobutton";text="File";left=87;top=242;right=134;bottom=262;z=16;};
+rbLogPost={cls="radiobutton";text="Database";left=87;top=279;right=169;bottom=296;z=17;};
 static={cls="static";text="domain.name";left=36;top=33;right=249;bottom=89;font=LOGFONT(h=-34);transparent=1;z=1;};
 static2={cls="static";text="IP or DomainName";left=269;top=101;right=386;bottom=124;transparent=1;z=5;};
 static3={cls="static";text="Copyright";left=269;top=166;right=386;bottom=189;transparent=1;z=9;};
@@ -22,10 +25,19 @@ static5={cls="static";text="GarageCode";left=269;top=295;right=386;bottom=318;tr
 )
 /*}}*/
 
+mainForm.rbCloud.setParent(mainForm.gbBO)
+mainForm.rbLan.setParent(mainForm.gbBO)
+mainForm.rbLogFile.setParent(mainForm.gbLogMode)
+mainForm.rbLogPost.setParent(mainForm.gbLogMode)
+
 /*
 {
+    "copyright": "CopyRight Metric and Tri Star Group",
+    "domainName": "tristarai-gate.mi-office.com",
+    "garageCode": "kfc1",
     "lanOrCloud": false,
-    "domainName": "tristarai-gate.mi-office.com"
+    "tenantCode": "kfc",
+    "logMode": "file"//"post"
 }
 */
 
@@ -64,6 +76,13 @@ reloadFile = function(filePath) {
 		mainForm.rbLan.checked = false
 		mainForm.rbCloud.checked = true
 	}
+	if (fileJson.logMode == null || fileJson.logMode == "" || fileJson.logMode == "file") {
+		mainForm.rbLogFile.checked = true
+		mainForm.rbLogPost.checked = false
+	} elseif (fileJson.logMode == "post") {
+		mainForm.rbLogFile.checked = false
+		mainForm.rbLogPost.checked = true
+	}
 	mainForm.etDomainName.text = fileJson.domainName
 	mainForm.etCopyright.text = fileJson.copyright
 	mainForm.etTenantCode.text = fileJson.tenantCode
@@ -90,7 +109,7 @@ mainForm.btnSave.oncommand = function(id,event){
 	//保存domain.name文件
 	if (mainForm.rbLan.checked) {
 		fileJson.lanOrCloud = true
-	} else if (mainForm.rbCloud.checked) {
+	} elseif (mainForm.rbCloud.checked) {
 		fileJson.lanOrCloud = false
 	} else {
 		fileJson.lanOrCloud = true
@@ -105,6 +124,14 @@ mainForm.btnSave.oncommand = function(id,event){
 	}
 	fileJson.tenantCode = mainForm.etTenantCode.text
 	fileJson.garageCode = mainForm.etGarageCode.text
+	if (mainForm.rbLogFile.checked) {
+		fileJson.logMode = "file"
+	} elseif (mainForm.rbLogPost.checked) {
+		fileJson.logMode = "post"
+	} else {
+		fileJson.logMode = "file"
+	}
+	
 	log("fileJson", web.json.stringify(fileJson))
 	filePath = saveFile()
 	msgbox("file saved: " + filePath)

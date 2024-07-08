@@ -1,0 +1,67 @@
+﻿import web.mshtml;
+import fsys.codepage;
+import web.rest.client;
+
+namespace web;
+
+var wb = ..web.mshtml();
+var http = ..web.rest.client();
+
+class turndown{
+	ctor(...){
+		if(type.isString(...)){
+			this = wb.jsNew("TurndownService",wb.eval(...) );
+		}
+		else {
+			this = wb.jsNew("TurndownService",... )
+		} 
+	}; 
+	turndownFile = function(path){
+		var str = ..fsys.codepage.load(path); 
+		if( str ) return this.turndown(str);
+	}; 
+	turndownUrl = function(url){
+		if(!webView) webView = ..web[["view"]] ? ..web.view() : ..web.mshtml();
+		webView.go(url);
+		webView.waitDoc();
+		
+		webView.doScript( `
+var hiddenElements = document.querySelectorAll('[aria-hidden="true"]');
+for (var i = 0; i < hiddenElements.length; i++) {
+    hiddenElements[i].parentNode.removeChild(hiddenElements[i]);
+}
+
+var allElements = document.querySelectorAll('*');
+for (var j = 0; j < allElements.length; j++) {
+    if (window.getComputedStyle(allElements[j]).display === 'none') {
+        allElements[j].parentNode.removeChild(allElements[j]);
+    }
+}` );
+		return this.turndown(webView.html);
+	};	
+}
+
+wb.loadcode(`<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<style type="text/css">
+html,body{ height:100%; margin:0; } 
+</style>
+<script type="text/javascript">
+<?=owner.js?>
+</script>
+</head>
+<body></body>
+</html>`,{js=$"~\lib\web\turndown\turndown.js"})
+
+/*****intellisense()
+web.turndown() = 创建 TurndownService 对象。\n参数 @1 可用 aardio 表对象指定选项，\n也可用字符串参数指定包含描述 JS 选项对象的 JS 代码。\n!stdWebTurndown.
+end intellisense*****/
+
+/*****intellisense(!stdWebTurndown)
+turndown(__) = 将参数 @1 指定的 HTML 代码转换为 Markdown 文本。
+turndownFile(__) = 将参数 @1 指定的 HTML 代码文件转换为 Markdown 文本。
+turndownUrl(__) = 将参数 @1 指定网址的 HTML 代码文件转换为 Markdown 文本。\n如果之前已导入 web.view 则使用 web.view 打开网址并获取 HTML。
+end intellisense*****/

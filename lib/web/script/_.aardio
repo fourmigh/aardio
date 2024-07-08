@@ -58,15 +58,30 @@ class script {
 			var lang = ..string.lower(this.msc.Language);
 			if(__jsLangIds__[lang]){
 				var javascript = /*     
- 				jsConstructor = function(jsObject) {
+ 				jsConstructor = function() {
+ 					jsObject = arguments[0];
 					if(typeof(jsObject) == "string") jsObject = eval(jsObject);
     				function ctor(args) { return jsObject.apply(this, args); }
     				ctor.prototype = jsObject.prototype;
-    				return function() { return new ctor(arguments); }
+    				
+    				var args = Array.prototype.slice.call(arguments);
+    				args.shift();
+    				
+    				return new ctor(args);
 				}
 				*/
 				this.msc.AddCode(javascript);
-				this.jsConstructor = this.msc.CodeObject.jsConstructor
+				this.jsNew = function(cls,...){
+					var args = {cls,...};
+					if(..table.find(args,..com.IsObject)){
+						return this.msc.CodeObject.jsConstructor( cls,...);
+					}
+
+					var js  = "jsConstructor.apply(null," + ..web.json.stringifyArray(args) + ")";
+					return owner.eval(js);
+				}
+				
+				this.jsConstructor = lambda(t) function(...){ return this.jsNew(t,...) };
 			} 
 			
 			for(k,v in self.preload){
@@ -169,7 +184,8 @@ script.__langIds__ = {
 !web_script.timeOut = 脚本超时时间,以毫秒为单位,默认为-1表示不超时,\n如设置超时脚本运行太久会弹出是否继续运行的对话框
 !web_script.useSafeSubset = 脚本控件是否限制运行未被标记为“脚本安全”的组件
 !web_script.reset() = 重置脚本虚拟机,丢弃所有对象和代码\n并将State属性设为0
-!web_script.jsConstructor("Array__") = 获取JS对象构造函数,\n参数可以是JS对象，或字符串类型的对象名字
+!web_script.jsConstructor("Array__") = 获取 JS 使用 new 语句创建对象的构造函数。\n参数 @1 可以是 JS 对象，或字符串类型的对象名字。\n\n调用返回的构造函数时：\n构造参数包含 COM 对象则直接传参，否则使用 JSON 转换为纯 JS 参数。
+!web_script.jsNew("Array__") = 调用 JS 的 new 语句构造 JS 对象。\n参数 @1 可以是 JS 对象，或字符串类型的对象名字。\n可指定一个或多个构造参数。\n构造参数包含 COM 对象则直接传参，否则使用 JSON 转换为纯 JS 参数。
 !web_script.doScript("__") = 添加脚本代码\n参数可以是脚本代码、脚本文件路径，\n如果事先引入 inet.http 库，就可以在参数中指定脚本网址
 !web_script.addCode("__") = 添加脚本代码,\n调用这个函数的作用等价于直接对 script 属性赋值
 !web_script.language = 设置或获取正在使用的 Script 语言名称\n 可选值"VBScript","JScript"。\n注意 "ES6"，"JScript9" 只能在 web.script 构造函数里指定

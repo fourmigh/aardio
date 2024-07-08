@@ -606,7 +606,7 @@ __messageTranslateDispatch(msg) = 分发处理窗口消息,\n参数为消息对�
 win.ui.disableDpiScaling = 在创建窗口前设为 false 则全局禁用 DPI 自动缩放
 onError(错误信息,是否已退出退用栈) = @//此函数应在主线程中定义并自动注册到子线程，应遵守线程函数规则\nglobal.onError = function( err,over ){ \n    if(!over){\n        import debug;\n        var stack = debug.traceback(,"调用栈",3);\n    }\n    \n    if( _STUDIO_INVOKED ) return err;__/*IDE中返回错误信息以继续显示*/ \n}
 print(.(->->->) = aardio代码在解析模板语法时，将调用此函数输出数据\n支持多个不定参数,每个参数都会调用tostring转换为字符串,但不会再添加换行,\n\n此函数可能被负责模板输出的框架重新定义并指向不同的实际函数,\n例如在 fastcgi.client 中指向 response.write，而在HTMLayout中动态指向每个不同页面的输出函数\n此函数不可随意改动指向，应交由负责模板输出的框架自动管理,\n也不应赋值到其他变量后再进行调用，因为print函数随时可能被框架变更指向另外的输出函数\n\n在服务端网页开发时，建议直接调用 response.write() 而不是调用 print函数
-beforeUnload = @..subscribe("beforeUnload",function(){\n	__/*线程退出前执行此回调*/\n} );
+beforeUnload = @..subscribe("beforeUnload",function(){\n	__/*进程的启动线程退出前执行此回调非。\n启动线程可用 table.gc 注册析构函数。*/\n} );
 beforeSystemEndSesssion = @..subscribe("beforeSystemEndSesssion",function(){\n	__/*即将关机执行此回调，不可执行耗时操作*/\n} );
 console = 控制台窗口
 coroutine = 协程

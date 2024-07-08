@@ -1,4 +1,4 @@
-﻿//ANSI转义序列
+﻿//ANSI 转义
 import console.ansion;
  
 console.log('

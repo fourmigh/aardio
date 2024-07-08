@@ -1,9 +1,6 @@
 //服务端
 import zeromq;
-import console;
-subscribe("beforeUnload",function(){
-	console.pause();
-} );
+import console.int;
 
 var context = zeromq.context(1)
 

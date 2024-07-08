@@ -1,0 +1,20 @@
+//HTML 转 Markdown
+import console.int;
+import web.turndown;
+
+var turndownService = web.turndown( codeBlockStyle = "fenced" );
+turndownService.remove('script');
+turndownService.remove('style');
+ 
+//用法参考: https://github.com/mixmark-io/turndown
+var md = turndownService.turndown( 
+	'<h1>Hello world!</h1>'
+);
+
+console.log(md);
+
+//Markdown 转换为 HTML
+//import string.gfmark; 
+//var html = string.gfmark.render(md);
+//console.log(html);
+

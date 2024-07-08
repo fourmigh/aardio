@@ -1,4 +1,4 @@
-//自定义控制台颜色
+//自定义颜色
 
 import console;
 console.setTitle("自定义控制台颜色");
