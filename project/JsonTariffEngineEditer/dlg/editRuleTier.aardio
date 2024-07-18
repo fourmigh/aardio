@@ -78,7 +78,7 @@ for (i=1;#rule.days;1) {
 cmpProc = function(rateTier) {
     return owner.duration < rateTier.duration
 }
-refresh = function(){
+refreshRateTier = function(){
 	winform.lbRateTier.clear()
 	
 	table.sort(rule.rateTiers,cmpProc)
@@ -89,7 +89,7 @@ refresh = function(){
 		winform.lbRateTier.add(text)
 	}
 }
-refresh()
+refreshRateTier()
 
 var selRateTier = ""
 
@@ -108,26 +108,28 @@ removeRateTier = function() {
 		var rateTier = rateTiers[i]
 		table.push(rule.rateTiers, rateTier)
 	}
-	refresh()
+	refreshRateTier()
 }
 
+addRateTier = function(i) {
+	var formFile = "\dlg\editRateTier.aardio"
+	var editRateTierForm = win.loadForm(formFile)
+	var result = editRateTierForm.doModal()
+	if (result == "ok") {
+		rateTier = ..rateTier
+		rule.rateTiers[i] = rateTier
+		refreshRateTier()
+	}
+	return result 
+}
 editRateTier = function() {
-	//log("findRateTier.action", action)
 	for (i=1;#rule.rateTiers;1) {
 		var rateTier = rule.rateTiers[i]
 		var text = web.json.stringify(rateTier)
 		if (text == selRateTier) {
-			//log("findRateTier.selRateTier", selRateTier)
 			..rateTier = rateTier
-			var formFile = "\dlg\editRateTier.aardio"
-			var editRateTierForm = win.loadForm(formFile)
-			var result = editRateTierForm.doModal()
-			//log("editRateTierForm.doModal", result)
-			if (result == "ok") {
-				rateTier = ..rateTier
-				rule.rateTiers[i] = rateTier
-				refresh()
-			} else if (result == "remove") {
+			var result = addRateTier(i)
+			if (result == "remove") {
 				removeRateTier()
 			}
 			break
@@ -212,7 +214,9 @@ winform.btnEndTime.oncommand = function(id,event){
 }
 
 winform.btnAdd.oncommand = function(id,event){
-	
+	..rateTier = {}
+	selRateTier = ""
+	addRateTier(1 + #rule.rateTiers)
 }
 
 winform.show();
