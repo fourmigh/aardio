@@ -44,6 +44,9 @@ if (ruleType == "free") {
 } elseif (ruleType == "flat") {
 	winform.rbTypeFlat.checked = true
 }
+if (rule.unit == null) {
+	rule.unit = "hour"
+}
 var ruleUnit = string.lower(rule.unit)
 if (ruleUnit == "day") {
 	winform.rbUnitDay.checked = true

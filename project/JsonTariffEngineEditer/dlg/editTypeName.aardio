@@ -1,27 +1,26 @@
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="Edit RateTier";right=480;bottom=173;)
+var winform = win.form(text="Edit RateTier";right=480;bottom=173)
 winform.add(
-btnOK={cls="button";text="OK";left=364;top=113;right=444;bottom=150;z=1;};
-etRuleName={cls="edit";left=206;top=66;right=359;bottom=88;edge=1;z=7;};
-gbRuleType={cls="groupbox";left=198;top=14;right=423;bottom=55;edge=1;group=1;z=8;};
-rbTypeFlat={cls="radiobutton";text="Flat";left=372;top=28;right=420;bottom=48;z=5;};
-rbTypeHoliday={cls="radiobutton";text="Holiday";left=206;top=28;right=276;bottom=49;z=3;};
-rbTypeTier={cls="radiobutton";text="Tier";left=302;top=28;right=346;bottom=49;z=4;};
-static3={cls="static";text="rule.type:";left=60;top=22;right=160;bottom=51;font=LOGFONT(h=-18;weight=700);transparent=1;z=2;};
-static4={cls="static";text="rule.name:";left=60;top=62;right=160;bottom=91;font=LOGFONT(h=-18;weight=700);transparent=1;z=6;};
-
+btnOK={cls="button";text="OK";left=364;top=113;right=444;bottom=150;z=1};
+etRuleName={cls="edit";left=206;top=66;right=359;bottom=88;edge=1;z=7};
+gbRuleType={cls="groupbox";left=198;top=14;right=423;bottom=55;edge=1;group=1;z=8};
+rbTypeFlat={cls="radiobutton";text="Flat";left=372;top=28;right=420;bottom=48;z=5};
+rbTypeFree={cls="radiobutton";text="Free";left=206;top=28;right=276;bottom=49;z=3};
+rbTypeTier={cls="radiobutton";text="Tier";left=302;top=28;right=346;bottom=49;z=4};
+static3={cls="static";text="rule.type:";left=60;top=22;right=160;bottom=51;font=LOGFONT(h=-18;weight=700);transparent=1;z=2};
+static4={cls="static";text="rule.name:";left=60;top=62;right=160;bottom=91;font=LOGFONT(h=-18;weight=700);transparent=1;z=6}
 )
 /*}}*/
 
-winform.rbTypeHoliday.setParent(winform.gbRuleType)
+winform.rbTypeFree.setParent(winform.gbRuleType)
 winform.rbTypeTier.setParent(winform.gbRuleType)
 winform.rbTypeFlat.setParent(winform.gbRuleType)
 
 winform.btnOK.oncommand = function(id,event){
 	var rule = {}
-	if (winform.rbTypeHoliday.checked) {
-		rule.type = "holiday"
+	if (winform.rbTypeFree.checked) {
+		rule.type = "free"
 	} elseif (winform.rbTypeTier.checked) {
 		rule.type = "tier"
 	} elseif (winform.rbTypeFlat.checked) {

@@ -85,6 +85,9 @@ addRulePeriod = function(i){
 	if (result == "ok") {
 		modified = true
 		period = ..period
+		if (rule.periods == null) {
+			rule.periods = {}
+		}
 		rule.periods[i] = period
 		refreshPeriods()
 	}

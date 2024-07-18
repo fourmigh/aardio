@@ -90,6 +90,9 @@ refresh = function() {
 
 reloadFile = function(filePath) {
 	//log("filePath", filePath)
+	if (filePath == null) {
+		return
+	} 
 	var content = string.load(filePath)
 	if (content == null) {
 		return

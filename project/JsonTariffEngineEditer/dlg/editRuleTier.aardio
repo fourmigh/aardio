@@ -81,6 +81,9 @@ cmpProc = function(rateTier) {
 refreshRateTier = function(){
 	winform.lbRateTier.clear()
 	
+	if (rule.rateTiers == null) {
+		rule.rateTiers = {}
+	}
 	table.sort(rule.rateTiers,cmpProc)
 	
 	for (i=1;#rule.rateTiers;1) {
