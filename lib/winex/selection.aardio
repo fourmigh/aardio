@@ -53,7 +53,7 @@ if(_WINXP){
 }
 
 import System.Windows.Automation.3;
-Automation = System.Windows.Automation;
+Automation = ..System.Windows.Automation["3"];
 PropertyCondition = Automation.PropertyCondition;
 AutomationElement = Automation.AutomationElement;
 var TextPatternPattern = Automation.TextPattern.Pattern;

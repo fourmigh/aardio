@@ -9,18 +9,19 @@ https://quickref.me/mysql
 */
 console.showLoading(" 正在连接测试数据库" )
 var dbClient,err = mysql.client(
-    server = "db4free.net"; //数据库服务器,可省略默认为localhost
-    uid = "aardio_mysql";//用户名,可省略默认为root
-    pwd = "aardio.com";
+    server = "db4free.net"; //服务器，格式为"域名或IP:端口号"或"域名或IP"，省略则默认为 "localhost"。
+    uid = "aardio_mysql";//用户名，省略则默认为"root"。
+    pwd = "aardio.com";//密码。
+    database = "aardio_mysql"; //可选指定数据库
 ); 
 
 if(!dbClient){ 
-    console.log("如果是有人无聊修改了密码,请自行到db4free.net申请免费数据库")
+    console.log("如果是有人无聊修改了密码,请自行到 db4free.net 申请免费数据库")
     return console.logPause(err); 
 }
 
 //选择数据库
-dbClient.selectDb("aardio_mysql")  
+//dbClient.selectDb("aardio_mysql")  
 
 //查询数据并返回记录集
 var result = dbClient.stepQuery("select version()");

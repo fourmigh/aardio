@@ -88,6 +88,8 @@ stringifyTable = function(t,keys,prettyPrintLevel,prettyPrintIndent,objreference
 		if(v){  push( s,curIndent,k,"=",v,";",CRLF); }
 	}
 	
+	if( s[#s-1] == ";" ) pop(s,2);
+	
 	var singleLine = 1;  
 	for(i=1;..table.len(t);1){ 
 		if(type(t[i])=="table") {
@@ -115,6 +117,7 @@ stringifyTable = function(t,keys,prettyPrintLevel,prettyPrintIndent,objreference
 		for(i=1;..table.len(t);1){ 
 			push( s,curIndent,stringfyValue(t[i],keys,objreferences,prettyPrintLevel,prettyPrintIndent),";",CRLF);
 		}
+		
 		if( s[#s-1] == ";" ) pop(s,2);
 	}
 	 

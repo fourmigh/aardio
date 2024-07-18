@@ -4,11 +4,12 @@
 	<folder name="资源文件" path="res" embed="true"/>
 	<folder name="窗体文件" path="dlg" comment="目录" embed="true" local="false" ignored="false">
 		<file name="editRuleFlat.aardio" path="dlg\editRuleFlat.aardio" comment="dlg\editRuleFlat.aardio"/>
-		<file name="editRuleHoliday.aardio" path="dlg\editRuleHoliday.aardio" comment="dlg\editRuleHoliday.aardio"/>
+		<file name="editRuleFree.aardio" path="dlg\editRuleFree.aardio" comment="dlg\editRuleHoliday.aardio"/>
 		<file name="editRateTier.aardio" path="dlg\editRateTier.aardio" comment="dlg\editRateTier.aardio"/>
 		<file name="editRuleTier.aardio" path="dlg\editRuleTier.aardio" comment="dlg\editRuleTier.aardio"/>
 		<file name="editTime.aardio" path="dlg\editTime.aardio" comment="dlg\editTime.aardio"/>
 		<file name="editTariffName.aardio" path="dlg\editTariffName.aardio" comment="dlg\editTariffName.aardio"/>
 		<file name="editTypeName.aardio" path="dlg\editTypeName.aardio" comment="dlg\editTypeName.aardio"/>
+		<file name="editPeriods.aardio" path="dlg\editPeriods.aardio" comment="dlg\editPeriods.aardio"/>
 	</folder>
 </project>

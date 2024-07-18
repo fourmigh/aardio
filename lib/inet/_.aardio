@@ -204,11 +204,24 @@ clearSesseion = function(){
 
 var GetCookieA = Wininet.api("InternetGetCookieA","bool(str url,str name,str &data,INT & size)")
 var SetCookieA = Wininet.api("InternetSetCookieA","bool(str url,str name,str data)") 
-getCookie = function(url){
+getCookie = function(url,p){
 	url = ..string.replace(url,"^Cookie\:.+?\@","http://"); 
 	var ok,v,size = GetCookieA(url,"",0,0); 
-	ok,v = GetCookieA(url,k,size,size);
-	if(ok)return v,url;
+	ok,v = GetCookieA(url,"",size,size);
+	if(ok && v){
+		if(p) {
+			v = ..string.unhex(v,"%");
+			p = type.isString(p) ? p;
+			
+			var r = {} 
+			for line in ..string.lines(v,";\s*","=\s*",2){
+				r[ p ? ..string.match(line[1],p) : line[1] ] = line[2];
+			} 
+			
+			return r;
+		}
+		return v,url;
+	}
 }
 
 setCookie = function(url,v,k,expires){ 
@@ -246,20 +259,17 @@ setCookie = function(url,v,k,expires){
     	v = "deleted";
     	expires = ..time.gmt(1); 
     }
-    
-    SetCookieA(url, k,v );//不指定 expires 设置会话 Cooki
-    
+
     if(k) v = k + "=" + v;
 	elseif(v == "deleted")  error("Cookie 的名字或值不能都为 null");
 	
-    v = ..string.hex(v,"%",'\x80');
- 
+	v = ..string.hex(v,"%",'\x80');  
 	SetCookieA(url, ,v );//不指定 expires 设置会话 Cookie
 	return  !expires || SetCookieA(url, ,v + "; expires=" + tostring( ..time.gmt(expires) ) );
 }
 
 /**intellisense(inet)
-getCookie("https__") = 返回指定网址的 Cookie \n一般指定根域名就可以了，最好不要指定子域名\n注意不能获取 HttpOnly Cookie、不能获取其他进程的会话 Cookie
+getCookie("https__") = 返回指定网址的 Cookie 。\n一般指定根域名就可以了，最好不要指定子域名。\n如果参数 @2 为 true 则返回包含 Cookie 名值对的表对象。\n参数 @2 指定一个字符串可用于匹配 Cookie 名字，不匹配则使用原 Cookie 名。\n注意不能获取 HttpOnly Cookie、不能获取其他进程的会话 Cookie。
 setCookie( = 设定 Cookie。\nweb.form,web.rest,inet.http 共享此 Cookies 设置。\n此函数兼容 fsys.cookies 格式，\n兼容 CDP 方法 Network.getCookies 返回的数据格式
 setCookie(.("网址","值","键",过期时间或天数) = 设定指定网址的 Cookie。\n第一个参数指定 Cookie 生效的网址。\n如果不指定值则删除删除指定名字的会话 cookie 与持久 Cookie，\n如果指定名字与值则设置 Cookie，如果不指定过期时间则仅设置会话 Cookie，\n否则设置为持久 Cookie。\n可选参数 @4 使用 time 对象指定过期时间，或用数值指定过期天数
 setCookie(.("网址","键=值",过期时间或天数) = 设定指定网址的 Cookie。\n可选参数@3使用 time 对象指定过期时间，或用数值指定过期天数。\n如果不指定过期时间则设置会话cookie,\n否则修改持久化 Cookie,\n第一个参数指定 Cookie 生效的网址

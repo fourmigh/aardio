@@ -255,7 +255,6 @@ com.excel() = !excel.
 !excel_sheet.Range(.("A1:C3") = 返回单元格集合对象
 !excel_sheet.Range() = !excel_range.
 !excel_sheet.UsedRange.Columns.count = 列数
-!excel_sheet.UsedRange.Rows.Count = 行数
 !excel_sheet.Move(null,sheet2__) = 移动表数据
 !excel_sheet.Cells() = !excel_range.
 !excel.ActiveCell = 活动单元格

@@ -1,4 +1,4 @@
-//屏幕找图
+//网页找图
 import win.ui;
 /*DSG{{*/
 var winform = win.form(text="请稍候正在打开网页......";right=759;bottom=469)
@@ -49,9 +49,8 @@ var sm,x,y = imgFind.findImageInWindow(winform);
 winform.text = "已找到图片，相似度：" + sm;
 
 //移动鼠标
-import mouse;
-var wx,wy = win.getPos(winform.hwnd);//获取目标窗口坐标 
-mouse.moveTo(wx+x-50,wy+y-50,true);//保留鼠标轨迹模仿真实的鼠标移动
+import mouse; 
+mouse.moveToWindow(x-50,y-50,winform.hwnd,8);//保留鼠标轨迹模仿真实的鼠标移动
 mouse.click();//点击鼠标
 
 //启动消息循环

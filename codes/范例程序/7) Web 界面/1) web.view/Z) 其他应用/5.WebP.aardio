@@ -3,10 +3,11 @@ import fsys;
 import process;
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="WebView2 - WebP 图像转 JPG 格式";right=966;bottom=622)
+var winform = win.form(text="WebView2 - WebP 图像转 JPG 格式";right=966;bottom=622;)
 winform.add(
-btnCallJavaScript={cls="button";text="转换图像";left=615;top=537;right=869;bottom=606;color=14120960;db=1;dr=1;font=LOGFONT(h=-14);note="WebP 图像转 JPG 格式";z=2};
-static={cls="static";left=8;top=6;right=956;bottom=503;db=1;dl=1;dr=1;dt=1;z=1}
+btnCallJavaScript={cls="button";text="转换图像";left=615;top=537;right=869;bottom=606;color=14120960;db=1;dr=1;font=LOGFONT(h=-14);note="WebP 图像转 JPG 格式";z=2;};
+static={cls="static";left=8;top=6;right=956;bottom=503;db=1;dl=1;dr=1;dt=1;z=1;};
+
 )
 /*}}*/
 
@@ -60,10 +61,19 @@ wb.html = /**
 import fsys.dlg;
 winform.btnCallJavaScript.oncommand = function(id,event){
 	var path = fsys.dlg.open("*.webp|*.webp||","请指定要转换的图像");
-	var url = inet.urlData(,path)
+	if(!path) return;
 	
+	var url = inet.urlData(,path)
 	wb.xcall("convertImage",url,fsys.path.replaceExt(path,".jpg"));
 }
+
+/*
+也可以这样转换：
+
+import process.ffmpeg;
+var ffmpeg = process.ffmpeg("/",
+	"-y","-i","~\codes\范例程序\D) 图形图像\.gdip.jpg","out.webp");
+*/
 
 winform.show();
 win.loopMessage();

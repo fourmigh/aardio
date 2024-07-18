@@ -1,15 +1,15 @@
-﻿{
+{
     "default": {
-		"maxAmount" : 4500,
-		"rules" : [
-			{
-				"name": "flat_rate",
-				"type": "flat",
-				"rate": 100,
-				"unit": "hour",
-				"dailySettlement": true,
-				"dailyCap": 2400
-			}
-		]
-	}
+        "maxAmount": 4500,
+        "rules": [
+            {
+                "name": "flat_rate",
+                "type": "flat",
+                "rate": 100,
+                "unit": "hour",
+                "dailySettlement": true,
+                "dailyCap": 2400
+            }
+        ]
+    }
 }

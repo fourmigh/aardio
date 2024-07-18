@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 定义日志路径 -->
+    <property name="LOG_PATH" value="/sdcard/logs"/>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 动态生成日志文件路径 -->
+        <file>${LOG_PATH}/app.%d{yyyy-MM-dd_HH-mm-ss}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 滚动策略 -->
+            <fileNamePattern>${LOG_PATH}/app.%d{yyyy-MM-dd_HH-mm-ss}.log</fileNamePattern>
+            <!-- 保留最近7天的日志文件 -->
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="DEBUG">
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>

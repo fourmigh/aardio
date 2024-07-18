@@ -1,0 +1,203 @@
+import win.ui;
+import console
+/*DSG{{*/
+var winform = win.form(text="Edit Rule Free";right=622;bottom=616)
+winform.add(
+btnDaysAdd={cls="button";text="Add";left=186;top=192;right=266;bottom=229;z=12};
+btnDaysRemove={cls="button";text="Remove";left=186;top=132;right=266;bottom=169;z=11};
+btnOK={cls="button";text="OK";left=498;top=562;right=578;bottom=599;z=1};
+btnPeriodsAdd={cls="button";text="Add";left=441;top=415;right=521;bottom=452;z=16};
+calendar={cls="calendar";left=286;top=132;right=578;bottom=306;edge=1;z=13};
+etRuleName={cls="edit";left=258;top=65;right=411;bottom=87;edge=1;z=7};
+gbRuleType={cls="groupbox";left=251;top=13;right=476;bottom=54;edge=1;group=1;z=8};
+lbRuleDays={cls="listbox";left=35;top=132;right=168;bottom=330;edge=1;items={};vscroll=1;z=10};
+lbRulePeriods={cls="listbox";left=35;top=394;right=414;bottom=547;edge=1;items={};vscroll=1;z=15};
+rbTypeFlat={cls="radiobutton";text="Flat";left=424;top=27;right=472;bottom=47;z=5};
+rbTypeFree={cls="radiobutton";text="Free";left=258;top=27;right=328;bottom=47;z=3};
+rbTypeTier={cls="radiobutton";text="Tier";left=354;top=27;right=398;bottom=46;z=4};
+static={cls="static";text="rule.days:";left=28;top=97;right=128;bottom=126;font=LOGFONT(h=-18;weight=700);transparent=1;z=9};
+static2={cls="static";text="rule.periods:";left=28;top=361;right=146;bottom=390;font=LOGFONT(h=-18;weight=700);transparent=1;z=14};
+static3={cls="static";text="rule.type:";left=112;top=21;right=212;bottom=50;font=LOGFONT(h=-18;weight=700);transparent=1;z=2};
+static4={cls="static";text="rule.name:";left=112;top=61;right=212;bottom=90;font=LOGFONT(h=-18;weight=700);transparent=1;z=6}
+)
+/*}}*/
+
+winform.rbTypeFree.setParent(winform.gbRuleType)
+winform.rbTypeTier.setParent(winform.gbRuleType)
+winform.rbTypeFlat.setParent(winform.gbRuleType)
+winform.gbRuleType.disabled = true
+
+var modified = false
+var selDay = ""
+var selPeriod = ""
+var rule = ..rule
+var days = {}
+winform.etRuleName.text = rule.name
+var ruleType = string.lower(rule.type)
+if (ruleType == "free") {
+	winform.rbTypeFree.checked = true
+} elseif (ruleType == "tier") {
+	winform.rbTypeTier.checked = true
+} elseif (ruleType == "flat") {
+	winform.rbTypeFlat.checked = true
+}
+
+for (i=1;#rule.days;1) {
+	var day = rule.days[i]
+	table.push(days, day)
+	winform.lbRuleDays.add(day)
+}
+
+refreshPeriods = function(){
+	winform.lbRulePeriods.clear()
+	for (i=1;#rule.periods;1) {
+		var period = rule.periods[i]
+		winform.lbRulePeriods.add(web.json.stringify(period))
+	}
+}
+refreshPeriods()
+
+winform.lbRuleDays.onSelChange = function() {
+	selDay = owner.selText
+}
+
+removePeriod = function() {
+	var periods = {}
+	for (i=1;#rule.periods;1) {
+		var period = rule.periods[i]
+		var text = web.json.stringify(period)
+		if (text != selPeriod) {
+			table.push(periods, period)
+		}
+	}
+	rule.periods = {}
+	for (i=1;#periods;1) {
+		var period = periods[i]
+		table.push(rule.periods, period)
+	}
+	refreshPeriods()
+}
+
+addRulePeriod = function(i){
+	var formFile = "\dlg\editPeriod.aardio"
+	var editPeriodForm = win.loadForm(formFile)
+	var result = editPeriodForm.doModal()
+	if (result == "ok") {
+		modified = true
+		period = ..period
+		rule.periods[i] = period
+		refreshPeriods()
+	}
+	return result 
+}
+
+editRulePeriod = function() {
+	for (i=1;#rule.periods;1) {
+		var period = rule.periods[i]
+		var text = web.json.stringify(period)
+		if (text == selPeriod) {
+			..period = period
+			var result = addRulePeriod(i)
+			if (result == "remove") {
+				modified = true
+				removePeriod()
+			}
+			break
+		}
+	}
+}
+winform.lbRulePeriods.onSelChange = function() {
+	selPeriod = owner.selText
+	
+	editRulePeriod()
+}
+
+winform.btnOK.oncommand = function(id,event) {
+	
+	//log("winform.btnOK", "oncommand")
+	if (not modified) {
+		//log("winform.btnOK", "not modified")
+		return 
+	}
+	
+	//log("winform.btnOK", "modified")
+	if (winform.rbTypeFree.checked) {
+		rule.type = "free"
+	} elseif (winform.rbTypeTier.checked) {
+		rule.type = "tier"
+	} elseif (winform.rbTypeFlat.checked) {
+		rule.type = "flat"
+	}
+	
+	rule.name = winform.etRuleName.text
+	//log("winform.btnOK", rule.name)
+	
+	rule.days = days
+	
+	//log("winform.btnOK", "..rule = rule")
+	..rule = rule
+	
+	//log("winform.btnOK", "endModal")
+	winform.endModal(true)
+}
+
+winform.btnDaysRemove.oncommand = function(id,event){
+	for (i=1;#days;1) {
+		if (days[i] == selDay) {
+			table.remove(days, i)
+			winform.lbRuleDays.delete()
+			modified = true
+			return
+		} 
+	}
+}
+
+parseDate = function(dateTable) {
+    var year = dateTable.year
+    var month = dateTable.month
+    var day = dateTable.day
+    return year, month, day
+}
+formatDate = function(dateTable) {
+	var year, month, day = parseDate(dateTable)
+	//log("parseDate.year", year)
+	//log("parseDate.month", month)
+	//log("parseDate.day", day)
+	var formattedMonth = month < 10 and "0" + month or month
+	//log("parseDate.formattedMonth", formattedMonth)
+	var formattedDay = day < 10 and "0" + day or day
+	//log("parseDate.formattedDay", formattedDay)
+	return year + "-" + formattedMonth + "-" + formattedDay
+}
+
+winform.btnDaysAdd.oncommand = function(id,event){
+	var time = winform.calendar.time
+	//logJson("parseDate.time", time)
+	var formatTime = formatDate(time)
+	
+	for (i=1;#days;1) {
+		var day = days[i]
+		if (day == formatTime) {
+			return 
+		}
+	}
+	
+	table.push(days, formatTime)
+	table.sort(days)
+	winform.lbRuleDays.clear()
+	for (i=1;#days;1) {
+		var day = days[i]
+		winform.lbRuleDays.add(day)
+	}
+	modified = true
+}
+
+winform.btnPeriodsAdd.oncommand = function(id,event){
+	..period = {}
+	selPeriod = ""
+	addRulePeriod(1 + #rule.periods)
+}
+
+winform.show();
+win.loopMessage();
+return winform;

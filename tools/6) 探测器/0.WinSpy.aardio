@@ -194,17 +194,21 @@ winform.treeview.onnotify = function(id,code,ptr){
 var validPattern = function(str){
 	if(!#str) return "";
 		
-	var mbs = string.match(str,"[\s\w]*:+[\s\w]*")
+	var mbs = string.match(str,"[ \t\w]*:+[ \t\w]*")
 	if(#mbs)
 		return mbs;
 		
-	str = string.replace(str,"(\p)","\\\1") 	
+	str = string.replace(str,"(\p)","\\\1") 
+	
+	str = string.replace(str,'\n',"\\n") 	
+	str = string.replace(str,'\r',"\\r") 
+		
 	str = string.replace(str,"\x+",function(str){
 	 	if(..string.find(str,"\d") ) return "\x+"
 	 	return str;
 	} ) 	
     
-    str = string.replace(str,"\d+","\\d+") 	
+    str = string.replace(str,"\d+","\\d+")	
     return str;
 }
 
@@ -216,15 +220,13 @@ winform.showSampleCode = function(){
 	winform.richedit.print("import winex");
 	winform.richedit.print("import winex.mouse");
 	
-	
 	if( win.getParent(hwnd) ){
-		winform.richedit.printf("var hwnd = winex.findEx(%d,,""%s"",""%s"")",
-			win.getParent(hwnd),validPattern(win.getClass(hwnd)),validPattern(winex.getText(hwnd,50)));
-	}
-	else{
-		var x,y,cx,cy = win.getPos(hwnd)
-		winform.richedit.printf("win.setPos(hwnd,%d,%d,%d,%d)",x,y,cx,cy);
-		
+		var hwndRoot = win.getRoot(hwnd); 
+		var pClass,pText = validPattern(win.getClass(hwnd)) ,validPattern(winex.getText(hwnd,50));
+  		var pClass2,pText2 = validPattern(win.getClass(hwndRoot)) ,validPattern(winex.getText(hwndRoot,50));
+  		winform.richedit.printf('var hwndParent = winex.find("%s","%s");\r\nvar hwnd = winex.findEx(hwndParent,,"%s","%s");',pClass2,pText2,pClass,pText);  
+   	}
+	else{ 
 		if( win.getOwner(hwnd) ){
 			winform.richedit.printf("var hwnd = winex.waitEx(%d,,""%s"",""%s"")",
 				win.getOwner(hwnd),validPattern(win.getClass(hwnd)),validPattern(winex.getText(hwnd,50)));
@@ -233,7 +235,8 @@ winform.showSampleCode = function(){
 			winform.richedit.printf("var hwnd = winex.waitVisible(""%s"",,""%s"")",
 				validPattern(winex.getText(hwnd,50)),validPattern(win.getClass(hwnd)));
 		}
-	}
+	} 
+	
 	winform.richedit.printf("winex.mouse.click(hwnd,%s)",winform.editPoint.text);	
 }
 

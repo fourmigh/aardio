@@ -354,8 +354,11 @@ class view {
 	wait = function(p,timeout){ 
 		return this._form.wait(function(){
 			var url = this.$readyUrl; 
-			if( url ? ..string.find( url,p) ) return url; 
-		},timeout);
+			if( url ? (!p || ..string.find( url,p)) ) {
+				if(this.eval("document.readyState == 'interactive' || document.readyState == 'complete' ") )
+					return url; 
+			}
+		},timeout,200);
 	}; 
 	waitDoc = function(p,timeout){  
 		return this._form.wait(function(){

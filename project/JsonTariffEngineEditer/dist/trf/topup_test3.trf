@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TariffSet Description="N3679-01 - BRENTWOOD B.C. - MICRO WITH AI GATE - COPTFOLD ROAD CAR PARK" CreationTime="2024-03-21T15:00:37Z" ValidFrom="2024-03-11T00:00:00Z">
+	<TariffDefs>
+		<CompositeTariff Name="W01" Category="0" ClosedAction="Carry" FreeAction="Carry">
+			<BaseTariff>
+				<TariffSteppedRate AuditCode="">
+					<BasicTariffPeriodFixed Cost="10.00" Interval="00:01:00" AuditCode="TC1"/>
+					<BasicTariffPeriodFixed Cost="8.00" Interval="00:01:00" AuditCode="TC2"/>
+					<BasicTariffPeriodFixed Cost="6.00" Interval="00:01:00" AuditCode="TC3"/>
+					<BasicTariffPeriod Cost="4.00" Interval="00:01:00" MaxPeriod="1.00:00:00" AuditCode="TC4"/>
+				</TariffSteppedRate>
+			</BaseTariff>
+			<BaseDescriptions/>
+			<Tariffs>
+			</Tariffs>
+			<Descriptions/>
+		</CompositeTariff>
+	</TariffDefs>
+	<RuleLibrary/>
+</TariffSet>

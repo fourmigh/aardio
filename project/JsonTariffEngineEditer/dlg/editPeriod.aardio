@@ -1,0 +1,118 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="aardio form";right=660;bottom=326)
+winform.add(
+btnEndTime={cls="button";text="End Time";left=435;top=170;right=515;bottom=207;z=15};
+btnOK={cls="button";text="OK";left=524;top=254;right=604;bottom=291;z=16};
+btnRemove={cls="button";text="Remove";left=412;top=254;right=492;bottom=291;z=17};
+btnStartTime={cls="button";text="Start Time";left=435;top=124;right=515;bottom=161;z=12};
+cbFriday={cls="checkbox";text="Friday";left=529;top=55;right=587;bottom=79;z=7};
+cbMonday={cls="checkbox";text="Monday";left=164;top=55;right=253;bottom=79;z=3};
+cbSaturday={cls="checkbox";text="Saturday";left=164;top=88;right=253;bottom=112;z=9};
+cbSunday={cls="checkbox";text="Sunday";left=255;top=88;right=344;bottom=112;z=8};
+cbThursday={cls="checkbox";text="Thursday";left=438;top=55;right=527;bottom=79;z=6};
+cbTuesday={cls="checkbox";text="Tuesday";left=255;top=55;right=344;bottom=79;z=4};
+cbWednesday={cls="checkbox";text="Wednesday";left=347;top=55;right=436;bottom=79;z=5};
+etEndTime={cls="edit";left=240;top=178;right=393;bottom=200;edge=1;z=14};
+etStartTime={cls="edit";left=240;top=132;right=393;bottom=154;edge=1;z=11};
+gbDays={cls="groupbox";left=152;top=37;right=596;bottom=117;edge=1;z=2};
+static={cls="static";text="days:";left=50;top=46;right=138;bottom=75;font=LOGFONT(h=-18;weight=700);transparent=1;z=1};
+static2={cls="static";text="startTime:";left=54;top=132;right=197;bottom=161;font=LOGFONT(h=-18;weight=700);transparent=1;z=10};
+static3={cls="static";text="endTime:";left=54;top=178;right=197;bottom=207;font=LOGFONT(h=-18;weight=700);transparent=1;z=13}
+)
+/*}}*/
+
+winform.cbMonday.setParent(winform.gbDays)
+winform.cbTuesday.setParent(winform.gbDays)
+winform.cbWednesday.setParent(winform.gbDays)
+winform.cbThursday.setParent(winform.gbDays)
+winform.cbFriday.setParent(winform.gbDays)
+winform.cbSaturday.setParent(winform.gbDays)
+winform.cbSunday.setParent(winform.gbDays)
+
+var period = ..period
+winform.etStartTime.text = period.startTime
+winform.etEndTime.text = period.endTime
+for (i=1;#period.days;1) {
+	var day = period.days[i]
+	if (day == "Monday") {
+		winform.cbMonday.checked = true
+	} elseif (day == "Tuesday") {
+		winform.cbTuesday.checked = true
+	} elseif (day == "Wednesday") {
+		winform.cbWednesday.checked = true
+	} elseif (day == "Thursday") {
+		winform.cbThursday.checked = true
+	} elseif (day == "Friday") {
+		winform.cbFriday.checked = true
+	} elseif (day == "Saturday") {
+		winform.cbSaturday.checked = true
+	} elseif (day == "Sunday") {
+		winform.cbSunday.checked = true
+	}
+}
+
+winform.btnRemove.oncommand = function(id,event){
+	winform.endModal("remove")
+}
+
+winform.btnOK.oncommand = function(id,event){
+	period.days = {}
+	if (winform.cbMonday.checked) {
+		table.push(period.days, winform.cbMonday.text)
+	}
+	if (winform.cbTuesday.checked) {
+		table.push(period.days, winform.cbTuesday.text)
+	}
+	if (winform.cbWednesday.checked) {
+		table.push(period.days, winform.cbWednesday.text)
+	}
+	if (winform.cbThursday.checked) {
+		table.push(period.days, winform.cbThursday.text)
+	}
+	if (winform.cbFriday.checked) {
+		table.push(period.days, winform.cbFriday.text)
+	}
+	if (winform.cbSaturday.checked) {
+		table.push(period.days, winform.cbSaturday.text)
+	}
+	if (winform.cbSunday.checked) {
+		table.push(period.days, winform.cbSunday.text)
+	}
+	if (#period.days == 0) {
+		period.days = null
+	}
+	..period = period
+	winform.endModal("ok")
+}
+
+getTime = function(startOrEnd, time){
+	
+	..ruleTime = time
+	
+	var formFile = "\dlg\editTime.aardio"
+	var editTimeForm = win.loadForm(formFile)
+	var result = editTimeForm.doModal()
+	if (result) {
+		var time = ..ruleTime
+		if (startOrEnd) {
+			period.startTime = time
+			winform.etStartTime.text = time
+		} else {
+			period.endTime = time
+			winform.etEndTime.text = time
+		}
+	}
+}
+
+winform.btnStartTime.oncommand = function(id,event){
+	getTime(true, winform.etStartTime.text)
+}
+
+winform.btnEndTime.oncommand = function(id,event){
+	getTime(false, winform.etEndTime.text)
+}
+
+winform.show();
+win.loopMessage();
+return winform;

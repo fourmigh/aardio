@@ -1,11 +1,9 @@
 ﻿import web.mshtml;
 import fsys.codepage;
-import web.rest.client;
 
 namespace web;
 
 var wb = ..web.mshtml();
-var http = ..web.rest.client();
 
 class turndown{
 	ctor(...){
@@ -57,7 +55,7 @@ html,body{ height:100%; margin:0; }
 </html>`,{js=$"~\lib\web\turndown\turndown.js"})
 
 /*****intellisense()
-web.turndown() = 创建 TurndownService 对象。\n参数 @1 可用 aardio 表对象指定选项，\n也可用字符串参数指定包含描述 JS 选项对象的 JS 代码。\n!stdWebTurndown.
+web.turndown() = 创建 TurndownService 对象，用于将 HTML 转换为 Markdown。\n参数 @1 可用 aardio 表对象指定选项，\n也可用字符串参数指定包含描述 JS 选项对象的 JS 代码。\n!stdWebTurndown.
 end intellisense*****/
 
 /*****intellisense(!stdWebTurndown)

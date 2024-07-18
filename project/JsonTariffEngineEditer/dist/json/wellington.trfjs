@@ -78,7 +78,7 @@
 				"startTime": "08:00",
 				"endTime": "16:00",
 				"days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-			},
+			}
 		]
 	}
 }

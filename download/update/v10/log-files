@@ -539,7 +539,7 @@
 -1615172683|4465|1950|codes\范例程序\7) Web 界面\1) web.view\Z) 其他应用\2.prism.aardio
 -1516295485|1502|854|codes\范例程序\7) Web 界面\1) web.view\Z) 其他应用\3.lottie.aardio
 809035451|1484|885|codes\范例程序\7) Web 界面\1) web.view\Z) 其他应用\4.sse.aardio
--1105430999|1867|966|codes\范例程序\7) Web 界面\1) web.view\Z) 其他应用\5.WebP.aardio
+1744049246|2063|1074|codes\范例程序\7) Web 界面\1) web.view\Z) 其他应用\5.WebP.aardio
 -1212279606|2903|1468|codes\范例程序\7) Web 界面\1) web.view\Z) 其他应用\A.amis.aardio
 -1151672755|1583|909|codes\范例程序\7) Web 界面\1) web.view\Z) 其他应用\B.Cesium.aardio
 -555094262|2564|1440|codes\范例程序\7) Web 界面\1) web.view\Z) 其他应用\C.ruffle.aardio
@@ -778,7 +778,7 @@
 -199047002|1302|805|codes\范例程序\A) 数据库\1) sqlite\C.vlistview.aardio
 -173600522|2572|1329|codes\范例程序\A) 数据库\1) sqlite\D.fts.aardio
 -1275740559|1048|686|codes\范例程序\A) 数据库\1) sqlite\Z.latest.aardio
--1228049717|4400|1946|codes\范例程序\A) 数据库\2) mysql\1.mysql.aardio
+364141695|4528|2003|codes\范例程序\A) 数据库\2) mysql\1.mysql.aardio
 1215615273|811|550|codes\范例程序\A) 数据库\2) mysql\2.plugin.aardio
 2144037486|2196|1129|codes\范例程序\A) 数据库\3) access\access.aardio
 -2097365327|1664|948|codes\范例程序\A) 数据库\3) access\vlistview.aardio
@@ -905,6 +905,7 @@
 -1809630309|5294|1915|codes\范例程序\E) 音频视频\2) 视频\mpvPlayer.aardio
 880363143|1131|596|codes\范例程序\E) 音频视频\2) 视频\wmplay.aardio
 -111541257|1122|697|codes\范例程序\E) 音频视频\3) FFmpeg\1.FFmpeg.aardio
+684102003|284|251|codes\范例程序\E) 音频视频\3) FFmpeg\2.image.aardio
 -350433669|5703|2168|codes\范例程序\F) COM 组件\1) ProgIDs.aardio
 0|0|0|codes\范例程序\F) COM 组件\1) 入门必读\
 0|0|0|codes\范例程序\F) COM 组件\2) 进阶提升\
@@ -1006,10 +1007,14 @@
 0|0|0|codes\范例程序\I) 自动化\7) FlaUI\
 0|0|0|codes\范例程序\I) 自动化\8) 网页自动化\
 0|0|0|codes\范例程序\I) 自动化\X) adb\
-1203766722|692|456|codes\范例程序\I) 自动化\1) 找图找色找字\findColor.aardio
-2056161844|1880|1126|codes\范例程序\I) 自动化\1) 找图找色找字\findImage.aardio
-216440671|1920|1057|codes\范例程序\I) 自动化\1) 找图找色找字\ocrLite.aardio
--686368657|1178|718|codes\范例程序\I) 自动化\1) 找图找色找字\ocrUwp.aardio
+189830301|3333|1437|codes\范例程序\I) 自动化\1) 找图找色找字\1.findImaage.aardio
+578892683|4098|1615|codes\范例程序\I) 自动化\1) 找图找色找字\2.findImage.example.aardio
+-1228570713|1825|1090|codes\范例程序\I) 自动化\1) 找图找色找字\3.findImage.web.aardio
+95287154|649|419|codes\范例程序\I) 自动化\1) 找图找色找字\4.findColor.aardio
+1688415124|2925|1262|codes\范例程序\I) 自动化\1) 找图找色找字\5.soImage.ocr.aardio
+1259806252|680|314|codes\范例程序\I) 自动化\1) 找图找色找字\6.soImage.ocr.example.aardio
+-686368657|1178|718|codes\范例程序\I) 自动化\1) 找图找色找字\7.ocrUwp.aardio
+216440671|1920|1057|codes\范例程序\I) 自动化\1) 找图找色找字\8.ocrLite.aardio
 1961309777|829|577|codes\范例程序\I) 自动化\2) MSAA\1.start.aardio
 -1689607654|606|347|codes\范例程序\I) 自动化\2) MSAA\2.each.aardio
 1217341337|691|495|codes\范例程序\I) 自动化\3) 窗口自动化\1) winex.aardio
@@ -1065,7 +1070,7 @@
 -1974914867|727552|308373|config\CFG.BIN
 0|0|0|config\intellisense\
 0|0|0|config\lang\
--1776193630|15|33|config\SYS.CFG
+2091020860|15|34|config\SYS.CFG
 -1857708118|3541|748|config\SYS.THEME
 0|0|0|config\themes\
 -2051298686|120514|31139|config\intellisense\kernel.txt
@@ -1073,17 +1078,17 @@
 946221732|9375|1953|config\intellisense\web.layout.behavior.txt
 35049853|11002|2229|config\intellisense\web.sciter.behavior.txt
 890331275|41984|12138|config\intellisense\winform.txt
--2004515309|6941|2955|config\lang\lib.txt
+659947742|6985|2969|config\lang\lib.txt
 945965821|3519|764|config\themes\dark.xml
 1313524286|3543|751|config\themes\light.xml
 0|0|0|download\update\
-1545842887|16572|5524|extensions\ide.aardio
+106310327|16688|5571|extensions\ide.aardio
 0|0|0|extensions\plugin\
 0|0|0|extensions\res\
 0|0|0|extensions\trigger\
 0|0|0|extensions\wizard\
 0|0|0|extensions\plugin\view\
--1278573161|1182|760|extensions\plugin\view\bbx.aardio
+2138641884|1113|727|extensions\plugin\view\bbx.aardio
 551100781|1157|733|extensions\plugin\view\config.aardio
 1749230175|2520|1264|extensions\plugin\view\dsktip.aardio
 0|0|0|extensions\plugin\view\res\
@@ -1781,7 +1786,7 @@
 0|0|0|lib\zlib\
 1895937561|2224|923|lib\access\oleDb.aardio
 -1826531292|527|332|lib\access\query.aardio
--1112934213|29001|8138|lib\access\_.aardio
+-1121528670|29164|8206|lib\access\_.aardio
 -2018672658|3370|1200|lib\bencoding\decoder.aardio
 162527712|1570|612|lib\bencoding\encoder.aardio
 1935317245|2500|1076|lib\bencoding\magnet.aardio
@@ -1804,7 +1809,7 @@
 -1977311115|11439|3526|lib\com\activeX.aardio
 0|0|0|lib\com\cad\
 0|0|0|lib\com\doc\
--911782590|117120|26443|lib\com\excel.aardio
+-1226235477|117076|26474|lib\com\excel.aardio
 0|0|0|lib\com\interface\
 -1236378655|8709|2733|lib\com\lite.aardio
 0|0|0|lib\com\matlab\
@@ -1904,7 +1909,7 @@
 450276280|1134|515|lib\dotNet\interface\ICLRRuntimeInfo.aardio
 1491986198|1336|480|lib\dotNet\interface\ICorRuntimeHost.aardio
 0|0|0|lib\dotNet\ocr\.res\
-1516375020|11748|3071|lib\dotNet\ocr\_.aardio
+-1727098348|12209|3235|lib\dotNet\ocr\_.aardio
 -339624646|8704|3529|lib\dotNet\ocr\.res\ocr.dll
 0|0|0|lib\electron\app\
 0|0|0|lib\electron\runtime\
@@ -2053,7 +2058,7 @@
 2121886035|1358|574|lib\inet\urlpart.aardio
 2111567453|1235|647|lib\inet\util.aardio
 -1327768319|54732|13400|lib\inet\whttp.aardio
-747055243|24508|6378|lib\inet\_.aardio
+-311614408|24864|6528|lib\inet\_.aardio
 0|0|0|lib\java\.interopServices\
 -2104819813|8518|2527|lib\java\class.aardio
 0|0|0|lib\java\jdk\
@@ -2081,7 +2086,7 @@
 700473417|6654|2021|lib\mouse\highlighter.aardio
 -1340717538|2640|1344|lib\mouse\hook.aardio
 1735740602|3305|1470|lib\mouse\screenArea.aardio
--535261699|11976|3152|lib\mouse\_.aardio
+1059130965|12246|3213|lib\mouse\_.aardio
 1285996175|1215|487|lib\nodeJs\process.rpc.js
 1611185297|27024|5517|lib\nodeJs\_.aardio
 234325623|26951|7786|lib\preload\com.aardio
@@ -2104,6 +2109,7 @@
 1473042651|7010|2418|lib\process\command.aardio
 -1248755133|1214|731|lib\process\control.aardio
 0|0|0|lib\process\curl\
+-2144815127|2990|1328|lib\process\ffmpeg.aardio
 1225818497|2873|1015|lib\process\file.aardio
 0|0|0|lib\process\gcc\
 0|0|0|lib\process\gfortran\
@@ -2217,7 +2223,7 @@
 1167870835|43153|11928|lib\sqlite\base.aardio
 -1118617639|299|234|lib\sqlite\_.aardio
 -1624201378|645592|283105|lib\sqlite\.res\sqlite3.dll
--1145595104|24650|6889|lib\sqlServer\_.aardio
+1159913678|24816|6952|lib\sqlServer\_.aardio
 -745766250|628|371|lib\string\aasdl.aardio
 311892843|7445|2220|lib\string\args.aardio
 808351386|2729|1034|lib\string\base32.aardio
@@ -2352,7 +2358,7 @@
 -172951800|11369|3122|lib\ustring\_.aardio
 38424903|3621|1535|lib\util\metaProperty.aardio
 417956980|1112|584|lib\util\registry.aardio
--1157628674|3864|1493|lib\util\table.aardio
+-1206697827|3904|1500|lib\util\table.aardio
 -1462775041|5484|1513|lib\util\_.aardio
 0|0|0|lib\web\form\
 1543780787|19255|6764|lib\web\json.aardio
@@ -2436,11 +2442,11 @@
 -1783913426|10287|2837|lib\web\socket\jsonServer.aardio
 -1418545789|19346|5543|lib\web\socket\server.aardio
 -1864068504|20618|5854|lib\web\turndown\turndown.js
-1963122586|2105|1034|lib\web\turndown\_.aardio
+217533920|2081|1029|lib\web\turndown\_.aardio
 2087608769|7343|2216|lib\web\ui\_.aardio
 0|0|0|lib\web\view\.res\
 1034635115|3985|1746|lib\web\view\dev.aardio
-367223983|39949|11288|lib\web\view\_.aardio
+-574481280|40073|11317|lib\web\view\_.aardio
 -1350075804|380928|153562|lib\web\view\.res\webview.dll
 306351074|327320|61436|lib\win\#DEFINE.aardio
 -2025258603|3195|949|lib\win\animate.aardio
@@ -2586,7 +2592,7 @@
 -1403262253|3474|1291|lib\winex\key.aardio
 -1922395873|4149|1368|lib\winex\mainWindows.aardio
 -754573083|4606|1097|lib\winex\mouse.aardio
-55854856|2935|1227|lib\winex\selection.aardio
+1079167491|2942|1234|lib\winex\selection.aardio
 -620845858|4355|1462|lib\winex\tooltip.aardio
 907544344|30998|7653|lib\winex\_.aardio
 -121658060|5282|1408|lib\winex\accObject\element.aardio
@@ -2669,7 +2675,7 @@
 672824436|93|107|tools\5) 文本文件\6.appPath.aardio
 -897462453|4047|1403|tools\5) 文本文件\7.hexEditor.aardio
 0|0|0|tools\6) 探测器\.res\
-750695637|19743|5405|tools\6) 探测器\0.WinSpy.aardio
+672682280|19949|5476|tools\6) 探测器\0.WinSpy.aardio
 -2029295804|12361|3994|tools\6) 探测器\1.flaUISpy.aardio
 1297558933|691|406|tools\6) 探测器\2.inspect.aardio
 128717378|7287|2390|tools\6) 探测器\3.dllView.aardio

@@ -367,8 +367,8 @@ getActiveDocPath() = 获取活动文档路径,\n如果文档未保存为文件,�
 getMainHwnd() = 获取IDE顶层主窗口句柄
 getConfig("__/*属性名*/") = 返回IDE配置文件 ("/Config/USE.CFG") 指定字段值,\n返回值为字符串,失败返回空字符串
 setConfig("__/*属性名*/","") = 修改IDE配置文件 ("/Config/USE.CFG") 指定字段值,\n参数必须都是字符串
-pluginViewCreate("__/*aardio文件*/") = 创建视图插件,\n参数指定aardio文件路径
-pluginViewShow(.(winform) = 显示视图插件,\n请用此函数替换winform.show(),\n窗体样式必须设为"child"样式
+pluginViewCreate("__/*aardio文件*/") = 创建视图插件。\n参数指定aardio文件路径
+pluginViewShow(.(winform) = 在视图插件内执行此代码显示视图插件。\n请用此函数替换 winform.show 函数，应在创建窗口后创建浏览器控件之前调用此函数。\n窗体样式必须设为 "child" 样式。
 getVersion() = @major,minor,build = ide.getVersion();
 getPublisDir() = 返回发布目录
 getPublishName() = 返回生成文件名

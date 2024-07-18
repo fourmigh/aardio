@@ -1,5 +1,5 @@
 ﻿{
-btnClose=false;
+btnClose=true;
 chkRestart=true;
 lnkDown=true;
 afterLoad=null;

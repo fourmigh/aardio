@@ -1,15 +1,14 @@
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="aardio form";right=759;bottom=469;)
+var winform = win.form(text="aardio form";right=759;bottom=469)
 winform.add(
-btnOK={cls="button";text="OK";left=615;top=379;right=695;bottom=416;z=5;};
-etHour={cls="edit";left=157;top=106;right=241;bottom=139;edge=1;font=LOGFONT(h=-20);multiline=1;num=1;z=3;};
-etMinute={cls="edit";left=453;top=106;right=537;bottom=139;edge=1;font=LOGFONT(h=-20);multiline=1;num=1;z=4;};
-spHour={cls="spin";left=272;top=99;right=313;bottom=146;z=6;};
-spMinute={cls="spin";left=559;top=99;right=600;bottom=146;z=7;};
-static={cls="static";text="Hour";left=157;top=64;right=241;bottom=101;font=LOGFONT(h=-22;weight=700);transparent=1;z=1;};
-static2={cls="static";text="Minute";left=453;top=64;right=537;bottom=101;font=LOGFONT(h=-22;weight=700);transparent=1;z=2;};
-
+btnOK={cls="button";text="OK";left=615;top=379;right=695;bottom=416;z=5};
+etHour={cls="edit";left=157;top=106;right=241;bottom=139;edge=1;font=LOGFONT(h=-20);multiline=1;num=1;z=3};
+etMinute={cls="edit";left=453;top=106;right=537;bottom=139;edge=1;font=LOGFONT(h=-20);multiline=1;num=1;z=4};
+spHour={cls="spin";left=272;top=99;right=313;bottom=146;z=6};
+spMinute={cls="spin";left=559;top=99;right=600;bottom=146;z=7};
+static={cls="static";text="Hour";left=157;top=64;right=241;bottom=101;font=LOGFONT(h=-22;weight=700);transparent=1;z=1};
+static2={cls="static";text="Minute";left=453;top=64;right=537;bottom=101;font=LOGFONT(h=-22;weight=700);transparent=1;z=2}
 )
 /*}}*/
 
@@ -20,9 +19,19 @@ winform.etMinute.disabled = true
 
 //spin.event: 4按下，8放开
 var time = ..ruleTime
-var hm = string.split(time, ':')
-var hour = tonumber(hm[1])
-var minute = tonumber(hm[2])
+var hour = 0
+var minute = 0
+
+init = function(){
+	if (time == null || time == "") {
+		time = "00:00"
+	}
+	var hm = string.split(time, ':')
+	var hour = tonumber(hm[1])
+	var minute = tonumber(hm[2])
+}
+init()
+
 refresh = function() {
 	var formattedHour = hour < 10 and "0" + hour or hour
 	var formattedMinute = minute < 10 and "0" + minute or minute
