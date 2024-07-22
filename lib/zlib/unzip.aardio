@@ -44,7 +44,7 @@ class unzip{
     	}
     	var dirName;
     	var blackSlash = fileName[#fileName] 
-    	var extractPath = ..fsys.joinpath(extractDir,fileName);
+    	var extractPath = ..io.joinpath(extractDir,fileName);
     	var versionMadBy = fileInfo.version >> 8 & 0xFF;
     	if(   ( blackSlash == '\\'#  ) || ( blackSlash == '/'# ) || ( 
     		( versionMadBy == 0/*_VERSIONMADEBYDOS*/ || versionMadBy == 10 || versionMadBy == 14 ) &&  ( fileInfo.external_fa & 0x10/*_FILE_ATTRIBUTE_DIRECTORY*/) 

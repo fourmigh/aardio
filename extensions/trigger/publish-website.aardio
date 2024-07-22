@@ -1,4 +1,4 @@
-import win.ui;
+﻿import win.ui;
 /*DSG{{*/
 var winform = win.form(text="aardio -  网站已发布成功";right=550;bottom=185;max=false;parent=...)
 winform.add(
@@ -43,8 +43,8 @@ fsys.enum( io.joinpath(publisDir,"/lib"), "*.aardio",
 		   		fullpath = fsys.getParentDir(fullpath)
           		var path = fsys.path.relative(fullpath,publisDir);
           		
-          		var builder = fsys.joinpath(..io.joinpath("~\",path),".build\main.aardio");
-          		if(!builder) builder = fsys.joinpath(..io.joinpath("\",path),".build\main.aardio");
+          		var builder = io.joinpath(..io.joinpath("~\",path),".build\main.aardio");
+          		if(!builder) builder = io.joinpath(..io.joinpath("\",path),".build\main.aardio");
 				if( io.exist( builder ) ){
 					var tHnd = thread.create(builder)
 					if(tHnd){
@@ -59,7 +59,7 @@ fsys.enum( io.joinpath(publisDir,"/lib"), "*.aardio",
 
 var projectPath = ide.getProjectPath();
 var projectFileName = io.splitpath(projectPath).name;
-var builder = fsys.joinpath(ide.getProjectDir(),".build\" + projectFileName + ".main.aardio");
+var builder = io.joinpath(ide.getProjectDir(),".build\" + projectFileName + ".main.aardio");
 if( io.exist( builder ) ){  
 	var tHnd = thread.create(builder)
 	if(tHnd){
@@ -76,7 +76,7 @@ import fsys;
 //获取生成的EXE文件路径
 var publishFile = ide.getPublishPath();
 */
-	var builder = fsys.joinpath(ide.getProjectDir(),".build\" + projectFileName + ".main.aardio");
+	var builder = io.joinpath(ide.getProjectDir(),".build\" + projectFileName + ".main.aardio");
 	..string.save(builder,code)  
 }
 

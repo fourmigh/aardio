@@ -2,7 +2,7 @@ import win.ui;
 import console
 import fsys.dlg
 /*DSG{{*/
-mainForm = win.form(text="JsonTariffEngineEditer";left=0;top=0;right=800;bottom=600)
+mainForm = win.form(text="JsonTariffEngineEditer V0.1";left=0;top=0;right=800;bottom=600)
 mainForm.add(
 btnAddRule={cls="button";text="Add";left=166;top=490;right=246;bottom=527;z=11};
 btnAddTariff={cls="button";text="Add";left=27;top=490;right=107;bottom=527;z=3};

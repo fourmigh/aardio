@@ -1,4 +1,4 @@
-//批量重命名
+﻿//批量重命名
 import fonts.fontAwesome;
 import win.ui;
 /*DSG{{*/
@@ -43,7 +43,7 @@ winform.btnReplace.oncommand = function(id,event){
 	fsys.enum( winform.txtDir.text , string.split(winform.txtExt.text,"|"),
 		function(dir,filename,fullpath,findData){  
 			if(filename){ 
-				files[fullpath] = fsys.joinpath( dir,string.replace( filename,pattern,callback), )
+				files[fullpath] = io.joinpath( dir,string.replace( filename,pattern,callback), )
 				winform.progress.stepIt()
 			} 
 		},winform.chkSubDir.checked 

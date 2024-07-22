@@ -193,5 +193,5 @@ full(.(path,root) = 如果path是相对路径，并且不以/、\、~等字符�
 end intellisense**/
 
 /**intellisense() 
-fsys.path = 提供文件路径相关函数,\n在导入fsys支持库时将自动导入fsys.path
+fsys.path = 提供文件路径相关函数,\n在导入 fsys 支持库时将自动导入 fsys.path
 end intellisense**/

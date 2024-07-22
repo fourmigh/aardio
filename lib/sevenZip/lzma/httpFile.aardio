@@ -1,4 +1,4 @@
-//httpFile 网络安装包
+﻿//httpFile 网络安装包
 import fsys;
 import inet.http;
 import sevenZip.lzma;
@@ -16,7 +16,7 @@ download = function(url,title="下载",saveDir,extraDir,saveName,parentForm){
 	saveDir = ..io.fullpath(saveDir : "~\download\" )
 	..fsys.createDir(saveDir);
   
-	var savePath = ..fsys.joinpath(saveDir,saveName)
+	var savePath = ..io.joinpath(saveDir,saveName)
 	var downBox = ..inet.downBox(parentForm,title,false) 
 	downBox.headers = self.headers;
 	downBox.referer = self.referer;
@@ -27,7 +27,7 @@ download = function(url,title="下载",saveDir,extraDir,saveName,parentForm){
 		if(!extraDir){
 			extraDir = ..string.match(saveName,"(.+)\.[^\.]+$"  );
 			if(!extraDir) extraDir = saveName + ".uncompress";
-			extraDir = ..fsys.joinpath(saveDir,extraDir)
+			extraDir = ..io.joinpath(saveDir,extraDir)
 		}
 		else {
 			extraDir = ..io.fullpath(extraDir);
@@ -115,7 +115,7 @@ download = function(url,title="下载",saveDir,extraDir,saveName,parentForm){
  	);
  	if(!fileRootDir)return;
  	
- 	var setupFile = ..fsys.joinpath(fileRootDir,"setup.dl.aardio")
+ 	var setupFile = ..io.joinpath(fileRootDir,"setup.dl.aardio")
 	if( ..io.exist(setupFile) ){
 		var handle = ..thread.create( setupFile ); 
 		if( ..win.isClosed() ){

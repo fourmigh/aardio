@@ -1,4 +1,4 @@
-import fsys;
+﻿import fsys;
 import win.ui;
 import fsys.codepage; 
 import util.metaProperty;
@@ -89,7 +89,7 @@ namespace layout {
  	var fromUnicode = ..string.fromUnicode;
  	var loadText = ..fsys.codepage.load;
  	var loadBinary = ..string.loadBuffer;
- 	var joinpath = ..fsys.joinpath
+ 	var joinpath = ..io.joinpath
  	var match = ..string.match;
  	var replace = ..string.replace;
  	var indexOf = ..string.indexOf;

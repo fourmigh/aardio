@@ -38,7 +38,7 @@ install = function(portable){
 
     if( ..io.exist(nodeExePath) ){
     	nodeDir = ..fsys.getParentDir(nodeExePath);
-    	npmCliJsPath  = ..fsys.joinpath(nodeDir,"\node_modules\npm\bin\npm-cli.js");
+    	npmCliJsPath  = ..io.joinpath(nodeDir,"\node_modules\npm\bin\npm-cli.js");
     	
     	nodeDir = ..fsys.shortpath(nodeDir);
 		nodeExePath = ..fsys.shortpath(nodeExePath);
@@ -100,7 +100,7 @@ install = function(portable){
 		
 		if( ..io.exist(nodeExePath) ) {
 			nodeDir = ..fsys.getParentDir(nodeExePath);
-			npmCliJsPath  = ..fsys.joinpath(nodeDir,"\node_modules\npm\bin\npm-cli.js");
+			npmCliJsPath  = ..io.joinpath(nodeDir,"\node_modules\npm\bin\npm-cli.js");
 			
 			nodeDir = ..fsys.shortpath(nodeDir);
 			nodeExePath = ..fsys.shortpath(nodeExePath);

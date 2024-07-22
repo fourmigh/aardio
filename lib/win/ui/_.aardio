@@ -1712,6 +1712,7 @@ namespace win.form{
 				var cls;
         		for name,opt in tParam{
         			cls = opt.cls;
+        			if(opt.z===null) opt.z = #zorder + 1;
         			..table.push( (cls=="bk")||(cls=="bkplus") ? zorderBk :zorder,{name;opt});
         		}
         		..table.sort(zorder,lambda(b) owner[2].z < b[2].z);

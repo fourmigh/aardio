@@ -264,9 +264,9 @@ namespace metaProperty {
 					return ..win.getStyle(owner[["hwnd"]],0x8000000/*_WS_DISABLED*/ ) 
 				}
 				_set = function(v){
-					..win.enable(owner[["hwnd"]],!v?1:0);  
+					if(!v && owner[["(disabledText)"]] ) owner.disabledText = null;
+					else ..win.enable(owner[["hwnd"]],!v?1:0);  
 				}
-			
 			};
 			tailWndproc = {
 				_set = function(v){

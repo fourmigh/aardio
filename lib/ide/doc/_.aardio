@@ -223,6 +223,12 @@ namespace doc{
             
             k = ..string.replace(k,"\(\.\(","(");
             k = ..string.replace(k,"->",".");
+            k = ..string.replace(k,`"__[^"]*"`,"字符串参数");
+            k = ..string.replace(k,`"__\/\*\N*?\*\/"`,"参数");
+            k = ..string.replace(k,`__\/\*\N*?\*\/`,"参数");
+            k = ..string.replace(k,`__`,"参数");
+            k = ..string.replace(k,`""`,"字符串参数")
+            
             if( #path && (path != "::") ){
                 k = ..string.concat(path,".",k);
             }

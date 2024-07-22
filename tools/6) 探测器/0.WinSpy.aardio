@@ -265,9 +265,9 @@ tmid = winform.setInterval(
 	function(hwnd,msg,id,tick){
 		if ( win.cur.beginning ){ 
 			var cwp = 0;
-			if( winform.chkSkipInvisible ) cwp = cwp | 0x0001/*_CWP_SKIPINVISIBLE*/
-			if( winform.chkSkipTransparent ) cwp = cwp | 0x0004/*_CWP_SKIPTRANSPARENT*/
-			if( winform.chkSkipDiabled ) cwp = cwp | 0x0002/*_CWP_SKIPDISABLED*/
+			if( winform.chkSkipInvisible.checked ) cwp = cwp | 0x0001/*_CWP_SKIPINVISIBLE*/
+			if( winform.chkSkipTransparent.checked ) cwp = cwp | 0x0004/*_CWP_SKIPTRANSPARENT*/
+			if( winform.chkSkipDiabled.checked ) cwp = cwp | 0x0002/*_CWP_SKIPDISABLED*/
 			var x,y = mouse.getPos();
 			hwndTarget = winex.fromPointReal( x,y,cwp );
 			if( frmMask.moveToWindow(hwndTarget) ){
@@ -323,9 +323,9 @@ winform.hotkey.sethotkey(config.hotkey.mod,config.hotkey.vk)
 var onHotkey = function(){
     winform.lastSpyHwnd = null;
     var cwp = 0;
-	if( winform.chkSkipInvisible ) cwp = cwp | 0x0001/*_CWP_SKIPINVISIBLE*/
-	if( winform.chkSkipTransparent ) cwp = cwp | 0x0004/*_CWP_SKIPTRANSPARENT*/
-	if( winform.chkSkipDiabled ) cwp = cwp | 0x0002/*_CWP_SKIPDISABLED*/
+	if( winform.chkSkipInvisible.checked ) cwp = cwp | 0x0001/*_CWP_SKIPINVISIBLE*/
+	if( winform.chkSkipTransparent.checked ) cwp = cwp | 0x0004/*_CWP_SKIPTRANSPARENT*/
+	if( winform.chkSkipDiabled.checked ) cwp = cwp | 0x0002/*_CWP_SKIPDISABLED*/
 	var x,y = mouse.getPos();
 	hwndTarget = winex.fromPointReal( x,y,cwp );
 	

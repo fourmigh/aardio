@@ -42,7 +42,7 @@ else {
 
 var projectPath = ide.getProjectPath(); 
 var projectFileName = io.splitpath(projectPath).name; 
-var builder = fsys.joinpath(ide.getProjectDir(),".build\" + projectFileName + ".init.aardio"); 
+var builder = io.joinpath(ide.getProjectDir(),".build\" + projectFileName + ".init.aardio"); 
 if( io.exist( builder ) ){   
 	var tHnd = thread.create(builder)
 	if(tHnd){

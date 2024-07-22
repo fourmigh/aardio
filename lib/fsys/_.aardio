@@ -1,4 +1,4 @@
-import fsys.path;
+﻿import fsys.path;
 namespace fsys;
 
 GetCurrentDirectory := ::Kernel32.api( "GetCurrentDirectoryW", "INT(INT len, ustring &buf)");  
@@ -262,7 +262,8 @@ var function  enum_aux(dir,wildcard="*.*",proc ,enumSubdir){
 					fullpath =  joinpath(dir,filename)
 					scache[filename] = true;
 					
-					if( ( data.dwFileAttributes & 0x10/*_FILE_ATTRIBUTE_DIRECTORY*/ ) == 0 ){  
+					data.isDir = ( data.dwFileAttributes & 0x10/*_FILE_ATTRIBUTE_DIRECTORY*/ ) == 0x10;
+					if( !data.isDir ){
 						if( proc ? proc( dir,filename,fullpath,data ) === false ) {
 							FindClose(hf);
 							return false; 
@@ -378,6 +379,11 @@ isDir = function(f){
 	return (s!=-1) && ( s & 0x10/*_FILE_ATTRIBUTE_DIRECTORY*/);
 }
 
+isFile = function(f){
+	var s = attrib(f)
+	return (s!=-1) && !( s & 0x10/*_FILE_ATTRIBUTE_DIRECTORY*/);
+} 
+
 isReadonly = function(f){
 	var s = attrib(f)
 	return (s!=-1) && ( s & 1/*_FILE_ATTRIBUTE_READONLY*/);
@@ -426,7 +432,8 @@ setAttributes("",_FILE_ATTRIBUTE__) = 设置文件属性
 attrib("__/*文件路径*/") = 返回文件属性,\n以_FILE_ATTRIBUTE_前缀的常量标志各属性\n注意:WIN10 新版存在设为隐藏文件后变只读的问题\n参数为空字符串、null、不存在的路径都会 返回 -1
 attrib("",_FILE_ATTRIBUTE__/*多个属性用 | 链接*/) = 移除件属性\n参数一为文件路径\n参数二可以用 | 操作符连接多个属性\n成功返回新属性,失败返回null
 attrib("",/*移除*/,_FILE_ATTRIBUTE__/*多个属性用 | 链接*/) = 添加文件属性\n参数一为文件路径\n参数三可以用 | 操作符连接多个属性\n成功返回新属性,失败返回null
-isDir("__/*路径*/")  = 路径是否目录\n调用attrib检查目标路径是否具有_FILE_ATTRIBUTE_DIRECTORY属性\n参数为空字符串或 null 返回 false\n\n包含不可见字符的错误路径可用「工具>文本文件>十六进制编辑器」\n或 string.hex 函数查看
+isDir("__/*路径*/")  = 参数 @1 指定的文件路径是否指向一个目录。\n调用 fsys.attrib 函数检查目标路径是否具有 _FILE_ATTRIBUTE_DIRECTORY 属性\n参数为空字符串或 null 返回 false\n\n包含不可见字符的错误路径可用「工具>文本文件>十六进制编辑器」\n或 string.hex 函数查看
+isFile("__/*路径*/")  = 参数 @1 指定的文件路径是否指向一个文件。。\n调用 fsys.attrib 函数检查目标路径是否存在且不具有 _FILE_ATTRIBUTE_DIRECTORY 属性\n参数为空字符串或 null 返回 false\n\n包含不可见字符的错误路径可用「工具>文本文件>十六进制编辑器」\n或 string.hex 函数查看
 isReadonly("__/*文件路径*/")  = 文件是否只读\n调用attrib检查文件是否具有_FILE_ATTRIBUTE_READONLY属性
 isSystem("__/*文件路径*/")  = 是否系统文件\n调用attrib检查文件是否具有_FILE_ATTRIBUTE_SYSTEM属性
 isHidden("__/*文件路径*/")  = 是否隐藏文件\n调用attrib检查文件是否具有_FILE_ATTRIBUTE_HIDDEN属性\n注意:WIN10 新版存在设为隐藏文件后变只读的问题 
@@ -436,7 +443,7 @@ enum(目录路径,通配符,回调函数,目录筛选函数) = @.enum( "/遍历�
 enum(目录路径,通配符,,目录回调函数) = @.enum( "/遍历目录路径", "*.*",,\n	function(dirPath,dirName){\n		__/*处理每个子目录前首先调用此函数,返回false跳过该目录*/\n		return false;\n	} \n);
 idListFromPath(__/*路径*/) = 路径转换为名称ID(PIDL)\路径必须存在
 pathFromIdList(.(PIDL名称ID,是否释放PIDL) = 名称ID(PIDL)转换为路径
-getSpecial(_CSIDL__) = 获取特殊文件夹,\n也可以使用 io.getSpecial 函数实现类似功能,\n参数@1使用_CSIDL开头的常量指定特殊文件夹的 CSIDL 标识,\n省略参数@1则默认值获取桌面目录,\n可选参数2指定是否将PIDL转换为路径返回,也可以是一个用于拼接的相对路径\n参数@2指定为false,则返回原始PIDL句柄\n可选使用参数@3指定访问令牌,用于修改用户目录L\n\nfsys.knownFolder 可用于获取更多已知的特殊文件夹
+getSpecial(_CSIDL__) = 获取特殊文件夹。\n参数 @1 使用_CSIDL开头的常量指定特殊文件夹的 CSIDL 标识,\n省略参数 @1 则默认值获取桌面目录。\n可选参数 @2 指定是否将 PIDL 转换为路径返回,也可以是一个用于拼接的相对路径\n参数@2指定为false,则返回原始 PIDL 句柄。\n可选使用参数 @3 指定访问令牌，用于修改用户目录。\n\nio.getSpecial 函数的功能与此函数相同，\n但 io.getSpecial 可指定多个用于拼接的文件路径参数，并且不能返回 PIDL。\n\nfsys.knownFolder 可用于获取更多已知的特殊文件夹
 getSpecialDefault(_CSIDL__) = 获取默认用户的特殊文件夹,\n参数@1使用_CSIDL开头的常量指定特殊文件夹的 CSIDL 标识,\n参数用法同getSpecial,不同的是访问令牌默认指定为 default 用户,\n注意 VISTA 以后的系统在此目录下创建文件或目录需要管理权限
 opFlags = fsys 库函数 copy,move,delete,deleteEx,rename\n未指定 flags 参数时使用的默认值，默认为 0x614/*_FOF_NO_UI*/\n指定此值为 0 则默认显示文件操作界面与错误信息界面\n\n该选项详细说明请参考 FILEOP_FLAGS 文档\n https://docs.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shfileopstructw
 opError = fsys 库函数 copy,move,delete,deleteEx,rename\n最后一次执行的错误代码，操作成功为 0。\n这个值也是系统函数 SHFileOperationW 返回的错误代码，仅供调试时参考。\n此错误代码可作为 lasterr 函数的参数获取错误信息，但并不完全准确。\n请参考： https://docs.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shfileoperationw \n\n包含不可见字符的错误路径可用「工具>文本文件>十六进制编辑器」\n或 string.hex 函数查看
@@ -459,14 +466,15 @@ WIN32_FIND_DATA = !findData.
 end intellisense**/
 
 /**intellisense(!findData)
-dwFileAttributes = 0;//文件属性
-ftCreationTime = 文件创建时间\n请调用fsys.fromFileTime()转换为time对象
-ftLastAccessTime = 文件最后一次访问时间\n请调用fsys.fromFileTime()转换为time对象
-ftLastWriteTime =  文件最后一次修改时间\n请调用fsys.fromFileTime()转换为time对象 
-nFileSizeHigh = 文件长度高32位 
-nFileSizeLow = 件长度低32位 
-cFileName = 长文件名\nUTF16编码,请调用string.fromUnicode转换
-cAlternateFileName = 8.3格式文件名\nUTF16编码,请调用string.fromUnicode转换
+dwFileAttributes = 以数值表示的文件属性
+ftCreationTime = 文件创建时间\n请调用 fsys.fromFileTime 转换为 time 对象
+ftLastAccessTime = 文件最后一次访问时间\n请调用 fsys.fromFileTime 转换为 time 对象
+ftLastWriteTime =  文件最后一次修改时间\n请调用 fsys.fromFileTime 转换为 time 对象 
+nFileSizeHigh = 文件长度高 32 位 
+nFileSizeLow = 件长度低 32 位 
+cFileName = 长文件名\nUTF16编码,请调用 string.fromUnicode 转换
+cAlternateFileName = 8.3 格式文件名\nUTF16 编码,请调用 string.fromUnicode 转换
+isDir = 是否目录，\n仅在 fsys.enum 的回调参数中有效
 end intellisense**/
 
 /**intellisense() 

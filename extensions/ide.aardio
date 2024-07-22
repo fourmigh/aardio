@@ -1,4 +1,4 @@
-//ide扩展库
+﻿//ide扩展库
 import inet.http;
 import sevenZip.lzma.httpFile;
 import process.mutex;
@@ -214,15 +214,15 @@ namespace ide{
 		getPublisDir = function(){
 			var dir = getProjectProperty("publishDir")
 			if( dir[1] == '\\'# || dir[1] == '/'# ){
-				dir = ..fsys.joinpath( getProjectDir(),dir )
+				dir = ..io.joinpath( getProjectDir(),dir )
 			}
 			return dir;
 		}; 
 		getPublishObjPath = function(){
-			return ..fsys.joinpath( getPublisDir(), getProjectProperty("name") + ".obj" ) ;
+			return ..io.joinpath( getPublisDir(), getProjectProperty("name") + ".obj" ) ;
 		};
 		getPublishPath = function(){
-			return ..fsys.joinpath( getPublisDir(), getProjectProperty("output")) ;
+			return ..io.joinpath( getPublisDir(), getProjectProperty("output")) ;
 		}; 
 		getPublishName = function(){
 			return getProjectProperty("output");

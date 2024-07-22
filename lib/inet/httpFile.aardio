@@ -1,4 +1,4 @@
-//httpFile 断点续传
+﻿//httpFile 断点续传
 import fsys;
 import inet.http;
 namespace inet
@@ -59,7 +59,7 @@ class httpFile {
 			resumePath  = ..io.exist( path + ".dowload" ) || path + ".dow!oad" ;
 		}
 		elseif( ..fsys.isDir(resumePath)  ||  !(  ..io.exist(resumePath)  ||  ..string.match(resumePath,"\.[^\\/.]+$")  ) ){
-			resumePath = ..fsys.joinpath(resumePath,..io.splitpath(path).name + ".dow!oad");
+			resumePath = ..io.joinpath(resumePath,..io.splitpath(path).name + ".dow!oad");
 		}
 		this.resumePath = resumePath;
 		

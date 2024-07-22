@@ -1,4 +1,4 @@
-import fsys;
+﻿import fsys;
 import raw.interface;
 import process.popen;
 import string.cmdline;
@@ -509,7 +509,7 @@ namespace java {
 		var binPath = ..java.path.jreBin();
 		if(!binPath) return null,"没有找到Java运行库"; 
 		
-		binPath = ..fsys.joinpath(binPath,exeFile);
+		binPath = ..io.joinpath(binPath,exeFile);
 		if( ! ..io.exist(binPath) ) return null,"没有找到" + exeFile;
 
 		var args,startInfo = ..string.cmdline.arguments(args,...);

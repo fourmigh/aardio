@@ -13,15 +13,44 @@ class turndown{
 		else {
 			this = wb.jsNew("TurndownService",... )
 		} 
+		
+		this[["turndownEx"]] = this.turndown;
 	}; 
+	turndownGfm = function(html){
+		//修复 turndown.js 生成的表格不符合 Markdown 语法
+		var html = ..string.replace(html
+		,"(\<<@@table@>\s+[^\>]+\>)(.+?)(\<\/<@@table@>\>)"
+		,function(a,b,c){  
+			b = ..string.replace(b,'\n','');
+			b = ..string.replace(b,'\r',''); 
+			b = ..string.replace(b,"\<<@@br@>\s*\>",'{{{BR}}}'); 
+			b = ..string.replace(b,"\<<@@p@>\s*[^\>]*\>",'{{{PB}}}');			 
+			b = ..string.replace(b,"\</<@@p@>\s*\>",'{{{PE}}}');
+			return a++b++c;
+		}) 	
+		
+		var md = this[["turndownEx"]](html);
+		
+		if(md){ 
+          	md = ..string.replace(md,"\{\{\{BR\}\}\}","<br>");
+          	md = ..string.replace(md,"\{\{\{PB\}\}\}","<p>");
+           	md = ..string.replace(md,"\{\{\{PE\}\}\}","</p>");
+           	
+           	md = ..string.replace(md,"\*\*```","```");
+           	md = ..string.replace(md,"```\*\*","```");
+           	
+           	return md; 
+		}
+	}
+	
 	turndownFile = function(path){
 		var str = ..fsys.codepage.load(path); 
 		if( str ) return this.turndown(str);
 	}; 
-	turndownUrl = function(url){
+	turndownUrl = function(url,conv){
 		if(!webView) webView = ..web[["view"]] ? ..web.view() : ..web.mshtml();
 		webView.go(url);
-		webView.waitDoc();
+		webView.waitDoc(); 
 		
 		webView.doScript( `
 var hiddenElements = document.querySelectorAll('[aria-hidden="true"]');
@@ -35,8 +64,36 @@ for (var j = 0; j < allElements.length; j++) {
         allElements[j].parentNode.removeChild(allElements[j]);
     }
 }` );
-		return this.turndown(webView.html);
+ 
+		var html = webView.html; 
+		
+		if(conv){ html = conv(html) }  
+		else {
+			//合并代码块，<code> 外层有 <pre> 才会转换为多行代码块
+			html = ..string.replace(html,`\<pre!\W[^\>]*\>\<code!\W[^\>]*\>(.+?)\<\/code\>\<\/pre\>`,function(code){
+				var code = ..string.replace(code,"\<br!\W[^\>]*\>",'\n');
+				code = "<pre><code>" + ..string.replace(code,"\<\/code\>\<code\>",'\n') +  "</code></pre>";
+				return code; 
+			}) 
+		}
+		
+		return this.turndown(html);
 	};	
+	useGfm = function(...){ 
+		wb.doScript($"~\lib\web\turndown\gfm.js")
+		
+		var keys = {...}
+		if(!#keys){
+			this.use( wb.eval("turndownPluginGfm.gfm")  )
+		}
+		else {
+			for(i,k in keys){
+				this.use( wb.eval("turndownPluginGfm."+k)  )
+			} 
+		} 
+		
+		this[["turndown"]] = this.turndownGfm;
+	};
 }
 
 wb.loadcode(`<!doctype html>
@@ -61,5 +118,6 @@ end intellisense*****/
 /*****intellisense(!stdWebTurndown)
 turndown(__) = 将参数 @1 指定的 HTML 代码转换为 Markdown 文本。
 turndownFile(__) = 将参数 @1 指定的 HTML 代码文件转换为 Markdown 文本。
-turndownUrl(__) = 将参数 @1 指定网址的 HTML 代码文件转换为 Markdown 文本。\n如果之前已导入 web.view 则使用 web.view 打开网址并获取 HTML。
+turndownUrl(__) = 将参数 @1 指定网址的 HTML 代码文件转换为 Markdown 文本。\n可选用参数 @2 指定预处理 HTML 代码的回调函数，该回调函数接受一个参数以获取 HTML 并返回新的 HTML。\n如果之前已导入 web.view 则使用 web.view 打开网址并获取 HTML。
+useGfm() = 启用 gfm（GitHub Flavored Markdown） 插件，\n可选用一个或多个字符串参数指定要启用的插件名称。
 end intellisense*****/

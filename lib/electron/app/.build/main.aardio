@@ -1,4 +1,4 @@
-import fonts.fontAwesome;
+﻿import fonts.fontAwesome;
 import ide;
 import fsys;
 import zlib.httpFile;
@@ -264,7 +264,7 @@ winform.btnPack.oncommand = function(id,event){
 	winform.close();
 }
 
-winform.editOutPath.text = fsys.joinpath(publisDir,"/electron.app.asar" );
+winform.editOutPath.text = io.joinpath(publisDir,"/electron.app.asar" );
 winform.editOutPath.disabled = true;
 
 winform.btnRemove.oncommand = function(id,event){

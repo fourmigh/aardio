@@ -5,6 +5,9 @@ import web.turndown;
 var turndownService = web.turndown( codeBlockStyle = "fenced" );
 turndownService.remove('script');
 turndownService.remove('style');
+
+//启用 gfm（GitHub Flavored Markdown）插件。
+turndownService.useGfm()
  
 //用法参考: https://github.com/mixmark-io/turndown
 var md = turndownService.turndown( 
@@ -17,4 +20,3 @@ console.log(md);
 //import string.gfmark; 
 //var html = string.gfmark.render(md);
 //console.log(html);
-

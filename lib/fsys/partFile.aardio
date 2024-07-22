@@ -1,4 +1,4 @@
-//partFile 分卷文件
+﻿//partFile 分卷文件
 import fsys;
 namespace fsys.partFile;
 
@@ -75,7 +75,7 @@ class splitter{
 		
 		var blocks = 0;
 		var blockCount = ..math.ceil(file.size(bufsize)) : 1;
-		var path = ..fsys.joinpath(dir,..string.format(this.formatName , idx) ); 
+		var path = ..io.joinpath(dir,..string.format(this.formatName , idx) ); 
 		var file2,err = ..io.open(path,"w+b");
 		if(!file2) return null,err;
 		var remain = this.partSize;
@@ -94,7 +94,7 @@ class splitter{
 			if( remain == 0 ) {
 				idx++; 
 				file2.close();
-				path = ..fsys.joinpath(dir,..string.format(this.formatName , idx) ); 
+				path = ..io.joinpath(dir,..string.format(this.formatName , idx) ); 
 				file2,err = ..io.open(path,"w+b");
 				if(!file2) return null,err;
 				remain = this.partSize;
@@ -156,7 +156,7 @@ group = function(path) {
 		return tonumber(a,10) < tonumber(b,10);  
 	} ); 
 
-	return parts,..fsys.joinpath(tPath.dir,b++e); 
+	return parts,..io.joinpath(tPath.dir,b++e); 
 }
 
 /**intellisense()

@@ -1,4 +1,4 @@
-//界面预览
+﻿//界面预览
 import win.ui;
 import win.ui.menu;
 /*DSG{{*/
@@ -110,11 +110,11 @@ getCurrentHtmlFileUrl = function(){
 			path = winform.treeview.getItemText( hitem );
 			path = fsys.getParentDir(path)
 			frmSourceCode.btnCreateProject.disabled = true;
-			return fsys.joinpath("/html_samples",path)
+			return io.joinpath("/html_samples",path)
 		}
 		
 		frmSourceCode.btnCreateProject.disabled = false; 
-		return fsys.joinpath("/html_samples",path)	
+		return io.joinpath("/html_samples",path)	
 	}
 }
 
@@ -171,24 +171,24 @@ import fsys.dlg.dir;
 createDemoProject = function(){ 
 	var targetDir = fsys.dlg.dir(,,"请选择工程保存目录");
 	if(!targetDir)return; 
-	targetDir = fsys.joinpath(targetDir,"/HTMLayout范例工程/")
+	targetDir = io.joinpath(targetDir,"/HTMLayout范例工程/")
 	fsys.createDir(targetDir);
 	fsys.copy( "~\extensions\wizard\project\win",targetDir)
-	targetDir = fsys.joinpath(targetDir,"win")
+	targetDir = io.joinpath(targetDir,"win")
 	var samplesPath = getCurrentHtmlFileUrl(); 
  
 	if( wbLayout.loadFileCount > 1 ){
 		var samplesDir = fsys.getParentDir(samplesPath); 
-		fsys.copy( samplesDir,fsys.joinpath(targetDir,"\res") ); 
+		fsys.copy( samplesDir,io.joinpath(targetDir,"\res") ); 
 		
 		var url = fsys.path.relative( samplesPath ,fsys.getParentDir(samplesDir),true)  
-		string.save(fsys.joinpath(targetDir,"default.main.aardio"),( string.replace(templateLayout,"@${URL}",fsys.joinpath("\res",url) ) ) ) 
+		string.save(io.joinpath(targetDir,"default.main.aardio"),( string.replace(templateLayout,"@${URL}",io.joinpath("\res",url) ) ) ) 
 	}
 	else {
-			string.save(fsys.joinpath(targetDir,"default.main.aardio"),( string.replace(templateLayoutHtml,"@${HTML}",fsys.codepage.load(samplesPath) ) ) ) 
+			string.save(io.joinpath(targetDir,"default.main.aardio"),( string.replace(templateLayoutHtml,"@${HTML}",fsys.codepage.load(samplesPath) ) ) ) 
 	}
 	
-	ide.openDocument(fsys.joinpath(targetDir,"default.aproj"))
+	ide.openDocument(io.joinpath(targetDir,"default.aproj"))
 }
 
 frmSourceCode.richedit.wndproc = function(hwnd,message,wParam,lParam){

@@ -1,4 +1,4 @@
-import win.ui;
+﻿import win.ui;
 /*DSG{{*/
 mainForm = win.form(text="开始页.....";left=0;top=0;right=599;bottom=399;border="none";exmode="none";mode="child";parent=...;scroll=1)
 mainForm.add()
@@ -152,7 +152,7 @@ wbLayout.sinking = {
 			lnk.setIcon(io._exepath,0); //设置图标
 			 
 			lnk.save(
-				fsys.joinpath( 
+				io.joinpath( 
 					fsys.getSpecial(0x0010 /*_CSIDL_DESKTOPDIRECTORY*/ )
 					,"aardio.lnk" 
 					)

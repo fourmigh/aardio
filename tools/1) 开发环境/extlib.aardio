@@ -1,4 +1,4 @@
-//扩展库发布工具
+﻿//扩展库发布工具
 import win.ui;
 import win.ui.atom;
 /*DSG{{*/
@@ -59,7 +59,7 @@ winform.btnPub.oncommand = function(id,event){
         		libfilename = fsys.getFileName(libdir)
         		libpath = libdir;
         		libdir = fsys.getParentDir(libdir);..io.print(libpath)
-        		setupFile = ..io.exist( ..fsys.joinpath(libpath,"setup.dl.aardio") );
+        		setupFile = ..io.exist( ..io.joinpath(libpath,"setup.dl.aardio") );
     		} 
 
     		libdir = fsys.path.relative(libdir,"~/lib/",false) || fsys.path.relative(libdir,"/lib/",false)

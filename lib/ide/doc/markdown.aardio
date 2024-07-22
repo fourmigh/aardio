@@ -68,7 +68,7 @@ class markdown{
            	
            	
            	var tOutput = {};
-			..table.push(tOutput,this.libPath,"帮助文档",'\r\n'
+			..table.push(tOutput,this.libPath," 库模块帮助文档",'\r\n'
 				,"===========================================");
 
 			if(this.details && this.detailsSummary){

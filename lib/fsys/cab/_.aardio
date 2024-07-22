@@ -1,4 +1,4 @@
-import fsys;
+﻿import fsys;
 import process.popen;
 namespace fsys.cab;
 
@@ -36,7 +36,7 @@ var callback = ..raw.tostdcall(
  			case 0x11/*_SPFILENOTIFY_FILEINCABINET*/{
   				var info =  ..raw.convert( param1,FILE_IN_CABINET_INFO() ) 
   				var filename = ..string.fromUnicode(info.NameInCabinet,,true);
-  				info.FullTargetName =  ..fsys.joinpath(targetDir,filename);
+  				info.FullTargetName =  ..io.joinpath(targetDir,filename);
   				..raw.mixin( param1, info );
   				
   				if( onFileInCabinet ){

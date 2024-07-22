@@ -1,4 +1,4 @@
-//untar TAR格式解压
+﻿//untar TAR格式解压
 import zlib;
 import fsys;
 import fsys.file;
@@ -71,7 +71,7 @@ class untar{
 			}
 			
 			tarHeader.name = name;
-			curFileName = ..fsys.joinpath(saveDir,name); 
+			curFileName = ..io.joinpath(saveDir,name); 
 			curFileSize = tonumber(tarHeader.size,8)  
 			
 			var linkflag = tarHeader.linkflag;
