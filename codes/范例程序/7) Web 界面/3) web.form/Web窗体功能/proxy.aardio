@@ -7,35 +7,25 @@ winform.add()
 
 import inet; 
 /*
-inet.setProxy("HTTP://主机:端口"); //修改浏览器控件默认代理设置
+// web.form 可用 inet.setProxy 修改代理服务器设置
 
-inet.setProxy(代理地址,绕过代理地址)
-设置的代理在当前进程范例内对所有基于WinInet的对象有效(web.form,inet.http),
+// HTTP代理代理服务器这样写: 
+inet.setProxy("代理服务器地址:端口号"); 
 
-对基于WinHTTP的inet.whttp则不受IE或WinInet代理设影响,
-WinHTTP的默认代理设置请使用 inet.whttp.setProxy() 函数设置 
+// SOCKS4 代理代理服务器这样写: 
+inet.setProxy("SOCKS=代理服务器地址:端口号"); 
 
-这里的代理地址如果为false表示进程内默认禁用代理服务器。
+inet.setProxy 的代理地址参数如果改为 false 表示进程内默认禁用代理服务器。
 代理服务器设为"IE"表示使用IE代理设置,"IE"为默认值可省略。
+ 
+inet.setProxy 设置的代理在当前进程范例内对所有基于 WinInet 的对象有效，
+这包含 web.form,inet.http 以及 web.rest 名字空间所有 client 对象。
 
-其中代理地址格式为(忽略大小写)
-格式1："被代理协议=代理协议://代理服务器地址:端口号"
-格式2："主机地址:端口号"
-格式3: "主机地址"
-
-被代理协议或代理协议省略则默认为"HTTP"
-端口省略则默认为":80"
-
-HTTP代理以下写法都可以:
-"HTTP=HTTP://代理服务器地址:端口号" 
-"HTTP=代理服务器地址:端口号"
-"代理服务器地址:端口号"
-
-FTP代理这样写:
-"FTP=FTP://代理服务器地址:端口号" 
-
-SOCKS4代理这样写:
-"SOCKS=代理服务器地址:端口号"
+基于 WinHTTP 的 inet.whttp 则不受 IE 或 WinInet 代理设置影响,
+WinHTTP 请使用 inet.whttp.setProxy() 修改默认代理设置。
+ 
+更多细节请参考。
+https://www.aardio.com/doc/lib/inet/proxy.md
 */
 
 import web.form;

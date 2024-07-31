@@ -200,7 +200,7 @@ namespace aardio.Interop
             try
             {
                 t = (assembly as Assembly).GetType(typeName, false);
-                if(t == null)   t = Type.GetType(typeName, false); 
+                if (t == null)   t = Type.GetType(typeName, false); 
 
                 if ( t!= null)
                 {
@@ -219,13 +219,9 @@ namespace aardio.Interop
                         }
                     }
 
-                    t = t.MakeGenericType(types);
+                    return t.MakeGenericType(types); 
                 }
-            }
-            catch (TypeLoadException)
-            {
-                
-            }
+            } 
             catch (Exception e)
             {
                 throw e;
@@ -445,38 +441,53 @@ namespace aardio.Interop
                 Assembly assembly = assemblyName as Assembly;
                 if (assembly == null)
                 {
-                    assembly = this.loadAssembly(assemblyName as string);
+                    if(assemblyName!=null)  assembly = this.loadAssembly(assemblyName as string);
                 }
-                if (assembly != null)
+                
+
+                Type tAny = null;
+
+                if (assembly != null) {
+                    tAny = assembly.GetType(typeName);
+                }
+                else
+                {
+                    tAny = Type.GetType(typeName);
+                }
+
+                if (((BindingFlags)invokeAttr & BindingFlags.CreateInstance) == BindingFlags.CreateInstance)
                 {
 
-                    Type tAny = assembly.GetType(typeName);
-                    if (((BindingFlags)invokeAttr & BindingFlags.CreateInstance) == BindingFlags.CreateInstance)
+                    if (tAny != null && tAny.IsClass)
                     {
+                        return CreateInstanceByClassType(tAny, (args as ArrayList), target);
+                    }
 
-                        if (tAny != null && tAny.IsClass)
+                }
+
+                if (((BindingFlags)invokeAttr & BindingFlags.InvokeMethod) == BindingFlags.InvokeMethod)
+                {
+                    if (tAny == null)
+                    {
+                        if (assembly != null)
+                        {
+                            tAny = assembly.GetType(typeName + "." + methodName);
+                        }
+                        else
+                        {
+                            tAny = Type.GetType(typeName + "." + methodName);
+                        }
+
+                        if (tAny != null && tAny.IsClass && ((invokeAttr & (16 | 8 | 256)) == (16 | 8 | 256)))
                         {
                             return CreateInstanceByClassType(tAny, (args as ArrayList), target);
                         }
-
                     }
 
-                    if (((BindingFlags)invokeAttr & BindingFlags.InvokeMethod) == BindingFlags.InvokeMethod)
-                    {
-                        if (tAny == null)
-                        {
-                            tAny = assembly.GetType(typeName + "." + methodName);
-                            if (tAny != null && tAny.IsClass && ((invokeAttr & (16 | 8 | 256)) == (16 | 8 | 256)))
-                            {
-                                return CreateInstanceByClassType(tAny, (args as ArrayList), target);
-                            }
-                        }
-
-                        if (tAny == null) throw new MissingMethodException();
-                    }
-
-                    return InvokeMemberByType(tAny, methodName, invokeAttr, args, target);
+                    if (tAny == null) throw new MissingMethodException();
                 }
+
+                return InvokeMemberByType(tAny, methodName, invokeAttr, args, target); 
 
             }
             catch (TargetInvocationException targetEx)

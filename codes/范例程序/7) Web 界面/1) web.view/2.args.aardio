@@ -18,7 +18,13 @@ var wb = web.view(winform,{
 		
 		仅仅是配置浏览器地址栏域名走代理是不够的，效果会更好。
 		改用 WebView2 + 代理，不开系统全局代理就可以实现 WebView2 内的连接全部走代理。 
-		WebView2（Chromium）代理配置格式: https://chromium.googlesource.com/chromium/src/+/HEAD/net/docs/proxy.md
+		
+		代理配置格式: 
+		https://www.aardio.com/doc/lib/inet/proxy.md
+		https://chromium.googlesource.com/chromium/src/+/HEAD/net/docs/proxy.md 
+		
+		指定不同协议代理服务器应当以分号隔开，
+		",direct://"这里用逗号隔开仅用于隔开备选连接方式。
 		*/
 		proxyServer = "SOCKS5://IP地址:端口,direct://";
 		acceptLang = "zh-CN";//Accept-Language 请求头，一般没必要改

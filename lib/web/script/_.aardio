@@ -179,6 +179,18 @@ script.__langIds__ = {
 	jscript9 = '\x79\x15\xD5\x16\x0B\xA3\x8B\x4C\xA2\x76\x0F\xF4\xDC\x41\xE7\x55';
 }
 
+/**details(说明)
+web.script 使用 ScriptControl 控件。
+而 ScriptControl 加载的脚本每行最好保持在 1000 字以内。
+ScriptControl 控件的不同版本每行字数上限在 1000 字到 2000 字以内是安全的，
+稳妥的方法是保证每行在 1000 字以内.
+
+现在很多压综的 JS 都去掉了所有换行， 
+建议用 aardio 提供的 java.yuiCompressor 重新压缩 JS。
+java.yuiCompressor 已默认设置为单行上限 1000 字。
+在扩展库管理器双击 java.yuiCompressor 可查看范例。
+end details**/
+
 /**intellisense()
 !web_script.executeStatement("__") = 执行代码,无返回值
 !web_script.timeOut = 脚本超时时间,以毫秒为单位,默认为-1表示不超时,\n如设置超时脚本运行太久会弹出是否继续运行的对话框

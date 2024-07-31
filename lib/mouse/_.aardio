@@ -233,7 +233,10 @@ drag = function(x2,y2,abs,step,tk){
 }
 
 moveToWindow = function(x,y,hwnd,step,tk){
-	var x2,y2 = ..win.toScreen(hwnd,x:0,y:0)
+	//窗口最小化的伪坐标为 -32000 这种超大的值
+	if(::User32.IsIconic(..win.getRoot(hwnd))) return;
+
+	var x2,y2 = ..win.toScreen(hwnd,x:0,y:0);
 	if(step===null){
 		return move(x2,y2,true);
 	}
@@ -375,8 +378,8 @@ move(.(x,y) = 移动到相对坐标 x,y
 move(.(x,y,true) = 移动到绝对坐标 x,y
 move(.(x,y,rect) = 按相对于 rect 指定屏幕位置的相对坐标 x,y 移动。\n@rect 参数支持 ::RECT,::RECTF,::Point 结构体，\n兼容 .NET 的 Rect,Point 等提供相同字段的结构体，支持用 UIA 控件对象作为参数
 move(.(rect) = 移动到参数 @rect 指定的屏幕位置中间。\n@rect 支持 ::RECT,::RECTF,::Point 结构体，\n兼容 .NET 的 Rect,Point 等提供相同字段的结构体
-moveToWindow( = 移动到指定窗口内部坐标
-moveToWindow(.(x坐标,y坐标,窗口句柄,步进,延时) = 移动到指定窗口内部坐标（单位为像素）。\n步进（单位为像素），延时（单位为毫秒）参数可省略，如果指定步进则显示移动轨迹。
+moveToWindow( = 移动到指定窗口的客户区坐标（客户区不包含标题栏）。
+moveToWindow(.(x坐标,y坐标,窗口句柄,步进,延时) = 移动到指定窗口客户区坐标（单位为像素，客户区不包含标题栏）。\n步进（单位为像素），延时（单位为毫秒）参数可省略，如果指定步进则显示移动轨迹。
 moveTo( = 移动鼠标并显示移动轨迹
 moveTo(.(x,y) = 移动到相对坐标 x,y,显示移动轨迹
 moveTo(.(x,y,true) = 移动到绝对坐标 x,y,显示移动轨迹 

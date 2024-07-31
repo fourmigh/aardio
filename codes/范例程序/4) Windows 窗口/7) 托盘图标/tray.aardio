@@ -13,9 +13,12 @@ import win.util.tray;
 winform.button.oncommand = function(id,event){ 
 	winform.tray = win.util.tray(winform)  
 	winform.tray.tip = "鼠标提示" //设置鼠标提示 
-	winform.tray.pop('托盘消息通知:
-Win10 以下显示为汽泡提示,Win10/11 开启专注助手以后仅发送到通知区,
-Win10/11 获取通知消息请使用 dotNet.toastListener 扩展库。',"托盘消息通知");
+	
+	//注意在单引号包含的转义字符串里只能以 '\n' 表示换行符，其他换行被忽略。
+	winform.tray.pop('
+Win10 开始由操作系统的『专注』、应用程序的『通知』等设置
+决定是否显示模幅提示或折叠消息到通知区。通知消息可使用 dotNet.toastListener 扩展库。'
+,"托盘消息通知");
 }
 
 winform.onMinimize = function(lParam){
@@ -26,8 +29,9 @@ winform.onMinimize = function(lParam){
 
 winform.onTrayMessage = {
 	[0x205/*_WM_RBUTTONUP*/  ] = function(wParam){ 
-	    //弹出托盘菜单以前,一定要前置主窗口中,避免不点击菜单不会消失，父窗口隐藏也要这样做
-	    win.setForeground(winform.hwnd)
+	    //弹出托盘菜单以前,一定要前置主窗口中,
+	    //避免不点击菜单不会消失，父窗口隐藏也要这样做
+	    win.setForeground(winform.hwnd,true) //参数 2 为 true 避免显示最小化窗口
 	     
 		/*
 		下面创建托盘弹出菜单。

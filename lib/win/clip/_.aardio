@@ -54,7 +54,7 @@ readBitmap = function(){
 	if(!::User32.OpenClipboard(0))
 		return;	 
 		
-	var hBmp = User32.GetClipboardDataP(0x2/*_CF_BITMAP*/);  
+	var hBmp = User32.GetClipboardDataP(2/*_CF_BITMAP*/);  
 	hBmp = hBmp ? ::User32.CopyImageP(hBmp,0/*_IMAGE_BITMAP*/, 0, 0, 0x40/*_LR_DEFAULTSIZE*/)
 	::User32.CloseClipboard();  
 	return hBmp;
@@ -72,6 +72,15 @@ formats = function(){
 	return r;
 }
 
+test = function(f,...){
+	if(type(f)!="table"){
+		f = {f,...};
+	}
+	
+	var all = formats();
+	return ..table.some(all,lambda(v,k) ..table.find(f,v) )
+} 
+
 /**intellisense(win.clip)
 readUnicode() = 读取剪贴板UTF16编码文本
 read() = 读取剪贴板文本
@@ -80,4 +89,5 @@ writeBitmap( = 写入位图到剪贴板,\n成功返回剪贴板数据句柄
 writeBitmap(.(位图句柄,接管位图,清空剪贴板) = 写入位图到剪贴板\n\n除位图句柄以外其他参数为可选参数。\n└── gdip.bitmap 对象请调用 copyHandle 函数复制位图句柄\n└── com.picture 对象请调用 CopyHandle 函数复制位图句柄\n如果接管位图参数为 true，则由剪贴板负责释放参数指定的位图。\n└── 否则会复制位图到剪贴板，且不负责释放参数传入的位图句柄。\n└── 请谨慎处理位图释放责任。\n如清空剪贴板参数为 false（默认为 true），则保留剪贴板其他格式数据
 readBitmap() = 读取剪贴板位图句柄，\n返回的位图句柄用完要自行销毁。\n读取失败返回 null 。\n└── 请谨慎处理位图释放责任。\n\n可使用 com.picture.fromBitmap 将位图句柄转换为 com.picture 对象。\n可使用 gdip.bitmap 构造函数将位图句柄转换为 gdip.bitmap 对象
 formats() = 获取剪贴板所有可用类型,\n位置越靠前优先级越高,应优先使用,\n返回值为数组,数组元素为表示格式的数值,例如 _CF_UNICODETEXT 
+test(.(formats->->->) = 检测剪贴板是否存在参数指定的任意一个剪贴板类型。\n@formats 可指定数值数组，也可以指 定一个或多个表示剪贴板类型的数值
 end intellisense**/

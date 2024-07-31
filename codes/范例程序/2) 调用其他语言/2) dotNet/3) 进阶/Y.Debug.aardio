@@ -19,12 +19,10 @@ dotNet.loadFile(dll,pdbPath)
 1、首先在 VS 中生成 Debug 版本 DLL 与 pdb 文件，然后在 aardio 中用下面的代码加载程序集：
 var assembly = dotNet.loadFile("\Debug\CSNET2ClassLibrary.dll","\Debug\CSNET2ClassLibrary.pdb");
 
-2、在 aardio 中运行程序，如果是控制台可以用 console.setTitle() 函数设置一个标题。
-然后用 console.pause() 等函数暂停执行（在要调试的代码前暂停）。
+2、用 VS 打开 DLL 的源码工程，然后用下面的代码附加调试进程。 
 
-3、在 VS 里点击菜单 Debug -> Attach to Process(附加调试进程)，
-然后选中刚才运行的 aardio 程序，点击 Attach(附加) 按钮就可以了。
-然后在需要调试的代码上打好断点，再回到 aardio 程序里继续运行就可以了。
+import com.dte;
+com.dte().AttachProcesses()
 
 C# 的断点经常会失效，不要误以为是代码没执行，这时候可以在 C# 代码里加上
 System.Diagnostics.Debug.WriteLine() 打印到调试输出窗口来辅助调试。

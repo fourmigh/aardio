@@ -13,9 +13,9 @@ var reg = win.regReader("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVe
 var items  = reg.queryTable("Name","RelativePath");
 reg.close();
 
-winform.edit.print('import process;\r\nimport fsys.knownFolder;')
+winform.edit.print('import fsys.knownFolder;')
 for(k,item in items){ 
-	winform.edit.printf(`process.explore("shell:%s"); //fsys.knownFolder("%s")`,item.Name,k) 
+	winform.edit.printf(`raw.explore("shell:%s"); //fsys.knownFolder("%s")`,item.Name,k) 
 }
  
 var reg = win.regReader("HKEY_CLASSES_ROOT\CLSID\");
@@ -25,8 +25,8 @@ for(clsid,writetime in reg.eachKey() ){
 		var shellKey = subKey.open("ShellFolder",true) 
 		if(shellKey){   
 			var name = subKey.queryValue("");
-			if(name) winform.edit.printf(`process.explore("shell:::%s"); //%s`,clsid,name); 
-			else winform.edit.printf(`process.explore("shell:::%s");`,clsid);  
+			if(name) winform.edit.printf(`raw.explore("shell:::%s"); //%s`,clsid,name); 
+			else winform.edit.printf(`raw.explore("shell:::%s");`,clsid);  
 			shellKey.close(); 
 		}
 		subKey.close();

@@ -21,13 +21,12 @@ winform.clipViewer.onDrawClipboard = function(){
 	winform.btnScanClipBD.oncommand();
 }
 
-import win.clip; 
+import win.clip.bitmap; 
 winform.btnScanClipBD.oncommand = function(id,event){
 	winform.edit.text = "";
 	
-	var hBmp = win.clip.readBitmap()
-	if(hBmp){
-		var bmp = gdip.bitmap(hBmp)
+	var bmp = win.clip.bitmap.read()
+	if(bmp){ 
 		scanner.scanBitmap(bmp,function(typeName,data){
 			//二维码应当总是使用 UTF-8 编码
 			if(!string.isUtf8(data)){

@@ -36,8 +36,6 @@ class jsonClient {
 		
 		this.rpc = { 
 			process = process;
-			stillActive = lambda() process.stillActive();
-			
 			charset = "UTF-8"; 
 			version = "2.0";
 			endCallback = {};
@@ -233,6 +231,14 @@ class jsonClient {
 				if( ..console && _STUDIO_INVOKED ) ..console.log(s) else ..io.print(s);
 				return s;
 			};
+			stillActive = lambda() process.stillActive();
+			suspend = lambda() process.suspend();
+			resume = lambda() process.resume();
+			getExitCode = lambda() process.getExitCode();
+			wait = lambda(timeout) process.wait(timeout);
+			waitOne = lambda(timeout) process.waitOne(timeout); 
+			ctrlEvent = lambda() process.ctrlEvent();
+			terminate = lambda() process.terminate();
 			close = function(){
 				if(process){
 					process.close();
@@ -284,6 +290,14 @@ end intellisense**/
 
 /**intellisense(!process_rpcJsonClient.rpc)
 stillActive() = 目标进程是否仍然运行
+waitOne() = 等待目标进程关闭，不会阻塞当前线程窗口消息。\n可用一个毫秒值参数设定超时。\n\n超时或失败返回 null，进程已退出则返回值1为true，\n返回值2为标准输出,返回值3为错误输出,返回值4为退出代码\n\n如果被调用进程写满输出缓冲区，而调用进程没有读取，\n则被调用进程会一直等待，此函数将无法返回。\n改用 readAll 函数读取输入可避免该问题。\n\n注意如果正在调用异步 logResponse 回显到窗口对象。\n则 waitOne 函数仅返回单个值，不读取任何输出
+wait() = 等待目标进程关闭,可选使用一个毫秒值参数设定超时。\n超时或失败返回 null，进程退出则返回值1为true，\n返回值2为标准输出，返回值3为错误输出，返回值4为退出代码\n\n如被调用进程写满输出缓冲区，而调用进程没有读取，\n则被调用进程会一直等待，此函数将无法返回。\n改用 readAll 函数读取输入可避免该问题。
+getExitCode() = 该函数调用成功有两个返回值:目标进程退出代码,目标进程是否已退出
+resume() = 目标进程恢复运行
+suspend() = 目标进程暂停运行
+terminate() = 强制关闭进程并释放目标进程对象。\n注意如果在构造函数中指定了执行文件路径。\n且在目标进程退出后继续调用 RPC 函数。\n则会自动重启 RPC 服务进程。
+ctrlEvent(0) = 发送 Ctrl+C（SIGINT信号）\n信号将传递到与目标进程控制台连接的所有非分离控制台进程\n64位目标进程会导致当前控制台暂时关闭
+ctrlEvent(1) = 发送 Ctrl+Break（SIGINT信号）\n信号将传递到与目标进程控制台连接的所有非分离控制台进程\n64位目标进程会导致当前控制台暂时关闭
 lastResponse() = 获取最后一次服务器返回的原始数据,\n如果控制台已打开或在开发环境中导入 console 库则在控制台输出数据\n下载文件时该值为空
 beginTrans() = 开始批量调用，注意多数服务器并不支持批量调用。\naardio 实现的 process.rpc.jsonServer 可支持批量调用。\n批量调用时单次调用的返回值是一个表\n可对返回值指定 end 成员函数，\nend 函数会在 commitTrans 提交批量调用成功后被触发
 commitTrans() = 完成批量调用，注意多数服务器并不支持批量调用。\naardio 实现的 process.rpc.jsonServer 可支持批量调用。

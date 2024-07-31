@@ -68,8 +68,7 @@ class markdown{
            	
            	
            	var tOutput = {};
-			..table.push(tOutput,this.libPath," 库模块帮助文档",'\r\n'
-				,"===========================================");
+			..table.push(tOutput,"## ",this.libPath," 库模块帮助文档",'\r\n' );
 
 			if(this.details && this.detailsSummary){
 				..table.push(tOutput, '\r\n\r\n<details>  <summary>'+this.detailsSummary+'</summary>  <p>'+this.details +'</p></details>','\r\n\r\n');
@@ -91,8 +90,7 @@ class markdown{
 			for(path,section in ..table.eachName(this.sections,,sortNames)){
 					if(!..table.next(section) ) continue;
 					
-					..table.push(tOutput, '\r\n<a id="',(#path? path : "global"),'"></a>\r\n',#path? path : "全局对象",' 成员列表\r\n'
-						,"-------------------------------------------------------------------------------------------------"
+					..table.push(tOutput, '\r\n### <a id="',(#path? path : "global"),'"></a>\r\n',#path? path : "全局对象",' 成员列表\r\n' 
 						,'\r\n');
 					 
 					if( section[path] ){ 
@@ -109,13 +107,13 @@ class markdown{
            					if( globalkw[[k]] ) continue;
            					if( ..io.libpath(k) ) continue;
            					
-							..table.push(tOutput,'\r\n<h6 id="', (..string.match(k,"(.+\.[^.]+)\(")  or k ) ,'">',k,' </h6>\r\n ');
+							..table.push(tOutput,'\r\n<a id="', (..string.match(k,"(.+\.[^.]+)\(")  or k ) ,'"></a>\r\n#### ',k,' \r\n ');
 							..table.push(tOutput, v,'\r\n' ); 
 			  			} 
            			}
            			else {
            				for(k,v in ..table.eachName(section)){  
-							..table.push(tOutput,'\r\n<h6 id="', (..string.match(k,"(.+\.[^.]+)\(")  or k ) ,'">',k,' </h6>\r\n ');
+							..table.push(tOutput,'\r\n<a id="', (..string.match(k,"(.+\.[^.]+)\(")  or k ) ,'"></a>\r\n#### ',k,' \r\n ');
 							..table.push(tOutput, v,'\r\n' ); 
 			  			} 
            			}
@@ -129,7 +127,7 @@ class markdown{
 				for(k,v in ..table.eachName(this.const)){ 
            			if( ..io.libpath(k) ) continue;
            			
-					..table.push(tOutput,'\r\n<h6 id="', (..string.match(k,"(.+\.[^.]+)\(")  or k ) ,'">',k,' </h6>\r\n ');
+					..table.push(tOutput,'\r\n<a id="', (..string.match(k,"(.+\.[^.]+)\(")  or k ) ,'"></a>\r\n#### ',k,' \r\n ');
 					..table.push(tOutput, v,'\r\n' ); 
 			  	}
 			}

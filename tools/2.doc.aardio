@@ -4,6 +4,7 @@ import web.form;
 var winform = win.form(cls="WIN_MARKDOWN";text="aardio库函数文档 ( 按F11切换全屏,编辑器右键菜单可快捷插入标记)";right=1120;bottom=612;scroll=1)
 winform.add(
 btnCopyHtml={cls="button";text="复制HTML";left=671;top=583;right=749;bottom=607;db=1;dr=1;z=6};
+btnLibDocument={cls="button";text="相关教程";left=414;top=583;right=534;bottom=607;db=1;dl=1;hide=1;z=15};
 btnOpenMarkdown={cls="button";text="查询库函数文档";left=286;top=583;right=406;bottom=607;db=1;dl=1;z=5};
 btnSaveHtml={cls="button";text="另存为HTML文件";left=762;top=583;right=924;bottom=607;db=1;dr=1;z=3};
 btnSaveMarkdown={cls="button";text="另存为Markdown文件";left=762;top=583;right=924;bottom=607;db=1;dr=1;hide=1;z=4};
@@ -167,35 +168,35 @@ h5 tt, h5 code {
 h6 tt, h6 code {
     font-size: inherit; 
 }
-h1 {
+h2 {
     font-size: 18pt;
     color: black; 
     border-bottom: none;
 	padding-bottom: 3px;
 	text-align:center;
 }
-h2 {
+h3 {
     font-size: 13.5pt;
     padding-bottom: 3px;
     border-bottom: 3px solid #eee;
     color: #444;
 }
-h3 {
+h4 {
     font-size: 12.7pt; 
     border-bottom: 2px solid #ccc;
     color: #555;
 }
-h4 {
+h5 {
     font-size: 16px; 
     border-bottom: 1px solid #ccc;
     color: #666;
 }
-h5 {
+h6 {
     font-size: 15px; 
     border-bottom: 1px dotted #ccc;
     color: #777;
 }
-h6 {
+h7 {
     font-size: 14px; 
     border-bottom: 1px dotted #793862;
     color: #793862;
@@ -584,6 +585,17 @@ winform.btnOpenMarkdown.oncommand = function(id,event){
 		return;
 	}
 	
+	winform.btnLibDocument.hide = true;
+	winform.btnLibDocument.aardioDocPath = null;
+	var docPath = ..io.libpath(doc.libPath)
+	if(docPath){
+		docPath = fsys.path.replaceExt( docPath,".md"); 
+		if(..io.exist(docPath)){
+			winform.btnLibDocument.aardioDocPath = docPath;
+			winform.btnLibDocument.hide = false;
+		}
+	} 
+	
 	var str  = tostring(doc)
 	winform.editMd.text = str;
 	wb.body.innerHTML =  markdown.render( str); 
@@ -638,6 +650,7 @@ winform.btnCopyHtml.oncommand = function(id,event){
 }
 
 import win.ui.menu;
+import win.clip.bitmap;
 import win.clip.html;
 var cbHtml = win.clip.html();
  
@@ -666,7 +679,12 @@ winform.editMd.wndproc = function(hwnd,message,wParam,lParam){
 					html = string.replace(html,"\<\!\-\-.+?\-\-\>","")
 					winform.editMd.selText = html;
 				}
-			}; !(cbHtml.read()) ? 0x1/*_MF_GRAYED*/ : 0}; 
+			}; !(win.clip.html.test()) ? 0x1/*_MF_GRAYED*/ : 0}; 
+			{ "插入剪贴板图像";  function(id){ 
+				var md = win.clip.bitmap.readMarkdown();
+				if(md) winform.editMd.selText = md; 
+				
+			}; !(..win.clip.bitmap.test()) ? 0x1/*_MF_GRAYED*/ : 0}; 
 			{ /*分隔线*/ };
 			{ "插入标记";  {  
 				{ "一级标题";  function(id){
@@ -838,8 +856,14 @@ winform.editMd.text = /****
 
 友情提醒
 -------------------------------------------------------------------------------------------------
-aardio 库函数说明皆以最精简的语言说明关键用法。  如果要了解高级用法，  
+aardio 库函数说明皆以最精简的语言说明关键用法。如果要了解高级用法，  
 标准库请查看源码以及相关范例，内核库请参考[《 aardio 语法与使用手册 》](chm://libraries/kernel/raw/datatype.html)与相关范例。
+
+AI 助手
+-------------------------------------------------------------------------------------------------
+所有 AI 都擅长解读与理解 Markdown 格式的文档。  
+可点『切换到 Markdown 模式』按钮，复制 Markdown 格式文档发给 AI 助手阅读。  
+[AI 编程助手](http://ai.aardio.com) 
 ****/
 wb.body.innerHTML =  markdown.render( winform.editMd.text ); 
 
@@ -1004,9 +1028,36 @@ winform.tvKernel.insertItem( {
     }
 }
 
-if(____search_libdoc__key){
-	winform.editLibPath.text = ____search_libdoc__key;
-	winform.btnOpenMarkdown.oncommand();
+winform.btnLibDocument.oncommand = function(id,event){
+	
+	var path  = ..io.exist(winform.btnLibDocument.aardioDocPath);
+	if(!path){
+		winform.msgboxErr("无效的文档路径！")
+		return;
+	}
+	
+	var md = string.load(path);
+	  
+	winform.editMd.text = md;
+	wb.body.innerHTML =  markdown.render( md); 
+ 
+	winform.btnOpenMarkdown.disabled = false; 
+	
+	if( winform.btnSwitchView.text = "切换到HTML模式"){
+		winform.btnSwitchView.oncommand();
+	}
 }
+
+if(____search_libdoc__key){
+	if(..string.endWith(____search_libdoc__key,".md",true) ){
+		winform.btnLibDocument.aardioDocPath = ____search_libdoc__key;
+		winform.btnLibDocument.oncommand();
+	}
+	else {
+		winform.editLibPath.text = ____search_libdoc__key;
+		winform.btnOpenMarkdown.oncommand();	
+	} 
+}
+
 
 win.loopMessage();

@@ -15,27 +15,65 @@ class turndown{
 		} 
 		
 		this[["turndownEx"]] = this.turndown;
+		this[["addRuleEx"]] = this.addRule;
+	}; 
+	addRule = function(name,rule){ 
+		this.addRuleEx(name,wb.eval(rule));
 	}; 
 	turndownGfm = function(html){
+		
+		//合并代码块，<code> 外层有 <pre> 才会转换为多行代码块
+		html = ..string.replace(html,`\<pre!\W([^\>]*)\>\<code!\W[^\>]*\>(.+?)\<\/code\>\<\/pre\>`,function(preProp,code){
+			var code = ..string.replace(code,"\<br!\W[^\>]*\>",'\n'); 
+			code = ..string.replace(code,"```","{{{--BACKTICK--}}}");
+			code = "<pre"+(preProp:"")+"><code>" + ..string.replace(code,"\<\/code\>\<code\>",'\n') +  "</code></pre>";
+			return code; 
+		})
+		
 		//修复 turndown.js 生成的表格不符合 Markdown 语法
 		var html = ..string.replace(html
 		,"(\<<@@table@>\s+[^\>]+\>)(.+?)(\<\/<@@table@>\>)"
-		,function(a,b,c){  
+		,function(tbBegin,tbContent,tbEnd){  
+		  
+		  	var b = ..string.replace(tbContent,"(\<<@@blockquote@>[^\>]*\>)(.+?)(\<\/<@@blockquote@>\>)"
+						,lambda(b,c,e) "<p>" + c + "</p>")
+			
+			var b = ..string.replace(b,"(\<<@@div@>[^\>]*\>)(.+?)(\<\/<@@div@>\>)"
+						,lambda(b,c,e) "<p>" + c + "</p>")
+									
+			b = ..string.replace(b,"(\<<@@tr@>[^\>]*\>)(.+?)(\<\/<@@tr@>\>)"
+				,function(trBegin,trContent,trEnd){ 
+					var trContent,count = ..string.replace(trContent,"(\<<@@td@>[^\>]*\>)(.+?)(\<\/<@@td@>\>)"
+						,function(tdBegin,tdContent,tdEnd){
+							return  "<th>" + tdContent + "</th>"
+						})
+						
+					if(count){
+						return trBegin ++ trContent ++ trEnd;
+					} 
+				},1
+			)	
+			
 			b = ..string.replace(b,'\n','');
 			b = ..string.replace(b,'\r',''); 
-			b = ..string.replace(b,"\<<@@br@>\s*\>",'{{{BR}}}'); 
-			b = ..string.replace(b,"\<<@@p@>\s*[^\>]*\>",'{{{PB}}}');			 
-			b = ..string.replace(b,"\</<@@p@>\s*\>",'{{{PE}}}');
-			return a++b++c;
+
+			b = ..string.replace(b,"\<br\s*/\>",'{{{--BR--}}}'); 
+			b = ..string.replace(b,"\<<@@br@>\s*\>",'{{{--BR--}}}'); 
+			b = ..string.replace(b,"\<<@@p@>\s*[^\>]*\>",'{{{--PB--}}}');			 
+			b = ..string.replace(b,"\</<@@p@>\s*\>",'{{{--PE--}}}');
+			
+			return tbBegin++b++tbEnd;
 		}) 	
+		
 		
 		var md = this[["turndownEx"]](html);
 		
 		if(md){ 
-          	md = ..string.replace(md,"\{\{\{BR\}\}\}","<br>");
-          	md = ..string.replace(md,"\{\{\{PB\}\}\}","<p>");
-           	md = ..string.replace(md,"\{\{\{PE\}\}\}","</p>");
-           	
+          	md = ..string.replace(md,"\{\{\{--BR--\}\}\}","<br>");
+          	md = ..string.replace(md,"\{\{\{--PB--\}\}\}","<p>");
+           	md = ..string.replace(md,"\{\{\{--PE--\}\}\}","</p>");
+           	md = ..string.replace(md,"\{\{\{--BACKTICK--\}\}\}","&#96;&#96;&#96;");
+           
            	md = ..string.replace(md,"\*\*```","```");
            	md = ..string.replace(md,"```\*\*","```");
            	
@@ -67,16 +105,7 @@ for (var j = 0; j < allElements.length; j++) {
  
 		var html = webView.html; 
 		
-		if(conv){ html = conv(html) }  
-		else {
-			//合并代码块，<code> 外层有 <pre> 才会转换为多行代码块
-			html = ..string.replace(html,`\<pre!\W[^\>]*\>\<code!\W[^\>]*\>(.+?)\<\/code\>\<\/pre\>`,function(code){
-				var code = ..string.replace(code,"\<br!\W[^\>]*\>",'\n');
-				code = "<pre><code>" + ..string.replace(code,"\<\/code\>\<code\>",'\n') +  "</code></pre>";
-				return code; 
-			}) 
-		}
-		
+		if(conv){ html = conv(html) };
 		return this.turndown(html);
 	};	
 	useGfm = function(...){ 
@@ -94,8 +123,8 @@ for (var j = 0; j < allElements.length; j++) {
 		
 		this[["turndown"]] = this.turndownGfm;
 	};
-}
-
+} 
+ 
 wb.loadcode(`<!doctype html>
 <html>
 <head>
@@ -120,4 +149,5 @@ turndown(__) = 将参数 @1 指定的 HTML 代码转换为 Markdown 文本。
 turndownFile(__) = 将参数 @1 指定的 HTML 代码文件转换为 Markdown 文本。
 turndownUrl(__) = 将参数 @1 指定网址的 HTML 代码文件转换为 Markdown 文本。\n可选用参数 @2 指定预处理 HTML 代码的回调函数，该回调函数接受一个参数以获取 HTML 并返回新的 HTML。\n如果之前已导入 web.view 则使用 web.view 打开网址并获取 HTML。
 useGfm() = 启用 gfm（GitHub Flavored Markdown） 插件，\n可选用一个或多个字符串参数指定要启用的插件名称。
+addRule(.(key,jsRule) = 添加规则。\n参数 @key 为字符串，\n参数 @jsRule 用包含 JS 代码的字符串指定规则。\n注意 JS 必须兼容 IE 内核，不要使用箭头函数这些。 
 end intellisense*****/

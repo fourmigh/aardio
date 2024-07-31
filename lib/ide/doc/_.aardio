@@ -223,11 +223,22 @@ namespace doc{
             
             k = ..string.replace(k,"\(\.\(","(");
             k = ..string.replace(k,"->",".");
-            k = ..string.replace(k,`"__[^"]*"`,"字符串参数");
-            k = ..string.replace(k,`"__\/\*\N*?\*\/"`,"参数");
-            k = ..string.replace(k,`__\/\*\N*?\*\/`,"参数");
-            k = ..string.replace(k,`__`,"参数");
-            k = ..string.replace(k,`""`,"字符串参数")
+            k = ..string.replace(k,`"__[^"]*"`,`"字符串参数"`);
+            
+            k = ..string.replace(k,`"__\/\*([^\*]*?)\*\/"`,function(arg){
+                arg = ..string.replace(arg,"\n|\r","");
+            	return ..string.concat(`"`,arg,`"`)
+            } );
+           
+            k = ..string.replace(k,`__\/\*([^\*]*?)\*\/`,function(arg){ 
+                if(!..string.find(arg,"[\s\p]")) return arg;
+                arg = ..string.replace(arg,"\n|\r",""); 
+                arg = ..string.concat(`/*`,arg,`*/`);
+            	return arg
+            } );
+          
+            k = ..string.replace(k,`__`,"");
+            k = ..string.replace(k,`""`,`"字符串参数"`)
             
             if( #path && (path != "::") ){
                 k = ..string.concat(path,".",k);

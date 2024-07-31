@@ -16,6 +16,13 @@ import dotNet.Selenium;
 //简单化创建 WebDriver 对象
 var wd = Selenium.CreateDefaultWebDriver(); 
 
+/*
+可选用一个或多个字符串参数指定浏览器启动参数，例如指定代理服务器可以这样写：
+var wd = Selenium.CreateDefaultWebDriver(
+	"--proxy-server=SOCKS5://127.0.0.1:1081"
+); 
+*/
+
 //打开网址。
 wd.Url = "https://www.baidu.com" 
  

@@ -272,6 +272,8 @@ getFileName = function(url,d){
 }
 
 getFilePath = function(url){
+	if(!url) return;
+	
 	var turl = split(url)
 	if(turl.schemeNum==5/*_INTERNET_SCHEME_FILE*/){
 		return ..string.trimleft(decode(turl.path),"/");
@@ -309,7 +311,7 @@ encodeMbcs(.(字符串,输出代码页) = 如果字符串包含多字节字符,\
 decodeUnicode(.(字符串) = 解码%uXXXX或%uXX编码的字符串\n失败返回空值
 encodeUri(.(字符串,输出代码页) = URL编码,\n字母数字以及 URL 非保留字符、URL 保留字符都不编码（RFC3986）,\n参数二指定输出编码(codepage),默认为65001(UTF8代码页)
 getFileName(.(网址,默认文件名) = 获取URL中的文件名\n参数2可选,默认为"index.html"
-getFilePath(__) = 如果 URL 为 file: 协议开头，\n则返回 URL 解码后的文件路径，否则返回 null
+getFilePath(__) = 如果 URL 为 file: 协议开头，\n则返回 URL 解码后的文件路径，否则返回 null。\n传入 null 参数返回 null。
 getParams(__) = 返回 URL 的参数表，参数名都转为小写。\n参数 @1 指定 URL，如果不指定则直接返回 null 。\n如果参数 @1 指定了参数名（忽略大小写），则返回对应的字符串值
 cmp(__) = 比较参数@1与参数@2指定的网址是否相同。\n相同则返回 0 ，否则返回其他数值。\n比较前进行 URL 解码，并调用 inet.url.canonicalize 规范格式，\n比较时忽略大小写
 end intellisense**/

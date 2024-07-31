@@ -55,21 +55,24 @@ class appDomain{
 			 
 			asm[["Name"]] = asm.GetName().Name;
 			asm[["__createInstanceRaw"]] = asm.CreateInstance;
-			asm[["__createInstanceTest"]] = function(typeName,...){
+			asm[["__createInstanceTest"]] = function(typeObj,typeName,...){
 				var arrlist = this.rawCreateArrayList({...}); 
-				var ok,result  = call(this.utility.getInvokeMember,this.utility, asm ,typeName,""
-					, 512 /*BindingFlags.CreateInstance*/
-					,arrlist,null );
+				
+				var ok,result  = call(this.utility.getInvokeMember2
+									,this.utility,typeObj,asm ,typeName,""
+									,512 /*BindingFlags.CreateInstance*/
+									,arrlist,null); 
+					 
 				if( !ok ) return null,result;
 				return this.wrapObject(result);
 			} 
 			asm[["new"]] = function(typeName,...){
 				if( type(typeName)!=type.string )error("请指定类名称,参数@2",2);
-				var obj,err = asm.__createInstanceTest(typeName,...);
+				var obj,err = asm.__createInstanceTest(null,typeName,...);
 
 				if(obj) return obj;
 				if(!..string.startWith(typeName,asm.Name +".") && !(..string.indexOf(typeName,".")) )
-					return asm.__createInstanceTest( asm.Name +"."+ typeName,...);
+					return asm.__createInstanceTest(null,asm.Name +"."+ typeName,...);
 					
 				return null,err;
 			}
@@ -330,32 +333,12 @@ class appDomain{
 						var args;
 						
 						if( !preCtor ){ 
-							obj,err = asm.__createInstanceTest(typeName,...); 
+							obj,err = asm.__createInstanceTest(owner[["_dotNetObject"]],typeName,...); 
 						}
 						else {
 							obj,err = preCtor( function(...){ 
-								var o,e = asm.__createInstanceTest(typeName,...)
-								
-								if(!o){
-									if(!..string.startWith(typeName,asm.Name +".") && !(..string.indexOf(typeName,".")) ){
-										o,e = asm.__createInstanceTest( asm.Name +"."+ typeName,...);
-										if(o){
-											typeName = asm.Name +"."+ typeName;
-										}
-									}
-								}
-								
-								return o,e;
-							
+								return asm.__createInstanceTest(owner[["_dotNetObject"]],typeName,...)
 							},...);
-							
-							if(obj) {
-								if(owner[["ctor"]]) owner[["ctor"]](obj);
-								return obj;
-							}
-							
-							//不需要再修正名字空间了，上面已经试过了
-							if(err) error(err,2);
 						}
 						
 						if(obj) {
@@ -363,19 +346,6 @@ class appDomain{
 							return obj;
 						}
 						
-						if(!..string.startWith(typeName,asm.Name +".") && !(..string.indexOf(typeName,".")) ){
-							obj,err = asm.__createInstanceTest( asm.Name +"."+ typeName,...);
-							
-							if(obj){
-								typeName = asm.Name +"."+ typeName;
-							}
-							
-							if(obj) {
-								if(owner[["ctor"]]) owner[["ctor"]](obj);
-								return obj;
-							}
-						}
-							
 						if(err) error(err,2);
 					}
 				} 
@@ -552,6 +522,24 @@ class appDomain{
 	double = function(v,ref){
 		return this.object(..com.double(v),ref);	
 	}; 
+	dict = function(tab,byRef){
+		var kt,vt;
+		for(k,v in tab){
+			kt = type(k)=="string" ? this.System.String : k;
+			vt = type(v)=="string" ? this.System.String : v;
+			break;
+		}
+		
+		if(kt && vt){
+			var d = this.System.Collections.Generic.Dictionary.$(kt,vt)();
+			for(k,v in tab){
+				d.Add(k,v);
+			} 
+			
+			if(byRef)return this.object(d,true);
+			return d;
+		};
+	};
 	createArray = function(t,...){
 		if(...===null){
 	
@@ -1100,7 +1088,7 @@ namespace appDomain{
 		_json = function(pretty){
 			var app = owner._dotNetAppDomain;
 			if(app.jsonStringify){return app.jsonStringify(owner,pretty),true}
-			return owner; 
+			return owner.ToString(); 
 		};
 		_tostring = function(...){
 			return owner.ToString(...);
@@ -1280,7 +1268,19 @@ each(netObj) = @for i,v in ??.each(__/*输入需要遍历的 .NET 对象或普�
 }
 Drawing = System.Drawing
 Array = System.Array
+dict( = 将非空表转换为 .NET 字典。\n如果要创建空字典，调用返回对象的 Clear 函数清空即可。\n返回对象支持用下标操作符访问键值对。\n可用 dotNet.each 遍历字典。
+dict(.(tab,byRef) = 将非空表转换为 .NET 字典（Dictionary）对象。\n\n如果传入空表或 null 返回 null 值。\n否则必须传入非空表，表中所有的键必须是相同类型。\n表中所有的值必须是相同类型。\n\n参数 @byRef 为可选参数，如果 @byRef 为 true，\n则返回对象可作为 .NET 输出与引用参数使用
+dict() = !stdNetDictionary.
 end intellisense**/
+
+/*****intellisense(!stdNetDictionary)
+Add(.(key,value) = 添加键值
+Clear() = 清空字典
+ContainsKey(.(key) = 是否包含参数 @key 指定键的值
+ContainsValue(.(value) = 是否包含参数 @value 指定值的键
+Remove(.(key) = 移除参数 @key 指定的键值
+Count = 包含键值对总数
+end intellisense*****/
 
 /**intellisense(!dotNetCrlArrayList) 
 Add(.(添加对象) = 添加成员到数组中

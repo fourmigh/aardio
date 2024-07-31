@@ -479,6 +479,15 @@ class popen{
 		this.stopLogResponse();
 		return this.process.ctrlEvent(event);
 	};
+	stillActive = function(){
+		if(this.process) return this.process.stillActive();
+	};
+	suspend = function(){
+		if(this.process) return this.process.suspend();
+	};
+	resume = function(){
+		if(this.process) return this.process.resume();
+	};
 	close = function(){
 		this.stopLogResponse();
 		
@@ -629,8 +638,10 @@ process.popen.wsl() = !process_popen.
 !process_popen.terminate() = 强制关闭进程并释放进程对象
 !process_popen.assignToJobObject(.(process->job->limitKill) = 绑定到作业对象,成功返回 true\n作业对象示例请参考标准库 process.job.limitKill 的源码。\n也可直接调用 killOnExit 函数绑定 process.job.limitKill
 !process_popen.killOnExit() = 主进程退出时自动退出此进程
-!process_popen.ctrlEvent(0)=发送Ctrl+C(SIGINT信号)\n信号将传递到与目标进程控制台连接的所有非分离控制台进程\n64位目标进程会导致当前控制台暂时关闭
-!process_popen.ctrlEvent(1)=发送Ctrl+Break(SIGBREAK信号)\n信号将传递到与目标进程控制台连接的所有非分离控制台进程\n64位目标进程会导致当前控制台暂时关闭
+!process_popen.ctrlEvent(0)=发送 Ctrl+C（SIGINT信号）\n信号将传递到与目标进程控制台连接的所有非分离控制台进程\n64位目标进程会导致当前控制台暂时关闭
+!process_popen.ctrlEvent(1)=发送 Ctrl+Break（SIGINT信号）\n信号将传递到与目标进程控制台连接的所有非分离控制台进程\n64位目标进程会导致当前控制台暂时关闭
+!process_popen.resume() = 恢复运行
+!process_popen.suspend() = 暂停进程
 !process_popen.process = !process.
 !process_popen.stdErr = 进程标准错误输出\n!file.
 !process_popen.stdOut = 进程标准输出\n!file.

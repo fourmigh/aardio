@@ -178,7 +178,7 @@ groupbox._metaProperty = metaProperty( )
 !button.cls = 设计时类名
 !button.className = 运行时类名
 !button.text = 按钮文本属性
-!button.disabledText = @.disabledText = {"✶";"✸";"✹";"✺";"✹";"✷"}__/*指定文本时,禁用此控件,并显示指定文本,\n指定为数组时,创建动画并在主文本前循环显示数组中的字符串,\n数组可选用 text 属性指定按钮禁用状态按钮主文本,\n指定为null时,启用此控件,并恢复控件之前的正常文本*/
+!button.disabledText = @.disabledText = {"✶";"✸";"✹";"✺";"✹";"✷"}__/*disabledText 属性指定为文本时，禁用此控件并显示指定文本。\n指定为数组时,创建动画并在原控件文本前面循环显示数组中的字符串。\n数组内可选用 text 属性指定按钮禁用状态按钮主文本。\ndisabledText 属性指定为 null 时，启用此控件并恢复控件之前的正常文本。*/
 !button.note = 设置按钮附注\n必须在创建控件的初始化参数中也指定该属性,\n\n指定该属性会切换为「命令链接」样式,\n支持Vista,Win7 以及之后的系统,不支持 XP 系统\n「命令链接」样式忽略控件的字体设置，但支持背景色属性
 !button.hwnd = 控件句柄
 !button.id = 控件ID 

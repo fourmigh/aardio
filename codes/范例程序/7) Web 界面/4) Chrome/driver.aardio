@@ -61,6 +61,10 @@ searchButton.click();
 //等待网址
 browser.waitUrl("ChromeDriver")
 
+//调用 CDP 命令
+var ret,err = browser.cdp("Network.getCookies",{urls={"https://www.baidu.com"}},);
+var cookies = ret[["value"]];
+
 //打开新窗口(标签页)
 browser.doScript("window.open('https://httpbin.org/cookies')");
 
@@ -79,3 +83,4 @@ var ret,err = browser.cookie( {
 //var log = browser.se.log(type="performance"); //获取日志
 
 browser.refresh();
+

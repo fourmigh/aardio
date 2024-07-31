@@ -16,7 +16,7 @@ var imgWindow = soImage();
 imgWindow.captureWindow(hwnd);
  
 //查找目标图像
-var sm,x,y = imgFind.findImage( imgWindow );
+var sm,x,y = imgFind.findImage( imgWindow );//注意：默认对窗口客户区截图，注意这里的坐标参数必须是窗口客户区坐标（不含系统标题栏，不是指自绘标题栏）
  
 //移动鼠标
 import mouse; 

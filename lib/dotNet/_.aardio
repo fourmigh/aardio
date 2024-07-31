@@ -32,6 +32,7 @@ try{
     buffer = app.buffer;
     reference = app.reference;
     each = app.each;
+    dict = app.dict;
 	self.import = app.import;
 	
 	getObject = function(v,unbox){
@@ -99,7 +100,7 @@ load( = 使用当前线程默认应用程序域载入并返回程序集（DLL）
 load(.("程序集名") = 使用当前线程默认应用程序域载入并返回程序集。\n参数可以是程序集（DLL）名称或路径。\n\n此函数会按以下顺序调用 .NET 函数尝试加载程序集：\n└── Assembly.LoadWithPartialName\n└── Assembly.Load\n└── Assembly.LoadFrom\n└── Assembly.LoadFile
 load(.("程序集名",虚拟程序集数据或路径) = 首先在『虚拟程序集引用表』中注册程序集名，\n参数 @2 指定对应的内存 DLL 数据或 DLL 路径（支持 EXE 内嵌资源）。\n然后再调用 load 函数加载并返回该虚拟程序集。\n\n注意参数 @1 指定的是程序集的文件名，不是写导入的名字空间。\n调用返回程序集对象的 import 成员函数再导入名字空间
 loadFile( = 使用当前线程默认应用程序域载入程序集（DLL）。\n参数可以是 DLL 路径，内存 DLL，或 EXE 内嵌资源。\n此函数并不支持 『虚拟程序集引用表』，无法在内存添加依赖 DLL\n程序集如果引用了自身路径必须改用 load 函数加载
-loadFile(.("程序集路径") = 使用当前线程默认应用程序域载入程序集,\n参数可以是 DLL 路径，内存 DLL，或 EXE 内嵌资源。\n\n在路径字符串前加$符号可将文件编译并嵌入 aardio 代码,\n可选在第2个参数中指定pdb调试数据或pdb调试文件路径
+loadFile(.("程序集路径") = 使用当前线程默认应用程序域载入程序集,\n参数可以是 DLL 路径，内存 DLL，或 EXE 内嵌资源。\n\n在路径字符串前加$符号可将文件编译并嵌入 aardio 代码,\n可选在第 2 个参数中指定 pdb 调试数据或 pdb 调试文件路径。\n可用 com.dte 对象提供的 AttachProcesses 自动附加到 VS 开发环境调试进程。
 load() = !dotNetCrlAssembly.
 loadFile() = !dotNetCrlAssembly.
 loadAppData( = 可用于嵌入并自 %appData% 目录加载\n不支持通过 loadFile 函数内存加载的程序集
@@ -169,6 +170,9 @@ each(netObj) = @for i,v in ??.each(__/*输入需要遍历的 .NET 对象或普�
 }
 wait( = 等待 .NET 异步任务执行完成。 \n如果任务执行成功返回 true ，取消或出错返回 false 。
 wait(.(task,winform,->->->) =  参数 @1 指定异步函数返回的 System.Threading.Tasks.Task 对象。\n参数 @2 指定 win.form 对象，其他可选参数传给 winform.wait 函数。 \n异步任务的 Result 属性可取返回值，Exception.Message 属性可取错误信息。\n也可以用异步任务的 ContinueWith 方法指定异步回调函数，在任务完成后触发。  
+dict( = 将非空表转换为 .NET 字典。\n如果要创建空字典，调用返回对象的 Clear 函数清空即可。\n返回对象支持用下标操作符访问键值对。\n可用 dotNet.each 遍历字典。
+dict(.(tab,byRef) = 将非空表转换为 .NET 字典（Dictionary）对象。\n\n如果传入空表或 null 返回 null 值。\n否则必须传入非空表，表中所有的键必须是相同类型。\n表中所有的值必须是相同类型。\n\n参数 @byRef 为可选参数，如果 @byRef 为 true，\n则返回对象可作为 .NET 输出与引用参数使用
+dict() = !stdNetDictionary.
 end intellisense**/
 
 /**intellisense(!dotNetCrlAssembly)
