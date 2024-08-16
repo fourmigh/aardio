@@ -489,7 +489,7 @@ class http{
 	    if( (method == "POST") && postdata && !( this.headers  &&  ..string.find( this.headers,"@@Content-Type:") ) ){  
 			this.headers = ..web.joinHeaders( this.headers
 		    	, ( postdata[1]=='{'# or  postdata[1]=='['#) 
-		    	? 'Content-Type: application/json; charset=utf-8' : 'Content-Type: application/x-www-form-urlencoded; charset=utf-8'
+		    	? 'Content-Type: application/json' : 'Content-Type: application/x-www-form-urlencoded; charset=utf-8'
 		    	);
 		} 
 		

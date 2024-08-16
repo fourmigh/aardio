@@ -24,9 +24,12 @@ class turndown{
 		
 		//合并代码块，<code> 外层有 <pre> 才会转换为多行代码块
 		html = ..string.replace(html,`\<pre!\W([^\>]*)\>\<code!\W[^\>]*\>(.+?)\<\/code\>\<\/pre\>`,function(preProp,code){
-			var code = ..string.replace(code,"\<br!\W[^\>]*\>",'\n'); 
+			var code = ..string.replace(code,"\<<@@br@>!\W[^\>]*\>[\t ]*\r?\n",'\n'); 
+			var code = ..string.replace(code,"\<<@@br@>!\W[^\>]*\>",'\n'); 
 			code = ..string.replace(code,"```","{{{--BACKTICK--}}}");
-			code = "<pre"+(preProp:"")+"><code>" + ..string.replace(code,"\<\/code\>\<code\>",'\n') +  "</code></pre>";
+			
+			//首尾添加换行，turndown.js 生成的代码块前后可能缺少换行导致格式错乱
+			code = "<br><pre"+(preProp:"")+"><code>" + ..string.replace(code,"\<\/code\>\<code\>",'\n') +  "</code></pre><br>";
 			return code; 
 		})
 		

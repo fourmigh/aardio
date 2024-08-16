@@ -2,6 +2,7 @@
 import process.rundll;
 if(!_WINXP){
 	process.rundll("sysdm.cpl").EditEnvironmentVariables() 	
+	//raw.loadDll("sysdm.cpl").EditEnvironmentVariables(0,_HINSTANSE,"",5/*_SW_SHOW*/);
 }
 else {
 	import process.rundll;

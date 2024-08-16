@@ -15,9 +15,28 @@ console.log(num);
 Python 返回的浮点数值、不大于 53 位的整型数值、布尔值、字节数组
 会自动转换为纯 aardio 值。
 
-其他 Python 对象在 aardio 存为 py3.object 对象（PyObject）。
+其他 Python 对象在 aardio 存为 py2.object 对象（PyObject）。
 
 PyObject 可以在 aardio 中也可以像普通对象一样使用。
 可以调用其成员函数、读写属性、通过下标读写索引项、并支持常用运算符。
 也可以通过 pyObject.parseValue() 函数转换为纯 aardio 值（通过 JSON 自动转换）。
+
+PyObject 可以在 aardio 中也可以像普通对象一样使用。
+可以调用其成员函数、读写属性、通过下标读写索引项、并支持常用运算符。
+也可以通过 pyObject.parseValue() 函数转换为纯 aardio 值（通过 JSON 自动转换）。
+
+Python 对象（pyObject ）在 aardio  中与类型转换有关的函数：
+
+- tostring(pyObject) //转换为 aardio 字符串
+- tonumber(pyObject) //转换为 aardio 数值
+- table.parseValue(); //转换为 aardio 对象
+- table.parseValue(pyObject) //转换为 aardio 表对象
+- pyObject.toString() //转换为 aardio 字符串
+- pyObject.toDict() //转换为字典，返回 py2.dict 字典对象
+- pyObject.toList() //转换为字典，返回 py2.list 列表对象
+- pyObject.toTuple() //转换为字典，返回 py2.tuple 元组对象
+- pyObject.type() //返回 Pythton 类型名
+
+py2.dict,py2.list,py2.tuple  都继承自 py2.object ，
+本质都是 pyObject 对象（指 py2.object ）。
 */

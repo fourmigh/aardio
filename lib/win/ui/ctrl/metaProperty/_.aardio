@@ -790,7 +790,7 @@ namespace metaProperty {
 					}
 				}
 				
-				var hfont = ..gdi.setFont( owner[["hwnd"]],f ); 
+				var hfont = ..gdi.setFont( owner[["hwnd"]],f,owner[["dpiScaleY"]] ); 
 				if(f[["color"]]!==null) owner.color = f.color;
 				if(h) f[["h"]] = h;
 				

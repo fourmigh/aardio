@@ -1,6 +1,8 @@
-//YAML
+//YAML 解析
 import console;
 import web.script.yaml;
+
+//局部变量 yaml 指向 web.script.yaml 名字空间
 var yaml = web.script.yaml;
 
 /*
@@ -16,10 +18,13 @@ What It Is:
 
 */
 
+//解析 YAML 格式文本L，读取多文档 YAM。
 var object = yaml.loadAll(yamlText)
-console.dumpJson(object);
 
-var text = yaml.dump(object);
-console.dump(text);
+//将 aardio 对象转换为 YAML 字符串。
+var yamlText = yaml.dump(object);
+
+//在控制台以 JSON 格式显示对象
+console.dumpJson(object); 
 
 console.pause();

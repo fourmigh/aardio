@@ -1,11 +1,23 @@
-//database 文本数据
+//database CSV
 namespace string;
 
 class database{
 	ctor(separator,quote){
-		this.separator = separator : '\t';
+		this.separator = separator : ",";
 		this.quote = quote : '"';
 		this.dataTable = {};
+	};
+	each = function(path){
+		var file,err = ..io.open(path,"rt");
+		if(!file) error(err,2);
+		
+		var next = ..io.lines(file);
+		return function(){
+			var line = next();
+			if(line) return this.parse(line)[[1]];
+		},function(){
+			file.close();
+		} 
 	};
 	parse = function(str){
 		var sep = this.separator[1] : '\t'#;
@@ -97,7 +109,6 @@ class database{
 	stringify = function(tab){ 
 		if(!tab){
 			tab = this.dataTable;
-			this.dataTable = {};
 		}
 		if( tab.fields ){
 			var fields = tab.fields;
@@ -141,26 +152,31 @@ class database{
 			s = ..string.right(s,-4);
 		}
 		else {
-			s = ..string.fromto(s,cp:0,65001);
+			if(!..string.isUtf8(s)){
+				s = ..string.fromto(s,cp:0,65001);
+			}
 		} 
 		return this.parse(s);
 	};
-	save = function(path,tab){
-		..string.save(path,'\xEF\xBB\xBF');
+	save = function(path,tab,append){
+		if(!append || !..io.getSize(path) ) ..string.save(path,'\xEF\xBB\xBF');
+		else ..string.save(path, '\r\n' ,true );
 		..string.save(path, this.stringify(tab) ,true );
 	};
-	saveA = function(path,tab){
-		..string.save(path, this.stringifyA(tab)  );
+	saveA = function(path,tab,append){ 
+		if( append && ..io.getSize(path) )..string.save(path, '\r\n' ,true );
+		..string.save(path, this.stringifyA(tab),append  );
 	};
 	push = function(...){ 
 		if( type(...) == "table" ) ..table.push( this.dataTable,... );
 		else ..table.push( this.dataTable,{...} );
-	}; 
+	};  
 }
 
 /**intellisense()
-string.database = TXT,CSV 格式数据库简单解析。\n注意文本数据规范不统一，不同的程序解析结果可能有差异。\n用法请参考：范例程序 / 数据库 / csv / string.database
-string.database(.(分隔符,文本包含符) = 创建 TXT,CSV 格式数据库解析器,\n参数可以省略,默认使用制表符作为分隔符,双引号包含文本
+string.database = 用于解析、读写 CSV（Comma Separated Values），TXT 格式数据库。\n注意文本数据规范不统一，不同的程序解析结果可能有差异。\n用法请参考：范例程序 / 数据库 / csv / string.database
+string.database( = 创建 TXT,CSV 格式数据库对象。
+string.database(.(分隔符,文本包含符) = 创建 TXT,CSV 格式数据库对象。\n参数可以省略,默认使用制表符作为分隔符,双引号包含文本
 string.database() = !string_database.
 !string_database.separator = 列分隔符
 !string_database.quote = 文本包含符
@@ -176,7 +192,10 @@ string.database() = !string_database.
 !string_database.load( = 加载并解析文件
 !string_database.load(.(文件路径,代码页) = 加载并解析文件，返回数组,\n文件开头有 UTF-8 BOM 则以 UTF-8 编码读入内容,\n否则以参数 @2 指定的编码读入并转换为 UTF-8 编码，\n参数 @2 省略时默认值为 0，表示当前默认 ANSI 编码
 !string_database.save( = 以 UTF-8 编码写入文件
-!string_database.save(.(文件路径,数据数组) = 在指定文件写入 UTF-8 BOM，\n然后将数据以 UTF-8 编码、CSV 格式写入文件\n如果不指定参数,则使用之前调用 push 函数添加的数据
+!string_database.save(.(文件路径,数据数组,是否追加) = 在指定文件写入 UTF-8 BOM，\n然后将数据以 UTF-8 编码、CSV 格式写入文件。\n如果不指定数据数组参数，则使用之前调用 push 函数添加的数据。\n参数 @3 如果为 true 则保留原来的文件内容。
 !string_database.saveA( = 以 ANSI 编码写入文件
-!string_database.saveA(.(文件路径,数据数组) = 将数据以 ANSI 编码、CSV 格式写入文件\n如果不指定参数,则使用之前调用 push 函数添加的数据
+!string_database.saveA(.(文件路径,数据数组,是否追加) = 将数据以 ANSI 编码、CSV 格式写入文件\n如果不指定数据数组参数，则使用之前调用 push 函数添加的数据。\n参数 @3 如果为 true 则保留原来的文件内容。
+!string_database.each(文件路径) = @for tab in ??.each("文件路径.csv") {
+	__/*逐行读取 CSV 文件，tab 为当前读取行解析后的列数组*/
+} 
 end intellisense**/

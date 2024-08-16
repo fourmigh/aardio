@@ -277,7 +277,8 @@ class asynHttpServer{
 				return owner._raw_stdin_data;
 			};
 			postJson = function(){  
-				if ( environ.CONTENT_TYPE && ..string.endWith(environ.CONTENT_TYPE,"/json",true) ) {
+				if ( environ.CONTENT_TYPE 
+					&& ..string.find(environ.CONTENT_TYPE,"<@@text@>|<@@application@>/<@@json@>!\W") ) {
 					var data = owner.postData();
 					if(data) return ..web.json.tryParse(data);
 				}

@@ -7,10 +7,45 @@ namespace win.ui;
 
 class tabs{
 	ctor( ctrl,... ){ {
-		ctrl._parentForm.resize();
+		if( ctrl.isForm ){
+			var vert,horz = {},{}
+			for(hwnd,ctrl in ctrl.eachControlEx("plus") ){
+				var x,y = ctrl.getPos();
+				
+				vert[x] = vert[x]:{}
+				..table.push(vert[x],ctrl);
+				
+				horz[y] = horz[y]:{}
+				..table.push(horz[y],ctrl);
+			} 
+			
+			var _,_,w,h = ctrl.getClientRect().xywh() 
+			
+			var items = {}
+			for(x,v in vert) {
+				if(#v<2) continue;
+				..table.push(items,{..math.min(x,w-x),v}); 
+			}
+			
+			for(y,v in horz) {
+				if(#v<2) continue;
+				..table.push(items,{..math.min(y,h-y),v}); 
+			}
+			
+			if(!#items) error("请在窗体上添加至少 2 个顶端对齐或左侧对齐、相同大小的 plus 控件。")
+			..table.sort(items,lambda(b)owner[1]<b[1]); 
+			
+			ctrl.resize();
+			this.strips = items[1][2];
+			ctrl = this.strips[1];
+		}
+		else {
+			ctrl._parentForm.resize();
+			this.strips = {ctrl;...};
+		} 
 		
 		this.mode = "tabs";
-		this.strips = {ctrl;...};
+		
 		if(#this.strips<2) error('至少要指定2个已创建的plus控件模板\n创建高级选项卡以后可以调用clear函数清空控件模板',2);
 		
 		var defRc = this.strips[1]._defRect;
@@ -61,6 +96,13 @@ class tabs{
 				
 				for(name,ctrl in this._form.eachControl("custom") ){
 					if(ctrl.getRect().intersectsWith(startRect)){
+						this.container = ctrl;
+						break;
+					}
+				}
+				
+				if(!this.container){
+					for(name,ctrl in this._form.eachControl("custom") ){
 						this.container = ctrl;
 						break;
 					}
@@ -292,6 +334,16 @@ class tabs{
 			v.onFocusLost = this._preFocusLost; 
 			v.onMouseActivate = this._preMouseActivate;
 		}
+		
+		if(defaultStyle){
+			this.strips[1].setTimeout( 
+				function(){
+					if(!this.style){
+						this.skin( ..table.clone(defaultStyle))
+					}
+				},100
+			)			
+		}
 	} };
 	isVisible = function(){
 		return #this.strips && !this.strips[1].hide;
@@ -390,12 +442,7 @@ class tabs{
 					frm.close();	
 				}
 				
-				if( (...)[["hwnd"]] ){
-					this.forms[idx]= this.container.loadForm( ...);   
-				}
-				else{ 
-					ctrl.preloadFormArgs = {...};
-				};
+				this.forms[idx]= this.container.preloadForm(...);
 			}
 			
 			if(isPopup){
@@ -593,31 +640,35 @@ class tabs{
 		this.dropButton.show(4/*_SW_SHOWNOACTIVATE*/);
 	};
 	loadForm = function(idx,...){
-		if( this.forms[idx] ) this.forms[idx].close();
+		if(idx===null) idx = #this.strips;
+		elseif(idx<0) idx = #this.strips + idx + 1;
+
+		if( this.forms[idx] ) { 
+			this.forms[idx].close();
+		}
 		if(!this.strips[idx]) error("请先添加对应索引的选项卡",2);
+		if(!this.container){
+			error("请在选项卡一侧添加一个 custom 控件作为标签页容器",2);
+		}
+				
+		this.forms[idx] = this.container.preloadForm(...);
+		this.forms[idx][["onCreated"]] = function(realForm){
+			this.forms[idx] = realForm;
+			var hFocus = ..win.getFocus();
+			if(..win.isChild(realForm.hwnd,hFocus)){
+				realForm["$lostFocusInTabs"] = hFocus;
+			}	
+		}  
 		
-		if( (...)[["hwnd"]] ){
-			this.forms[idx]= this.container.loadForm( ...); 
-		}
-		elseif(...){
-			this.strips[idx].preloadFormArgs = {...}; 
-		}
+		return this.forms[idx];
 	};
 	preloadForm = function(idx,show){
-		var strip = this.strips[idx];
-		if( strip && (!this.forms[idx]) && strip.preloadFormArgs ){
-			var frm = this.container.loadForm( ..table.unpackArgs(strip.preloadFormArgs) );  
-			owner.forms[idx] = frm;
-			
-			var hFocus = ..win.getFocus();
-			if(..win.isChild(frm.hwnd,hFocus)){
-				frm["$lostFocusInTabs"] = hFocus;
-			}
-						
-			strip.preloadFormArgs = null;
-			if(show!==null) frm.show(show);
-			return frm;
-		} 
+		//此函数已废弃。
+		var form = this.forms[idx];
+		if(!form) return;
+		
+		if(show!==null) form.show(show);
+		return form.this(); //fake window 自动初始化。
 	};
 	create = function(param){
 		var idx = this.add(param);
@@ -736,11 +787,11 @@ class tabs{
 			
 			for(k,v in args){
 				if(strip[k] = v) {
-					if( this.preloadForm(i,false) ){
+					var form = this.forms[i];
+					if(form && form.hwnd){
 						if(this.selForm) this.selForm.show();
-					}
-					
-					return this.forms[i],i;
+						return form,i;
+					} 
 				}
 			} 
 		}
@@ -1052,7 +1103,7 @@ namespace tabs{
 				var lastsel = owner.selHistory[#owner.selHistory];
 				
 				if( ( lastsel == strip ) && strip.checked ){
-					if( (  (!owner.forms[i]) && (!strip.preloadFormArgs) )  
+					if( ( !owner.forms[i] )  
 						|| (owner.forms[i] && !owner.forms[i].hide) )
 						return;
 				}
@@ -1075,11 +1126,12 @@ namespace tabs{
 				 
 				if(owner.container){
 					owner.container.showChildren(false);
-					owner.preloadForm(i);
-					 
+				 
+					var form = owner.forms[i];
 					if(owner.forms[i]){
-						owner.forms[i].setRect(owner.container.getClientRect());
-						owner.forms[i].show(true);
+						//fake window 会自动初始化
+						form.setRect(owner.container.getClientRect());
+						form.show(true);
 					};
 				};
 				
@@ -1191,12 +1243,31 @@ namespace tabs{
 			default = 0xffffffff; 
 		}
 	}
+	
+	defaultStyle = {
+		foreground={
+			active=0xFFFFFFFF;
+			default=0x00FFFFFF;
+			hover=0x38FFFFFF
+		};
+		color = {
+			hover = 0xff99ffcc;
+			active = 0xffff6666; 
+			default = 0xffffffff; 
+		};
+		checked={
+			foreground={default=0xFFFFFFFF;}; 
+			color={default=0xFF42A875;};
+		}
+	}
 }
  
 /**intellisense()
-win.ui.tabs = 高级选项卡\n自动查找附近合适的 custom 控件用于加载子窗口,\n优先选择未禁用、未隐藏、未设置透明的 custom 控件。\n如果是水平选项卡，应在下侧放置 custom 控件作为选项页面容器,\n如果是垂直选项卡,应在右侧放置 custom 控件作为选项页面容器。\n\n为了避免在启动软件时一次性加载大量子窗口导致启动速度慢,\n为每一个选项卡添加子窗口时,win.ui.tabs并不会直正的加载窗口,\n直到点击该选项卡才会真正加载相应的子窗口
+win.ui.tabs = 高级选项卡，\n自动查找附近合适的 custom 控件作为标签页容器。\n优先选择未禁用、未隐藏、未设置透明的 custom 控件。\n如果是水平选项卡，应在下侧放置 custom 控件作为标签页容器,\n如果是垂直选项卡,应在右侧放置 custom 控件作为标签页容器。\n\n为了避免在启动软件时一次性加载大量子窗口导致启动速度慢,\n为每一个选项卡添加子窗口时，win.ui.tabs 默认会创建并返回伪窗口。\n直到点击该选项卡或访问伪窗口的属性与方法（fake 属性除外）时才会真正初始化相应的子窗口
 win.ui.tabs(__) = 创建高级选项卡,\n参数必须指定至少2个已创建的plus控件模板,对象创建成功可选清除模板\n如果不需要动态增删选项卡,参数中的plus控件无需保持均匀间隔,\n\n动态增加选项卡时会根据模板控件的样式与位置,\n自动分析是水平排列还是垂直排列,自动分析排列间距，\n并动态添加选项卡,可选显示删除选项卡的按钮\n\n添加的选项卡数目超出显示范围时可自动折叠到下拉菜单，\n自动折叠功能会保证新增选项卡、当前选项卡位于可见位置,\n这会导致选项卡在必要时自动调整位置,\n所以同一索引并不一定指向同一选项卡
 win.ui.tabs() = !win_ui_tabs.
+win.ui.tabs.defaultStyle = @.defaultStyle = {\n	foreground={\n		active=0xFFFFFFFF;\n		default=0x00FFFFFF;\n		hover=0x38FFFFFF\n	};\n	color = {\n		default=0xFFFFFFFF; \n	};\n	checked={\n		foreground={default=0xFFFFFFFF;}; \n		color={default=0xFF42A875;};__/*默认选项卡样式*/\n	}\n}
+win.ui.tabs.dropButtonStyle = @.dropButtonStyle = {   \n	color = { \n		hover = 0xff99ffcc;\n		active = 0xffff6666; \n		default = 0xffffffff; \n	}__/*选项卡下拉按钮默认样式*/\n}
 end intellisense**/
 
 /**intellisense(!win_ui_tabs)
@@ -1211,11 +1282,11 @@ selText = 获取当前选中项文本,\n也可以指定一个文本用于切换�
 selForm = 当前选中的子窗口\n!winform.
 lastVisibleIndex = 最后一个显示状态的选项卡索引\n在这后面是因为超出显示范围被自动隐藏的选项卡
 lastVisibleItem = 最后一个显示状态的选项卡\n在这后面是因为超出显示范围被自动隐藏的选项卡\n这是一个plus控件对象\n!ui_ctrl_plus.
-container = 用于加载子窗口的容器控件,必须是custom控件,\n创建高级选项卡时,会自动绑定附近可用的custom控件\n也可以在加载子窗口以前手工指定此对象\n!winform.
-forms = 子窗口数组
-forms.? = 子窗口是win.form对象\n!winform.
-strips = 选项卡数组
-strips.? = 选项卡按钮对象,plus控件\n!ui_ctrl_plus.
+container = 用于加载子窗口的标签页容器控件（ tabpage container），\n标签页容器必须是 custom 控件（win.ui.ctrl.custom）。\n创建高级选项卡时，会自动绑定附近可用的 custom 控件。\n也可以在加载子窗口以前手工指定此对象\n!winform.
+forms = 标签页容器（ tabpage container）内包含的子窗口数组
+forms.? = 子窗口是 win.form 对象\n!winform.
+strips = 选项卡数组（ tabstrip items）。
+strips.? = 选项卡数组包含的按钮对象，plus 控件。\n!ui_ctrl_plus.
 adjustLayout() = 调整布局\n高级选项卡会在需要的时候自动调用此函数
 getPos() = 返回x,y,cx,cy等4个值,\n分别表示高级选项卡当前左,上坐标,宽度,高度
 hitTest(.(x,y) = 参数指定屏幕坐标，返回该坐标所在的选项卡，以及选项索引
@@ -1225,11 +1296,12 @@ adjust() = @.adjust = function(){
 }
 showDropButton(true) = 参数为true显示下拉菜单按钮\n参数为false隐式该按钮\n高级选项卡会在需要的时候自动调用此函数
 swap(.(a,b) = 交换两个索引的选项卡位置\n参数a,b应当是有效的选项卡索引\n这个函数如果没有弄清楚原理最好不要使用,\n高级选项卡会在需要的时候自动调用此函数,\n成功返回true,失败返回null
-loadForm( = 加载窗体到高级选项卡窗体容器中\n选项卡必须已经找到可用的子窗体容器,即 container 成员对象不为空值\n\n高级选项卡默认会自动查找附近合适的 custom 控件作为子窗体容器\n也可以手动指定 container 指向的窗口\n\nloadForm 函数默认会延迟创建窗体。\n调用 preloadForm 函数可立即加载窗体
-loadForm(.(index,"请输入aardio文件路径") = 加载外部窗体文件并绑定到参数@1指定索引的选项卡.\n在开发环境中,请注意保存外部窗体文件以后测试运行。\n默认会延迟到用户切换到所属选项卡时才会真正加载窗体。\n可选在后面调用 preloadForm 函数立即加载窗体
-loadForm(.(index,winform窗体对象) = 添加窗体并绑定到参数@1指定索引的选项卡
-loadForm(.(index,创建窗体的表参数) = 创建窗体并绑定到参数@1指定索引的选项卡。\n默认会延迟到用户切换到所属选项卡时才会真正创建窗体。\n可选在后面调用 preloadForm 立即创建窗体
-preloadForm(.(index,shown) = 立即加载指定选项卡下关联的子窗口,\n参数@1指定选项卡索引,\n如果参数@2不为null，则将其作为参数调用返回窗体的show函数,\n成功返回窗体对象,失败返回 null 。\n\nwin.ui.tabs 对象的 loadForm 函数默认会延迟创建窗体。\n调用 preloadForm 函数可立即加载窗体\n!winform.
+loadForm( = 加载窗体到高级选项卡的标签页容器控件，并绑定选项卡。\n选项卡必须已经匹配到可用的标签页容器，\n也就是说 container 属性不为空值。\n\n高级选项卡默认会自动查找附近合适的 custom 控件作为标签页容器\n也可以手动指定 container 指向的窗口\n\nloadForm 函数默认会加载延迟创建实际窗口的伪窗口。\n访问伪窗口的任何属性或方法都会自动创建真实窗口。
+loadForm(.(index,"请输入窗体代码文件路径") = 在标签页容器控件内预加载创建子窗体的代码文件，\n并绑定到参数 @index 指定索引的选项卡。\n参数 @index 可用负索引表示倒计数，-1 表示最后一个选项卡。\n在开发环境中,请注意保存外部窗体文件以后测试运行。\n\n默认会创建并返回一个伪窗口对象，\n并延迟到用户切换到所属选项卡时才会真正创建窗口。\n访问伪窗口除 fake 以外的任何属性方法也会立即创建窗口。
+loadForm(.(index,winform) = 将 @winform 指定的子窗体添加到标签页容器，\n并绑定到参数 @index 指定索引的选项卡。\n参数 @index 可用负索引表示倒计数，-1 表示最后一个选项卡。\n返回参数 @2 指定的窗体对象。
+loadForm(.(index,@tParam) = 在标签页容器控件内创建子窗体并绑定到参数@1指定索引的选项卡。\n参数 @index 可用负索引表示倒计数，-1 表示最后一个选项卡。\n\n默认会创建并返回一个伪窗口对象，\n并延迟到用户切换到所属选项卡时才会真正创建窗口。\n访问伪窗口除 fake 以外的任何属性方法也会立即创建窗口。
+loadForm(.(index) = 在标签页容器控件创建默认子窗体并绑定到指定的选项卡。\n数 @index 指定索引，可用负索引表示倒计数，-1 表示最后一个选项卡。\n省略参数 @2 则立即创建默认子窗体并加载到标签页，然后返回该窗体。
+loadForm(.() = 在标签页容器控件创建默认子窗体并绑定到最后一个选项卡。\n返回创建的子窗口对象。
 setItemTexts( = 使用文本数组更新选项卡数组,\n此函数可重用已创建的选项卡，所以有更好的性能
 setItemTexts(.(texts,limit,selIndex) = 使用参数@texts指定的字符串数组创建选项卡数组,\n其中的每个字符串用于指定选项卡上的显示文本。\n可选用@limit参数指定最大显示条数,\n可选用@selIndex参数指定默认选中索引,\n此函数返回实际显示条数
 setItems( = 使用控件初始化选项数组更新选项卡数组,\n此函数可重用已创建的选项卡，所以有更好的性能
@@ -1258,16 +1330,16 @@ onPopup(showing) = @.onPopup = function(showing){
 onVisualStateChanged(showing) = @.onVisualStateChanged = function(showing){
 	__/*显示或隐藏时触发此事件\n显示@showing参数为true，隐藏@showing参数为false*/
 }
-beforeShowCloseButton(strip,rcStrip,rcCloseButton,dpiScaleX,dpiScaleY) = @.beforeShowCloseButton = function(strip,rcStrip,rcCloseButton){
+beforeShowCloseButton(stripItem,rcStripItem,rcCloseButton,dpiScaleX,dpiScaleY) = @.beforeShowCloseButton = function(stripItem,rcStrip,rcCloseButton){
     __/*返回关闭按钮显示的x,y坐标,需要返回2个值\n不返回值取消显示\n\n参数strip为请求显示关闭按钮的选项卡\nrcStrip为选项卡所在的区块,::RECT对象,\nrcCloseButton为关闭按钮所在的的区块,::RECT对象\ndpiScaleX,dpiScaleY为X,Y轴上的DPI缩放比例,1表示100%*/
 }
-onMouseHover(strip,wParam,lParam) = @.onMouseHover = function(strip,wParam,lParam){
+onMouseHover(stripItem,wParam,lParam) = @.onMouseHover = function(stripItem,wParam,lParam){
     __/*鼠标正悬浮于选项卡对象strip之上,\nwParam,lParam为窗口消息参数*/
 }
-onMouseLeave(strip,wParam,lParam) = @.onMouseLeave = function(strip,wParam,lParam){
+onMouseLeave(stripItem,wParam,lParam) = @.onMouseLeave = function(stripItem,wParam,lParam){
     __/*鼠标离开选项卡对象strip,\nwParam,lParam为窗口消息参数*/
 }
-onMouseLeave(strip,wParam,lParam) = @.onMouseLeave = function(strip,wParam,lParam){
+onMouseLeave(stripItem,wParam,lParam) = @.onMouseLeave = function(stripItem,wParam,lParam){
     __/*鼠标离开选项卡对象strip,\nwParam,lParam为窗口消息参数*/
 }
 onFocusGot(hLostFocus) = @.onFocusGot = function(hLostFocus){
@@ -1276,22 +1348,22 @@ onFocusGot(hLostFocus) = @.onFocusGot = function(hLostFocus){
 onFocusLost(hFocus) = @.onFocusLost = function(hFocus){
 	__/*失去焦点触发此事件,hFocus为得到焦点的窗口句柄*/
 }
-onSelchange(idx,strip,form) = @.onSelchange = function(idx,strip,form){
+onSelchange(idx,stripItem,form) = @.onSelchange = function(idx,stripItem,form){
 	__/*切换选项卡会触发此事件,idx为当前选中索引\nstrip为当前选项卡,form为当前子窗口*/
 }
-onOk(strip) = @.onOk = function(strip){
+onOk(stripItem) = @.onOk = function(stripItem){
 	__/*用户在弹出列表中选择并确认选项,且即将关闭弹出列表*/
 }
 onCancel() = @.onCancel = function(){
 	__/*用户关闭弹出列表﻿并且未确认选项*/
 }
-oncommand(strip,id,event) = @.oncommand = function(strip,id,event){
+oncommand(stripItem,id,event) = @.oncommand = function(stripItem,id,event){
 	__/*点击选项卡触发此函数\nstrip为触发事件的选项卡\nid为控件id,event目前值总是0*/
 }
-onMouseDown(strip,wParam,lParam) = @.onMouseDown = function(strip,wParam,lParam){
+onMouseDown(stripItem,wParam,lParam) = @.onMouseDown = function(stripItem,wParam,lParam){
     __/*在选项卡对象strip上按下鼠标,即将切换当前选项卡,\nwParam,lParam为窗口消息参数*/
 }
-onMouseUp(strip,wParam,lParam) = @.onMouseUp = function(strip,wParam,lParam){
+onMouseUp(stripItem,wParam,lParam) = @.onMouseUp = function(stripItem,wParam,lParam){
     __/*在选项卡对象strip上放开鼠标,选项卡切换操作已完成,\nwParam,lParam为窗口消息参数*/
 }
 onDrawString(->->->) = @.onDrawString = function(graphics,text,font,rectf,strformat,brush){
@@ -1308,7 +1380,7 @@ indexOfStrip(__) = 获取选项卡所在的索引位置\n参数指定选项卡�
 indexOfForm(__) = 获取子窗口所在的选项卡索引位置\n参数指定相同索引位置的子窗体对象
 closeButton = 选项卡上关闭按钮,plus控件\n可调用skin函数自定义外观样式\n可通过beforeShowCloseButton事件自定义显示坐标\n注意这是一个orphanWindow浮动窗口\n!ui_ctrl_plus.
 dropButton = 下拉菜单按钮,\n如果存在超出显示范围的选项卡,这个控件会自动显示\n这是一个plus控件对象\n!ui_ctrl_plus.
-each() = @for(strip,form,idx in ??.each() ){
+each() = @for(stripItem,form,idx in ??.each() ){
 	__/*遍历所有选项卡,\nstrip为选项卡对象,form为对应的子窗口,idx为索引位置\n遍历时不应当执行删除、新增选项卡,设置当前选项卡等改变索引位置的操作*/
 }
 query(查询属性) = @.query(\n	text = "标题";\n	tabsName = "名字";__/*使用选项卡的指定属性查询对应的子窗口,\n如果子窗口没有加载将会立即加载,\n选项卡的任一属性值与查询条件相同即可\n自定义属性建议加上tabs前缀以避免冲突\n也可以用一个字符串参数直接查询选项卡标题,\n返回窗口对象,以及所在索引*/\n)

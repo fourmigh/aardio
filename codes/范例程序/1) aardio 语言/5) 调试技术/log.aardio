@@ -16,6 +16,10 @@ aardio 的 debug 库也提供了方便的、可编程的断点调试功能，
 import debug;
 import debug.log;
 import console;
+
+//仅在开发环境中则自动打开控制台并输出调用栈，发布后仅向 stderr 输出信息（不含调用栈，不自动打开控制台）。
+console.error("输出错误信息，仅在开发环境中输出调用栈")
+
 console.logPause("右键点开控制台标题栏菜单 > 编辑 > 全选，然后按回车键可以复制");
 
 //输出不定个数对象最简单的方法

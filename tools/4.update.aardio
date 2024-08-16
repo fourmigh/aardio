@@ -3,6 +3,7 @@ import ide;
 import inet.downBox;
 import process.file;
 import zlib;
+import sevenZip.lzma;
 import fsys;
 import win;
 

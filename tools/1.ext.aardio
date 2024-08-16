@@ -128,7 +128,6 @@ winform.btnSetup.oncommand = function(id,event){
 import ide;
 import inet.downBox;
 import process;
-import zlib.unzip;
 import fsys;
 fsys.createDir( "/.sampleCode/");
 
@@ -176,6 +175,7 @@ var openSample = function(libName){
 		var downBox = inet.downBox(winform,"/.sampleCode/" + libName,true )
 
 		if( downBox.download(libInfo.zipUrl , codePath ) ){
+			import zlib.unzip;
 	 		var ok,err = zlib.unzip.extract( codePath, "/.sampleCode/" + libName ) 
 	 		..process.explore("/.sampleCode/" + libName)
 	 	} 

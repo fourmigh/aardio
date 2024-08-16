@@ -113,7 +113,7 @@ namespace raw{
 }
 
 raw.execute = function(file,param,op,show,dir,hwnd){  
-	return 32 < ::Shell32.ShellExecute(hwnd || ::User32.GetActiveWindow(),op,file:"",param,dir,show===null?5/*_SW_SHOW*/:show); 
+	return 32 < ::Shell32.ShellExecute(hwnd || ::User32.GetActiveWindow(),op,..io.localpath(file)||file||"",param,dir,show===null?5/*_SW_SHOW*/:show); 
 }
 
 raw.explore = function(path,...){

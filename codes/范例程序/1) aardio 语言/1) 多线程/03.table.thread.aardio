@@ -26,24 +26,32 @@ var thrdHandle1 = thread.create(
 	function(thrdTable){ 
 		      
 	thrdTable.push( "线程ID:" + thread.getId() )
-	
-	thrdTable.a = 12; //线程共享表也可以象普通表一样访问
-	thrdTable["b"] = 34;//建议使用下标读写，可以读写与对象的属性、函数名同名的键名不会冲突。
+
+	//用下标读写线程共享表的键值，键名与对象的属性、函数名同名不会冲突。
+	thrdTable["b"] = 34; 
 	thrdTable["c"]= 56; 
+	
+	//可以读写普通表，但子表并不是线程共享表。
 	thrdTable["d"] = {}; 
 	
-	//这种写法是错的，因为线程共享表每次读成员都会复制新的副本。 
-	thrdTable.d.tab = { name = "name" }
-	
-	//正确写法，先读取表到本地
+	//每次读取 thrdTable.d 都会得到新的副本
 	var localData = thrdTable["d"];
 	
-	//作为普通表轻快简单地操作
+	//修改 localData 不会自动会同步到线程共享资源。
 	localData.tab = { name = "name" }
-	
-	//然后再保存到线程共享表
-	thrdTable["d"] = localData;
 		
+	//下面这样只是修改子表的临时副本，子表不是线程共享表
+	thrdTable.d.tab = { name = "name" }
+ 	
+	//只有修改线程共享表的直接成员，才会自动同步到线程共享资源
+	thrdTable["d"] = localData;
+	
+	//注意 # 操作符不适合用于线程共享表
+	var len = #thrdTable
+	
+	//应当用 len 函数或 length 属性获取共享数组长度
+	len = thrdTable.len(); // 也可以用 thrdTable.
+	
 	//线程共享表可作为参数传入其他线程
 	},thrdTable
 )

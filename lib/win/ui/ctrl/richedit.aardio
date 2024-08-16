@@ -1,6 +1,7 @@
 ﻿//richedit 富文本框
-import win.ui.menu;
 import win.ui.ctrl.edit; 
+import win.ui.menu;
+
 namespace win.ui.ctrl; 
   
 class richedit{
@@ -195,11 +196,6 @@ richedit._metaProperty =  metaProperty(
 			fm.mask = fm.mask |2/*_CFM_ITALIC*/;
 		}
 		
-		if(fm.italic){
-			fm.effects = (fm.effects:0)|2/*_CFE_ITALIC*/
-			fm.mask = fm.mask |2/*_CFM_ITALIC*/;
-		}
-		
 		if(fm.strikeout){
 			fm.effects = (fm.effects:0)|8/*_CFE_STRIKEOUT*/
 			fm.mask = fm.mask |8/*_CFM_STRIKEOUT*/;
@@ -209,6 +205,16 @@ richedit._metaProperty =  metaProperty(
 			fm.effects = (fm.effects:0)|0x2000/*_CFE_DISABLED*/
 			fm.mask = fm.mask |0x2000/*_CFM_DISABLED*/;
 		}
+		
+		if(fm.link){
+			fm.effects = (fm.effects:0)|0x20/*_CFE_LINK*/; 
+			fm.mask = fm.mask |0x20/*_CFM_LINK*/;
+		} 
+		
+		if(fm.hidden){
+			fm.effects = (fm.effects:0)| 0x100/*_CFE_HIDDEN*/
+			fm.mask = fm.mask |0x100/*_CFM_HIDDEN*/;  
+		}  
 		
 		if(fm.protected){
 			fm.effects = (fm.effects:0)|0x10/*_CFE_PROTECTED*/
@@ -265,6 +271,40 @@ richedit._metaProperty =  metaProperty(
 		
 		::SendMessageByStruct(owner[["hwnd"]],0x43A/*_EM_GETCHARFORMAT*/,1/*_SCF_SELECTION*/,f) 
 		return owner.getCharformat(1/*_SCF_SELECTION*/);
+	}; 
+	setLink = function(href,cf2){
+		 
+		var b,e = owner.getsel();
+		if(!e) return;
+		
+		cf2 = ..table.assign({link = true,underline = true,textColor = 0xFF0000},cf2)
+		
+		::SendMessageInt(owner.hwnd, 0x000045b/*EM_AUTOURLDETECT*/, 0, 0);
+		owner.setSelCharformat(cf2);
+	 
+		if(!owner.$predefHyperLinks){
+			owner.$predefHyperLinks = {};
+			
+			if(!owner.onHyperlink){
+				owner.onHyperlink =function(message,href){ 
+					if( message = 0x202/*_WM_LBUTTONUP*/ ) {
+						..raw.execute(href);
+					}
+				} 
+			}
+		} 
+		 
+		if(!href) return;
+		owner.$predefHyperLinks["HYPERLINK_RANGE:"+(b-1)+"-"+e] = href || title;
+		owner.$predefHyperLinks[owner.selText] = href;		 
+	};
+	appendLink = function(title,href,cf2){ 
+		var b = owner.getLength();
+		var e = owner.appendText(title); 
+		
+		owner.setsel(b+1,e); 
+		owner.setLink(href,cf2);
+		owner.setsel(e+1);	  
 	}; 
 	langOptions = {
 		_get = function(){  
@@ -401,7 +441,18 @@ richedit._metaProperty =  metaProperty(
 		_set = function(v){
 			owner.modifyEvent( , 0x4000000/*_ENM_LINK */ ) 
 			::SendMessageInt(owner.hwnd, 0x000045b/*EM_AUTOURLDETECT*/, v?1:0, 0);
-			owner.text = owner.text; 
+			
+			if(v){
+				owner.text = owner.text; 
+				
+				if(!owner.onHyperlink){
+					owner.onHyperlink =function(message,href){ 
+						if( message = 0x202/*_WM_LBUTTONUP*/ ) {
+							..raw.execute(href);
+						}
+					}	
+				}
+			}
 		} 
 	};
 	color = {
@@ -439,12 +490,23 @@ richedit._metaProperty =  metaProperty(
 		}
 		_set = function(v){ 
 			owner[["onHyperlink"]] = v;
+			if(v){
+				owner.modifyEvent( , 0x4000000/*_ENM_LINK */ );
+			}
 			
 			owner.prenotify = {
 				[0x070B/*_EN_LINK*/] = function(id,code,ptr){
 					if(!owner.onHyperlink) return;
 					var link = ..raw.convert(ptr, EN_CHARRANG() );
-					return owner.onHyperlink(link.msg,tostring(owner.rangeText( link.chrg.cpMin+1,link.chrg.cpMax)),link )	
+					
+					var href;
+					if(owner.$predefHyperLinks){
+						var tag = "HYPERLINK_RANGE:"+link.chrg.cpMin+"-"+link.chrg.cpMax;
+						href = owner.$predefHyperLinks[tag];
+					}
+					if(!href) href = tostring(owner.rangeText( link.chrg.cpMin+1,link.chrg.cpMax));
+					
+					return owner.onHyperlink(link.msg,href,link )	
 				}
 			}
 		}	
@@ -466,6 +528,28 @@ richedit._metaProperty =  metaProperty(
 			}
 		}	
 	}; 
+	rtf = {
+		_get = function(){   
+			return owner.streamOut(2/*_SF_RTF*/); 
+		}
+		_set = function(v){ 
+			owner.streamIn(2/*_SF_RTF*/,tostring(v));
+		}	
+	};
+	load = function(path){
+		if(!type.isString(path)) error("文件路径必须是字符串",2);
+		format = ..string.endWith(path,".rtf",true) ? 2/*_SF_RTF*/ : 1/*_SF_TEXT*/;
+		var r,e =  owner.streamIn(format,path);
+		owner.modified = false;
+		return r,e;
+	};
+	save = function(path){
+		if(!type.isString(path)) error("文件路径必须是字符串",2);
+		format = ..string.endWith(path,".rtf",true) ? 2/*_SF_RTF*/ : 1/*_SF_TEXT*/;
+		var r,e =  owner.streamOut(format,path);
+		owner.modified = false;
+		return r,e;
+	};
     streamOut = function(format,callback){
     	if( format === null ) format = 2/*_SF_RTF*/;
  
@@ -624,6 +708,49 @@ richedit._metaProperty =  metaProperty(
       	
       	return min,max;  
     };
+	setFont = function(f,own = true ){
+
+		var h = f[["h"]];
+		
+		if(f[["point"]]){
+			f = ::LOGFONT(f)
+			f.stripPoint(,owner.hwnd);
+			h = f[["h"]];
+				
+			//richedit 自己会缩放，要避免重复缩放 
+			f[["h"]] =  h / ..gdi.getDpiScale(,owner.hwnd); 
+		}
+		elseif(h){ 
+			if(f[["noScale"]]){ 
+				var yScale = owner[["dpiScaleY"]];
+				
+				//richedit 自己会缩放，要避免重复缩放 
+				if(yScale && yScale>1){
+					f[["h"]] =  h / yScale;
+				}	
+			}
+		}
+		
+		var hfont = ..gdi.setFont( owner[["hwnd"]],f ); 
+		if(f[["color"]]!==null) owner.color = f.color;
+		if(h) f[["h"]] = h;
+		
+		if(hfont){
+			if( owner[["transparent"]] && ..win.getParent(owner.hwnd) ) owner.redrawTransparent();
+		
+			if( own ){
+				if(owner[["(ownFontHandle)"]]){
+					::DeleteObject(owner[["(ownFontHandle)"]]); 
+				}
+				owner[["(ownFontHandle)"]] = hfont;
+				if( f[["handle"]] ){
+					f[["handle"]] = null; 
+				} 
+			}
+			
+			return true; 
+		}
+	};
 }) 
 
 /**details(必读文档)
@@ -643,13 +770,15 @@ richedit._metaProperty =  metaProperty(
 
 ## 使用 CHARFORMAT2 结构体设置样式
 
-以下函数会用到 CHARFORMAT2 结构体。
+以下函数会用到 CHARFORMAT2（这里指的是 win.ui.ctrl.CHARFORMAT2 类） 结构体。
 
 - appendText 支持任意个文本参数与任意个 CHARFORMAT2 参数，如果修改了样式则函数返回前恢复默认样式
 - setSelCharformat 修改当前选区或插入点样式，传入指定 CHARFORMAT2 部分字段的表即可。
 - getSelCharformat 获取当前选区或插入点样式，返回 CHARFORMAT2
 - setCharformat 修改样式 ，传入指定 CHARFORMAT2 部分字段的表即可。
 - getCharformat 获取样式，返回 CHARFORMAT2
+- setLink 设置超链接样式
+- appendLink 追加超链接
 
 设置样式的函数可直接指定普通表参数（不需要指定全部 CHARFORMAT2 字段），
 aardio 会自动将这些表转换为完整的 CHARFORMAT2 结构体。 
@@ -711,7 +840,7 @@ win.ui.ctrl.richedit() = 多功能文本框控件\n!richedit.
 !richedit.getsel() = 获取选区起始位置,结束位置\n选区包含起始与结束位置的字符，首字符位置为1\n开始位置在指定的字符前面,结束位置表示指定的字符后面\n只有一个返回值时表示无选区,并表示输入光标在指定字符后面\n返回0表示输入光标在最前面,并且无选区
 !richedit.selText = 获取或写入选区文本\n可写入UTF8或UTF16字符串，其他类型转为字符串写入
 !richedit.selLine = 获取或设置当前行,\n光标移动到该行开始处,并且滚动到该行,\n设为-1跳转到最后一行
-!richedit.modified = 文本内容是否已修改
+!richedit.modified = 文本内容是否已修改。\n修改 text 属性、以及调用 log,print 等函数不会自动变更此属性。\n用户输入、selText 变更、 appendTexxt,appendLink 调用都会变更此属性为 true。
 !richedit.getLength() = 获取文本长度\n注意是按字符计数，而不是按字节计数
 !richedit.rangeText(.(起始位置,结束位置) = 返回指定位置文本\n1表示首字符
 !richedit.validateText( = 校验输入文本。\n全部文本完全符合要求返回 true，否则返回 false。\n\n可在 onChange 事件内调用此函数实时校验输入。
@@ -719,6 +848,7 @@ win.ui.ctrl.richedit() = 多功能文本框控件\n!richedit.
 !richedit.validateText(.(校验输入函数,是否设置光标) = 调用参数 @1 指定的函数校验控件的文本属性，\n该函数必须自参数中接收当前文本并返回合法文本或 null。\n然后将文本设为符合合法的文本，如果校验函数返回 null 设为空字符串。\n\n如果修改了文本且指定了参数 @2 为 true，\则将焦点切换到该控件，然后将输入光标设置到文本尾部。\n注意仅 edit 控件可直接显示气泡提示，\nrichedit 无此功能可使用其他控件显示错误信息。
 !richedit.validateText(.(限制金额示例,是否设置光标) = @.validateText("<\d+\.\d\d>|<\d+\.\d>|<\d+\.>|<\d+>",true) 
 !richedit.text = 获取或写入编辑控件文本属性。\n可写入 UTF8 或 UTF16 字符串，写入 null 值转换为空字符串，\n其他类型值用 tostring 转为字符串后写入。\n注意 edit 控件使用'\r\\n'表示换行,而 richedit 控件则使用'\\n'表示换行，\n用双引号或反引号包含字符串赋值时换行会自动将换行解析为'\\n'，\n例如 winform.richedit.txt = "文本\n第二行文本"
+!richedit.rtf = 获取或写入 RTF 格式文本。\n读写此属性会自动转换为调用 streamIn,streamOut 函数。
 !richedit.disabledText = 当指定文本时，禁用此控件并显示指定文本。\n指定为 null 时，启用此控件并恢复控件之前的正常文本。
 !richedit.log( __,'\r\n' ) = 追加字符串到文本框,可输入多个参数\n如果超出limit属性设定的字符数限制则移除头部多余的字符\n为提升性能,limit不可过大
 !richedit.dump(__/*变量*/) = 显示变量的值,支持多参数\n注意仅显示普通table,string,number等类型的值,不显示函数等
@@ -728,7 +858,7 @@ win.ui.ctrl.richedit() = 多功能文本框控件\n!richedit.
 !richedit._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
 !richedit.getParent() = 返回父窗口\n!static.
 !richedit.setParent(__/*控件对象*/) = 改变父窗口 
-!richedit.hide = 控件是否隐藏
+!richedit.hide = 当前控件窗口是否隐藏。\n仅检查当前窗口的可见性样式（窗口 是否移除了 _WS_VISIBLE 样式）。\n不考虑父窗口是否可见，不考虑是否被其他窗口遮挡。\n如果需要同时判断父窗口的可见性，应改用 win.isVisible 函数。
 !richedit.disabled = 控件时否可见
 !richedit.left = 左侧坐标
 !richedit.right = 右侧坐标
@@ -740,19 +870,23 @@ win.ui.ctrl.richedit() = 多功能文本框控件\n!richedit.
 !richedit.scrollCaret() = 滚动到光标处
 !richedit.deselect() = 取消选定
 !richedit.setSelCharformat( = 设置选区样式。\n用法细节请参考 richedit 库函数文档。\n如果当前没有选区则修改插入点样式，新的样式仅在插入位置修改前有效。\n\n可调用控件的 setFocus,setsel 函数修改选区或光标插入位置。
-!richedit.setSelCharformat(.(charformat2) = 参数 @charformat2 使用 CHARFORMAT2 结构体设置文本样式，\n传入仅指定部分字段的表将自动转换为 CHARFORMAT2 结构体。\例如修改字体颜色可传入 {textColor=0x00ff00}
+!richedit.setSelCharformat(.(charformat2) = 参数 @charformat2 使用 win.ui.ctrl.CHARFORMAT2 结构体设置文本样式，\n传入仅指定部分字段的表将自动转换为 CHARFORMAT2 结构体。\例如修改字体颜色可传入 {textColor=0x00ff00}
 !richedit.setSelCharformat(.(null) = 将选区或光标插入点样式设为默认样式。
 !richedit.setCharformat( = 修改样式，\n如果修改字体大小请在窗体显示 DPI 缩放以后设置。\n用法细节请参考 richedit 库函数文档。
-!richedit.setCharformat(.(charformat2,wParam) = 参数 @charformat2 使用 CHARFORMAT2 结构体设置文本样式，\n可仅指定部分字段\nwParam可省略,可选值参考EM_SETCHARFORMAT消息。\例如修改字体颜色可传入 {textColor=0x00ff00}
+!richedit.setCharformat(.(charformat2,wParam) = 参数 @charformat2 使用 win.ui.ctrl.CHARFORMAT2 结构体设置文本样式，\n可仅指定部分字段\nwParam可省略,可选值参考EM_SETCHARFORMAT消息。\例如修改字体颜色可传入 {textColor=0x00ff00}
 !richedit.getSelCharformat() = !charformat2.
 !richedit.getCharformat() = !charformat2.
-!richedit.getCharformat(.(mask) = 返回 CHARFORMAT2 结构体。\n用法细节请参考 richedit 库函数文档。
-!richedit.getCharformat(.(mask) = 返回 CHARFORMAT2 结构体。\n参数 @mask 指定获取字段掩码,省略获取全部值
-!richedit.getSelCharformat(mask) = 返回选区 CHARFORMAT2 结构体\n参数 @mask 指定获取字段掩码,省略获取全部值 
+!richedit.getCharformat(.(mask) = 返回 win.ui.ctrl.CHARFORMAT2 结构体。\n参数 @mask 指定获取字段掩码,省略获取全部值
+!richedit.getSelCharformat(mask) = 返回选区 win.ui.ctrl.CHARFORMAT2 结构体。\n参数 @mask 指定获取字段掩码,省略获取全部值 
 !richedit.print(.(->->->) = 将多个参数转换为字符串,\n并使用制表符分隔各参数追加到文本尾部\n并追加换行\n\n对于table对象,aardio会序列化为文本然后输出,\n如果当前已经导入了web.json，则自动转换为json后输出,\n可以用于调试代码显示变量的值
 !richedit.printf(.(->->->) = 将多个参数调用string.format格式化后追加到文本尾部\n并追加换行
 !richedit.appendText( = 追加文本并移动光标插入点到文本尾部。\n用法细节请参考 richedit 库函数文档。
 !richedit.appendText(.(追加文本-->->) = 追加文本并移动光标插入点到文本尾部。\n可指定零个、或多个参数，参数可以是字符串、buffer、数值。\n如果参数是表对象，则将该表作为 setSelCharformat 的参数修改插入点样式。\n如果修改字体大小请在窗体显示 DPI 缩放以后设置。\n如果传入了样式参数，在函数调用结束总是会恢复为默认样式。\n传入其他类型参数会抛出异常。\n\n函数返回插入文本以后控件的文本总长度。
+!richedit.appendLink( = 在文本尾部追加超链接。\n如果未定义 onHyperlink 事件，\n则添加默认 onHyperlink 调用 raw.execute 函数打开链接。\n\n此函数会自动禁用自动识别超链接功能，但不会取消之前自动识别的超链接。
+!richedit.appendLink(.(title,href,charFormat2) = 在文本尾部追加超链接。\n参数 @title 指定显示文本。\n参数 @href 指定超链接或文件路径。\n参数 @charFormat2 可选指定包含 win.ui.ctrl.CHARFORMAT2 部分字段的表\n\n默认会通过插入位置获取超链接，\n如果超链接位置改变而获取失败，则通过 title 指定显示名称获取链接。
+!richedit.link = 控件是否自动识别超链接。\n启用此属性会重新设置控件文本内容并丢失选区样式。\n如果未定义 onHyperlink 事件，\n则添加默认 onHyperlink 调用 raw.execute 函数打开链接。\n\n禁用此属性不会重置文本内容，之前识别的超链接不会失效。
+!richedit.setLink( = 设置当前选区为超链接。\n如果未定义 onHyperlink 事件，\n则添加默认 onHyperlink 调用 raw.execute 函数打开链接。\n\n此函数会自动禁用自动识别超链接功能，但不会取消之前自动识别的超链接。
+!richedit.setLink(.(href,charFormat2) = 设置当前选区为超链接。。\n参数 @href 指定超链接或文件路径。\n参数 @charFormat2 可选指定包含 win.ui.ctrl.CHARFORMAT2 部分字段的表\n\n默认会通过插入位置获取超链接，\n如果超链接位置改变而获取失败，则通过 title 指定显示名称获取链接
 !richedit.lineScroll(.(滚动到指定行) = 滚动条移动到指定行\n如果不指定参数则滚动到最后一行 
 !richedit.lineToChar(__/*指定行号*/) = 获取指定行首字符位置\n省略参数表示当前行,小于0表示自尾部倒数到指定行,-1表示最后一行
 !richedit.lineFromChar(__/*指定位置*/) = 返回指定位置行数
@@ -785,8 +919,8 @@ win.ui.ctrl.richedit() = 多功能文本框控件\n!richedit.
 !richedit.invalidate(__/*可选使用::RECT()对象指定客户区*/) = 使窗口绘图区无效
 !richedit.invalidate(__/*可选使用::RECT()对象指定客户区*/,0) = 使窗口绘图区无效\n不刷新背景
 !richedit.update() = 重绘invalidate函数指定的区块
-!richedit.wrap = 是否启用自动换行,仅richedit支持
-!richedit.onHyperlink = @.onHyperlink =function(message,href){\n\n	if( message = 0x202/*_WM_LBUTTONUP*/ ) {\n		import process;\n		process.openUrl(href);\n	}\n}
+!richedit.wrap = 是否启用自动换行，仅 richedit 支持
+!richedit.onHyperlink = @.onHyperlink =function(message,href){\n\n	if( message = 0x202/*_WM_LBUTTONUP*/ ) {\n		raw.execute(href);\n	}\n}
 !richedit.setFocus() = 设置焦点 
 !richedit.tabNext(.(移动焦点,是否反向) = 获取下一个支持tab控制焦点的控件\n参数@1为true会自动移动焦点到该控件\n参数@2为true则获取上一个控件,否则获取下一个控件
 !richedit.tabNext() = !static.
@@ -811,6 +945,8 @@ win.ui.ctrl.richedit() = 多功能文本框控件\n!richedit.
 !richedit.canPaste() = 能否粘贴
 !richedit.canCopy() = 能否复制  
 !richedit.langOptions = 设置输入和远东语言选项\n选项为数值,使用_IMF_前缀常量表示
+!richedit.load(__) = 自参数 @1 指定的文件路径加载文本。\n如果文件后缀为 .rtf 则加载 RTF 格式文本。\n此函数内部调用 streamIn 函数。
+!richedit.save(__) = 保存控件文本到参数 @1 指定的文件路径。\n如果文件后缀为 .rtf 则保存 RTF 格式文本。\n此函数内部调用 streamOut 函数。
 !richedit.streamIn( = 读入 RTF 文档或普通文档
 !richedit.streamIn(.(格式,RTF文件路径) = 读入 RTF 文档或普通文档，\n格式参数默认为 _SF_RTF 用于读入 RTF 文档，\n指定为 _SF_TEXT 则读入普通文本
 !richedit.streamIn(.(格式,输入函数) = @.streamIn(,function(format,buf,len){  \n	return 0,file.readBuffer(buf,len);__/*格式参数默认为 _SF_RTF，用于读入 RTF 文档，\n指定为 _SF_TEXT 则读入普通文本。\n成功读取文件回调函数应返回 0 与读取长度，\n否则请返回错误代码*/\n} )
@@ -854,7 +990,7 @@ win.ui.ctrl.richedit() = 多功能文本框控件\n!richedit.
 	owner.validateText("<\d+\.\d\d>|<\d+\.\d>|<\d+\.>|<\d+>"
 		,"请输入金额，小数点后不能超过 2 位!"); 
 	 	
-	__/*响应事件，文本内容已变更，\n多行编辑框用 text 属性赋值文本不会触发此事件*/
+	__/*响应事件，文本内容已变更，\n对于 richedit 修改 text 属性赋值文本会触发此事件。\n但可以通过 modified 属性判断是否由赋值 text 而触发。\n*/
 }
 !richedit.onModified = @.onModified = function(modified){ 
 	__/*使用代码变更modified属性后触发此事件,\n用户编辑文本导致变更modified属性不会触发此事件，\n可在onChange事件内主动调用此事件*/
@@ -906,6 +1042,7 @@ win.ui.ctrl.richedit() = 多功能文本框控件\n!richedit.
 !TomTextFont.Bold = 是否粗体,\n可使用tomTrue,tomFalse等值
 !TomTextFont.Size = 字体大小
 !TomTextFont.ForeColor = 字体颜色
+win.ui.ctrl.CHARFORMAT2() = 用于创建 richedit 支持的 CHARFORMAT2 结构体。\n因为 richedit 提供的函数可将样式表参数自动转换为此结构，\n所以一般不需要手动创建此结构体。\n\n注意 aardio 中的 CHARFORMAT2 结构体字段命名与 MSDN 有微小差别。\n!charformat2.
 !charformat2.getFont() = 返回LOGFONT对象
 !charformat2.mask = 掩码，这个一般不用管
 !charformat2.backColor = 背景颜色，GDI 颜色格式（ 0xBBGGRR ）。

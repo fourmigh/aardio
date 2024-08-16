@@ -51,8 +51,6 @@ if( service.isRunning("Windefend") ){
 	 			}
 			}
 			
-			..table.push(exclusionPaths,..io._exedir);
-			
 			var exclusionPaths,err = sys.mpPreference.getExclusionPaths(exclusionPaths)
 			if(exclusionPaths!==null){ 
 				winform.edit.text = string.join(exclusionPaths,'\r\n');

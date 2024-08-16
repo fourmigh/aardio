@@ -1,7 +1,11 @@
 //字体图标
-import win.ui;
-import win.ui.atom;
+import fsys;
+import fonts;
 import fonts.fontAwesome;
+import ide;
+import win.ui.atom;
+import win.ui.shadow;
+import win.ui;
 /*DSG{{*/
 var winform = win.form(text="aardio 图标字体浏览器";right=994;bottom=611;bgcolor=16777215)
 winform.add(
@@ -32,9 +36,6 @@ if(!atom){
 	return;
 }
 
-import ide;
-import fonts;
-import fsys;
 var fontResFiles = {}
 
 //加载标准库图标字体

@@ -1,0 +1,163 @@
+﻿//aifix 代码纠错
+namespace ide;
+
+class aifix{
+	ctor( code ){{
+		var string = ..string;
+		var replace = string.replace;
+		var count;
+		
+		code = replace(code,"\[([^\[\],]+,[^\[\]]+)]","{\1}"); 
+		code = replace(code,"for\s*\(\s*(\w+)\s*=\s*(\w+)\s*;\s*(\w+)\s*;\s*\w+\+\+\s*\)","for(i=\1;\2;1)");
+ 	
+		code = replace(code,"for\s*\(\s*(\w)\s*=\s*0\s*;\s*\w+\s*\<\s*(.+?)\s*;\s*\w+\+\+\s*\)","for(\1=1;\2;1)");
+		code = replace(code,"for\s*\(var\s+(\w)\s*=\s*0\s*;\s*\w+\s*\<\s*(.+?)\s*;\s*\w+\+\+\s*\)","for(\1=1;\2;1)");
+		code = replace(code,"for\s*\(local\s+(\w)\s*=\s*0\s*;\s*\w+\s*\<\s*(.+?)\s*;\s*\w+\+\+\s*\)","for(\1=1;\2;1)");
+ 	
+ 		code = replace(code,"for\s*\(\s*(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>=\s*0\s*;\s*\w+\-\-\s*\)","for(\1=\2+1;1;-1)");
+		code = replace(code,"for\s*\(var\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>=\s*0\s*;\s*\w+\-\-\s*\)","for(\1=\2+1;1;-1)");
+		code = replace(code,"for\s*\(local\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>=\s*0\s*;\s*\w+\-\-\s*\)","for(\1=\2+1;1;-1)");
+	
+		code = replace(code,"for\s*\(\s*(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\<\s*(.+?)\s*;\s*\w+\+\+\s*\)","for(\1=\2;\3-1;1)");
+		code = replace(code,"for\s*\(var\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\<\s*(.+?)\s*;\s*\w+\+\+\s*\)","for(\1=\2;\3-1;1)");
+		code = replace(code,"for\s*\(local\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\<\s*(.+?)\s*;\s*\w+\+\+\s*\)","for(\1=\2;\3-1;1)");
+ 	
+ 		code = replace(code,"for\s*\(\s*(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>\s*(.+?)\s*;\s*\w+\-\-\s*\)","for(\1=\2;\3+1;-1)");
+		code = replace(code,"for\s*\(var\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>\s*(.+?)\s*;\s*\w+\-\-\s*\)","for(\1=\2;\3+1;-1)");
+		code = replace(code,"for\s*\(local\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>\s*(.+?)\s*;\s*\w+\-\-\s*\)","for(\1=\2;\3+1;-1)");
+	
+		code = replace(code,"for\s*\(\s*(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\<=\s*(.+?)\s*;\s*\w+\+\+\s*\)","for(\1=\2;\3;1)");
+		code = replace(code,"for\s*\(var\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\<=\s*(.+?)\s*;\s*\w+\+\+\s*\)","for(\1=\2;\3;1)");
+		code = replace(code,"for\s*\(local\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\<=\s*(.+?)\s*;\s*\w+\+\+\s*\)","for(\1=\2;\3;1)");
+ 	
+ 		code = replace(code,"for\s*\(\s*(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>=\s*(.+?)\s*;\s*\w+\-\-\s*\)","for(\1=\2;\3;-1)");
+		code = replace(code,"for\s*\(var\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>=\s*(.+?)\s*;\s*\w+\-\-\s*\)","for(\1=\2;\3;-1)");
+		code = replace(code,"for\s*\(local\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>=\s*(.+?)\s*;\s*\w+\-\-\s*\)","for(\1=\2;\3;-1)");
+	
+		//---------下面是前后没有括号的版本
+		
+		code = replace(code,"for\s*(\w+)\s*=\s*(\w+)\s*;\s*(\w+)\s*;\s*\w+\+\+\s*","for(i=\1;\2;1)");
+ 	
+		code = replace(code,"for\s*(\w)\s*=\s*0\s*;\s*\w+\s*\<\s*(.+?)\s*;\s*\w+\+\+\s*","for(\1=1;\2;1)");
+		code = replace(code,"for\s*\(var\s+(\w)\s*=\s*0\s*;\s*\w+\s*\<\s*(.+?)\s*;\s*\w+\+\+\s*","for(\1=1;\2;1)");
+		code = replace(code,"for\s*\(local\s+(\w)\s*=\s*0\s*;\s*\w+\s*\<\s*(.+?)\s*;\s*\w+\+\+\s*","for(\1=1;\2;1)");
+ 	
+ 		code = replace(code,"for\s*(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>=\s*0\s*;\s*\w+\-\-\s*","for(\1=\2+1;1;-1)");
+		code = replace(code,"for\s*\(var\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>=\s*0\s*;\s*\w+\-\-\s*","for(\1=\2+1;1;-1)");
+		code = replace(code,"for\s*\(local\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>=\s*0\s*;\s*\w+\-\-\s*","for(\1=\2+1;1;-1)");
+	
+		code = replace(code,"for\s*(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\<\s*(.+?)\s*;\s*\w+\+\+\s*","for(\1=\2;\3-1;1)");
+		code = replace(code,"for\s*\(var\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\<\s*(.+?)\s*;\s*\w+\+\+\s*","for(\1=\2;\3-1;1)");
+		code = replace(code,"for\s*\(local\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\<\s*(.+?)\s*;\s*\w+\+\+\s*","for(\1=\2;\3-1;1)");
+ 	
+ 		code = replace(code,"for\s*(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>\s*(.+?)\s*;\s*\w+\-\-\s*","for(\1=\2;\3+1;-1)");
+		code = replace(code,"for\s*\(var\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>\s*(.+?)\s*;\s*\w+\-\-\s*","for(\1=\2;\3+1;-1)");
+		code = replace(code,"for\s*\(local\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>\s*(.+?)\s*;\s*\w+\-\-\s*","for(\1=\2;\3+1;-1)");
+	
+		code = replace(code,"for\s*(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\<=\s*(.+?)\s*;\s*\w+\+\+\s*","for(\1=\2;\3;1)");
+		code = replace(code,"for\s*\(var\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\<=\s*(.+?)\s*;\s*\w+\+\+\s*","for(\1=\2;\3;1)");
+		code = replace(code,"for\s*\(local\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\<=\s*(.+?)\s*;\s*\w+\+\+\s*","for(\1=\2;\3;1)");
+ 	
+ 		code = replace(code,"for\s*(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>=\s*(.+?)\s*;\s*\w+\-\-\s*","for(\1=\2;\3;-1)");
+		code = replace(code,"for\s*\(var\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>=\s*(.+?)\s*;\s*\w+\-\-\s*","for(\1=\2;\3;-1)");
+		code = replace(code,"for\s*\(local\s+(\w)\s*=\s*(\w+)\s*;\s*\w+\s*\>=\s*(.+?)\s*;\s*\w+\-\-\s*","for(\1=\2;\3;-1)");
+
+	 	code = replace(code,"for\s*(\w+)\s*=\s*(\-?\d+)\s*\w+\s*(\-?\d+)\s*\w+\s*(\-?\d+)\s*","for(\1=\2;\3;\4)");
+		code = replace(code,"for\s*(\w+)\s*=\s*(\-?\d+)\s*\w+\s*(\-?\d+)\s*","for(\1=\2;\3)");
+		
+		code,count = replace(code,"!\wfsys.open!\W","fsys.file"); 
+		if(count){
+			code = 'import fsys.file;\r\n' + code;
+		}
+		
+		code,count = replace(code,"!\wfile.readAll\(\)","file.read(-1)");  
+	
+		if(!string.find(code,"!\wbegin!\W")){
+			
+			for(i=1;10;1){
+				code = replace(code,"!\wthen!\W(.+?)!\wend!\W","{\1}"); 
+			}
+			
+			for(i=1;10;1){
+				
+				code = replace(code,"!\wfor!\W(.+?)!\wdo!\W(.+?)!\wend!\W",
+					function(h,b){
+						h = replace(h,",",";");
+						return "for"+h+"{"+b+"}"; 
+					} );  
+				
+			}
+		 	
+			for(i=1;10;1){
+				code = replace(code,"!\wdo!\W(.+?)!\wend!\W","{\1}"); 
+			}
+		}  
+		
+ 		code = replace(code,"\s+\.\.\s+"," ++ "); 
+		code = replace(code,"!\wlocal(\s+\w+\s*=)","var \1"); 
+		
+		code = replace(code,"!\wio.print\s*\(","console.log("); 
+		code = replace(code,"!\wconsole.print\s*\(","console.dump("); 
+		code = replace(code,"![\.\w]print\s*\(","console.log("); 
+		code = replace(code,"!\wprintln\s*\(","console.log("); 
+		
+		code = replace(code,"Aardio","aardio"); 
+		
+		code = replace(code,"import\s+string.utf8;*","");
+		
+		//只能替换分号前面的库，考虑类似 thread.table 
+		code = replace(code,"import\s+raw;","");
+		code = replace(code,"import\s+string;","");
+		code = replace(code,"import\s+table;","");
+		code = replace(code,"import\s+math;","");
+		code = replace(code,"import\s+time;","");
+		code = replace(code,"import\s+io;","");
+		code = replace(code,"import\s+thread;",""); 
+		
+		code = replace(code,"import\s+os;",""); 
+		code = replace(code,"!\wos\.getenv\(","string.getenv("); 
+		code = replace(code,"!\wos\.setenv\(","string.setenv("); 
+		code = replace(code,"!\wos\.getUserName","sys.getUserName"); 
+		
+		code = replace(code,"!\wio\.run\(","raw.execute("); 
+		
+		code = replace(code,`file.read\(\s*"\*a"\s*\)`,"file.read(-1)");
+		code = replace(code,`function\(([^\(\)]+)result\s*=\s*\{\}\s*\)\s*\{`
+			,"function(\1result) {"+'\r\n\t1if( result === null ) result = {};\r\n');
+		
+		code = replace(code,`table.concat(\(([^\(\)]+),\s*".+?"\s*\))`,"string.join\1")
+		
+		code = replace(code,"import\s+win\.form","import win.ui");
+		
+		code = replace(code,`"\\n"`,`'\\n'`); 
+		code = replace(code,`"\\r\\n"`,`'\\r\\n'`); 
+		
+		code = replace(code,`\\n"`,`"+'\\n'`); 
+		code = replace(code,`\\r\\n"`,`"+'\\r\\n'`);
+
+		code = replace(code,`!\wlen\(`,`#(`);   
+		code = replace(code,`!\wfunc\s+(\w+)`,`function \1`);  
+		
+		code = replace(code,`!\wfor\s+each!\W`,`for `);   
+		
+		code = replace(code,`!\wmain\(\)\s*\{(.+)\}`,`\1`);  
+		
+		code = replace(code,`!\wfor\s+(\w+)\s+in\s+array`,`for _,\1 in array`);  
+	
+		if(string.indexOf(code,"console.")){
+			if(!string.find(code,"import\s+console")){
+				code = 'import console;\r\n' + code;
+			}
+			
+			if(!string.find(code,"console.pause")){
+				code = code + '\r\nconsole.pause()'
+			}
+		} 
+		
+		return code;
+	}}
+}
+
+/*****intellisense()
+ide.aifix(__) = 用于修复 AI 生成代码的语法错误。\n修复结果仅供参考。
+end intellisense*****/

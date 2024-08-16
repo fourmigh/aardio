@@ -13,29 +13,78 @@ namespace string{
 			return r( find(str,p,f+1) ); 
 		} 
 	}; 
+	matches = function(s,...){
+    	return ..table.array(gmatch(s,...) );
+    };
 	splitEx = function(s,p,l,f){
 		if(!#s) return {};
 		
-        var a = {{1;1}}
-        var push = ..table.push;
-        for i,j in gfind( s,p:"<\r*\n>|\r",f) if( push(a,{i-1;j+1}) && l && l <= #a ) break ; 
-        
-        for(i=1;#a) a[i] = sub(s,a[i][2],a[[i+1]][[1]]);
-        return a; 
-    };
-    matches = function(s,...){
-    	return ..table.array(gmatch(s,...) );
-    };
-	lines = function(s,line,delims,limit){
-		var t,i = splitEx(s,line),0;
-		if(!delims) {
-			return function(){
-				i = i + 1; return t[i];
-			}
-		}
+		p = p:"<\r*\n>|\r";
 		
+		var a = 0;
+		if(p[1]=='^'#){ a = 1;p = right(p,-2); } 
+		if(p[#p]=='$'#){ a = 2; p = left(p,-2); }
+
+		var m1;
+		var e1 = 0;
+		
+			var ret = {}
+			var push = ..table.push;
+			
+			var next = gfind(s,p,f); 
+			var l2 = 1;
+			do{  
+			var b2,e2,m2;
+			if(!l || l>l2) b2,e2,m2 = next();
+			if(b2) b2--;
+			
+			var r = sub(s,e1+1,b2);
+			if(a ) {
+				if( m1 && a==1) r = m1 ++ r;
+				elseif( m2 && a==2) r = r ++ m2; 
+			}
+			
+			e1 = e2;
+			m1 = m2;
+			
+			push(ret,r);
+			l2++;
+		}while(e1)
+		
+		return ret; 
+	};
+	lines = function(s,p,delims,limit){
+		if(!#s) return function(){};
+		
+		p = p:"<\r*\n>|\r";
+		
+		var a = 0;
+		if(p[1]=='^'#){ a = 1;p = right(p,-2); } 
+		if(p[#p]=='$'#){ a = 2; p = left(p,-2); }
+
+		var m1,m2;
+		var e1 = 0;
+		var b2,e2;
+			
+		var next = gfind(s,p);
+			
 		return function(){
-			i = i + 1; if(t[i]) return splitEx(t[i],delims,limit);
+			if( e1 === null ) return;
+			
+			b2,e2,m2 = next();
+			if(b2) b2--;
+			
+			var r = sub(s,e1+1,b2);
+			if(a ) {
+				if( m1 && a==1) r = m1 ++ r;
+				elseif( m2 && a==2) r = r ++ m2; 
+			}
+			
+			e1 = e2;
+			m1 = m2;
+			
+			if(delims) return splitEx(r,delims,limit);
+			return r;
 		}
 	};
 	each = function(s,p,line){
@@ -191,15 +240,15 @@ type.isString = function(v){
 }
 
 /**intellisense(string)
-splitEx( = 使用模式匹配语法指定分隔符,用于拆分字符串,\n返回拆分后的字符串数组,\n传入null值或空字符串返回空数组
-splitEx(.(字符串,分隔符模式串,最大拆分次数,开始位置) = 使用模式匹配语法指定分隔符,拆分字符串并返回数组,\n参数@1传入null值或空字符串返回空数组,\n用零宽匹配指定分隔符可在拆分的字符串中包含分隔符,\n省略分隔符模式则按行拆分,支持回车、换行、回车换行等不同换行规则,空行不合并,\n拆分次数可省略,默认不限次数,\n开始位置可省略,默认从开始拆分
+splitEx( = 使用模式匹配语法拆分字符串，返回拆分后的字符串数组。\n此函数与 string.lines 迭代器使用相同的拆分规则。
+splitEx(.(字符串,分隔符模式串,最大拆分次数,开始位置) = \n使用模式匹配语法拆分字符串，返回拆分后的字符串数组。\n参数 @1 传入 null 值或空字符串返回空数组。\n\n分隔符模式串可用括号创建捕获组，首个捕获组如下处理：\n- 模式串尾部有 $ 符号，则捕获组放到上个拆分结果尾部。\n- 模式串头部有 ^ 符号，则捕获组放到下个拆分结果头部\n\n省略分隔符模式则按行拆分，\n兼容回车、换行、回车换行等不同换行风格，空行不合并\n\n最大拆分次数可省略。\n开始位置以字节为单位，省略则默认从开始拆分。
+lines( = 创建用于for in 语句的迭代器按行拆分字符串。\n可用模式串自定义行分隔符，此函数与 string.splitEx 函数使用相同的拆分规则。\n\n可将返回迭代器传入 table.array 生成数组。\n按行读取文件请使用 io.lines 函数。
+lines(.(字符串,行分隔符,列分隔符,最大列数)  = \n按行拆分参数 @1 传入的字符串，传入 null 或空串字符串忽略不操作。\n可选用参数 @2 自定义行分隔符，支持模式匹配语法。\n可选用参数 @3 自定义列分隔符，支持模式匹配语法。 \n\n所有分隔符模式串可用括号创建捕获组，首个捕获组如下处理：\n- 模式串尾部有 $ 符号，则捕获组放到上个拆分结果尾部。\n- 模式串头部有 ^ 符号，则捕获组放到下个拆分结果头部\n\n可选用参数 @4 限定最大拆分列数目。\n\n如果不指定列分隔符则循环返回字符串，否则返回列数组。
 gfind(字符串,模式串,开始位置) = @for i,j,group1  in string.gfind( __/*查找字符串*/,"(.)") { 
 	
 }
 each( = 创建适用于 for in 语句的迭代器,\n用于分行匹配字符串,\n可将返回迭代器传入 table.array 生成数组
 each(.(字符串,模式串,行分隔符) = 必须使用参数@2指定模式串,\n查找模式串中可用圆括号创建捕获分组自定义迭代器返回值个数,\n行分隔符支持模式匹配语法,可省略
-lines( = 创建用于for in语句的迭代器按行拆分字符串\n也可将返回迭代器传入 table.array 生成数组,\n按行读取文件请使用 io.lines 函数,\nnull值或空字符串忽略不执行
-lines(.(字符串,行分隔符,列分隔符,最大列数)  = 按行拆分参数@1传入的字符串,\n可选使用参数@2指定行分隔符,支持模式匹配语法,\n如果不指定列分隔符,每次循环返回字符串,\n如果指定列分隔符,使用模式匹配二次拆分,每次循环返回数组,\n可选用参数@4指定最大列数,\n列分隔符支持模式匹配语法
 cmpMatch( __,"" ) = 使用完全匹配比较字符串，忽略大小写，相同返回 true。\n否则使用模式匹配搜索子串，忽略大小写，找到返回 true。\n改用 string.indexOf 函数可禁用模式匹配查找子串。
 concatUnicode(.(str,->->->) = 将所有参数转换为Unicode字符串并连接后返回\n参数可以是数值,字符串,Unicode字符串,\n忽略null值参数
 isUtf8(__) = 快速检测字符串是否包含UTF8编码\n空字符串返回null

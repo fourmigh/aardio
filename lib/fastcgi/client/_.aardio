@@ -325,7 +325,8 @@ class client{
 					return this.readUploadFile(owner);
 				};
 				postJson = function(){  
-					if ( environ.CONTENT_TYPE && ..string.endWith(environ.CONTENT_TYPE,"/json",true) ) {
+					if ( environ.CONTENT_TYPE 
+						&& ..string.find(environ.CONTENT_TYPE,"<@@text@>|<@@application@>/<@@json@>!\W") ) {
 						var data = owner.postData();
 						if(data) return ..web.json.tryParse(data);
 					}
@@ -779,7 +780,7 @@ cookies[__] = @.cookies["__/*键名*/"] = {
 	maxAge = 3600;
 }
 status = 响应状态码,值可以为数值或文本,\n默认为"200 OK"
-contentType = @.contentType = "text/json";__/*指定响应数据的MIME类型,默认为"text/html"*/
+contentType = @.contentType = "application/json";__/*指定响应数据的MIME类型,默认为"text/html"*/
 charset = 输出字符集\n可以为空,默认值为UTF-8\n不建议更改此值
 jsonPrettyPrint = @.jsonPrettyPrint = true;__/*指定respose.write函数将对象转换为JSON输出时否缩进格式化*/
 defalutDocument = 指定loadcode函数加载aardio代码时的默认文件名\n默认为"main.aardio",不建议修改

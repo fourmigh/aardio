@@ -289,11 +289,15 @@ class client{
 			if(!urlTemplate) error("参数@1错误",2);
 		}
 		
+		var urlRequest = urlTemplate; 
+		urlRequest = ..string.replace(urlRequest,"/\{\s*\.\.\.\s*\}","",1);  
+		urlRequest = ..string.replace(urlRequest ,"%{}", "");
+				
 		return { 
 			__httpFlags = httpFlags;
 			__httpMethod = ..string.upper( httpMethod );
 			__urlTemplate = urlTemplate;
-			__urlReal = ..string.replace( urlTemplate ,"%{}", "");  
+			__urlReal = urlRequest;  
 			__request = this.request;
 			__encodeKey = this.encodeKey;
 			__pattern = pattern;

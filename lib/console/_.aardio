@@ -255,6 +255,11 @@ setCtrlHandlerThread = function(handle,add,thrdOwner){
 	for(k,v in _ctrlHandlerThreads){ k();} 
 } );
 
+isOpened = function(){
+	var hwnd = getWindow();
+	return (hwnd ? ::User32.IsWindowVisible(hwnd));
+}
+
 var init;
 open = function(utf8){
 	if( utf8!== null ) self.utf8 = true;
@@ -477,9 +482,21 @@ writeBack = function( s,... ){
 
 self.error = function(x,...){
 	if( _STUDIO_INVOKED ) openForWrite();
-	stderr.write( tostring(x) ,'\t');
-	if(...===null){ stderr.write('\n');return } 
-	return self.error(...);
+	if( isOpened() ) setTextAttribute( color.red );
+	
+	if( _STUDIO_INVOKED ) {  
+		global.import("debug");
+		stderr.write( ..debug.traceback(,"console.error",2),'\n\t-----------------------------------------------');
+	}  
+	
+	var args = {x,...}
+	for(i,v in tab){
+		 args[i] = tostring(v);
+	} 
+	
+	var r = stderr.write('\n\t',..string.join(args,'\t'),'\n');
+	if( isOpened() ) setTextAttribute();
+	return r;
 }
 
 class CONSOLE_SCREEN_BUFFER_INFO {
@@ -585,6 +602,7 @@ setTextAttribute = function(fore,back){
 	return ::Kernel32.SetConsoleTextAttribute(getOutputHandle(),fore);
 } 
 
+//设整整个窗口颜色，设置局部颜色用 setTextAttribute 或 writeColorText
 setColor = function(fore,back){ 
 	execute("color " + ..string.format("%x%x",back:0, fore:0xF))	
 }
@@ -718,6 +736,11 @@ dumpTable = function(t){
 			for(i=1;#s;1){ t[i] = s[i] } 
 		} 
 	}
+	elseif(type(t)!=="table"){
+		self.error("参数不是一个 table 对象");
+		return;
+	}
+	
 	writeText( ..util.table.stringify(t,"    ") ,'\n')
 }
 
@@ -864,6 +887,7 @@ end;
 debug = self.error;
 
 /**intellisense(console)
+isOpened() = 是否已显示控制台窗口。
 open() = 打开控制台窗口,\n如果控制台窗口已打开,该函数不进行任何操作,\n如果参数为 true 则将 console.utf8 设为true,\n请参考 console.utf8 的说明\n\n此函数重定向 msvcrt.dll 定义的 stdin,stdout,stderr 到控制台
 utf8 = 控制台是否启用UTF-8编码,\n所有线程设置必须相同,否则会导致重新打开控制台,\n如果操作系统为英文环境,控制台启用 UTF-8 可正常显示中文,\n此值为 null（默认值） 时由 aardio 自动选择编码（WIN10 以上系统默认开启 UTF-8）,\n启用这个选项在 WIN10 以下系统可能出现显示不正常的问题,\n但有一些程序，例如 Electron 主进程输出默认需要打开此选项
 setLoadingDots(.(动画字符数组,是否显示在尾部,动画间隔毫秒数) = 指定showLoading函数使用的默认动画字符数组\n除参数@1必须指定之外，其他参数可选
@@ -882,7 +906,7 @@ hex(__) = 调用console.log以16进制输出字符串、或缓冲区的所有字
 writeBack(__) = 控制台输出字符串并覆盖最后显示的等长字符\n如果有多个参数则调用string.format格式化后输出
 fullscreen() = 控制台窗口全屏切换
 modifyMode(.(输入输出句柄,移除模式,添加模式) = 设置控制台的显示模式\n参数用法参考 WINAPI SetConsoleMode\n参数@1如果省略则默认为标准输出句柄\n成功返回当前模式,失败返回null
-error("__") = 使用标准错误输出流(io.stderr)输出，可以重定向，\n用法类似io.print,该函数在开发环境中会自动打开控制台\n发布后的程序不会自动打开控制台
+error("__") = 使用标准错误输出流（io.stderr）输出，可以重定向，\n可指定任意个参数，参数转换为字符串以后输出。\n\n在开发环境中会自动打开控制台以红色字体输出参数，并输出当前调用栈信息。\n发布后的程序不会自动打开控制台，不会输出调用栈信息。
 more( = 等待并在按任意键以后继续，用于在控制台分页输出时等待按键。
 more(.(分页大小,是否清屏) = 略参数  @1 则参数默认为 1 。\n如果参数 @2 为true，按任意键以后清除控制台已显示的内容。
 askYesNo("按Y键继续,按N键取消") = 等待用户按Y或N键
@@ -931,9 +955,9 @@ getSize() = 返回控制台屏幕缓冲区每行可输入的字符数,\n以及�
 getPos() = 返回光标坐标
 setPos(.(列,行)= 设置光标坐标
 box(.(列,行,终止列,终止行,背景色,边框标题) = 在控制台画一个色块,边框标题可省略,\n参数@1,@2省略则自动居中\n返回列,行,终止列,终止行
-stderr = 标准错误输出\n!file.
-stdin =  标准输入\n!file.
-stdout = 标准输出\n!file.
+stderr = 标准错误输出\n!ioFile.
+stdin =  标准输入\n!ioFile.
+stdout = 标准输出\n!ioFile.
 setCtrlHandlerThread(hander,add,owner) = @.setCtrlHandlerThread( function(ctrlType){\n	__/*控制台程序退出前是否触发 @hander 参数指定的线程函数，\n@add 为 true 添加触发函数，为 false 移除，默认值为 true。\n可选用 @owner 指定线程函数的 owner 参数。\n\n使用前请先阅读多线程入门教程，了解线程函数基本规则。\n\nctrlType 为 null 表示控制台正常关闭，不可取消。\nctrlType 为 0 表示按下 Ctrl+ C。\nctrlType 为 1 表示按下 Ctrl + Break。\nctrlType 为 0 或 1 时返回 true 可阻止控制台退出\n\n在此函数内不应再使用任何控制台函数*/\n});
 end intellisense**/ 
 

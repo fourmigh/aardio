@@ -1,7 +1,7 @@
-//win7任务栏显示进度
+//任务栏显示进度
 import win.ui;
 /*DSG{{*/
-var winform = ..win.form(text="win7任务栏显示进度( 调用ITaskbarList3接口 )";right=599;bottom=399)
+var winform = win.form(text="系统任务栏显示进度( 调用ITaskbarList3接口 )";right=599;bottom=399)
 winform.add(
 button={cls="button";text="显示任务栏进度";left=219;top=240;right=459;bottom=327;z=1}
 )

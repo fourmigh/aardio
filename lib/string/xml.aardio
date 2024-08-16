@@ -15,16 +15,21 @@ var cmp = cmp;
 var createElementMeta;
 
 var ncr = function(html){
-	html = ..string.replace(html,"&#(x?)(\x+);",function(h,c){
-    	c = tonumber(c,#h?16:10);return  ..string.unescape( ..string.format("\U%06x",c ) );
-   } ); 
+
+	html = ..string.replace(html,"&#x(\x+);",function(c){
+    	return ..string.unescape( ..string.format("\U%06x",tonumber(c,16) ) );
+    } ); 
+    
+    html = ..string.replace(html,"&#(\d+);",function(c){
+    	return ..string.unescape( ..string.format("\U%06x",tonumber(c,10) ) );
+    } ); 
     	
 	return ( ..string.replace(html,"&[a-zA-Z]+;",{
 			["&nbsp;"] = ' ';["&lt;"] = '<';["&gt;"] = '>'; ["&amp;"] = '&';["&quot;"] = '"';["&apos;"] = "'";["&ldquo;"] = '“';["&rdquo;"] = '”';["&rdquo;"] = '”';
 			["&mdash;"] = '—';["&euro;"] = "€";["&cent;"] = '￠';["&pound;"] = '￡';["&yen;"] = '￥'; ["&frasl;"] = "/";["&raquo;"] = "▼";["&times;"] = "×";["&division;"] = "÷";
 			["&sum;"] = "∑";["&currency;"] = "¤"; ["&brvbar;"] = "|";["&sect;"] = "§";["&uml;"] = "¨";["&macr;"] = "ˉ";["&deg;"] = "°";["&plusmn;"] = "±";["&acute;"] = "′";
 			["&micro;"] = "μ";["&middot;"] = "·";["&ordm;"] = "o";["&copy;"] = "©";["&radic;"] = '√';["&uarr;"] = "↑";["&darr;"] = "↓";["&larr;"] = "←";["&rarr;"] = "→";
-			["&harr;"] = "↔";["&reg;"] = "®";
+			["&harr;"] = "↔";["&reg;"] = "®";["&num;"] = "#";
 		} ) );
 }
 
@@ -536,13 +541,22 @@ class xml{
 
 xml.ncr = ncr;
 xml.elementPattern = "\<([\/]?)([\d\s]?![\?!\w_\-\::]+)(.*?)([\/\?]?)\>";
+
+//xml 只规定了 5 个实体字体，HTML 4 则规定了 252 个
 xml.escape = function(v){
 	if(v) return ..string.replace(v,`[\&\<\>\"\']`,{`&`:'&amp;',`<`:"&lt;",`>`:"&gt;",`"`:"&quot;",`'`:"&apos;"})
 }
 
+xml.ncrEncode = function(str,pattern){
+	return ..string.replace(str,pattern || ":|.",function(c){
+		var u = ..string.charCodeAt(c,1);
+		var r = "&#"+u+";"
+		return #r<5 ? u : "&#"+tostring(u,16)+";"
+	})
+}
 /**intellisense()
-string.xml = 简单XML解析,\n严格的校验XML语法正确性不是本模块的义务和目标,\n所以,此解析器尽可能兼容错误,兼容了HTML,SGML的部分规则:\n1、不要求存在根标签 \n2、尝试自动修正不配对的标记 \n3、在有必要的时候尝试忽略大小写
-string.xml(__/*xml字符串*/) = 创建xml对象。\n此对象不支持 table.tostring , console.dump 函数，不能跨线程传递。\n\n严格的校验XML语法正确性不是本模块的义务和目标,\n所以,此解析器尽可能兼容错误,兼容了HTML,SGML的部分规则:\n1、不要求存在根标签 \n2、尝试自动修正不配对的标记 \n3、在有必要的时候尝试忽略大小写
+string.xml = 简单 XML 解析器。\n严格的校验 XML 语法正确性不是本模块的设计目标，\n所以此解析器尽可能兼容错误，兼容了 HTML，SGML 的部分规则:\n\n1. 不要求存在根标签 \n2. 尝试自动修正不配对的标记 \n3. 在有必要的时候尝试忽略大小写。
+string.xml(__/*xml字符串*/) = 创建 XML 对象。\n此对象不支持 table.tostring , console.dump 函数，不能跨线程传递。\n\n严格的校验XML语法正确性不是本模块的义务和目标,\n所以,此解析器尽可能兼容错误,兼容了HTML,SGML的部分规则:\n1、不要求存在根标签 \n2、尝试自动修正不配对的标记 \n3、在有必要的时候尝试忽略大小写
 string.xml() = !string_xml.
 !string_xml.eachChild(标签名) = @for(index,tagName,childCount,xNode in ??.eachChild(__/*标签名*/) ){
 	io.print( index,tagName,childCount,xNode ) 
@@ -572,6 +586,7 @@ string.xml() = !string_xml.
 !string_xml.pushXml() = !string_xml.
 !string_xml.getParent() = 获取父节点
 !string_xml.remove() = 如果存在父节点,在父节点中移除此节点
-string.xml.ncr(__) = NCR字符编码、HTML实体字符还原为UTF8文本
-string.xml.escape(__) = 转义编码字符串中的 < > " ' & 等 XML 标记字符。\n如果参数为非 null 值则返回转换后的字符串。\n参数只能是 null 或字符串、buffer
+string.xml.ncrEncode(.(str,pattern) = 将字符串参数 @str 中以 @pattern 指定模式串所匹配的字符进行 NCR 编码。\n参数 @pattern 可用模式匹配语法指定要编码的字符，省略则默认为 ":|."。\n返回编码后的字符串。
+string.xml.ncr(__) = NCR 字符编码、HTML实体字符还原为 UTF8 文本
+string.xml.escape(__) = 将字符串中的 < > " ' & 等 XML 标记字符编码为实体字符（entity）。\n如果参数为非 null 值则返回转换后的字符串。\n参数只能是 null 或字符串、buffer
 end intellisense**/

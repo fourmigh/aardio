@@ -28,8 +28,8 @@ menu.skin({
 	}
 })
 
-menu.onOk = function(strip){ 
-	winform.msgbox(strip.text)
+menu.onOk = function(stripItem){ 
+	winform.msgbox(stripItem.text)
 }
 
 winform.button.oncommand = function(id,event){

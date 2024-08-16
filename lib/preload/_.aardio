@@ -209,6 +209,12 @@ type.callable = function(v){
 	var t = type(v);
 	return t == "function" || t == "class" || !!( v@ ? v@._call )
 }
+
+type.isFile = function(obj){
+	var t1,t2 = type(obj);
+	return (t1=="cdata"&&t2=="io.file")||(t1=="table"&&(t2=="fsys.file"||t2=="fsys.stream"))
+}
+
 /**intellisense(::)
 ::Ntdll = 默认已加载的系统DLL组件ntdll.dll\n!dllModule.
 ::Kernel32 = 默认已加载的Kernel32.dll模块对象\nKernel32.dll是Windows内核库,提供很多常用API

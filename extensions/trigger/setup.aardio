@@ -1,0 +1,89 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="aardio 初始化设置";right=525;bottom=296;border="dialog frame";exmode="none";max=false;min=false;mode="popup")
+winform.add(
+btnOk={cls="button";text="确定";left=160;top=213;right=289;bottom=251;db=1;dl=1;dr=1;z=6};
+btnReset={cls="button";text="清理重置";left=306;top=213;right=435;bottom=251;db=1;dl=1;dr=1;z=7};
+chkAppPath={cls="checkbox";text="在  App Paths 添加 aardioFileType.exe 路径";left=74;top=173;right=452;bottom=198;checked=1;db=1;dl=1;dr=1;z=5};
+chkCodeFile={cls="checkbox";text="*.aardio 源代码文件";left=78;top=54;right=280;bottom=79;checked=1;dl=1;dr=1;dt=1;z=1};
+chkProjectFile={cls="checkbox";text="*.aproj 工程文件";left=78;top=93;right=280;bottom=118;checked=1;dl=1;dr=1;dt=1;z=2};
+static={cls="static";text="请选择 aardio 文件关联：";left=20;top=15;right=304;bottom=55;dl=1;dr=1;dt=1;transparent=1;z=3};
+static2={cls="static";text="是否注册 aardio 主程序位置";left=20;top=134;right=201;bottom=174;db=1;dl=1;dt=1;transparent=1;z=4}
+)
+/*}}*/
+
+import fsys.shellType;
+var aardioFileType =  fsys.shellType();
+aardioFileType.extension = "aardio";
+aardioFileType.contentType = "text/plain"
+aardioFileType.perceivedType = "text"
+aardioFileType.command = io._exepath 
+aardioFileType.documentClassName = "aardio.code.file"
+aardioFileType.description = "aardio 源代码文件";
+aardioFileType.icon = io._exepath
+aardioFileType.iconIndex = "1";
+aardioFileType.shellNewFileName = "~\extensions\wizard\files\winform.aardio"
+
+var projectFileType =  fsys.shellType();
+projectFileType.extension = "aproj";
+projectFileType.contentType = "text/xml"
+projectFileType.perceivedType = "text"
+projectFileType.command = io._exepath 
+projectFileType.description = "projectFileType 工程文件";
+projectFileType.icon = io._exepath
+projectFileType.iconIndex = "2";
+projectFileType.documentClassName = "aardio.launcher.project"
+projectFileType.shellNewFileName = "~\extensions\wizard\project\win\default.aproj"
+
+winform.btnOk.oncommand = function(id,event){
+	if(winform.chkCodeFile.checked){
+		aardioFileType.reg()
+	}
+	else {
+		if(aardioFileType.check() ){
+			aardioFileType.unreg()
+		}
+	}
+
+	if(winform.chkProjectFile.checked){
+		projectFileType.reg()
+	}
+	else {
+		if(projectFileType.check() ){
+			projectFileType.unreg()
+		}
+	}
+	
+	if(winform.chkAppPath.checked){
+		
+		import win.reg;
+		var reg = win.reg("HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\aardio.exe");
+		
+		if(reg){
+			reg.setSzValue("",..io._exepath);
+			reg.close();	
+		}
+		
+	}
+	else {
+		import win.reg;
+		var reg = win.reg("HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\aardio.exe",true);
+		
+		if(reg){
+			reg.close();
+			
+			var reg = win.reg("HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\",true);
+			reg.delKey("aardio.exe")
+			reg.close();	
+		} 
+	}
+	
+	winform.endModal();
+}
+
+winform.btnReset.oncommand = function(id,event){
+	
+}
+
+import ide;
+winform.doModal(ide.getMainHwnd());

@@ -1,6 +1,6 @@
-import win.ui.ctrl; 
-import win.ui.background;
 import gdi;
+import win.ui.background;
+import win.ui.ctrl; 
 
 namespace win.ui{
     
@@ -29,6 +29,24 @@ class win.form {
  
 	ctor( tParam ) begin   
 	
+		//实现延迟加载的伪窗口对象
+		if(tParam[["fake"]]){
+			if(tParam.thisObject){
+				//创建真实窗口
+				this = tParam.thisObject;
+				tParam.thisObject = null;
+			}
+			else{
+				//返回伪窗口，访问伪窗口的任何属性或方法时创建真实窗口
+				return {
+					fake = true;
+					loadForm = tParam.loadForm;
+					tParam = tParam;
+					@_fakeMeta;
+				}; 
+			}
+		}
+	 
 		//这句必须放最前面,以保证自定义控件设计时大小不会被修改
 		tParam = ..table.mix(tParam,{
 	    	left = -1;top = -1;right = 759;bottom = 469;
@@ -300,6 +318,8 @@ class win.form {
 		  
 		..win.resetMessage();//移除_WM_QUIT消息,重置消息循环
 	end; 
+	
+	//考虑伪窗口，所有函数应放入 _metaProperty
 } 
 
 namespace win.form{ 
@@ -1086,7 +1106,8 @@ namespace win.form{
  	defaultProc[0x114/*_WM_HSCROLL*/] = defaultProc[0x115/*_WM_VSCROLL*/] 
   	/*}}*/
 
-	_metaProperty = ..win.ui.ctrl.metaProperty( 
+	_metaProperty = ..win.ui.ctrl.metaProperty(
+			_eq = lambda(form) owner.hwnd == form.hwnd;
 			isForm = {
 				_get = function(){ return true } 
 			};
@@ -1100,6 +1121,18 @@ namespace win.form{
 			};
 			getForm = function(){
 				return owner;
+			};
+			preloadForm = function(...){
+				if( (...)[["hwnd"]] || (...===null) ) return owner.loadForm(...); 
+				
+				var this = owner;
+				var args = {...};
+				return ..win._form({
+					fake = true; 
+					loadForm = function(){
+						return this.loadForm(..table.unpackArgs(args));
+					} 
+				} )	
 			};
 			loadForm = function(path,...){
 				return ..win.loadForm(path,,owner,... );
@@ -1693,6 +1726,7 @@ namespace win.form{
       			}
       			owner[name] = null;
       		};
+      		this = lambda() owner;
 			add = function( tParam,parentCtrl ) {
 				var parent = parentCtrl : owner;
 				var dpiScaleX,dpiScaleY = (parent.dpiScaleX : 1) ,(parent.dpiScaleY : 1);
@@ -1708,8 +1742,15 @@ namespace win.form{
 					return;
 				}
 				
-				var zorder,zorderBk = {},{};
-				var cls;
+				var cls = tParam[["cls"]];//注意后面的 cls = opt.cls;
+				if( cls && ..win.ui.ctrl[ cls ]){ 
+					//容错写法不入文档，创建单个控件直接返回控件对象 
+					var k = (parent[[ cls ]] === null ) ?  cls : 1;
+					var r = parent.add({ [k] = tParam});  
+					return r[k];
+				}
+				
+				var zorder,zorderBk = {},{}; 
         		for name,opt in tParam{
         			cls = opt.cls;
         			if(opt.z===null) opt.z = #zorder + 1;
@@ -1895,6 +1936,41 @@ namespace win.form{
 	_metaProperty.clearTimeout = _metaProperty.clearInterval;
 	_metaProperty.hitmin = _metaProperty.hitMin;
 	_metaProperty.hitmax = _metaProperty.hitMax;
+	
+ 	_fakeMeta = {
+		_float = true;
+		_get = function(k){
+			import console
+		 
+			var tParam = owner.tParam;
+			owner.tParam = null;
+			owner@ = null;
+			
+			var form;
+			if(owner.loadForm){
+				form = owner.loadForm();
+				..table.assign(owner,form);
+				owner@ = form@; 
+			}
+			else{
+				form = ..win._form({
+					fake = true;
+					thisObject = owner;
+					tParam = tParam;
+				})
+			}
+			if(owner.onCreated) owner.onCreated(form);
+
+			return owner[k]
+		} 
+		_set = function(k,v){
+			if(k === "onCreated" ) owner[[k]] = v;
+			else{
+				var hwnd = owner.hwnd;//触发上面的 _get 元方法
+				owner[k] = v;
+			}
+		}
+ 	}
 }
 
 win._form = win.form;

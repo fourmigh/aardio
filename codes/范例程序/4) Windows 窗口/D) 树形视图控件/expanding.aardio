@@ -4,7 +4,7 @@ import win.ui;
 var winform = win.form(text="树形控件动态加载子项演示";right=349;bottom=249)
 winform.add(
 button={cls="button";text="查找动态加载的子项";left=136;top=200;right=305;bottom=242;z=2};
-treeview={cls="treeview";left=22;top=17;right=326;bottom=192;asel=1;bgcolor=15793151;edge=1;vscroll=1;z=1}
+treeview={cls="treeview";left=22;top=17;right=326;bottom=192;bgcolor=15793151;edge=1;vscroll=1;z=1}
 )
 /*}}*/
 
@@ -22,7 +22,7 @@ winform.treeview.onnotify = function(id,code,ptr){
 		}
  	 	
  	 }
-	/**
+	 /**
 	 elseif( code == 0xFFFFFE3C/*_TVN_GETDISPINFOW*/){ 
 	 	var dispInfo = winform.treeview.getNotifyDispInfo(code,ptr) 
 	 	if( dispInfo ? dispInfo.item ) {
@@ -37,7 +37,8 @@ winform.treeview.onnotify = function(id,code,ptr){
 
 /**
 如果cChildren指定为 -1/*_I_CHILDRENCALLBACK*/ 会调用_TVN_GETDISPINFOW获取节点数,
-这种方式在节点数目太多时性能较差会出现卡顿现象，而且没有什么意义，所以直接把cChildren指定为1就可以。
+这种方式在节点数目太多时性能较差会出现卡顿现象，而且没有什么意义，
+所以直接把cChildren指定为1就可以。
 **/
 winform.treeview.insertItem( { 
         text = "范例"; 

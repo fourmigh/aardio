@@ -6,7 +6,7 @@ var winform = win.form(text="代码编辑器外观设置";right=629;bottom=343;b
 winform.add(
 btnExplorer={cls="button";text="... 浏览配置文件";left=453;top=133;right=581;bottom=160;dr=1;dt=1;z=6};
 btnFontLink={cls="button";text="添加链接字体";left=453;top=65;right=581;bottom=92;dr=1;dt=1;z=7};
-btnUpdateSetting={cls="button";text="更新设置";left=324;top=201;right=502;bottom=231;db=1;dr=1;z=2};
+btnUpdateSetting={cls="button";text="更新设置";left=303;top=200;right=568;bottom=263;color=14120960;db=1;dr=1;font=LOGFONT(h=-14);note="新设置仅应用于活动窗口与新建的窗口";z=2};
 cmbFontName={cls="combobox";left=237;top=67;right=445;bottom=91;dl=1;dr=1;dt=1;edge=1;items={};mode="dropdown";vscroll=1;z=1};
 cmbThemes={cls="combobox";left=237;top=136;right=445;bottom=160;dl=1;dr=1;dt=1;edge=1;items={};mode="dropdownlist";vscroll=1;z=5};
 static2={cls="static";text="代码编辑器配色方案：";left=122;top=110;right=290;bottom=138;align="right";dl=1;dt=1;transparent=1;z=3};
@@ -71,6 +71,8 @@ winform.btnUpdateSetting.oncommand = function(id,event){
     
 	ide.setConfig("editor_font_name",font);
  	ide.redrawActiveCodeEditor();
+ 	
+ 	winform.btnUpdateSetting.note = "已设为新建代码编辑器的默认样式"
 }
 
 win.setOwner(winform.hwnd,ide.getMainHwnd());  

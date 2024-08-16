@@ -1,6 +1,5 @@
 ﻿//ide扩展库
 import inet.http;
-import sevenZip.lzma.httpFile;
 import process.mutex;
 import web.json;
 import win;
@@ -86,7 +85,8 @@ namespace ide{
 			mutex.wait(); {
 			
 				if( ..string.endWith( downloadUrl,".tar.lzma",true) ){
-					var ok =..sevenZip.lzma.httpFile.download(downloadUrl,"aardio- 下载 "+libName+" 扩展库","~/download/lib/" , ,downloadLibName + ".tar.lzma");
+					import sevenZip.lzma.httpFile;
+					var ok = sevenZip.lzma.httpFile.download(downloadUrl,"aardio- 下载 "+libName+" 扩展库","~/download/lib/" , ,downloadLibName + ".tar.lzma");
 					if(ok){
 						if(downloadVersion && ..io.libpath(libName)) {
 							var libVers = getExtLibs();
@@ -311,7 +311,7 @@ namespace ide{
 			"createThread"; 
 			"loadPrivateFont";
 			} ){ 
-			self[name] =  function(path,...){ 
+			self[name] =  function(path,...){  
 				return ..ide.command.dispatchIdeCommand(name,path ? ..io.fullpath(path),...)
 			};
 		} 
@@ -330,6 +330,26 @@ namespace ide{
 	libDocument = function(lib){
 		return createProcess("~\tools\2.doc.aardio",{____search_libdoc__key=lib});
 	} 
+
+	/* 
+	- 不得修改下面的代码。
+	- 禁止利用 aardio.exe 运行来源不明的第三方代码。
+	- 如果 aardio 检测到下面的代码被修改，一切后果自负！！！
+
+	- 修改 init.aardio 会导致所有 IDE 接口与插件失效。
+	- aardio 后续版本将移除  init.aardio 触发器。
+	
+	- 修改 init.aardio 是不必要的，所有 IDE 接口都是跨进程通信。
+	- 修改 init.aardio 是多余的，aardio 可以完美支持进程外插件。
+	- 一个漂亮的浮动工具条更好用，自由度也更大。
+	*/
+	var init = ..string.load("~\extensions\trigger\init.aardio") 
+	if(!init || (..string.crc32(init)!=-1662808427) ){
+		..io.remove("~\extensions\trigger\init.aardio");
+		::User32.PostQuitMessage(0);
+		::User32.PostQuitMessage(0);
+		return;
+	}
 }
 
 /**intellisense(ide)
@@ -396,7 +416,7 @@ libDocument(__) = 打开库函数文档，并搜索参数 @1 指定的关键字
 end intellisense**/
 
 /**intellisense()
-ide = aardio开发环境扩展支持库,仅适用于编写开发环境插件,\n需要使用import ide;语句导入才能使用,\n\nimport ide作为程序第一个import语句时，插件在IDE进程内以线程模式运行,\n否则插件在IDE进程外以独立进程模式运行，请优先使用独立进程模式
+ide = aardio 开发环境扩展支持库,仅适用于编写开发环境插件,\n需要使用 import ide 语句导入才能使用,\n\nimport ide作为程序第一个import语句时，插件在IDE进程内以线程模式运行,\n否则插件在IDE进程外以独立进程模式运行，请优先使用独立进程模式
 _IDE_ID_BUILD_COMPILE=@0x8315/*_IDE_ID_BUILD_COMPILE*/
 _IDE_ID_BUILD_PUBLISH=@0x8317/*_IDE_ID_BUILD_PUBLISH*/
 _IDE_ID_DESIGN_SWITCHTO=@0x831A/*_IDE_ID_DESIGN_SWITCHTO*/

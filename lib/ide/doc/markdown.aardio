@@ -34,6 +34,19 @@ class markdown{
            		
            		if(kernelLibName=="global"){
            			sections["logfontObject"] = this.sections["logfontObject"]; 
+           			sections["type"] = this.sections["type"];
+           			sections["sizeObject"] = this.sections["sizeObject"];
+           			sections["rectObject"] = this.sections["rectObject"];
+           			sections["_ARGV"] = this.sections["_ARGV"];
+           			sections["::Shell32"] = this.sections["::Shell32"];
+           			sections["::Kernel32"] = this.sections["::Kernel32"];
+           			sections["::User32"] = this.sections["::User32"];
+           			sections["SubscriberObject"] = this.sections["SubscriberObject"];
+           			sections["_IMPORTURL"] = this.sections["_IMPORTURL"];
+           		};
+           		
+           		if(kernelLibName=="fiber"){
+           			sections["fiber.status"] = this.sections["fiber.status"]; 
            		};
            		if(kernelLibName=="raw"){
            			sections["dllModuleObject"] = this.sections["dllModuleObject"]; 
@@ -42,13 +55,25 @@ class markdown{
            			sections["comVariantObject"] = this.sections["comVariantObject"]; 
            			sections["comtypelibObject"] = this.sections["comtypelibObject"]; 
            			sections["comtypeinfoObject"] = this.sections["comtypeinfoObject"]; 
-           			sections["embedObject"] = this.sections["embedObject"]; 
+           			sections["embedObject"] = this.sections["embedObject"];
+           			sections["embedObject._host"] = this.sections["embedObject._host"];
+           			
+           			for k,v in ..table.eachName(this.sections){
+           				if(..string.startWith(k,"com",true)){
+           					sections[k] = this.sections[k]
+           				}
+           			}
+           			 
            		};
            		if(kernelLibName=="math"){
-           			sections["mathSize64Object"] = this.sections["mathSize64Object"];
+           			sections["mathSize64Object"] = this.sections["mathSize64Object"]; 
            		};
            		if(kernelLibName=="io"){
            			sections["fileObject"] = this.sections["fileObject"];
+           			sections["ioFileObject"] = this.sections["ioFileObject"];
+           		};
+           		if(kernelLibName=="time"){
+           			sections["timeObject"] = this.sections["timeObject"];
            		};
            		
            		if(kernelLibName!="global") {
@@ -90,7 +115,7 @@ class markdown{
 			for(path,section in ..table.eachName(this.sections,,sortNames)){
 					if(!..table.next(section) ) continue;
 					
-					..table.push(tOutput, '\r\n### <a id="',(#path? path : "global"),'"></a>\r\n',#path? path : "全局对象",' 成员列表\r\n' 
+					..table.push(tOutput, '\r\n<a id="',(#path? path : "global"),'"></a>\r\n### ',#path? path : "全局对象",' 成员列表\r\n' 
 						,'\r\n');
 					 
 					if( section[path] ){ 
@@ -108,21 +133,19 @@ class markdown{
            					if( ..io.libpath(k) ) continue;
            					
 							..table.push(tOutput,'\r\n<a id="', (..string.match(k,"(.+\.[^.]+)\(")  or k ) ,'"></a>\r\n#### ',k,' \r\n ');
-							..table.push(tOutput, v,'\r\n' ); 
+							..table.push(tOutput, ..string.replace(v,"#\s+","&num; "),'\r\n' ); 
 			  			} 
            			}
            			else {
            				for(k,v in ..table.eachName(section)){  
 							..table.push(tOutput,'\r\n<a id="', (..string.match(k,"(.+\.[^.]+)\(")  or k ) ,'"></a>\r\n#### ',k,' \r\n ');
-							..table.push(tOutput, v,'\r\n' ); 
+							..table.push(tOutput, ..string.replace(v,"#\s+","&num; "),'\r\n' ); 
 			  			} 
            			}
 			}  
  
 			if( this.const ){
-				..table.push(tOutput,  '\r\n\r\n',"全局常量",'\r\n'
-					,"-------------------------------------------------------------------------------------------------"
-					,'\r\n');
+				..table.push(tOutput,  '\r\n\r\n',"### 全局常量",'\r\n');
 					
 				for(k,v in ..table.eachName(this.const)){ 
            			if( ..io.libpath(k) ) continue;
@@ -133,9 +156,7 @@ class markdown{
 			}
 			
 			if( this.define ){
-				..table.push(tOutput,  '\r\n\r\n',"自动完成常量",'\r\n'
-					,"-------------------------------------------------------------------------------------------------"
-					,'\r\n');
+				..table.push(tOutput,  '\r\n\r\n',"### 自动完成常量",'\r\n');
 				for(k,v in ..table.eachName(this.define)){ 
 					if( ..string.indexOf(v,'\n') ) continue ;
 					..table.push(tOutput,k,"=",v,'  \r\n');

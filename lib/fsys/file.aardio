@@ -161,6 +161,17 @@ namespace file{
 					};
 					error("不支持的参数",2)
 				} 
+				elseif(len===0){
+					var ok,str,readSize = ReadFile( owner.hfile,1,1,0); 
+					if(ok && readSize){ 
+						SetFilePointerEx( owner.hfile,-readSize,0,1/*_FILE_CURRENT*/)
+						return "";
+					}
+					
+					return null;
+				}
+				
+				
 				if(len<0) {
 					len = owner.size(1) - len + 1; 
 				}
@@ -213,7 +224,7 @@ namespace file{
 		}
 		writeBuffer = function(buffer,l){
 			var t = type(buffer);
-			if( t == "buffer" ){
+			if( t == "buffer" ||  t == "string" ){
 				var m = #buffer;
 				if( l=== null ) l = m;
 				elseif( l > m ) l = m;
@@ -349,9 +360,9 @@ namespace file{
 	SetFileTime = ::Kernel32.api("SetFileTime","int(pointer file,struct creation,struct access,struct write)")
     
 	_seekMode = {
-	 	["cur"] = 0x1/*_FILE_CURRENT*/;
-	 	["end"] = 0x2/*_FILE_END*/;
-	 	["set"] = 0x0/*_FILE_BEGIN*/;
+	 	["cur"] = 1/*_FILE_CURRENT*/;
+	 	["end"] = 2/*_FILE_END*/;
+	 	["set"] = 0/*_FILE_BEGIN*/;
 	} 
 	
 	temp = function( path,dontDelete){ 
@@ -410,12 +421,13 @@ fsys.file.is(__) = 判断参数是不是fsys.file对象
 !fsysfile.read({int number} ) = 读取结构体\n不支持多参数
 !fsysfile.read() = 读取一行文本\n返回文本不包含回车换行符
 !fsysfile.read(-1) = 读取所有内容到文件尾部
+!fsysfile.read(0) = 是否未到达文件尾。\n如果已经到达文件尾返回 null，否则返回空字符串。\n注意在布尔表达式工 null 等于 false，空字符串等于 true。
 !fsysfile.readAll() = 读取所有内容
 !fsysfile.write(__/*字符串*/) = 写入字符串\n参数也可以是数值、结构体
 !fsysfile.readBuffer( = 读取数据到 buffer ,成功返回读取长度,失败返回null
 !fsysfile.readBuffer(.(buffer,读取长度) = 直接读数据到内存\n参数@1可以是 buffer 对象,或内存指针,\n如果是指针则必须指定读取长度,否则长度参数可选\n成功返回读取长度
 !fsysfile.writeBuffer( = 写入缓冲区数据,成功返回写入长度,失败返回null
-!fsysfile.writeBuffer(.(buffer,写入长度) = 直接写数据到内存\n参数@1可以是 buffer 对象,或内存指针,\n如果是指针则必须指定写入长度,否则长度参数可选\n成功返回写入长度
+!fsysfile.writeBuffer(.(buffer,写入长度) = 直接写数据到内存\n参数@1可以是 buffer 对象、字符串、内存指针。\n如果是指针则必须指定写入长度，否则长度参数可选。\n成功返回写入长度
 !fsysfile.seek("end") = 移动指针至结束处\n返回当前位置,返回值大于2GB则为负值,\n获取文件大小推荐使用 size() 函数
 !fsysfile.seek("end",__) = 移动至相对结束处的指定偏移量，\n偏移量应当是一个普通数值。
 !fsysfile.seek() = 得到当前位置
@@ -427,8 +439,8 @@ fsys.file.is(__) = 判断参数是不是fsys.file对象
 !fsysfile.delete() = 关闭并删除文件
 !fsysfile.close() = 关闭文件句柄
 !fsysfile.seteof() = 将当前文件位置设为文件末尾,\n用于快速改变文件大小\n成功返回true
-!fsysfile.size() = 返回文件大小\n如果希望获取格式化的的文件大小请使用size64函数
-!fsysfile.size64() = 返回文件大小\n返回值为math.size64长整数对象\n!math_size64.
+!fsysfile.size() = 返回文件大小。\nsize 函数表示的容量可以达到 8PB，一般不必要 size64 函数，\nmath.size64 对象主要用于格式化为适合单位表示的文本。 
+!fsysfile.size64() = 返回文件大小。\n返回值为 math.size64 长整数对象。\n可调用返回对象的 format 函数格式化为适合单位表示的文本。\n!math_size64.
 !fsysfile.deviceIoControl( = 对设备驱动程序发送控制指令
 !fsysfile.deviceIoControl(.(控制码,输入结构体,输出结构体) = 参数可以为空或结构体,\n输出结构体也可以是raw.malloc分配的缓冲区,\n成功返回true,以及读取的字节数
 !fsysfile.type() = 获取文件对象的类型\n例如控制台，管道，本地文件....等等\n返回值请参考_FILE_TYPE_前缀的常量

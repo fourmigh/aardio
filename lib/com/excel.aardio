@@ -281,6 +281,8 @@ getValue2() = 读单元格值。\n一般应当用 getValue2 而不是 getValue�
 setValue2(__/*新值*/) = 写单元格值。\n一般应当用 setValue2 而不是 setValue，\n原因请查看：范例 / COM 组件 / Excel / 带能数属性。
 end intellisense*****/
 
+//@ENDDOCUMENT@//
+
 /*****intellisense()
 _xlSmartTagControlCheckbox=@9/*_xlSmartTagControlCheckbox*/
 _xlNoMailSystem=@0/*_xlNoMailSystem*/

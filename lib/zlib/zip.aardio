@@ -1,5 +1,4 @@
 ﻿//zip 压缩
-//http://www.winimage.com/zLibDll/minizip.html 
 import zlib;
 import fsys; 
 import fsys.file;
@@ -12,7 +11,7 @@ class zip{
 		if( localDir ? ( ! ..fsys.isDir(localDir) ) ){
 			error("参数@2指定的路径必须是一个目录",2);
 		}
-		var zipFile = zipOpen64(..string.fromto( ..io.fullpath(path) ) ,append?1:0);
+		var zipFile = zipOpen64(..io.fullpath(path) ,append?2:0);
 		if(!zipFile)error("压缩文件路径参数错误",2);
 		
 		path = ..io.exist(path);
@@ -37,10 +36,9 @@ class zip{
 		 
 		var file,err = ..fsys.file(fileName,"rbR")
 		if(!file)return null,err;
-		if( !isDir ){
-			var size,unit,unitName = file.size(0x40000000)
- 			zip64 = size >=4; 
- 			
+		if( !isDir ){ 
+ 			zip64 = file.size64().greaterThan(0xffffffff);  
+ 		 
  			if( password ){ 
  				var crc32 = ..string.crc32;
  				var bufsize = 0x100000;
@@ -64,8 +62,9 @@ class zip{
    
 		fileName = ..fsys.path.relative(fileName,localDir,false);
 		if(!#fileName)return;
-	      
-		if (zipOpenNewFileInZip4_64(zipFile, fileName,info,  , 0,  , 0,  , 8/*_Z_DEFLATED*/, level,
+		
+		fileName = ..string.replace(fileName,"\\","/");
+		if (zipOpenNewFileInZip4_64(zipFile,fileName,info,  , 0,  , 0,  , 8/*_Z_DEFLATED*/, level,
 			0,-15/*_Z_MAX_WBITS*/, 8/*_Z_DEF_MEM_LEVEL*/, 0/*_Z_DEFAULT_STRATEGY*/,password, crcForCrypting, 0/*_VERSIONMADEBYDOS*/, 0x800, zip64) != 0/*_ZIP_OK*/){
             return;
         }
@@ -149,7 +148,7 @@ class zip{
 }
                                                   
 namespace zip{ 
-	zipOpen64 = dll.api("zipOpen64","pointer(string path,int append)"); 
+	zipOpen64 = dll.api("zipOpen64W","pointer(ustring path,int append)"); 
 	zipClose = dll.api("zipClose","int(pointer file,string comment)");    
 	zipOpenNewFileInZip4_64 = dll.api("zipOpenNewFileInZip4_64","int(POINTER file, str filename, struct zipfi,pointer extrafield_local, INT size_extrafield_local,  pointer extrafield_global,INT size_extrafield_global,str comment
 		, int method,int level,int raw,int windowBits,int memLevel,int strategy,string password,INT crcForCrypting,INT versionMadeBy,INT flagBase,bool zip64)"); 

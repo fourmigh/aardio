@@ -8,37 +8,32 @@ treeview={cls="treeview";left=22;top=17;right=326;bottom=230;asel=false;bgcolor=
 /*}}*/
 
 import win.ui.menu;
+
+//选中树视图（treeview）节点变更触发 onSelChanged 事件
+winform.treeview.onSelChanged = function(hItem,data,nmTreeView){
+	var data  = winform.treeview.getItemData(hItem);
+	
+    if( data ) winform.text = tostring(data)
+    else winform.text = winform.treeview.getItemText(hItem);	
+}
+
+//右键点击树视图（treeview）触发 onRightClick 事件
+winform.treeview.onRightClick = function(hItem,data){
+    winform.treeview.setSelected(hItem);
+    
+    var menu = win.ui.popmenu(winform)
+    menu.add("删除",
+        function(){ 
+            winform.treeview.delItem(hItem)
+        }
+    )
+    menu.popup(x,y,true);		
+}
+
+//处理树视图（treeview）通知事件，实际上上面的 onSelChanged，onRightClick 都来自控件预处理的通知事件。
 winform.treeview.onnotify = function(id,code,ptr){
  
-    if( code == 0xFFFFFE3D/*_TVN_SELCHANGEDW*/ ){ //改变选项
-        /*
-		var nm = winform.treeview.getTreeNotifyMessage(code,ptr)
-        if( nm ){
-            var data  = winform.treeview.getItemData(nm.itemNew.hItem);
-            if( data ) winform.text = tostring(data)
-            else winform.text = winform.treeview.getItemText(nm.itemNew.hItem);
-        }
-		*/
-		var hItem = winform.treeview.getSelection();
-		if(hItem){
-			var data  = winform.treeview.getItemData(hItem);
-            if( data ) winform.text = tostring(data)
-            else winform.text = winform.treeview.getItemText(hItem);
-		}
-    }
-    elseif(code = 0xFFFFFFFB/*_NM_RCLICK*/){ //鼠标右键单击
-        var hItem,tvht = winform.treeview.hitTest();
-        winform.treeview.setSelected(hItem);
-        
-        var menu = win.ui.popmenu(winform)
-        menu.add("删除",
-            function(){ 
-                winform.treeview.delItem(hItem)
-            }
-        )
-        menu.popup(x,y,true);
-    }
-    elseif( code == 0xFFFFFFF4/*_NM_CUSTOMDRAW*/ ){ //来点自绘
+    if( code == 0xFFFFFFF4/*_NM_CUSTOMDRAW*/ ){ //来点自绘
 		var lvcd = winform.treeview.getNotifyCustomDraw(code,ptr); 
 		if( lvcd.nmcd.dwDrawStage == 1/*_CDDS_PREPAINT*/ ){
 			return 0x20/*_CDRF_NOTIFYITEMDRAW*/;

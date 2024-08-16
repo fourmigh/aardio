@@ -23,25 +23,20 @@ var hitem = winform.treeview.insertItem( {
     }
 } ) 
 
-//响应事件
-winform.treeview.onnotify = function(id,code,ptr){
-    
-    //用户勾选、取消勾选复选框
-    if(code = 0xFFFFFFE8/*_NM_TVSTATEIMAGECHANGING*/){
-         var hItem = winform.treeview.hitTest(); 
-         
-         //因为节点正在被勾选,勾选状态还未更新，所以下面要取反
-         var checked = !winform.treeview.getChecked(hItem);    
-         
-         /*
-         全选所有下级节点,并更新所有上级父节点勾选状态。
-         如果有任意下级节点被勾选则勾选父节点,如果所有下级节点都没有被勾选则取消勾选父节点。 
-         */
-         winform.treeview.checkAll(hItem,checked); 
-         
-         //展开所有下级节点
-         winform.treeview.expandAll(hItem);
-    }
+//响应复选框事件（状态图像变更事件）
+winform.treeview.onStateImageChanging = function(hItem,checked,newImgIndex,oldImgIndex){
+     
+     /*
+     全选所有下级节点,并更新所有上级父节点勾选状态。
+     如果有任意下级节点被勾选则勾选父节点,如果所有下级节点都没有被勾选则取消勾选父节点。 
+     */
+     winform.treeview.checkAll(hItem,checked); 
+     
+     //展开所有下级节点
+     winform.treeview.expandAll(hItem); 
+     
+     //选定节点
+     winform.treeview.setSelected(hItem);
 }
 
 winform.show() 
