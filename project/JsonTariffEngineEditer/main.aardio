@@ -2,20 +2,20 @@ import win.ui;
 import console
 import fsys.dlg
 /*DSG{{*/
-mainForm = win.form(text="JsonTariffEngineEditer V0.1";left=0;top=0;right=800;bottom=600)
+mainForm = win.form(text="TriStar Tariff Engine Editor V0.2";left=0;top=0;right=800;bottom=600)
 mainForm.add(
-btnAddRule={cls="button";text="Add";left=166;top=490;right=246;bottom=527;z=11};
-btnAddTariff={cls="button";text="Add";left=27;top=490;right=107;bottom=527;z=3};
-btnEditbtnTariff={cls="button";text="Edit";left=28;top=537;right=108;bottom=574;z=12};
-btnLoad={cls="button";text="Load";left=23;top=17;right=103;bottom=54;z=1};
-btnSave={cls="button";text="Save";left=688;top=538;right=768;bottom=575;z=2};
-etMaxAmount={cls="edit";left=280;top=64;right=425;bottom=96;edge=1;multiline=1;num=1;z=7};
-etRule={cls="edit";left=456;top=149;right=768;bottom=469;edge=1;multiline=1;vscroll=1;z=10};
+btnAddRule={cls="button";text="Add Rule";left=166;top=490;right=246;bottom=527;z=11};
+btnAddTariff={cls="button";text="Add Tariff";left=27;top=490;right=107;bottom=527;z=3};
+btnEditbtnTariff={cls="button";text="Edit Tariff";left=28;top=537;right=108;bottom=574;z=12};
+btnLoad={cls="button";text="Load Tariff File";left=272;top=538;right=547;bottom=575;z=1};
+btnSave={cls="button";text="Save Tariff File";left=564;top=538;right=768;bottom=575;z=2};
+etMaxAmount={cls="edit";left=280;top=73;right=425;bottom=96;edge=1;multiline=1;num=1;z=7};
+etRule={cls="edit";left=456;top=149;right=768;bottom=474;edge=1;multiline=1;vscroll=1;z=10};
 lbRule={cls="listbox";left=166;top=149;right=425;bottom=474;edge=1;items={};z=9};
 lbTariff={cls="listbox";left=27;top=99;right=148;bottom=474;edge=1;items={};z=4};
-static={cls="static";text="TariffList";left=27;top=74;right=120;bottom=96;font=LOGFONT(h=-14;weight=700);transparent=1;z=5};
-static2={cls="static";text="RuleList";left=166;top=119;right=259;bottom=141;font=LOGFONT(h=-14;weight=700);transparent=1;z=8};
-static3={cls="static";text="maxAmount:";left=166;top=74;right=259;bottom=96;font=LOGFONT(h=-14;weight=700);transparent=1;z=6}
+static={cls="static";text="Tariff List";left=27;top=74;right=120;bottom=96;font=LOGFONT(h=-14;weight=700);transparent=1;z=5};
+static2={cls="static";text="Rule List";left=166;top=119;right=259;bottom=141;font=LOGFONT(h=-14;weight=700);transparent=1;z=8};
+static3={cls="static";text="Max Amount:";left=166;top=74;right=259;bottom=96;font=LOGFONT(h=-14;weight=700);transparent=1;z=6}
 )
 /*}}*/
 
@@ -111,7 +111,7 @@ refreshRules = function() {
 		var rule = rules[i]
 		//log("Rule.index", i)
 		//logJson("Rule.rule", rule)
-		mainForm.lbRule.add(i)
+		mainForm.lbRule.add(i + ":" + rules[i].name)
 	}
 }
 
@@ -164,7 +164,10 @@ mainForm.btnLoad.oncommand = function(id,event){
 }
 
 saveFile = function() {
-	var file = filePath + ".tmp"
+	if (filePath == null || filePath == "") {
+		filePath = "tariff.json"
+	}
+	var file = filePath// + ".tmp"
 	var json = formatJsonObject(fileJson)
 	string.save(file, json)
 	return file 
