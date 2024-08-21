@@ -1,6 +1,7 @@
 import win.ui;
 import console
-
+import classes
+import time
 /*DSG{{*/
 var winform = win.form(text="aardio form";right=759;bottom=469)
 winform.add(
@@ -18,27 +19,15 @@ static2={cls="static";text="endTime:";left=103;top=90;right=246;bottom=119;font=
 winform.show();
 win.loopMessage();
 
-class Person {
+//console.log("config", config.__appName)
 
-    // 构造函数
-    ctor(n, a, console) {
-        this.name = n
-        this.age = a
-        this.console = console
-    }
-    
-    // 成员变量
-    //name = "";
-    //age = 0;
+/*
+jsonTimestamp = classes.JsonTimestamp(time.now(), time)
+console.log("timestamp", jsonTimestamp.timestamp)
+console.log("format", jsonTimestamp.format)
+*/
 
-    // 成员函数
-    greet = function() {
-        this.console.log("Person", "Hello, my name is " + this.name + " and I am " + this.age + " years old.");
-    }
-}
-// 创建类的实例
-person1 = Person("Alice", 30, console)
-// 调用类的方法
-person1.greet()
+console.log("TimeUnit.MINUTE.milliseconds", classes.TimeUnit.MINUTE.milliseconds)
+console.log("RuleType.TIER", classes.RuleType.TIER)
 
 return winform;
