@@ -3,18 +3,70 @@ import console
 import classes
 import time
 /*DSG{{*/
-var winform = win.form(text="aardio form";right=759;bottom=469)
+var winform = win.form(text="Calculate";right=913;bottom=471)
 winform.add(
-btnCalculate={cls="button";text="Calculate";left=629;top=139;right=709;bottom=176;z=7};
-button={cls="button";text="Start Time";left=484;top=36;right=564;bottom=73;z=3};
-button2={cls="button";text="End Time";left=484;top=82;right=564;bottom=119;z=6};
-edit={cls="edit";left=289;top=44;right=442;bottom=66;edge=1;z=2};
-edit2={cls="edit";left=289;top=90;right=442;bottom=112;edge=1;z=5};
-edit3={cls="edit";left=61;top=139;right=584;bottom=437;edge=1;multiline=1;vscroll=1;z=8};
-static={cls="static";text="startTime:";left=103;top=44;right=246;bottom=73;font=LOGFONT(h=-18;weight=700);transparent=1;z=1};
-static2={cls="static";text="endTime:";left=103;top=90;right=246;bottom=119;font=LOGFONT(h=-18;weight=700);transparent=1;z=4}
+btnCalculate={cls="button";text="Calculate";left=798;top=234;right=878;bottom=271;z=7};
+btnEndTime={cls="button";text="End Time";left=461;top=82;right=541;bottom=119;z=6};
+btnStartTime={cls="button";text="Start Time";left=461;top=36;right=541;bottom=73;z=3};
+calendar={cls="calendar";left=587;top=22;right=879;bottom=196;edge=1;z=11};
+etEndTime={cls="edit";left=289;top=90;right=442;bottom=112;edge=1;z=5};
+etResult={cls="edit";left=178;top=237;right=776;bottom=433;edge=1;multiline=1;vscroll=1;z=8};
+etStartTime={cls="edit";left=289;top=44;right=442;bottom=66;edge=1;z=2};
+lbTariff={cls="listbox";left=30;top=72;right=151;bottom=437;edge=1;items={};z=9};
+static={cls="static";text="startTime:";left=176;top=44;right=273;bottom=73;font=LOGFONT(h=-18;weight=700);transparent=1;z=1};
+static2={cls="static";text="endTime:";left=176;top=90;right=273;bottom=119;font=LOGFONT(h=-18;weight=700);transparent=1;z=4};
+static3={cls="static";text="Tariff List";left=33;top=44;right=126;bottom=66;font=LOGFONT(h=-14;weight=700);notify=1;transparent=1;z=10}
 )
 /*}}*/
+
+var listRuleSet = ..listRuleSet
+var keyTariff = ""
+
+refresh = function() {
+	//logJson("listRuleSet", listRuleSet)
+	winform.lbTariff.clear()
+	for (k,v in listRuleSet) {
+		//log("listRuleSet", "k: " + k)
+		winform.lbTariff.add(k)
+	}
+}
+
+winform.lbTariff.onSelChange = function() {
+	keyTariff = owner.selText
+}
+
+getTime = function(startOrEnd, text){
+	
+	var formFile = "\dlg\editTime.aardio"
+	var editTimeForm = win.loadForm(formFile)
+	var result = editTimeForm.doModal()
+	if (result) {
+		var hour = ..hour
+		var minute = ..minute
+		var year, month, day = parseDate(winform.calendar.time)
+		var timestamp = time(year + "/" + month + "/" + day + " " + hour + ":" + minute + ":00","%Y/%m/%d %H:%M:%S")
+		
+		if (startOrEnd) {
+			winform.etStartTime.text = timestamp
+		} else {
+			winform.etEndTime.text = timestamp
+		}
+	}
+}
+
+winform.btnStartTime.oncommand = function(id,event){
+	getTime(true, winform.etStartTime.text)
+}
+winform.btnEndTime.oncommand = function(id,event){
+	getTime(false, winform.etEndTime.text)
+}
+
+parseDate = function(dateTable) {
+    var year = dateTable.year
+    var month = dateTable.month
+    var day = dateTable.day
+    return year, month, day
+}
 
 winform.show();
 win.loopMessage();
@@ -27,7 +79,9 @@ console.log("timestamp", jsonTimestamp.timestamp)
 console.log("format", jsonTimestamp.format)
 */
 
-console.log("TimeUnit.MINUTE.milliseconds", classes.TimeUnit.MINUTE.milliseconds)
-console.log("RuleType.TIER", classes.RuleType.TIER)
+//console.log("TimeUnit.MINUTE.milliseconds", classes.TimeUnit.MINUTE.milliseconds)
+//console.log("RuleType.TIER", classes.RuleType.TIER)
+
+refresh()
 
 return winform;

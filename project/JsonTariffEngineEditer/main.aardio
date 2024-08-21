@@ -1,8 +1,9 @@
 import win.ui;
 import console
 import fsys.dlg
+import classes
 /*DSG{{*/
-mainForm = win.form(text="TriStar Tariff Engine Editor V0.2";left=0;top=0;right=800;bottom=600)
+mainForm = win.form(text="TriStar Tariff Engine Editor V0.3";left=0;top=0;right=800;bottom=600)
 mainForm.add(
 btnAddRule={cls="button";text="Add Rule";left=166;top=490;right=246;bottom=527;z=11};
 btnAddTariff={cls="button";text="Add Tariff";left=27;top=490;right=107;bottom=527;z=3};
@@ -72,19 +73,25 @@ formatJsonString = function(jsonStr) {
 log = function(tag, text) {
 	console.log(tag, text)
 }
+logJson = function(tag, jsonObject) {
+	var json = formatJsonObject(jsonObject)
+	log(tag, json)
+}
+
 
 msgbox = function(text){
 	win.msgbox(text, "")
 }
 
 var filePath = ""
-var fileJson = {}
+//var fileJson = {}
+var listRuleSet = {}
 var keyTariff = ""
 var indexRule = 0
 
 refresh = function() {
 	mainForm.lbTariff.clear()
-	for (k,v in fileJson) {
+	for (k,v in listRuleSet) {
 		mainForm.lbTariff.add(k)
 	}
 }
@@ -97,14 +104,22 @@ reloadFile = function(filePath) {
 	var content = string.load(filePath)
 	if (content == null) {
 		return
-	} 
-	fileJson = web.json.parse(content)
-	//logJson("fileJson", fileJson)
+	}
+	listRuleSet = {}
+	mainForm.lbRule.clear()
+	mainForm.etMaxAmount.text = null
+	mainForm.etRule.text = null
+		
+	var fileJson = web.json.parse(content)
+	for (k in fileJson) {
+		var ruleSet = fileJson[k]
+    	listRuleSet[k] = ruleSet;
+	}
 	refresh()
 }
 
 refreshRules = function() {
-	var rules = fileJson[keyTariff].rules
+	var rules = listRuleSet[keyTariff].rules
 	
 	//logJson("Rule.rules", rules)
 	mainForm.lbRule.clear()
@@ -118,7 +133,7 @@ refreshRules = function() {
 
 mainForm.lbTariff.onSelChange = function() {
 	keyTariff = owner.selText
-	mainForm.etMaxAmount.text = fileJson[keyTariff].maxAmount
+	mainForm.etMaxAmount.text = listRuleSet[keyTariff].maxAmount
 	refreshRules()
 }
 
@@ -141,7 +156,7 @@ editRule = function(rule){
 		var ruleResult = ..rule
 		var json = formatJsonObject(ruleResult)
 		ruleResult = web.json.parse(json)
-		fileJson[keyTariff].rules[indexRule] = ruleResult
+		listRuleSet[keyTariff].rules[indexRule] = ruleResult
 		mainForm.etRule.text = json
 	}
 }
@@ -150,7 +165,7 @@ mainForm.lbRule.onSelChange = function() {
 	indexRule = tonumber(owner.selText)
 	//log("Rule.index", indexRule)
 	//log("Rule.keyTariff", keyTariff)
-	var rules = fileJson[keyTariff].rules
+	var rules = listRuleSet[keyTariff].rules
 	//logJson("Rule.rules", rules)
 	var rule = rules[indexRule]
 	//logJson("Rule.rule", rule)
@@ -170,7 +185,7 @@ saveFile = function() {
 		filePath = "tariff.json"
 	}
 	var file = filePath// + ".tmp"
-	var json = formatJsonObject(fileJson)
+	var json = formatJsonObject(listRuleSet)
 	string.save(file, json)
 	return file 
 }
@@ -194,13 +209,13 @@ addOrEditTariffName = function(action) {
 	}
 	if (action == "add") {
 		keyTariff = tariffName
-		fileJson[keyTariff] = {}
+		listRuleSet[keyTariff] = {}
 		refresh()
 	} elseif (action == "edit") {
-		var value = fileJson[keyTariff]
-		fileJson[keyTariff] = null
+		var value = listRuleSet[keyTariff]
+		listRuleSet[keyTariff] = null
 		keyTariff = tariffName
-		fileJson[tariffName] = value
+		listRuleSet[tariffName] = value
 		refresh()
 	}
 }
@@ -215,7 +230,7 @@ mainForm.btnAddRule.oncommand = function(id,event){
 	var result = editTypeName.doModal()
 	if (result) {
 		var rule = ..rule
-		var tariff = fileJson[keyTariff]
+		var tariff = listRuleSet[keyTariff]
 		if (tariff.rules == null) {
 			tariff.rules = {}
 		}
@@ -229,7 +244,7 @@ mainForm.btnEditbtnTariff.oncommand = function(id,event){
 }
 
 mainForm.btnCalculate.oncommand = function(id,event){
-	..fileJson = fileJson
+	..listRuleSet = listRuleSet
 	var formFile = "\dlg\calculate.aardio"
 	win.loadForm(formFile)
 }
