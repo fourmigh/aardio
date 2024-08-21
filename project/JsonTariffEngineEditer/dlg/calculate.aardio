@@ -35,6 +35,10 @@ winform.lbTariff.onSelChange = function() {
 	keyTariff = owner.selText
 }
 
+getTimestamp = function(year, month, day, hour, minute, second) {
+	return time(year + "/" + month + "/" + day + " " + hour + ":" + minute + ":" + second,"%Y/%m/%d %H:%M:%S") 
+}
+
 getTime = function(startOrEnd, text){
 	
 	var formFile = "\dlg\editTime.aardio"
@@ -44,7 +48,7 @@ getTime = function(startOrEnd, text){
 		var hour = ..hour
 		var minute = ..minute
 		var year, month, day = parseDate(winform.calendar.time)
-		var timestamp = time(year + "/" + month + "/" + day + " " + hour + ":" + minute + ":00","%Y/%m/%d %H:%M:%S")
+		var timestamp = getTimestamp(year, month, day, hour, minute, 0)
 		
 		if (startOrEnd) {
 			winform.etStartTime.text = timestamp
