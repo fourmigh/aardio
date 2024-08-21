@@ -1,0 +1,44 @@
+import win.ui;
+import console
+
+/*DSG{{*/
+var winform = win.form(text="aardio form";right=759;bottom=469)
+winform.add(
+btnCalculate={cls="button";text="Calculate";left=629;top=139;right=709;bottom=176;z=7};
+button={cls="button";text="Start Time";left=484;top=36;right=564;bottom=73;z=3};
+button2={cls="button";text="End Time";left=484;top=82;right=564;bottom=119;z=6};
+edit={cls="edit";left=289;top=44;right=442;bottom=66;edge=1;z=2};
+edit2={cls="edit";left=289;top=90;right=442;bottom=112;edge=1;z=5};
+edit3={cls="edit";left=61;top=139;right=584;bottom=437;edge=1;multiline=1;vscroll=1;z=8};
+static={cls="static";text="startTime:";left=103;top=44;right=246;bottom=73;font=LOGFONT(h=-18;weight=700);transparent=1;z=1};
+static2={cls="static";text="endTime:";left=103;top=90;right=246;bottom=119;font=LOGFONT(h=-18;weight=700);transparent=1;z=4}
+)
+/*}}*/
+
+winform.show();
+win.loopMessage();
+
+class Person {
+
+    // 构造函数
+    ctor(n, a, console) {
+        this.name = n
+        this.age = a
+        this.console = console
+    }
+    
+    // 成员变量
+    //name = "";
+    //age = 0;
+
+    // 成员函数
+    greet = function() {
+        this.console.log("Person", "Hello, my name is " + this.name + " and I am " + this.age + " years old.");
+    }
+}
+// 创建类的实例
+person1 = Person("Alice", 30, console)
+// 调用类的方法
+person1.greet()
+
+return winform;

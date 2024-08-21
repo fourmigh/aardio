@@ -11,5 +11,6 @@
 		<file name="editTariffName.aardio" path="dlg\editTariffName.aardio" comment="dlg\editTariffName.aardio"/>
 		<file name="editTypeName.aardio" path="dlg\editTypeName.aardio" comment="dlg\editTypeName.aardio"/>
 		<file name="editPeriod.aardio" path="dlg\editPeriod.aardio" comment="dlg\editPeriods.aardio"/>
+		<file name="calculate.aardio" path="dlg\calculate.aardio" comment="dlg\calculate.aardio"/>
 	</folder>
 </project>
