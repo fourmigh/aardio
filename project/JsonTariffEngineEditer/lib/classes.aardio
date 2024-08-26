@@ -1,4 +1,5 @@
 ﻿import fsys.config
+import time
 config  = fsys.config("/classes/")
 namespace classes{
 	
@@ -94,22 +95,22 @@ namespace classes{
 	}
 	
 	class RuleCalculation {
-		ctor(rule, startTime, endTime, calculatedTime, calculatedFee) {
+		ctor(time, rule, startTime, endTime, calculatedTime, calculatedFee) {
 			this.rule = rule
-			this.startTime = startTime
-			this.endTime = endTime
+			this.startTime = time(startTime)
+			this.endTime = time(endTime)
 			this.calculatedTime = calculatedTime
 			this.calculatedFee = calculatedFee
 		}
 	}
 	
 	class CalculationResult {
-		ctor(ruleName, totalFee, details, startTime, endTime) {
+		ctor(time, ruleName, totalFee, details, startTime, endTime) {
 			this.ruleName = ruleName
 			this.totalFee = totalFee
 			this.details = details
-			this.startTime = startTime
-			this.endTime = endTime
+			this.startTime = time(startTime)
+			this.endTime = time(endTime)
 			this.maxAmount = maxAmount
 		}
 	}

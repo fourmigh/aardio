@@ -72,6 +72,366 @@ parseDate = function(dateTable) {
     return year, month, day
 }
 
+parseHHMM = function(timeString) {
+	try {
+		// 使用 string.split 分割字符串
+        var parts = string.split(timeString, ":")
+        if (#parts != 2) {
+            return false 
+        }
+
+        // 将小时和分钟转换为数字
+        hh = tonumber(parts[1])
+        mm = tonumber(parts[2])
+
+        if (hh == nil or mm == nil) {
+            return false
+        }
+
+        return true, hh, mm // 成功返回 true 和解析后的小时、分钟
+	} catch(e) {
+		return false
+	}
+}
+
+formatTime = function(timestamp, hhmm) {
+    var success, hh, mm = parseHHMM(hhmm)
+    if (success) {
+        var timeFormat = time(timestamp)
+		timeFormat.hour = hh
+		timeFormat.minute = mm
+		timeFormat.second = 0
+		timeFormat.milliseconds = 0
+		return timeFormat 
+    } else {
+        return timestamp 
+    }
+}
+    
+hasOverlap = function(startTime1, endTime1, startTimeHHMM, endTimeHHMM) {
+    var startTime2 = formatTime(startTime1, startTimeHHMM)
+    var endTime2 = formatTime(endTime1, endTimeHHMM)
+    return startTime1 < endTime2 && startTime2 < endTime1
+}
+    
+weekdayInFreePeriods = function(startDateTime, endDateTime, strYMD, periods) {
+	if (string.len(strYMD) < 1 || periods == null || #periods < 1) {
+        return false
+    }
+    for (i=1;#periods;1) {
+        if (hasOverlap(startDateTime, endDateTime, freePeriod.startTime, freePeriod.endTime)) {
+            if (freePeriod.days == null || #freePeriod.days < 1 || table.find(freePeriod.days, strYMD) > 0) {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+calculateNumberUnitBetween2 = function(defTime, unit) {
+	var unitTimeMinute = 60
+	log("calculateNumberUnitBetween.unitTimeMinute", unitTimeMinute)
+	var unitTimeHour = 60 * unitTimeMinute
+	log("calculateNumberUnitBetween.unitTimeHour", unitTimeHour)
+	var unitTimeDay = 24 * unitTimeHour
+	log("calculateNumberUnitBetween.unitTimeDay", unitTimeDay)
+    var unitTime = unitTimeDay
+    if (unit == classes.TimeUnit.MINUTE) {
+        log("calculateNumberUnitBetween.unit", "unit == classes.TimeUnit.MINUTE")
+        unitTime = unitTimeMinute
+    } elseif(unit == classes.TimeUnit.HOUR) {
+        log("calculateNumberUnitBetween.unit", "unit == classes.TimeUnit.HOUR")
+    	unitTime = unitTimeHour
+    }
+    log("calculateNumberUnitBetween.unitTime", unitTime)
+    var count = defTime / unitTime
+    if (unit != classes.TimeUnit.DAY && defTime % unitTime > 0) {
+        count ++
+    }
+    log("calculateNumberUnitBetween.count", count)
+    return tonumber(count)
+}
+calculateNumberUnitBetween3 = function(logText, startTimestamp, endTimestamp, unit) {
+	log("calculateNumberUnitBetween.log", logText)
+	log("calculateNumberUnitBetween.startTimestamp", startTimestamp)
+	log("calculateNumberUnitBetween.endTimestamp", endTimestamp)
+	log("calculateNumberUnitBetween.unit", unit)
+    var defTime = (endTimestamp.getMilliTime() - startTimestamp.getMilliTime()) / 1000
+	log("calculateNumberUnitBetween.defTime", defTime)
+    return calculateNumberUnitBetween2(defTime, unit)
+}
+
+getTimeUnit = function(name, timeUnit) {
+	var NAME = string.upper(name)
+	if (name == "MILLISECOND") {
+		return classes.TimeUnit.MILLISECOND
+	} elseif (name == "SECOND") {
+		return classes.TimeUnit.SECOND
+	} elseif (name == "MINUTE") {
+		return classes.TimeUnit.MINUTE
+	} elseif (name == "HOUR") {
+		return classes.TimeUnit.HOUR
+	} elseif (name == "DAY") {
+		return classes.TimeUnit.DAY
+	} elseif (name == "WEEK") {
+		return classes.TimeUnit.WEEK
+	} elseif (name == "MONTH") {
+		return classes.TimeUnit.MONTH
+	} elseif (name == "YEAR") {
+		return classes.TimeUnit.YEAR
+	}
+	return timeUnit
+}
+
+
+winform.btnCalculate.oncommand = function(id,event){
+	if (listRuleSet == null || keyTariff == null || keyTariff == "") {
+		return
+	}
+	var ruleSet = listRuleSet[keyTariff]
+	if (ruleSet == null) {
+		return
+	}  
+	var textStartTime = winform.etStartTime.text
+	var startDateTime = time(textStartTime)
+	var textEndTime = winform.etEndTime.text
+	var endDateTime = time(textEndTime)
+	log("startDateTime", startDateTime)
+	log("endDateTime", endDateTime)
+	var totalFee = 0
+	var currentTime = time(startDateTime)
+	var ruleCalculations = {}//RuleCalculation列表
+	var lastPeriodEndTime = time(endDateTime)
+	
+	while (currentTime < endDateTime) {
+		var dayEnd = time(currentTime)
+		dayEnd.hour = 23
+		dayEnd.minute = 59
+		dayEnd.second = 59
+		dayEnd.milliseconds = 999
+		log("dayEnd", dayEnd)
+		var periodEndTime = time(endDateTime)
+		if (dayEnd < endDateTime) {
+			periodEndTime = time(dayEnd)
+		}
+		log("periodEndTime", periodEndTime)
+		var freeMinutes = 0
+        var applicableRules = {}//Rule列表
+        logJson("ruleSet.rules", ruleSet.rules)
+        for (i=1;#ruleSet.rules;1) {
+            var rule = ruleSet.rules[i]
+            var ruleType = string.lower(rule.type)
+            log("ruleType", ruleType)
+            var day = time(currentTime, "%Y-%m-%d")
+            var strDay = tostring(day)
+            log("day", day)
+            var result = false
+            if (ruleType == classes.RuleType.FREE) {
+                if (rule.days != null) {
+                    log("strDay", strDay)
+                    logJson("rule.days", rule.days)
+                    var found = table.find(rule.days, strDay)
+                    if (found) {
+                    	result = found > 0
+                    }
+                }
+                if (!result && weekdayInFreePeriods(startDateTime, endDateTime, strDay, rule.periods)) {
+                    result = true
+                }
+                
+            } else {
+            	//rule.days == null || (rule.days.contains(day) && TimeUtils.hasOverlap(startDateTime, endDateTime, rule.startTime ?: "00:00", rule.endTime ?: "23:59"))
+            	if (rule.days == null || #rule.days < 1) {
+            	    result = true
+            	}
+            	if (!result) {
+            	    var found = table.find(rule.days, strDay)
+            	    if (found) {
+            	    	var startTime = rule.startTime
+            	    	if (startTime == null || string.len(startTime) < 1) {
+            	        	startTime = "00:00"
+            	    	}
+            	    	var endTime = rule.endTime
+            	    	if (endTime == null || string.len(endTime) < 1) {
+            	        	endTime = "23:59"
+            	    	}
+            	    	result = hasOverlap(startDateTime, endDateTime, startTime, endTime)
+            	    }
+            	} 
+           	}
+            
+            log("result", result)
+            if (result) {
+                table.push(applicableRules, rule)
+                if (ruleType == classes.RuleType.FREE && rule.periods != null && #rule.periods > 0) {
+                    for (i=1;#rule.periods;1) {
+                        var freePeriod = rule.periods[i]
+                        var freeStartTime = formatTime(currentTime, freePeriod.startTime)
+                        log("freeStartTime", freeStartTime)
+                        var freeEndTime = formatTime(currentTime, freePeriod.endTime)
+                        log("freeEndTime", freeEndTime)
+                        var hasOverlap = hasOverlap(currentTime, periodEndTime, freePeriod.startTime, freePeriod.endTime)
+                        var calculatedTime = 0
+                        log("hasOverlap", hasOverlap)
+                        if (hasOverlap) {
+                            var startTime = time(currentTime)
+                            if (freeStartTime > currentTime) {
+                                startTime = time(freeStartTime)
+                            }
+                            log("startTime", startTime)
+                            var endTime = time(periodEndTime)
+                            if (freeEndTime > periodEndTime) {
+                                endTime = time(freeEndTime)
+                            }
+                            log("endTime", endTime)
+                            calculatedTime = calculateNumberUnitBetween3(
+                            	"计算免费时间",
+                                startTime,
+                                endTime,
+                                classes.TimeUnit.MINUTE
+                            )
+                            table.push(ruleCalculations, classes.RuleCalculation(
+                            	time,
+                                rule,
+                                freeStartTime,
+                                freeEndTime,
+                                calculatedTime,
+                                0))
+                        }
+                        log("calculatedTime", calculatedTime)
+                        freeMinutes += calculatedTime
+                        log("freeMinutes", freeMinutes)
+                    }
+                }
+            }
+        }
+        var calCurrentTime = true
+        for (i=1;#applicableRules;1) {
+            var rule = applicableRules[i]
+            var ruleType = string.lower(rule.type)
+            if (ruleType == classes.RuleType.FREE) {
+                var day = time(currentTime, "%Y-%m-%d")
+            	var strDay = tostring(day)
+            	if (rule.days != null) {
+                    var found = table.find(rule.days, strDay)
+                    if (found) {
+                        table.push(ruleCalculations, classes.RuleCalculation(time, rule, currentTime, endDateTime, 0, 0))
+                        lastPeriodEndTime = time(periodEndTime)
+                        log("lastPeriodEndTime.FREE", lastPeriodEndTime)
+                        break
+                    }
+                }
+            } elseif(ruleType == classes.RuleType.TIER || ruleType == classes.RuleType.FLAT) {
+            	var periodStartTime = formatTime(currentTime, rule.startTime)
+            	if (currentTime < periodStartTime) {
+            		currentTime = periodStartTime
+                }
+                if (ruleType == classes.RuleType.TIER) {
+                    if (rule.rateTiers != null && #rule.rateTiers > 0) {
+                		var remainingMinutes = calculateNumberUnitBetween3(
+                			"计算TIER金额",
+                			currentTime, periodEndTime, classes.TimeUnit.MINUTE) - freeMinutes
+                        var rateTier = null
+                        for (j=1;#rule.rateTiers;1) {
+                            var tier = rule.rateTiers[j]
+                            if (tier.duration >= remainingMinutes) {
+                                rateTier = rule.rateTiers
+                                break
+                            }
+                            if (rateTier == null && j == #rule.rateTiers) {
+                                rateTier = rule.rateTiers
+                            }
+                        }
+                        totalFee += rateTier.rate
+                        table.push(ruleCalculations, classes.RuleCalculation(
+                        	time, rule, currentTime, periodEndTime, remainingMinutes, rateTier.rate))
+                        currentTime = time(periodEndTime)
+                        lastPeriodEndTime = time(periodEndTime)
+                        log("lastPeriodEndTime.TIER", lastPeriodEndTime)
+                    }
+                } elseif(ruleType == classes.RuleType.FLAT) {
+                	var flatRate = rule.rate
+                	if (flatRate == null || flatRate == "") {
+                	    flatRate = 0
+                	}
+                	
+                	var flatUnit = getTimeUnit(rule.unit, classes.TimeUnit.HOUR)
+                	log("flatUnit", flatUnit)
+                	var endTimestamp = time(periodEndTime)
+                	if (true != rule.dailySettlement) {
+                		calCurrentTime = falselog("flatRate", flatRate)
+                		endTimestamp = time(endDateTime)
+                	}
+                	var calculatedTime = calculateNumberUnitBetween3(
+                		"计算FLAT金额",
+                		currentTime, endTimestamp, flatUnit)
+                	log("calculatedTime", calculatedTime)
+                	if (freeMinutes > 0) {
+                		var freeTime = calculateNumberUnitBetween2(freeMinutes * classes.TimeUnit.MINUTE.milliseconds, flatUnit)
+                		calculatedTime -= freeTime
+                	}
+                	var calculatedFee = flatRate * calculatedTime
+                	log("calculatedFee", calculatedFee)
+                	if (rule.dailyCap != null && rule.dailyCap < calculatedFee) {
+                		calculatedFee = rule.dailyCap
+                	}
+                	totalFee += calculatedFee
+                	var calendar = time(currentTime)
+                	if (flatUnit == classes.TimeUnit.SECOND) {
+                	    calendar.addsecond(calculatedTime)
+                	} elseif(flatUnit == classes.TimeUnit.MINUTE) {
+                		calendar.addminute(calculatedTime)
+                	} elseif(flatUnit == classes.TimeUnit.HOUR) {
+                		calendar.addhour(calculatedTime)
+                	} elseif(flatUnit == classes.TimeUnit.DAY) {
+                		calendar.addday(calculatedTime)
+                	} elseif(flatUnit == classes.TimeUnit.MONTH) {
+                		calendar.addmonth(calculatedTime)
+                	}
+                	
+                	var flatEndTime = time(calendar)
+                	log("RuleCalculation.startTime before", currentTime)
+                	log("RuleCalculation.endTime before", endTimestamp)
+                	table.push(ruleCalculations, classes.RuleCalculation(time, rule, currentTime, endTimestamp, calculatedTime, calculatedFee))
+                    currentTime = time(flatEndTime)
+                    if (true != rule.dailySettlement) {
+                    	currentTime = time(endDateTime)
+                    }
+                    lastPeriodEndTime = time(endTimestamp)
+                	log("lastPeriodEndTime.FLAT", lastPeriodEndTime)
+                	log("RuleCalculation.startTime after", currentTime)
+                	log("RuleCalculation.endTime after", endTimestamp)
+                }
+            }
+        }
+        if (calCurrentTime) {
+            // 处理完当天的费用计算后，推进到下一天的开始时间
+            var calendar = time(periodEndTime)
+            calendar.addday(1)
+            calendar.hour = 0
+            calendar.minute = 0
+            calendar.second = 0
+            calendar.milliseconds = 0
+            currentTime = time(calendar)
+        }
+	}
+	var cappedFee = totalFee
+	if (ruleSet.maxAmount != null && totalFee > ruleSet.maxAmount) {
+		cappedFee = ruleSet.maxAmount
+	}
+	log("CalculationResult.startTime", startDateTime)
+	log("CalculationResult.endTime.lastPeriodEndTime", lastPeriodEndTime)
+	var calculationResult = classes.CalculationResult(
+		time,
+		keyTariff,
+		cappedFee,
+		ruleCalculations,
+		startDateTime,
+		lastPeriodEndTime,
+		ruleSet.maxAmount)
+	winform.etResult.text = formatJsonObject(calculationResult)
+}
+
 winform.show();
 win.loopMessage();
 
