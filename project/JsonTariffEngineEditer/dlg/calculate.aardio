@@ -163,21 +163,21 @@ calculateNumberUnitBetween3 = function(logText, startTimestamp, endTimestamp, un
 
 getTimeUnit = function(name, timeUnit) {
 	var NAME = string.upper(name)
-	if (name == "MILLISECOND") {
+	if (NAME == "MILLISECOND") {
 		return classes.TimeUnit.MILLISECOND
-	} elseif (name == "SECOND") {
+	} elseif (NAME == "SECOND") {
 		return classes.TimeUnit.SECOND
-	} elseif (name == "MINUTE") {
+	} elseif (NAME == "MINUTE") {
 		return classes.TimeUnit.MINUTE
-	} elseif (name == "HOUR") {
+	} elseif (NAME == "HOUR") {
 		return classes.TimeUnit.HOUR
-	} elseif (name == "DAY") {
+	} elseif (NAME == "DAY") {
 		return classes.TimeUnit.DAY
-	} elseif (name == "WEEK") {
+	} elseif (NAME == "WEEK") {
 		return classes.TimeUnit.WEEK
-	} elseif (name == "MONTH") {
+	} elseif (NAME == "MONTH") {
 		return classes.TimeUnit.MONTH
-	} elseif (name == "YEAR") {
+	} elseif (NAME == "YEAR") {
 		return classes.TimeUnit.YEAR
 	}
 	return timeUnit
@@ -359,7 +359,8 @@ winform.btnCalculate.oncommand = function(id,event){
                 	log("flatUnit", flatUnit)
                 	var endTimestamp = time(periodEndTime)
                 	if (true != rule.dailySettlement) {
-                		calCurrentTime = falselog("flatRate", flatRate)
+                		calCurrentTime = false
+                		log("flatRate", flatRate)
                 		endTimestamp = time(endDateTime)
                 	}
                 	var calculatedTime = calculateNumberUnitBetween3(
