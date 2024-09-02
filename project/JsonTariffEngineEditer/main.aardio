@@ -8,7 +8,7 @@ mainForm.add(
 btnAddRule={cls="button";text="Add Rule";left=166;top=490;right=246;bottom=527;z=11};
 btnAddTariff={cls="button";text="Add Tariff";left=27;top=490;right=107;bottom=527;z=3};
 btnCalculate={cls="button";text="Calculate";left=688;top=59;right=768;bottom=96;z=13};
-btnEditbtnTariff={cls="button";text="Edit Tariff";left=28;top=537;right=108;bottom=574;z=12};
+btnEditbtnTariff={cls="button";text="Edit Tariff";left=27;top=536;right=107;bottom=573;z=12};
 btnLoad={cls="button";text="Load Tariff File";left=272;top=538;right=547;bottom=575;z=1};
 btnSave={cls="button";text="Save Tariff File";left=564;top=538;right=768;bottom=575;z=2};
 etMaxAmount={cls="edit";left=280;top=73;right=425;bottom=96;edge=1;multiline=1;num=1;z=7};
@@ -94,6 +94,9 @@ refresh = function() {
 	for (k,v in listRuleSet) {
 		mainForm.lbTariff.add(k)
 	}
+	initButtons()
+	checkSave()
+	checkEditbtnTariff()
 }
 
 reloadFile = function(filePath) {
@@ -129,6 +132,7 @@ refreshRules = function() {
 		//logJson("Rule.rule", rule)
 		mainForm.lbRule.add(i + ":" + rules[i].name)
 	}
+	checkEditbtnTariff()
 }
 
 mainForm.lbTariff.onSelChange = function() {
@@ -248,6 +252,30 @@ mainForm.btnCalculate.oncommand = function(id,event){
 	var formFile = "\dlg\calculate.aardio"
 	win.loadForm(formFile)
 }
+
+initButtons = function(){
+	keyTariff = ""
+	mainForm.btnAddTariff.hide = false
+	mainForm.btnEditbtnTariff.hide = true
+	mainForm.btnAddRule.hide = true
+	mainForm.btnCalculate.hide = true
+	mainForm.btnLoad.hide = false
+	mainForm.btnSave.hide = true
+}
+
+checkSave = function(){
+	var hide = string.len(table.tostring(listRuleSet)) <= 3
+	mainForm.btnSave.hide = hide
+	mainForm.btnCalculate.hide = hide
+}
+
+checkEditbtnTariff = function(){
+	var hide = string.len(keyTariff) <= 0
+	mainForm.btnEditbtnTariff.hide = hide
+	mainForm.btnAddRule.hide = hide
+}
+
+initButtons()
 
 mainForm.show();
 return win.loopMessage();

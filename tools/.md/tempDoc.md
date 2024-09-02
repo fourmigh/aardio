@@ -1,31 +1,17 @@
-## time.period 库模块帮助文档
+### 关于库函数文档
+库函数文档包含内核库、标准库、已安装的扩展库的函数说明文档,  
+请在左下角文本框中输入支持库名字（或函数名）,然后点击【查询库函数文档】按钮或直接按回车键。
 
+### 查看库函数源码
 
-<details>  <summary>相关库与函数</summary>  <p>
-time.performance, time.timer, time.tick, sleep 
-</p></details>
+![跳转到库函数源码](http://download.aardio.com/v10.files/demo/images/f12.gif)
 
+### 友情提醒
+aardio 库函数说明皆以最精简的语言说明关键用法。如果要了解高级用法，  
+标准库请查看源码以及相关范例，内核库请参考[《 aardio 语法与使用手册 》](chm://libraries/kernel/raw/datatype.html)与相关范例。
 
-<a id="time"></a>
-### time 成员列表
+### AI 助手
 
-
-<a id="time.period"></a>
-#### time.period 
- 修改 sleep 函数精度。  
- Win10 2004 以前会影响系统全局设置。  
-Win11 开始如果拥有窗口的进程最小化或不可见，则不保证设置的精度有效。  
-关于此功能的注意事项，请查看系统 API timeBeginPeriod 的文档。  
-https://learn.microsoft.com/zh-cn/windows/win32/api/timeapi/nf-timeapi-timebeginperiod
-
-<a id="time.period"></a>
-#### time.period(精度,调用函数,其他调用参数) 
- 执行调用函数，并在执行期间修改系统定时器精度。  
-精度参数以毫秒为单位。  
-  
-如果需要使用 time.period ，  
-请调用 sleep 而非可能指向 win.delay 的 thread.delay 函数。  
-此函数主要影响 sleep 函数，对 win.delay 函数作用不大。  
-应避免在界面线程使用 time.period 或 sleep 函数，以防止卡界面无法处理消息。  
-  
-如果需要高精度计时，请使用 time.performance.tick 函数。
+所有 AI 都擅长解读与理解 Markdown 格式的文档。  
+可点『切换到 Markdown 模式』按钮，复制 Markdown 格式文档发给 AI 助手阅读。  
+[AI 编程助手](http://ai.aardio.com) 
