@@ -224,7 +224,7 @@ groupbox._metaProperty = metaProperty( )
 !button.saveScale() = 根据控件当前位置、缩放比例，更新控件的设计时位置参数。\n以避免下次窗口缩放自适应调整控件当前位置更改被清除，\n控件所有调整位置的属性或成员函数已自动调用此函数。
 !button.reloadScale() = 按设计时位置参数、重新调整控件位置以适应窗口当前缩放比例。\n父窗口缩放时会自动执行此操作。\n默认在启动窗口消息循环时会自适应调整所有控件。\n所以在启动消息循环前添加控件不必调用此函数。
 !button.threadCallable() = 开启此控件的跨线程调用功能
-!button.orphanWindow(.(transparent,hwndBuddy) = 创建悬浮窗口,\n悬浮窗口仍然显示在原来的位置,\n悬浮窗口如影随形的跟随父窗口移动或改变大小,控件原来的固定边距等参数仍然有效\n此控件不建议指定参数
+!button.orphanWindow(.(transparent,hwndBuddy,borderless) = 创建悬浮窗口。\n悬浮窗口是模仿子窗口外观效果的独立窗口，父窗口可自动调整子窗口到设定位置。\n可选参数 @transparent 为 true 则转换为分层透明窗口。\n可选利用 @hwndBuddy 参数指定外部进程窗口句柄的并附加在内部控件上以实现相同的效果。\n伙伴窗口总是会保持在悬浮窗口前面，并保持相同的大小、位置。\n可重复调用此函数更换伙伴窗口，旧的伙伴窗口必须自行关闭。\n可选指定 @borderless 参数 为 true 以移除 @hwndBuddy  的窗口边框。
 !button.onMeasureItem(measureItem,dpiScaleX,dpiScaleY) = @.onMeasureItem = function(measureItem){
 	measureItem.itemHeight = 51;  
 	__/*控件属性里指定 ownerDraw 为 true 触发此事件\n在这里配置自绘控件项参数*/
@@ -250,6 +250,7 @@ end intellisense***/
 ?win.ui.ctrl.checkbox  =!checkbox.
 win.ui.ctrl.checkbox() = 复选控钮控件\n!checkbox.
 !checkbox.checked = 复选框是否选中状态
+!checkbox.text = 文本属性
 !checkbox.hwnd = 控件句柄
 !checkbox.id = 控件ID
 !checkbox._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
@@ -300,6 +301,7 @@ end intellisense***/
 /***intellisense()
 ?win.ui.ctrl.radiobutton  =!radiobutton.
 win.ui.ctrl.radiobutton() = 单选控钮控件\n!radiobutton.
+!radiobutton.text = 文本属性
 !radiobutton.checked = 单选按钮否选中状态
 !radiobutton.hwnd = 控件句柄
 !radiobutton.id = 控件ID

@@ -6,7 +6,7 @@ namespace fsys.crx;
 
 class unpack{
 	ctor(ctxPath,extractDir){
-		var file = ..io.open(ctxPath,"rb");
+		var file = ..io.file(ctxPath,"rb");
 		if(!file) error("文件路径错误",2);
 		
 		if(file.read(4)!="Cr24"){

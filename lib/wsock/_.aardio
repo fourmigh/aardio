@@ -92,7 +92,10 @@ in_addr = class {
 	} 
 	@_meta;
 } 
-in_addr._meta = {  _tostring = function(){ return ..wsock.inet_ntoa(owner); } }  
+in_addr._meta = {  
+	_tostring = lambda() ..wsock.inet_ntoa(owner); 
+	_tonumber = lambda() owner.S_un.S_addr;
+}  
 var in_addr =  in_addr;
 
 in6_addr = class {
@@ -161,7 +164,13 @@ class sockaddr_in {
     WORD sin_port;
     struct sin_addr;
     BYTE sin_zero[8]; 
+    @_meta;
 }
+sockaddr_in._meta = {
+	_tostring = lambda() ..wsock.inet_ntoa(owner.sin_addr); 
+	_tonumber = lambda() owner.sin_addr.S_un.S_addr;	
+}
+
 var sockaddr_in = sockaddr_in;
 
 class sockaddr_in6 {
@@ -205,6 +214,10 @@ class sockaddr_in6 {
 		if( port ){ this.sin6_port = ..wsock.htons(port) }
 		this.sin_family = family;
 	}
+	@_meta;
+}
+sockaddr_in6._meta = {
+	_tostring = lambda() tostring(owner.sin6_addr);  
 }
 /*}}*/
  
@@ -216,7 +229,7 @@ sockaddrStringify = function(sockaddr,size,protocolInfo){
  
 	var buf = ..raw.buffer(bufLen.value*2) 
 	if(0==::Ws2_32.WSAAddressToStringW(sockaddr,size,protocolInfo,buf,bufLen)){
-		return ..string.fromUnicode(buf,65001,-1);
+		return ..string.fromUtf16(buf,65001,-1);
 	} 
 }
 
@@ -349,7 +362,7 @@ getFreePort(.(ip,套接字类型,协议类型)  =  获取空闲服务端口，\n
 versionRequired = 支持的版本,\n用于在open函数中WSAStartup的第一个参数
 accept(__/*套接字句柄*/) = 创建一个新的套接字来与客户套接字创建连接通道,\n如果连接成功,就返回新创建的套接字句柄
 select(.(nfds,readfds,writefds,exceptfds,tv_sec,tv_usec) = 所有参数可选,\n成功返回套接字数目,超时返回0,出错返回-1/*_SOCKET_ERROR*/
-inet_ntoa(__/*in_addr*/) = in_addr结构体或数值转换为字符串格式IP地址
+inet_ntoa(__/*in_addr*/) = in_addr 结构体或数值转换为字符串格式 IP 地址
 getIp("__/*请输入域名*/") = 解析域名,可返回一个或多个IP\n如果不指定任何参数,返回内网IP,\n\n优先取192.168.1 开头的IP,请改用 wsock.getLocalIp 函数,\n\n如果要更优先获取当前上网卡的本机IP,\n请改用 wsock.tcp.client.getLocalIp 函数
 getIpAddr(__/*请输入域名*/) = 解析域名,\n返回in_addr或in_addr结构体数组\n返回值2为AF_INET或AF_INET6
 getLocalIp() = 返回内网IP，优先取192.168.1 开头的IP,\n\n如果要更优先获取当前上网卡的本机IP,\n请改用 wsock.tcp.client.getLocalIp 函数
@@ -380,14 +393,14 @@ wsock.fd_set() = !wsock_fd_set.
 !in_addr.S_un.S_un_b.s_b4 = s_b4
 !in_addr.S_un.S_un_w.s_w1 = s_w1
 !in_addr.S_un.S_un_w.s_w2 =  s_w2
-wsock.in_addr()  = !in_addr.
+wsock.in_addr()  = 创建 in_addr 结构体，表示 IPv4 地址。\n返回值可用 tostring 函数转换为字符串，\n可用 tonumber 函数转换为数值，Ipv4 实际存为 32 位整数。\n!in_addr.
 !sockaddr_in.sin_family = IPv4地址类型,\n值为_AF_INET
 !sockaddr_in.sin_port =  端口
 !sockaddr_in.sin_addr = 地址\n!in_addr.
 !sockaddr_in.sin_zero = 对齐数据
 wsock.sockaddr_in() = !sockaddr_in.
-wsock.sockaddr_in(.("主机",端口) = 返回sockaddr_in结构体,所有参数可选\n参数@1可以使用域名、IP、数值,\n如果参数@1是字符串,可在IP或域名后指定端口号\n如果参数@1传入sockaddr_in则直接返回该结构体\n参数错误返回null
-wsock.in6_addr() = IPv6地址结构\n!in6_addr.
+wsock.sockaddr_in(.("主机",端口) = 返回 sockaddr_in 结构体，所有参数可选。\n参数 @1 可以使用域名、IP、数值,\n如果参数 @1 是字符串,可在 IP 或域名后指定端口号。\n如果参数 @1 传入 sockaddr_in 则直接返回该结构体。\n参数错误返回 null 。\n\n返回结构体可用 tostring 函数转为字符串，\n也可以用 tonumber 转换为数值。
+wsock.in6_addr() = IPv6 地址结构\n!in6_addr.
 !in6_addr.u.Word = 8个16位字数组
 !in6_addr.u.Byte = 16个8位字节数组
 !sockaddr_in.sin6_family = IPv6地址类型,\n值为_AF_INET6

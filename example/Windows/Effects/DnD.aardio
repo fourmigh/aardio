@@ -1,0 +1,55 @@
+/*
+普通窗口拖放： doc://example/Windows/Effects/DnD.aardio
+richedit 拖放： doc://example/Windows/Edit/oleCallback.aardio
+web.view 拖放： doc://example/WebUI/web.view/dnd.aardio
+web.form 拖放： doc://example/WebUI/web.form/dnd.aardio
+web.layout 拖放： doc://example/WebUI/HTMLayout/exchange.aardio
+web.sciter 拖放： doc://example/WebUI/Sciter.JS/exchange.aardio
+文件拖放： doc://example/Windows/Effects/onDropFiles.aardio
+*/
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="接收系统拖放的文本";right=759;bottom=469)
+winform.add()
+/*}}*/
+
+import com.interface.IDropTarget;
+var dropTarget = com.interface.IDropTarget.create({
+
+		DragEnter = function(dataObj,keyState,x,y,effect){
+	
+			//导入 COM 原生接口对象
+			var dataObj = com.interface.IDataObject(dataObj)
+			
+				if(dataObj.isText()){
+					//第二个返回值指定接受拖放效果，不指定或返回 0 则表示拒绝拖放。
+					return 0,1/*_DROPEFFECT_COPY*/;
+				}
+			
+			//COM 原生接口返回 0 表示成功，也可以不写，省略默认返回 0 。
+			return 0; 
+		}
+		
+		DragOver = function(keyState,x,y,effect){
+				return 0,1/*_DROPEFFECT_COPY*/;
+		} 
+		
+		Drop = function(dataObj,keyState,x,y,effect){
+			var dataObj = com.interface.IDataObject(dataObj) 
+			var txt =  dataObj.getText();
+			
+			if(txt){
+				winform.text = "系统拖放文本：" + txt;
+			}
+			return 0,1; 
+		}	
+		
+		DragLeave = function(){} 
+		} 
+)
+
+//允许窗口支持系统拖放。
+dropTarget.register(winform)
+
+winform.show();
+win.loopMessage();

@@ -54,7 +54,7 @@ sidToString = function(sid){
 	var wstr = {ptr ptr}
 	
 	::Advapi32.ConvertSidToStringSid(sid,wstr);
-	var ret = ..string.fromUnicode(wstr.ptr,65001,-1)
+	var ret = ..string.fromUtf16(wstr.ptr,65001,-1)
 	::Kernel32.LocalFree(wstr.ptr);
 	
 	return ret;
@@ -81,7 +81,7 @@ sidFromUserName = function(userName,systemName){
 	var domainName = ..raw.buffer(domainSize.value*2)
 	
 	if( ::Advapi32.LookupAccountNameB(systemName,userName,sid,sidSize,domainName,domainSize,sidNameUse) ){ 
-		return sid,..string.fromUnicode(domainName),sidNameUse.type;
+		return sid,..string.fromUtf16(domainName),sidNameUse.type;
 	}	
 }
 
@@ -95,7 +95,7 @@ sidToUserName = function(sid,systemName){
 	var domainName = ..raw.buffer(domainSize.value*2)
 	
 	if( ::Advapi32.LookupAccountSidB(systemName,sid,name,nameSize,domainName,domainSize,sidNameUse) ){ 
-		return ..string.fromUnicode(name),..string.fromUnicode(domainName),sidNameUse.type;
+		return ..string.fromUtf16(name),..string.fromUtf16(domainName),sidNameUse.type;
 	}	
 }
 
@@ -205,7 +205,7 @@ daclGrantEveryone = function(objName,objType,premissions){
 
 getUserName = function(){ 
 	var name = ..raw.buffer(0x202);
-	if( ::Advapi32.GetUserNameW(name,{INT size=0x101}) ) return ..string.fromUnicode(name,,-1);
+	if( ::Advapi32.GetUserNameW(name,{INT size=0x101}) ) return ..string.fromUtf16(name,,-1);
 }
 	
 /**intellisense(sys.acl)

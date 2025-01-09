@@ -52,7 +52,7 @@ class table{
 					*/ 
 					var pathTemp = path + ".tmp"
 					for(i=1;3;1){
-						var file = ..io.open(pathTemp,"w+",0x20 /* _SH_DENYWR */ );
+						var file = ..io.file(pathTemp,"w+",0x20 /* _SH_DENYWR */ );
 						if(file){
 							file.write('\xEF\xBB\xBF');
 							file.write( str );

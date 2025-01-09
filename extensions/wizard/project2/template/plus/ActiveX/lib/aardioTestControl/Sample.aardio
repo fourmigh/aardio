@@ -23,7 +23,10 @@ class ${COCLASS_NAME}{
 		return a + b
 	} 	 
 	
-	//需要在 "/typelib/typelib.odl" 中启用此函数接口
+	/*
+	需要在 "/typelib/typelib.odl" 中启用此函数接口
+	ODL 语法指南: doc://library-guide/builtin/com/activeX/odl.html 
+	*/
 	TestOutParams = function(str,out1,out2){
 		//输出参数必须也是输入参数。
 		
@@ -119,6 +122,7 @@ class ${COCLASS_NAME}{
 	ActiveX 控件类则只能在 ODL 类型库定义默认调用的属性名。
 	默认的 IDispatchExecutable 接口已经定义默认调用指向 Item 属性。
 	同时应当将生成 COM 枚举器的 _item 元方法指向默认的 Item 属性。
+	ODL 语法指南: doc://library-guide/builtin/com/activeX/odl.html 
 	*/
    	Item = { }
    	

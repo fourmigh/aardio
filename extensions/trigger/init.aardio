@@ -11,26 +11,26 @@
 - 修改此触发器是多余的，aardio 可以完美支持进程外插件。
 - 一个漂亮的浮动工具条更好用，自由度也更大。
 */
-
-import win;
 import ide;
 import ide.command;
 
 ide.command.join( ide.processGroup() );
 var command = ide.command();
-command.dispatchIdeCommand = function( method,...) {
+command.dispatchIdeCommand = function(method,...) {
 	return ide[method](...);
 }
 
 thread.invoke( 
 	function(){
-		import win.version;
-		import web.rest.jsonClient;	
+		
 		import ide;
 		import ide.command;
 		ide.command.join( ide.processGroup() );
+
+		import win.version;
+		import web.rest.jsonClient;	
 		
-		sleep(500);
+		sleep(100);
 		
 		import fsys;
 		fsys.enum( "~/", "*.dll",
@@ -45,9 +45,9 @@ thread.invoke(
 					winex.close(hIde);
 				}
 			},false
-		);
+		); 
 
-		sleep(1000);
+		sleep(100);
 		
 		var cfgVersion = ide.getConfig("version");
 		var http = web.rest.jsonClient("aardio/v" + _AARDIO_VERSION + "(IDE "  + cfgVersion + "," + win.version.name + ")");
@@ -57,10 +57,13 @@ thread.invoke(
 		if(  ( cfgVersion != versionInfo.version )  && ( ide.getConfig("ignore_update") != versionInfo.version)  ){  
 			import fsys.version;
 			if( fsys.version(cfgVersion ) >= fsys.version( versionInfo.version ) ){
+				
+				//ide.startpage();
 				return;
 			}
 		
 			ide.startpage();
+			
 			import thread.event;
 			var event = thread.event( ide.processGroup(".startPage") ) 
 			if( !event.conflict ){
@@ -71,10 +74,5 @@ thread.invoke(
 		} 
 	}
 )
-
-import win.reg;
-var reg = win.reg("HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\aardio.exe");
-reg.setSzValue("",..io._exepath);
-reg.close();
 
 win.loopMessage();

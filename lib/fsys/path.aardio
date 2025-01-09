@@ -54,7 +54,10 @@ ischild = function(dir,path){
  	if(!(dir&&path) ) return;
  	dir = addBackslash(canonicalize(dir,true));
  	path = canonicalize(path,true);
- 	return path ? ..string.startWith(path,dir,true);
+ 	if(path){
+ 		if( ..string.startWith(path,dir,true) ) return true; 
+ 		if( ..string.cmp( path+"\",dir ) == 0 ) return true; 
+ 	}
 };
 
 long = function(path){
@@ -194,10 +197,10 @@ relative(.(路径,目录,返回路径是否以斜杠开始) = 将路径转换为
 validName(__/*路径*/) = 检测文件名是否合法,\n返回修正后的合法名称\n传入非字符串参数直接返回空值
 replaceDir(.(路径,根目录,新的根目录) = 将路径转换为参数2指定根目录下的相对路径\n再将其转换为新的根目录下的绝对路径
 replaceFile(.(路径,新文件名) = 替换路径中的文件名部分
-replaceExt(.(路径,新后缀名) = 替换路径中的后缀名部分，后缀名要包含前面的 “.” 。
-ischild(.(目录,路径) = 检测参数@2指定的路径是否在参数@1指定的目录之下
+replaceExt(.(路径,新后缀名) = 替换路径中的后缀名部分，后缀名要包含前面的 `.` 。
+ischild(.(目录,路径) = 检测参数 @2 指定的路径是否在参数 @1 指定的目录之下。\n两个参数指向同一目录时也会返回 true。
 full(.(path) = 如果路径是绝对路径则返回该路径（不作任何转换）,\n否则返回null
-full(.(path,root) = 如果path是相对路径，并且不以/、\、~等字符开始,\n则返回io.joinpath(root,path)\n否则转换为绝对路径返回
+full(.(path,root) = 如果path是相对路径，并且不以`/`、`\`、`~`等字符开始,\n则返回io.joinpath(root,path)\n否则转换为绝对路径返回
 end intellisense**/
 
 /**intellisense() 

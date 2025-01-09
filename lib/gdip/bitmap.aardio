@@ -20,7 +20,7 @@ class bitmap {
 					
 					this.path = ..io.exist( arg) 
 					if( this.path ){ 
-						var e,pbmp = gdip.CreateBitmapFromFile (..string.toUnicode( this.path ) );
+						var e,pbmp = gdip.CreateBitmapFromFile (..string.toUtf16( this.path ) );
 						if(e) return null,..gdip.errMsg[e]
 				 		this.pBitmap = pbmp;  
 					} 
@@ -63,14 +63,21 @@ class bitmap {
 			if(e) return null,..gdip.errMsg[e]
 			this.pBitmap = pbmp;   
 		}
-		elseif( tArg == type.cdata && type.rget(arg) == "com.IPicture"){
-			var t;
-			if( arg.Type ==  0x3/*_PICTYPE_ICON*/ ) t =  0x1/*_IMAGE_ICON*/; 
-			elseif( arg.Type ==  0x1/*_PICTYPE_BITMAP*/ ) t =  0x0/*_IMAGE_BITMAP*/; 
-			if(t!==null){
-				var e,pbmp = gdip.createBitmapFromHandle ( arg.Handle,t );
-				if(e) return null,..gdip.errMsg[e]
-				this.pBitmap = pbmp;  
+		elseif( tArg == type.cdata){
+			var metaType = type.rget(arg);
+			
+			if(metaType == "com.IPicture"){
+				var t;
+				if( arg.Type ==  0x3/*_PICTYPE_ICON*/ ) t =  0x1/*_IMAGE_ICON*/; 
+				elseif( arg.Type ==  0x1/*_PICTYPE_BITMAP*/ ) t =  0x0/*_IMAGE_BITMAP*/; 
+				if(t!==null){
+					var e,pbmp = gdip.createBitmapFromHandle ( arg.Handle,t );
+					if(e) return null,..gdip.errMsg[e]
+					this.pBitmap = pbmp;  
+				} 	
+			}
+			elseif( type(...)=="number") {
+				return ..gdip.bitmap( ..raw.toPointer(arg),...)
 			} 
 		}
 		
@@ -201,7 +208,9 @@ namespace bitmap {
 			
 			var hbmp = gdip.assert2( gdip.CreateHBITMAPFromBitmap(owner[["pBitmap"]], null,0x808080/*_CLR_DEFAULT*/) );
 			if( width || height){
-				return ::CopyImage(hbmp, 0x0/*_IMAGE_BITMAP*/, width, height, 4/*_LR_COPYRETURNORG*/ | 8/*_LR_COPYDELETEORG*/ ); 
+				var hbmp2 = ::CopyImage(hbmp, 0x0/*_IMAGE_BITMAP*/, width, height, 4/*_LR_COPYRETURNORG*/ | 8/*_LR_COPYDELETEORG*/ ); 
+				::DeleteObject(hbmp);
+				return hbmp2;
 			}
 			return hbmp;
 		};
@@ -428,8 +437,8 @@ gdip.bitmap(.(宽,高,像素格式,内存指针,行扫描宽度) = 自内存指�
 !gdipbitmap.dispose() = 释放图像\n此对象支持自动释放,不必手工调用此函数
 !gdipbitmap.getPixel(.(x__,y) = 读取位图指定坐标(x,y)的ARGB颜色值
 !gdipbitmap.setPixel(.(x__,y,argb) = 设定位图指定坐标(x,y)的ARGB颜色值  
-!gdipbitmap.copyHandle(.(宽度,高度) = 创建并返回 HBITMAP 位图句柄\n可选指定宽度、高度
-!gdipbitmap.copyHandle(.("icon") = 创建并返回 HICON 图标句柄
+!gdipbitmap.copyHandle(.(宽度,高度) = 创建并返回 HBITMAP 位图句柄。\n可选指定宽度、高度参数。\n调用者负责释放返回的位图句柄。
+!gdipbitmap.copyHandle(.("icon") = 创建并返回 HICON 图标句柄。\n调用者负责释放返回的位图句柄。
 !gdipbitmap.lockMemory( = 锁定图像内存\n返回gdip.BitmapData结构体
 !gdipbitmap.lockMemory(.(rect,_GdipPixelFormat32bppARGB,flags) = 所有参数可选，\n默认使用图像的像素格式。\n@rect 参数可用 ::RECT 结构体指定区块位置
 !gdipbitmap.lockData( = 锁定图像内存\n返回gdip.BitmapData结构体\n与lockMemory不同的是使用bits数组存储图像数据
@@ -465,7 +474,7 @@ gdip.bitmap(.(宽,高,像素格式,内存指针,行扫描宽度) = 自内存指�
 !gdipbitmap.saveToStream(.(流对象,后缀名,输出质量) = 流对象请使用 fsys.stream 创建\n后缀名默认为"*.jpg",质量默认为100,\n可选在参数@4使用gdip.encoder.parameter数组指定保存参数	
 !gdipbitmap.saveToBuffer(.(后缀名,输出质量) = 保存图像到 buffer，返回 buffer,\n后缀名默认为"*.jpg",质量默认为100,\n可选在参数@3使用gdip.encoder.parameter数组指定保存参数	
 !gdipbitmap.save("__/*请输入文件路径*/") = 保存图像\n使用参数指定的文件路径或加载图片时的路径\n根据后缀名自动设定格式,\n可选在参数@3使用gdip.encoder.parameter数组指定保存参数	
-!gdipbitmap.save("__/*请输入文件路径*/",80) = 保存图像\n使用参数指定的文件路径或加载图片时的路径\n根据后缀名自动设定格式\njpg文件可使用第二个参数指定图像质量,\n可选在参数@3使用gdip.encoder.parameter数组指定保存参数	
+!gdipbitmap.save("__/*请输入文件路径*/",80) = 保存图像\n使用参数指定的文件路径或加载图片时的路径\n根据后缀名自动设定格式\njpg文件可使用第二个参数指定图像质量,\n可选在参数@3使用 gdip.encoder.parameter 数组指定保存参数	
 !gdipbitmap.saveAdd(.(图像路径) = 创建多帧图像,参数指定保存路径,\n使用saveAdd添加帧，添加帧参数@1不能指定路径,\n添加所有帧以后调用saveFlush函数即可
 !gdipbitmap.saveAdd(.() = 添加当前图像到多帧图像
 !gdipbitmap.saveAdd(.(图像) = 添加其他gdip.image或gdip.bitmap对象到多帧图像,\n可选使用参数2指定saveFlag，可选在参数@3使用gdip.encoder.parameter数组指定保存参数
@@ -480,7 +489,8 @@ gdip.bitmap(.(宽,高,像素格式,内存指针,行扫描宽度) = 自内存指�
 !gdipbitmap.getFrameDelays() = 返回多帧图像每帧延时数值组成的数组,\n延时单位为厘秒,即0.01秒
 !gdipbitmap.setFrameDelays(__) = 修改多帧图像每帧延时数值\n参数必须是由数值组成的非空数组,\n延时单位为厘秒,即0.01秒\n必须在调用saveAdd以前设置
 !gdipbitmap.selectActiveFrame(.(帧序号) = 设置当前动画帧
-!gdipbitmap.eachFrame() = 如果图像支持动画,则返回一个帧迭代器\n每次调用帧迭代器切换到下一帧并返回当前帧所需延时\n动画完成返回0
+!gdipbitmap.eachFrame( = 如果图像支持动画，则返回一个帧迭代器。\n否则此函数返回 null。
+!gdipbitmap.eachFrame(.(loopCount) = 遍历动画帧。\n每次调用帧迭代器切换到下一帧并返回当前帧所需延时，帧索引。\n动画完成迭代器返回 null 。\n可选用 @loopCount 参数指定循环所有帧的次数，0 为无限循环。\n不指定参数则获取图像默认循环次数。\n\n示例：\n```aardio\nfor delay,frame in bmp.eachFrame(1) {\n    bmp.save("/"+frame+".gif");\n}\n```
 !gdipbitmap.createAnimation( = 如果图像是一个动画,创建定时器执行动画\n注意每个图像同时只能在一个窗口上创建动画\n创建动画前自动删除之前创建的动画定时器\n如果图像不是动画,此函数不执行任何操作\n成功返回定时器ID
 !gdipbitmap.createAnimation(.(窗口对象,回调函数) = 在窗口上创建定时器,\n每帧动画触发回调函数,\n回调函数owner参数被设为参数@1指定的窗口对象\n\n如果不指定控件,则默认指定为上次创建动画的控件,\n如果不指定回调函数,则默认指定为控件的redrawTransparent函数
 !gdipbitmap.stopAnimation() = 如果此图像已运行动画，则停止动画

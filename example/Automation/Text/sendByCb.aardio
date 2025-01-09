@@ -1,0 +1,4 @@
+//自动化 - 用剪贴板发送文本
+import winex.editor;
+
+winex.editor.sendStringByClip('abc 中文\t你好\naaa');

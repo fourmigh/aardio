@@ -304,7 +304,7 @@ class gzFile{
 		
 		var size = 0;
 		if( ..string.indexOf(mode,"r") ){
-			var file = ..io.open(name,"rb");
+			var file = ..io.file(name,"rb");
 			if(!file) return null,"打开文件失败";
 			file.seek("end",-8)
 			var footer = file.read( {int crc32;INT size} );

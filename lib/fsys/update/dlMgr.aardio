@@ -195,7 +195,7 @@ namespace dlMgr{
 		http.flags  = 0x4000000/*_INTERNET_FLAG_DONT_CACHE*/ | 0x100/*_INTERNET_FLAG_PRAGMA_NOCACHE*/ | 0x80000000/*_INTERNET_FLAG_RELOAD*/;
 		
 		var checksumLzmaPath =  ..io.joinpath(saveDir,"checksum.lzma") ; 
-		var file = ..io.open( checksumLzmaPath,"w+b" )
+		var file = ..io.file( checksumLzmaPath,"w+b" )
 		http.onReceive = function(str,size,contentLength){
 			file.write(str);
 		}
@@ -227,7 +227,7 @@ namespace dlMgr{
 		var file,localPath,crc32,uncompressedSize,size,path; 
 		var count = 0; 
 		
-		var fileFolder = ..io.open(..io.joinpath(saveDir,"folders"),"w+b");
+		var fileFolder = ..io.file(..io.joinpath(saveDir,"folders"),"w+b");
 		for line in ..io.lines(checksumPath) { 
 			crc32,uncompressedSize,size,path = ..string.match(line,"(.+?)\|(.+?)\|(.+?)\|(.+)"); 
 			crc32 = tonumber(crc32)
@@ -241,7 +241,7 @@ namespace dlMgr{
 				continue;
 			}
 				
-			file = ..io.open(localPath,"rbS")
+			file = ..io.file(localPath,"rbS")
 			if( file ){
 				uncompressedSize = tonumber(uncompressedSize)
 				if( file.size(1) == uncompressedSize ){ 
@@ -323,7 +323,7 @@ namespace dlMgr{
 			if( send(hCmd,"onUnCompress",i,path) === false ) return true;
 		}
 
-		var file = ..io.open(..io.joinpath(saveDir,"update-files"),"w+b");
+		var file = ..io.file(..io.joinpath(saveDir,"update-files"),"w+b");
 		for(i=1;#updateFiles;1){
 			file.write(updateFiles[i],'\r\n')
 		}

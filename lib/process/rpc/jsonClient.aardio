@@ -80,7 +80,7 @@ class jsonClient {
 				var stdout,stderr = "";   
 				
 				if(owner.beforeJsonParse){
-					var pattern = isTransaction?"%[]\r*\n":`\{.*"result".+\}\r*\n`;
+					var pattern = isTransaction?"%[]\r*\n":`\{.*"<result>|<error>".+\}\r*\n`;
 					repData,stderr = process.expect(pattern);
 					
 					if(repData){
@@ -93,7 +93,7 @@ class jsonClient {
 					} 
 				}
 				else{
-					var pattern = isTransaction?"\[.+\]\s*":`\{.*"result".+\}\s*`;
+					var pattern = isTransaction?"\[.+\]\s*":`\{.*"<result>|<error>".+\}\s*`;
 					 
 					for( all,out,err in process.each() ){  
 						

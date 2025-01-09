@@ -1,4 +1,4 @@
-﻿import fsys;
+import fsys;
 import config;
 import process;
 import ide;
@@ -185,7 +185,7 @@ manifestVersion="1.0">
 	string.save(manifestPath,manifestData ) ;
 }
  
-var fileMain = io.open(ide.getProjectMainFile(),"rb"); 
+var fileMain = io.file(ide.getProjectMainFile(),"rb"); 
 if( fileMain ){
 	var tag = fileMain.read(9);
 	if( tag == "//RUNAS//" ){
@@ -373,13 +373,13 @@ winform.onClose = function(hwnd,message,wParam,lParam){
 }
 
 winform.buttonMakeUpdater.oncommand = function(id,event){
-    winform.close()
-    loadcodex("~\tools\3) 编码\1) maker.aardio")
+    winform.close(true)
+    loadcodex("~\tools\Code\maker.aardio")
 }
 
 winform.btnEvb.oncommand = function(id,event){
-	winform.close();
-	loadcodex("~\tools\1) 开发环境\evb.aardio")
+	winform.close(true);
+	loadcodex("~\tools\IDE\evb.aardio")
 }
 
 win.setActive(winform.hwnd);

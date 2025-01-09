@@ -25,7 +25,7 @@ class untar{
 				tarFile = ..zlib.gzFile(path,"rb")
 			}
 			else {
-				tarFile = ..io.open(path,"rb")
+				tarFile = ..io.file(path,"rb")
 			}
 			if(!tarFile) return null,"打开tar文件失败";
 		}

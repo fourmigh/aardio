@@ -1,0 +1,15 @@
+//获取节点属性
+//UIA 探测工具： file://~/tools/Spy/inspect.aardio 
+import System.Windows.Automation;
+
+Automation = System.Windows.Automation; 
+AutomationElement = Automation.AutomationElement;
+
+var focusElement = AutomationElement.RootElement.FocusedElement;
+if(focusElement){ 
+	  
+	//通过 Current 对象访问当前属性（支持默认属性）
+	//https://learn.microsoft.com/en-us/dotnet/api/system.windows.automation.automationelement.current?view=netframework-4.0
+	var hwnd = focusElement.Current.NativeWindowHandle;
+	print("焦点输口句柄",hwnd);
+}

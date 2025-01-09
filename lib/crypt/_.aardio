@@ -371,7 +371,7 @@ class crypt{
 		var h = this.createHash(algId);
 		if(!h) return null,..lasterr();
 		
-		var f,err =  ..io.open(path, "rb");
+		var f,err =  ..io.file(path, "rb");
 		if(!f) return null,err; 
    	
    		while( var data = f.read(bufSize)  ) {
@@ -477,7 +477,7 @@ class crypt{
 			else error("请指定输入文件路径",3);
 		} 
 		else {
-			inf,err,errCode =  ..io.open(inPath, "rb");
+			inf,err,errCode =  ..io.file(inPath, "rb");
 			if(!inf) return null,err,errCode; 
 		}
 		
@@ -486,7 +486,7 @@ class crypt{
 			else error("请指定输出文件路径",3);
 		} 
 		else {
-			outf,err,errCode =  ..io.open(outPath, "w+b");
+			outf,err,errCode =  ..io.file(outPath, "w+b");
 			if(!outf) {
 				if(inf != inPath) inf.close();
 				return null,err,errCode; 
@@ -735,8 +735,8 @@ sha1(.(字符串,是否大写,返回位数) = 计算sha1哈希值,\n参数2可�
 sha512(.(字符串,是否大写,返回位数) = 计算sha512哈希值,\n参数2可选,默认大写。\n可选用参数 @3 指定返回字符个数。\n正值自左侧截取，负值自右侧截取，设为 true 自中间截取16个字符
 sha384(.(字符串,是否大写,返回位数) = 计算sha384哈希值,\n参数2可选,默认大写。\n可选用参数 @3 指定返回字符个数。\n正值自左侧截取，负值自右侧截取，设为 true 自中间截取16个字符
 sha256(.(字符串,是否大写,返回位数) = 计算sha256哈希值,\n参数2可选,默认大写。\n可选用参数 @3 指定返回字符个数。\n正值自左侧截取，负值自右侧截取，设为 true 自中间截取16个字符
-encodeBin(.(字符串,长度,选项) = Base64 或 hex 编码,\n可选参数3使用 _CRYPT_STRING_ 前缀常量指定选项\n参数@3默认为_CRYPT_STRING_BASE64\n\n相关库与函数： string.base32, crypt.bin
-decodeBin(.(字符串,长度,选项) = Base64或hex解码,\n可选参数3使用 _CRYPT_STRING_ 前缀常量指定选项\n参数@3默认为_CRYPT_STRING_ANY\n\n相关库与函数： string.base32, crypt.bin
+encodeBin(.(字符串,长度,选项) = 将字符串转换为 Base64 或 Hex 编码。\n可选参数 @3 使用 _CRYPT_STRING_ 前缀常量指定选项\n参数 @3 默认为 _CRYPT_STRING_BASE64 。\n\n相关库与函数： string.base32, crypt.bin
+decodeBin(.(字符串,长度,选项) = Base64 或 Hex 解码。\n可选参数 @3 使用 _CRYPT_STRING_ 前缀常量指定选项\n参数@3默认为_CRYPT_STRING_ANY\n\n相关库与函数： string.base32, crypt.bin
 pem(.(字符串,标题) = PEM编码字符串,\n如果参数@1是空值时不操作直接返回null
 end intellisense**/
 
@@ -946,6 +946,7 @@ _KP_CMS_KEY_INFO=@0x25/*_KP_CMS_KEY_INFO*/
 _KP_CMS_DH_KEY_INFO=@0x26/*_KP_CMS_DH_KEY_INFO*/
 _KP_PIN_ID=@0x2B/*_KP_PIN_ID*/
 _KP_PIN_INFO=@0x2C/*_KP_PIN_INFO*/
+_KP_KEYLEN=@9/*_KP_KEYLEN*/
 _RANDOM_PADDING=@2/*_RANDOM_PADDING*/
 _ZERO_PADDING=@3/*_ZERO_PADDING*/
 _CRYPT_ENCRYPT=@1/*_CRYPT_ENCRYPT*/

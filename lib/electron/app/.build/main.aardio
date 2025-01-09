@@ -228,7 +228,7 @@ winform.btnPack.oncommand = function(id,event){
 	else {
 		if( winform.chePortable.checked ){
 			var exe = ide.getPublishPath();
-			var file = io.open(exe,"a+b");
+			var file = io.file(exe,"a+b");
 			if( file ){
 				var bin = ..string.loadBuffer(outpath)
 				if( bin ){

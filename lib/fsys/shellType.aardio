@@ -23,8 +23,6 @@ class shellType{
 			if(this.extension){
 				var reg = ..win.reg(this.root + "\Software\Classes\." + this.extension + "\shell\open\command",true);
 				if(!reg) {
-					import console
-					console.log("注册表路径 extension 不存在")
 					return  false;
 				}
 
@@ -32,9 +30,6 @@ class shellType{
 				reg.close();
 				
 				if(v!=cmd){
-					import console
-					console.log(v)
-					console.log(cmd)
 					return false;
 				} 
 			}
@@ -42,8 +37,6 @@ class shellType{
 			if(this.documentClassName){
 				var reg = ..win.reg(this.root + "\Software\Classes\" + this.documentClassName + "\shell\open\command");
 				if(!reg) {
-					import console
-					console.log("注册表路径 documentClassName 不存在")
 					return  false;
 				}
 				
@@ -163,6 +156,7 @@ class shellType{
 			}
 		} 
 		
+		::Shell32.SHChangeNotify(0x8000000,0,0,0);
 		return true; 
 	} 
 }

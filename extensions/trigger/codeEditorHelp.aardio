@@ -1,0 +1,361 @@
+//F1 快捷键触发器
+import ide;
+import inet.url;
+import fsys;
+import key;
+
+var hwnd = ...;
+
+import win.ui.ctrl.edit;
+var codeEdit = win.ui.ctrl.edit();
+codeEdit.hwnd = hwnd;
+
+var text = codeEdit.selText
+
+if(#text){
+	text = string.trim(text);
+	
+	var op = string.match(text,"^\s*(<\p+>|<@/*DSG{{*/@>|<DSG>|<%\[\]>)\s*$");
+	if(op){
+		 
+		var url = "doc://guide/language/special-characters.html"
+		if(op==">>" || op=="<<" || op==">>>"){ 
+			url = "doc://language-reference/operator/bitwise.html"
+		}
+		elseif(op == "===" || op == "!==" || op == "==" || op == "!="){
+			url = "doc://language-reference/operator/equality.html"
+		}
+		elseif(op == "+" || op == "/" || op == "%" || op == "**"){
+			url = "doc://language-reference/operator/arithmetic.html"
+		}
+		elseif(op == ">" || op == "<" || op == ">=" || op == "<="){
+			url = "doc://language-reference/operator/comparison.html"
+		}
+		elseif(op == "!" || op == "||" || op == "&&"){
+			url = "doc://language-reference/operator/logical.html"
+		}
+		elseif(op == "#"){
+			url = "doc://language-reference/operator/len.html"
+		}
+		elseif(op[1] == '['#){
+			url = "doc://language-reference/operator/member-access.html"
+		}
+		elseif(string.match(op,"^/\*+$")) {
+			op = "/*";
+			url="doc://language-reference/basic-syntax.html"
+		}
+		elseif(string.match(op,"^\*+/$")) {
+			op = "*/";
+			url="doc://language-reference/basic-syntax.html"
+		}
+		elseif(op=="//"){
+			url="doc://language-reference/basic-syntax.html"
+		}
+		elseif(op=="?=" || op=="?!"){
+			url="doc://library-guide/builtin/string/patterns.html#lookahead"
+		}
+		
+		if(!string.indexOf(url,"#")){
+			url = inet.url.appendExtraInfo(url,{q=op}); 
+		}
+		
+		ide.openDocument(url);
+		return; 
+	}
+	
+	if(string.find(text,"^\\\w$")){
+		ide.openDocument("doc://library-guide/builtin/string/patterns.html"+"#classes");
+		return;
+	}
+	
+	
+	text = string.trim(text,".");
+	var libPath = string.match(text,"^!\w(\w[\.\w]+)\.[^\.\s]+!\W$");
+	var builtin = {table=1;string=1;raw=1;io=1;com=1;math=1;time=1;thread=1;fiber=1;global=1;ide=1};
+	
+	var filePath = io.libpath(text) || (#libPath && io.libpath(libPath) );
+	if(text == "win.form" || text == "winform" || text == "mainForm"
+		|| libPath == "winform" || libPath == "mainForm"){
+		filePath = ..io.libpath("win.ui");
+	}
+	
+	var url;
+	
+	var mapUrl = {
+		"var":"doc://language-reference/variables-and-constants.html#var",
+		"null":"doc://language-reference/datatype/datatype.html",
+		"and":"doc://language-reference/operator/logical.html", 
+		"not":"doc://language-reference/operator/logical.html", 
+		"or":"doc://language-reference/operator/logical.html",
+		"false":"doc://language-reference/datatype/datatype.html", 
+		"true":"doc://language-reference/datatype/datatype.html",
+		"if":"doc://language-reference/statements/branching.html", 
+		"else":"doc://language-reference/statements/branching.html", 
+		"elseif":"doc://language-reference/statements/branching.html",
+		"select":"doc://language-reference/statements/branching.html", 
+		"case":"doc://language-reference/statements/branching.html",
+		"for":"doc://language-reference/statements/looping.html", 
+		"in":"doc://language-reference/statements/looping.html",
+		"while":"doc://language-reference/statements/looping.html", 
+		"do":"doc://language-reference/statements/looping.html",
+		"break":"doc://language-reference/statements/looping.html", 
+		"continue":"doc://language-reference/statements/looping.html",
+		"try":"doc://language-reference/statements/try.html", 
+		"catch":"doc://language-reference/statements/try.html",
+		"class":"doc://language-reference/class/class.html", 
+		"ctor":"doc://language-reference/class/class.html",
+		"function":"doc://language-reference/function/definitions.html",
+		"lambda":"doc://language-reference/function/lambda.html",
+		"λ":"doc://language-reference/function/lambda.html",
+		"return":"doc://language-reference/function/result.html", 
+		"namespace":"doc://language-reference/namespace.html",
+		"import":"doc://library-guide/import.html",
+		"with":"doc://language-reference/namespace.html",
+		"this":"doc://language-reference/class/class.html", 
+		"owner":"doc://language-reference/function/owner.html",
+		"global":"doc://language-reference/namespace.html",
+		"self":"doc://language-reference/namespace.html",
+	}
+ 
+	if( mapUrl[text] ){
+		url = mapUrl[text] ;
+	}
+	elseif(text=="lambda"  || text = "λ"){
+		url = "doc://language-reference/function/lambda.html";
+	}
+	elseif(text=="lambda"  || text = "λ"){
+		url = "doc://language-reference/function/lambda.html";
+	}
+	elseif(filePath){
+		var filePath = fsys.path.relative(filePath,"~/lib/");
+        filePath = fsys.path.replaceExt(filePath,".html");
+        filePath = io.joinpath("library-reference",filePath);
+        filePath = string.replace(filePath,"\\","/");
+        url = "doc://"+filePath;	
+	}
+	elseif(builtin[text]){
+		url = "doc://library-reference/"+text+"/_.html"
+	} 
+	elseif( #libPath && builtin[libPath] ){ 
+		url = "doc://library-reference/"+libPath+"/_.html"
+	}
+	
+	if(url){
+		if(!string.indexOf(url,"#")){
+			url = ..inet.url.appendExtraInfo(url,{q=text});	
+		}
+		
+		ide.openDocument(url); 
+		return;	
+	}
+	
+	var url = inet.url.appendExtraInfo("http://api.aardio.com/search",{
+		q = '```aardio \n' + text + '\n```';
+	})
+	
+	raw.execute( url,"","open",5/*_SW_SHOW*/,..io.fullpath("~/")
+		,ide.getMainHwnd() //如果不指定句柄，浏览器不会前置
+	)
+
+	return;
+}
+
+import ide;
+import web.rest.aiChat; 
+import key;
+							 
+var leftText = codeEdit.leftText();
+if(!leftText) return; 
+
+//创建 AI 会话消息队列 
+var msg = web.rest.aiChat.message(); 
+
+ //自动生成 aardio 编程助手系统提示词 
+msg.aardioSystem(codeEdit.text,true)
+
+
+var projPath = ide.getProjectPath();
+if(#projPath) begin 
+
+	import fsys.file;
+	var file = fsys.file(projPath,"r");
+	if(file) begin 
+	
+		if(file.size() < 20000) begin 
+			
+			var xml = file.readAll();
+				
+			var project = '\r\n\r\n'+"
+## aardio 源文件与工程文件
+
+aardio 代码文件的后缀名为 `.aardio`，可包含 UTF-8 编码的源代码，也可以包含编译后的二进制代码。
+
+aardio 工程文件的后缀名为 `.aproj`，其内容是 XML 格式的工程配置，也使用  UTF-8 编码 。  
+"
+		
+			project = project + '\r\n\r\n用户当前在 aardio 开发环境中打开的工程文件路径是: "'+projPath+'"\r\n'
+	 		
+			project = project + '\r\n\r\n用户当前打开的工程文件内容如下：'
+			
+			project = project + '\r\n\r\n```xml\r\n' + xml +  '\r\n```\r\n\r\n'
+			
+			var desc = /*****
+	
+工程文件各 XML 节点的作用与含义：
+	
+- project 元素指定工程配置，并作为工程根目录包含其他 folder 或 file 元素。
+
+project 元素的属性 ui 指定图形界面。 
+
+    * 如果 ui 为 "win" 则为图形界面发布后运行默认不显示控制台。
+    * 如果 ui 为"console" 则为控制台程序发布后运行时默认显示控制台窗口。
+
+project 元素的属性 dstrip 指定是否移除调试符号。 
+
+    * `dstrip="true"` 则发布后移除调试信息，生成的文件更小但错误信息会缺少调试信息（例如文件名行号）。
+
+- folder 元素为工程中的虚拟目录
+
+如果 folder  的属性 embed 为 "true" 则该目录发布后嵌入 EXE 资源文件，aardio 中很多函数和库都自动支持这种嵌入资源而不需要额外修改代码。例如对于 `string.load("/res/test.txt")`，无论参数指定的文件是不是 EXE 资源文件函数的返回值都是一样的，这是 aardio 的一个主要特性。
+
+如果 folder 元素的属性 local 为 "true" 则表示这是一个本地目录（通常也是 Web  前端工程的发布目录），发布为 EXE 时将添加该目录下的所有文件。这种目录在工程中不显示子级文件或目录，右键菜单的『同步本地目录』也是无效的。 
+
+如果 folder 元素的属性 ignored 为 "true" 是指这个目录在发布时被忽略（ignored）。这种目录通常用来指向包含 Web 前端工程源码的目录，工程本身其实并不需要这些多余的目录，生成 EXE 时也会忽略这种目录。
+
+- file 元素则表示添加到工程中的文件
+
+在工程根目录下只能有一个应用程序启动文件, 文件路径必须是 `main.aardio` 或以  `.main.aardio` 结束。除了启动文件，工程根目录只能包含 folder 元素。
+
+*****/
+		
+			project = project + desc + '\r\n\r\n';
+			
+			var codePath = ide.getActiveDocPath();
+			if(#codePath && ..string.endWith(codePath,".aardio",true) ){
+				project = project + '\r\n\r\n用户当前正在编辑的文件为: "'+codePath+'"\r\n'
+			} 
+			
+			msg.system(project); 
+		
+		end;
+		
+		file.close()
+	
+	end;
+end;
+
+msg.prompt("
+
+## 前缀代码
+
+```aardio
+import console;
+
+//在控制台输出一句话
+console.log(""Hello
+
+```
+
+## 后缀代码
+
+```aardio
+console.pause();
+
+```
+
+## 任务
+
+请分析前缀代码与后缀代码，并在前缀代码与后缀代码之间插入新的代码以补全代码。
+
+## 要求
+
+- 请直接返回插入的代码，回复不要包含前缀代码或后缀代码 
+- 回复请不要使用 Markdown 语法 。
+")
+
+//利用小样本学习，以 AI 助手的角色教它一遍，胜过写千万句提示词
+msg.assistant(` world!")`);
+
+//下面是真正的问题。
+msg.prompt("
+
+## 前缀代码
+
+```aardio
+
+"+leftText+"
+
+```
+
+## 后缀代码
+
+```aardio
+
+"+(codeEdit.rightText():"")+"
+
+```
+
+## 任务
+
+请分析前缀代码与后缀代码，并在前缀代码与后缀代码之间插入新的代码以补全代码。
+
+## 要求
+
+- 请直接返回插入的代码，回复不要包含前缀代码或后缀代码 
+- 回复请不要使用 Markdown 语法 。
+")
+
+if(string.find(leftText,"<//>|<# >|<!\N[ \t]*#>|<#:>\N*[ \t]*$")){
+	winex.sendString('\n')
+}
+
+import fsys.table;
+var config = fsys.table(io.appData("aardio/ide/aiChat/~"))
+
+var cfgNew = {
+	key = config.key;
+	url = config.url;
+	model = config.model;
+	temperature = config.temperature; 
+}
+
+/*
+下面的 key 24 小时后失效，
+DeepSeek 的 key 充 10 元估计能用上一年，所以请自己申请一个好吗？！
+*/
+import string.escape2;
+var testKey = string.escape2('\0\48\67\91\29\5\83\2\3\4\5\0\83\8\4\85\5\4\0\83\83\9\5\9\4\1\85\3\86\6\82\5\4\83\86\2\0');
+
+for(k,v in cfgNew){ 
+	if(v=="")cfgNew[k] = null;
+}
+
+cfgNew = table.mix(cfgNew,{
+	key = testKey;
+	url = "https://api.deepseek.com/v1";
+	model = "deepseek-chat";
+	temperature = 0.1;
+});
+		
+if( cfgNew.key === testKey  ){	
+	cfgNew.maxToken = 1024;
+}
+		
+var ai = web.rest.aiChat(cfgNew) 
+	
+var ok,err = ai.messages(msg,function(delta){
+	//以打字方式逐步输出 AI 回复的增量文本到目标输入框。
+	winex.sendString(delta)
+} );
+
+if(err){
+	//获取错误对象（解析 JSON 格式的错误信息）
+	var errObject = ai.lastResponseError()
+	if(errObject[["error"]][["type"]] == "authentication_error" ){
+		winex.sendString(`请打开『aardio 工具 / 问 AI』配置有效的密钥，获取密钥： https://platform.deepseek.com"`) 
+	}
+	else {
+		winex.sendString(web.json.stringify(errObject,true,false))
+	}
+}  
+			 

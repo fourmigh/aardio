@@ -95,7 +95,7 @@
 !winform.isForm = 是否窗体对象,\n窗体：使用 win.form 类创建的对象 \n窗口：泛指所有窗体或控件创建的窗口
 !winform.getForm() = 返回窗口对象自身\n标准库中所有控件实现了同名函数用于返回控件所在窗口
 !winform.orphanWindow( = 如果当前是子窗口,\n移除窗口的WS_CHILD样式，使窗口孤立出来悬浮于原位置,\n悬浮窗口如影随形的跟随父窗口移动或改变大小,控件原来的固定边距等参数仍然有效
-!winform.orphanWindow(.(transparent,hwndBuddy) = 创建悬浮窗口,\n悬浮窗口仍然显示在原来的位置,\n可选参数 @transparent 如果为 true 则转换为分层透明窗口,\n可选利用 @hwndBuddy 参数将只有句柄的窗口托管在悬浮窗口之上实现相同的效果,\n伙伴窗口总是会保持在悬浮窗口前面，并保持相同的大小、位置\n可重复调用此函数更换伙伴窗口，旧的伙伴窗口必须自行关闭
+!winform.orphanWindow(.(transparent,hwndBuddy,borderless) = 创建悬浮窗口。\n悬浮窗口是模仿子窗口外观效果的独立窗口，父窗口可自动调整子窗口到设定位置。\n可选参数 @transparent 为 true 则转换为分层透明窗口。\n可选利用 @hwndBuddy 参数指定外部进程窗口句柄的并附加在内部控件上以实现相同的效果。\n伙伴窗口总是会保持在悬浮窗口前面，并保持相同的大小、位置。\n可重复调用此函数更换伙伴窗口，旧的伙伴窗口必须自行关闭。\n可选指定 @borderless 参数 为 true 以移除 @hwndBuddy  的窗口边框。
 !winform.setPos(.(x坐标,y坐标,宽,高,插入位置,参数) = 调整窗口位置或排序,所有参数可选\n同时指定x,y坐标则移动位置\n同时指定宽高则改变大小\n指定插入位置（句柄或_HWND前缀常量）则调整Z序
 !winform.getPos() = 返回相对父窗口客户区的坐标,宽,高,\n参数为true返回屏幕坐标,宽,高,\n\n如果当前窗口未禁用缩放,\n则在首次显示前自动调用 enableDpiScaling 函数,\n如果需要在此之前获取 DPI 缩放后的窗口大小或位置,\n应当先手动调用 enableDpiScaling 函数
 !winform.msgbox("__") = 弹出对话框\n参数@1指定显示的数据,如果是表对象先序列化为文本,\n其他对象调用tostring转换为文本\n\n可选在参数@2中指定标题,\n可选在参数@3中用_MB_前缀的常量自定义样式,设为0去掉图标以及提示音,\n可选用参数@4限定显示时间，以毫秒为单位，超时自动关闭。\n\n此函数调用win.msgbox,但设定父窗口为当前窗体
@@ -143,13 +143,16 @@
 !winform.transparent(false) = 取消窗口透明
 !winform.transparent(true) = 启用分层窗口,不设置透明度\n设为分层窗口以后不应再改变窗口大小
 !winform.transparent(128,225) = 启用分层窗口,设置窗口透明度，\n参数(透明度,透明颜色)\n如果指定了透明颜色，透明度参数将被忽略
-!winform.close() = 关闭窗口\n注意不能在 onClose 事件内调用此函数\n\n所有非模态、非 MessageOnly 的独立窗口（ 或 mainForm 窗口 ）都关闭后，\n将会自动终止 win.loopMessage 创建的消息循环（通常也就是退出界面线程）
+!winform.close( = 关闭窗口\n注意不能在 onClose 事件内调用此函数\n\n所有非模态、非 MessageOnly 的独立窗口（ 或存为全局变量的 mainForm 窗口 ）都关闭后，\n将会自动终止 win.loopMessage 创建的消息循环（通常也就是退出界面线程）。\n如果主窗口是其他进程或线程的子窗口，则必须存为全局变量  mainForm，\n否则子窗口关闭时不能自动退出消息循环（无论还有没有其他窗口）。
+!winform.close(.() = 立即关闭窗口。\n使用 ::SendMessage 发送关闭窗口消息，等待消息处理完成。
+!winform.close(.(true) = 异步关闭窗口。\n使用 ::PostMessage 发送关闭窗口消息，不等待消息处理完成。\n只有在关闭消息处理完成并销毁窗口后才会触发退出界面线程消息循环的规则。
 !winform.loadForm("__/*请输入aardio文件路径*/") = 自代码文件加载窗。\n如果该窗体未用 return 语句返回非 null 值则直接返回创建的窗体，\n可选增加其他参数作为调用外部窗体代码的参数\n\ncustom 控件的 loadForm 函数会将窗体加载为子窗口且自动维护子窗口队列,\n并且 custom 控件会自动维护一个子窗口队列，\n显示一个子窗口其他子窗口就会隐藏（并未关闭或销毁）,\n一个子窗口关闭就会自动移出队列
 !winform.preloadForm("__/*请输入aardio文件路径*/") = 自代码文件预加载窗体文件，返回延迟初始化的伪窗体对象。\n伪窗体对象的 fake 属性为 true，调用任何其他属性或方法则自动初始化窗口。\n调用 this 方法返回真实窗口对象自身。\n\n可选增加其他参数作为调用外部窗体代码的参数\n\ncustom 控件的 loadForm 函数会将窗体加载为子窗口且自动维护子窗口队列,\n并且 custom 控件会自动维护一个子窗口队列，\n显示一个子窗口其他子窗口就会隐藏（并未关闭或销毁）,\n一个子窗口关闭就会自动移出队列
-!winform.doModal( = 此函数弹出模态对话框，可使用 endModal 函数关闭模态对话框，\n调用 endModal 函数的参数会被设置为 doModal 函数的返回值。\n\n模态对话框会自己创建自己的消息循环，\n并阻止调用模态对话框的代码继续向后运行 - 直到模态对话框被关闭。
-!winform.doModal(.(ownerForm,showFlags) = 弹出模态对话框。\n可选用参数 @ownerForm 指定所有者窗口，\n参数 @showFlags 可选用 _SW_ 前缀常量指定显示选项。\n\n模态对话框应是独立窗口，并显示在所有者窗口前面。\n模态对话框会暂时禁用所有者窗口 - 直到模态对话框被关闭。\n注意子窗口不应该调用 doModal 函数（禁用父窗口等于禁用自己）
+!winform.doModal( = 显示为模态对话框，可使用 endModal 函数关闭模态对话框，\n调用 endModal 函数的参数会被设置为 doModal 函数的返回值。\n\n模态对话框会自己创建自己的消息循环，\n并阻止调用模态对话框的代码继续向后运行 - 直到模态对话框被关闭。
+!winform.doModal(.(ownerForm,showFlags) = 显示为模态对话框。\n可选用参数 @ownerForm 指定所有者窗口，\n参数 @showFlags 可选用 _SW_ 前缀常量指定显示选项。\n\n模态对话框应是独立窗口，并显示在所有者窗口前面。\n模态对话框会暂时禁用所有者窗口 - 直到模态对话框被关闭。\n注意子窗口不应该调用 doModal 函数（禁用父窗口等于禁用自己）
 !winform.dialogResult = 模态对话框返回值
 !winform.continueModal = 模态对话框是否未关闭
+!winform.autoQuitMessage = 此属性显式指定为 false ，\n则禁止在此窗口关闭时自动调用 win.quitMessage 。\n默认在关闭最后一个非模态、非 MessageOnly 的独立窗口（ 或 mainForm 窗口 ）\n时会自动调用 win.quitMessage 函数退出消息循环。
 !winform.endModal(__/*请指定模态对话框返回值*/) = 关闭模态对话框，\n调用endModal()函数的参数会被设置为 doModal()函数的返回值。
 !winform.modifyStyle(.(remove,add,swpFlags) = 修改窗口样式,所有参数都是可选参数,\n@remove 用数值指定要移除的样式,可使用 _WS_ 前缀的常量\n@add 用数值指定要添加的样式,可使用 _WS_ 前缀的常量\n@swpFlags 可选用数值指定调整窗口选项,可使用 _SWP_ 前缀的常量\n如果指定了 @swpFlag ,则使用该参数调用::SetWindowPos\n细节请参考 win.modifyStyle 函数源码 
 !winform.modifyStyleEx(.(remove,add,swpFlags) = 修改窗口扩展样式,所有参数都是可选参数,\n@remove 用数值指定要移除的样式,可使用 _WS_EX_ 前缀的常量\n@add 用数值指定要添加的样式,可使用 _WS_EX_ 前缀的常量\n@swpFlags 可选用数值指定调整窗口选项,可使用 _SWP_ 前缀的常量\n如果指定了 @swpFlag ,则使用该参数调用::SetWindowPos\n细节请参考 win.modifyStyle 函数源码
@@ -181,7 +184,7 @@
 !winform.eachControl("类名","控件名模式") = @for(name,ctrl in ??.eachControl(__/*可选指定类名,\n可选指定控件名模式匹配串,\n遍历窗口上所有控件,不包含匿名控件,不关心父子级顺序或Z序*/) ){\n	\n}
 !winform.enumControl(回调函数,类名) = @.enumControl( function(ctrl){\n	__/*枚举窗体上的所有控件,包含匿名控件\n此函数保证枚举窗口的顺序是先父级控件窗口后子级窗口最后再遍历独立窗口，例如 orphanWindow\n在枚举过程不能调用win.setParent函数改变被枚举控件的父窗口*/\n})
 !winform.remove(.("控件名字") = 移除控件
-!winform.add = @.add( \n	button = { \n		cls="button";bottom=164;right=147;left=8;top=123;z=1;text="自定义ID控件";id=123;autoResize=false;\n	};__/*参数中的每个键值对描述一个创建控件的参数\n其中键为字符串时指定控件名字,如果窗体存在同名成员控件或先关闭该控件,\n如果键为数值索引则创建匿名控件,不会覆盖冲突其他控件,\n\n返回值为创建成功的控件对象列表,其中键为创建控件指定的键,值为控件对象*/ \n)
+!winform.add(controlsPropertiesTable) = @.add( \n	button = { \n		cls="button";bottom=164;right=147;left=8;top=123;z=1;text="自定义ID控件";id=123;autoResize=false;\n	};__/*参数 @controlsPropertiesTable 中的每个键值对描述一个创建控件的参数\n其中键为字符串时指定控件的访问名字，如果窗体存在同名成员控件或先关闭该控件。\n如果键为数值索引则创建匿名控件，不会覆盖冲突其他控件。\n\n返回值为创建成功的控件对象列表，返回表的键为创建控件指定的键,值为控件对象*/ \n)
 !winform.registCommand(回调函数,重写ID) = @.registCommand(\n	function(id,event){\n		win.msgbox( id ); \n	}__/*可选指定ID，不指定则生成并返回新ID*/\n)
 !winform.onInitDialog = @.onInitDialog = function(hwnd,message,wParam,lParam){\n	??.center()__/*模态对话框初始化完成触发该函数*/\n}
 !winform.translateAccelerator = @.translateAccelerator = function(msg){\n	if(  msg.wParam == 0x20/*_VK_SPACE*/ && msg.message = 0x101/*_WM_KEYUP*/){ \n		return true;__/*返回是否快捷键,适用窗体或普通控件对象\n仅当前窗口内的按键触发此事件\n\nmsg 参数为包含窗口按键消息的 ::MSG 结构体*/\n	} \n}

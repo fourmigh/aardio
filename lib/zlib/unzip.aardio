@@ -176,7 +176,7 @@ namespace unzip{
 			}
 	 		
 	 		..fsys.createParentDir(extractPath) 
-			var file = ..io.open( extractPath,"w+b" );
+			var file = ..io.file( extractPath,"w+b" );
 			if(!file)
 				continue;
 				
@@ -238,7 +238,7 @@ zlib.unzip() = !unzip.
 !unzip.eachFile( ) = @for(pos,dirName,fileName,extractPath,fileInfo in ??.eachFile() ){ 
 	if( dirName ) continue;
 	 
-	var file = io.open( extractPath,"w+b" )
+	var file = io.file( extractPath,"w+b" )
 	for(buffer,readSize in ??.eachReadCurrentFile() ){
 		file.writeBuffer(buffer,readSize); 
 	}

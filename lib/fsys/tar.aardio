@@ -22,7 +22,7 @@ class tar {
 			tarFile = ..zlib.gzFile(tarPath,"wb")
 		}
 		else {
-			tarFile = ..io.open(tarPath,"w+b",0x10)
+			tarFile = ..io.file(tarPath,"w+b",0x10)
 		}
 		
 		if(!tarFile) return null,"创建tar文件失败";

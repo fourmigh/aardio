@@ -174,6 +174,10 @@ class view {
 		_dll.webview_set_size(this.browser);
 	};
 	go = function(url,devPort,timeout){ 
+		if(type(devPort)=="table"){
+			url = ..inet.url.appendExtraInfo(url,devPort);
+			devPort = null;
+		}
 		
 		if(!this.browser) return; 
 		if(_STUDIO_INVOKED && devPort){
@@ -331,26 +335,35 @@ class view {
 	waitEle = function(selector,callback,timeout){
 		if(!this.browser) return; 
 		
-		if(type.isString(callback)){
+		if(type.isString(callback)){//当前文档对象关闭退出等待
 			_dll.webview_do_script(this.browser,"external.waitEle('"+selector+"',"+(timeout:0)+").then( (el)=>{ ((function(){"+callback+'\n}).bind(el))() } )',null) 
 		}
-		elseif(callback){
+		elseif(callback){//当前文档对象关闭退出等待
 			var callbackId = this._jsEvalCallback.reg(callback); 
 			_dll.webview_do_script(this.browser,"external.waitEle('"+selector+"',"+(timeout:0)+").then( ()=>{ window.$aardioEvalCallback('"+selector+"',null,"+callbackId+")} ).catch( (e)=>{ window.$aardioEvalCallback(null,e,"+callbackId+")} )",null) 
 		}
-		else {
+		else {//页面跳转或网上退出等待
 			var url = this.$readyUrl;
+			
+			//异步
 			var resultOk,resultErr;
 			this.waitEle(selector,function(ok,err){
 				resultOk,resultErr = ok,err;
 			},timeout)
 			
+			//同步
 			return this._form.wait(function(){
 				if(this.$readyUrl!=url) return null,"页面已跳转";
 				return resultOk,resultErr;
 			},,timeout); 
 		} 
 	};
+	waitEle2 = function(selector,timeout){
+		return this._form.wait(function(){
+			var resultOk,resultErr = this.waitEle(selector,,timeout);
+			if(resultOk) return resultOk;
+		},,timeout); 	
+	}
 	wait = function(p,timeout){ 
 		return this._form.wait(function(){
 			var url = this.$readyUrl; 
@@ -694,7 +707,7 @@ namespace view{
 	https://github.com/webview/webview/blob/master/webview.h
 	https://github.com/MicrosoftEdge/WebView2Browser
 	*/
-	_dll = ..raw.loadDll( $"~\lib\web\view\.res\webview.dll",,"cdecl"); 
+	_dll = ..raw.loadDll( $"~\lib\web\view\.res\webview.dll","std.WebView2","cdecl"); 
 }
 
 /**intellisense()
@@ -712,10 +725,11 @@ end intellisense**/
 /****intellisense(!stdWebView2) 
 go( = 打开网址或文件地址。\n如果需要用这个函数打开工程内的资源文件，\n请提前导入 wsock.tcp.simpleHttpServer 或 wsock.tcp.asynHttpServer 。\n\n如果要在打开的网页上跳转锚点（也就是跳转 # 开头的网址），\n可改用 location 属性跳转
 go(.(url,devPort,devTimeout) = 打开 @url 参数指定的网址。\n\n如果提前导入 wsock.tcp.simpleHttpServer 或 wsock.tcp.asynHttpServer \n则 io.localpath 支持的路径转换为通过嵌入 HTTP 服务器访问的网址。\n\n使用 HTTP 嵌入服务器可自动支持嵌入资源路径与 SPA 单页应用。\n如果同时文件名为 index.html 或 index.aardio。\n则上级目录设为 documentBase 根目录，后续请求路径应当以 "/" 代替 documentBase。\n\n可选使用@devPort参数指定前端项目开发环境调试端口，\n可选用@devTimeout参数指定检测调试端口超时\n@devPort,@devTimeout参数仅在开发环境中有效
+go(.(url,params) = 打开 @url 参数指定的网址。\n@params 用一个表对象（table）指定 URL 参数。\n调用 inet.url.appendExtraInfo 函数在网址后添加参数 。
 preloadScript(__/*JS 脚本*/) = 将 字符串参数@1 指定的 JS 脚本添加为网页默认加载脚本,\n在网页初始化时执行，保证在 window.onload 事件前执行,\n不会覆盖之前添加的脚本
 doScript(__/*JS 脚本*/) = 执行 字符串参数@1 指定的 JS 脚本
-html = @.html = /**\n<!doctype html>\n<html>\n<head>\n    <meta charset="utf-8">\n    <style type="text/css">\n    html,body{ height:100%; margin:0; } __/*将网页写入内存。\n支持 aardio 模板语法，模板的 owner 参数为当前 web.view 对象。\n包含 HTML 的段注释可赋值为字符串，首尾星号数目要一致。\n\n如果要引用其他本地文件，必须改用 wb.go 打开 html 文件。*/\n    </style>\n    <script></script>\n</head>\n<body></body>\n</html>\n**/
-export( = 导出 aardio 函数为 JS 全局变量\n注意 JS 调用这里导出的本地函数时，\n传入 JS 参数通过 JSON 转换为 aardio对象,\n返回值通过 JSON 转换为 JS 对象\n\n在被网页回调 aardio 函数内执行 JS 时要避免在 JS 中再次回调此 aardio 函数。\n\n被网页回调的 aardio 函数内不要调用可能阻塞的 webView.xcall，webView.eval 函数。\n应改用非阻塞的 webView.invoke 函数，或通过 winform.setTimeout 异步调用 webView.xcall，webView.eval 函数
+html = @.html = /**\n<!doctype html>\n<html>\n<head>\n    <meta charset="utf-8">\n    <style type="text/css">\n    html,body{ height:100%; margin:0; } __/*将网页写入内存。\n支持 aardio 模板语法，模板的 owner 参数为当前 web.view 对象。\n包含 HTML 的块注释可赋值为字符串，首尾星号数目要一致。\n\nWebView2 通过 html 属性内存加载体积太大的 HTML 会卡住，改用本地文件可流畅打开。\n如果要引用其他本地文件，也必须改用 wb.go 打开 html 文件。*/\n    </style>\n    <script></script>\n</head>\n<body></body>\n</html>\n**/
+export( = 导出 aardio 函数为 JS 全局变量。\n注意 JS 调用这里导出的本地函数时，\n调用参数会通过 JSON 转换为纯 aardio 对象。\n返回值也会通过 JSON 转换为纯 JS 对象。\n\n在被网页回调 aardio 函数内执行 JS 时要避免在 JS 中再次回调此 aardio 函数。\n\n被网页回调的 aardio 函数内不要调用可能阻塞的 webView.xcall，webView.eval 函数。\n应改用非阻塞的 webView.invoke 函数，或通过 winform.setTimeout 异步调用会导致同步阻塞的函数。
 export(.(JS变量名,回调函数) = 导出aardio函数为JS全局变量,\n参数也可以使用一个表包含多个需要绑定到JS的变量名值对,值必须是函数。\nJS脚本中调用这里绑定的本地函数返回值为 Promise 对象
 exportHostObject( = 直接导出 aardio 对象到 JavaScript，\n直接转换为 COM 对象，中间不需要经过 JSON 转换,\n用法请参考: https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2?view=webview2-1.0.705.50#addhostobjecttoscript
 exportHostObject(.(变量名,对象) = 直接导出 aardio 对象到 JavaScript，\n可导出表对象、函数对象、COM 对象等,\n在js中通过 chrome.webview.hostObjects的成员访问此对象,\n中间不会经过JSON转换，而是直接转换为 COM 对象，\n用这个方法导出函数时，\n要特别注意参数中的 JavaScript 对象会被转换为 COM 对象，\n而返回给 JavaScript 的 aardio 对象会被转换为 Promise 对象
@@ -727,23 +741,37 @@ xcall( = 调用JS函数并返回值。\n此函数使用 JSON 在 JS/aardio 之�
 xcall(.("object->func",->->->) = 调用 JS 函数并返回值，\n此函数使用 JSON 在 JS/aardio 之间转换参数与返回值。\n\n等待返回值过程中会继续处理界面消息,\n参数@!指定要调用的函数名或返回函数的表达式,\n\n如果参数 @1 不包含回车或换换行、分号、大括号、圆括号，\n则参数 @1最后一个点号前的对象作为调用 JS 函数的 this 参数
 invoke( = 调用 JS 函数但不会等待返回值。\n\n此函数使用 JSON 在 JS/aardio 之间转换参数与返回值
 invoke(.("object->func",->->->) = 调用 JS 函数但不会等待返回值，\n等待返回值过程中会继续处理界面消息。\n\n参数 @1 指定要调用的函数名或返回函数的表达式,\n\n如果参数 @1 不包含回车或换换行、分号、大括号、圆括号，\n则参数 @1最后一个点号前的对象作为调用 JS 函数的 this 参数
-cdp(.(method,params) = 调用 WebView2 内置 CDP 接口。\n参数 @method 指定 CDP 方法，例如："Page.navigate" 。\n参数 @param 用一个表对象，或 JSON 字符串指定调用参数。\n成功返回一个表对象，失败返回 null,错误代码
+cdp( = 调用 WebView2 内置 CDP（Chrome DevTools Protocol） 接口。\n调用内置 CDP（Chrome DevTools Protocol）接口，多个 WebView2 不会冲突。\n但同一用户数据目录不能在使用内置 CDP 接口的同时开放远程调试端口。\n\n\nCDP 文档: https://chromedevtools.github.io/devtools-protocol \n使用范例: doc://example/WebUI/web.view/DevTools/cdp.html
+cdp(.(method,params) = 调用 WebView2 内置 CDP 接口。\n参数 @method 指定 CDP 方法，例如："Page.navigate" 。\n参数 @param 用一个表对象，或 JSON 字符串指定调用参数。\n成功返回一个表对象，失败返回 null，错误代码。\n错误代码可用 lasterr 函数转换为错误信息。
 cdp(.(method,params,callback) = 异步调用 WebView2 内置 CDP 接口。\n不等待 CDP 调用完成，而是在调用完成异步回调 callback 函数。\n参数 @method 指定 CDP 方法，例如："Page.navigate" 。\n参数 @param 用一个表对象，或 JSON 字符串指定调用参数。\n@callback 指定回调函数，\n回调参数@1为 CDP 返回的表对象，回调参数@2 为错误代码。\n成功返回 true，失败返回 null,错误代码
-cdp( = 调用 WebView2 内置 CDP（Chrome DevTools Protocol） 接口。\n调用内置 CDP（Chrome DevTools Protocol）接口，多个 WebView2 不会冲突。\n但同一用户数据目录不能在使用内置 CDP 接口的同时开放远程调试端口\n\n[CDP 文档](https://chromedevtools.github.io/devtools-protocol/)
-cdpWait(.(method,params,timeout) = 调用 WebView2 内置 CDP 接口并等待返回非 null 值。\n参数 @method 指定 CDP 方法，例如："DOM.getDocument" 。\n参数 @param 用一个表对象，或 JSON 字符串指定调用参数。\n可选用 @timeout 指定超时，单位毫秒，默认在窗口关闭前一直等待。\n成功返回一个表对象，失败返回 null,错误代码。\n超时错误代码为 0x102/*_WAIT_TIMEOUT*/。\n\n[CDP 文档](https://chromedevtools.github.io/devtools-protocol/)
-cdpWait( = 调用 WebView2 内置 CDP 接口并等待返回非 null 值。\n调用内置 CDP（Chrome DevTools Protocol）接口，多个 WebView2 不会冲突。\n但同一用户数据目录不能在使用内置 CDP 接口的同时开放远程调试端口
-cdpQuery( = 使用 WebView2 内置 CDP 接口查询 DOM 节点。\n调用内置 CDP（Chrome DevTools Protocol）接口，多个 WebView2 不会冲突。\n但同一用户数据目录不能在使用内置 CDP 接口的同时开放远程调试端口
-cdpQuery(.(selector,parent) = 使用 WebView2 内置 CDP 接口查询节点。\n@selector 指定 CSS 选择器，\n@parent 可选指定父节点或父节点的 nodeId。\n不指定父节点则 @parent 默认取页面根节点。\n成功返回表对象，失败返回 null,错误代码
+cdpWait(.(method,params,timeout) = 调用 WebView2 内置 CDP 接口并等待返回非 null 值。\n参数 @method 指定 CDP 方法，例如："DOM.getDocument" 。\n参数 @param 用一个表对象，或 JSON 字符串指定调用参数。\n可选用 @timeout 指定超时，单位毫秒，默认在窗口关闭前一直等待。\n成功返回一个表对象，失败返回 null,错误代码。\n超时错误代码为 0x102/*_WAIT_TIMEOUT*/。\n错误代码可用 lasterr 函数转换为错误信息。
+cdpWait( = 调用 WebView2 内置 CDP 接口并等待返回非 null 值。\n调用内置 CDP（Chrome DevTools Protocol）接口，多个 WebView2 不会冲突。\n但同一用户数据目录不能在使用内置 CDP 接口的同时开放远程调试端口。\n函数执行成功返回一个表对象，失败返回 null,错误代码。\n错误代码可用 lasterr 函数转换为错误信息。
+cdpQuery( = 使用 WebView2 内置 CDP 接口查询 DOM 节点。\n成功返回表对象，失败返回 null，错误代码。\n错误代码可用 lasterr 函数转换为错误信息。\n\n此函数调用内置 CDP（Chrome DevTools Protocol）接口，多个 WebView2 不会冲突。\n但同一用户数据目录不能在使用内置 CDP 接口的同时开放远程调试端口
+cdpQuery(.(selector,parent) = 使用 WebView2 内置 CDP 接口查询节点。\n@selector 指定 CSS 选择器，\n@parent 可选指定父节点或父节点的 nodeId。\n不指定父节点则 @parent 默认取页面根节点。
 cdpQuery(.(selector,parent,callback) = 异步调用 WebView2 内置 CDP 接口查询节点。\n不等待 CDP 调用完成，而是在调用完成异步回调 callback 函数。\n@selector 指定 CSS 选择器，\n@parent 可选指定父节点或父节点的 nodeId。\n不指定父节点则 @parent 默认取页面根节点。\n@callback 指定回调函数，\n回调参数@1为 CDP 返回的表对象，回调参数@2 为错误代码。\n成功返回 true，失败返回 null,错误代码
 cdpWaitQuery( = 使用 WebView2 内置 CDP 接口查询并等待 DOM 节点。\n调用内置 CDP（Chrome DevTools Protocol）接口，多个 WebView2 不会冲突。\n但同一用户数据目录不能在使用内置 CDP 接口的同时开放远程调试端口
 cdpWaitQuery(.(selector,parent,timeout) = 使用 WebView2 内置 CDP 接口接口查询并等待节点，\n@selector 指定 CSS 选择器，\n@parent 可选指定父节点或父节点的 nodeId。\n不指定父节点则 @parent 默认取页面根节点。\n可选用 @timeout 指定超时，单位毫秒，默认在窗口关闭前一直等待。\n成功返回表对象，失败返回 null,错误代码。\n超时错误代码为 0x102/*_WAIT_TIMEOUT*/
-waitEle( = 等待网页创建指定节点
-waitEle(.(selector) = 等待网页创建指定节点\n@selector 参数指定CSS选择器,\n省略参数@2时同步等待节点出现。\n\n成功返回 CSS 选择器，失败返回 null,错误对象（表对象或字符串）
+waitEle( = 等待网页创建指定节点。\nwaitEle 仅在当前网页等待，打开其他网页（指创建不同的 document ）则会退出等待。\n改用　waitEle2 函数可支持跨网页等待。。
+waitEle(.(selector) = 同步等待网页创建指定节点。\n网页文档对象关闭，或当前网址变更也会退出等待。\n@selector 参数指定CSS选择器,\n省略参数@2时同步等待节点出现。\n\n成功返回 CSS 选择器，失败返回 null,错误对象（表对象或字符串）
 waitEle(.(selector,callback,timeout) = 异步等待网页创建指定节点\n@selector 参数指定CSS选择器,\n参数@2指定 aardio 回调函数,\n找到节点回调参数@1为选择器，\n失败回调参数@2为错误信息,回调参数@1为null,\n可选用参数@3指定超时，单位毫秒
-waitEle(.(selector,js,timeout) = 异步等待网页创建指定节点\n@selector 参数指定CSS选择器,\n找到节点执行参数@2指定的 JavaScript 代码,\n执行JS代码时自动绑定this对象为找到的节点,\n可选用参数@3指定超时，单位毫秒
+waitEle(.(selector,js,timeout) = 异步等待网页创建指定节点\n@selector 参数指定CSS选择器,\n找到节点执行参数@2指定的 JavaScript 代码,\n执行 JS 代码时自动绑定 this 对象为找到的节点,\n可选用参数@3指定超时，单位毫秒
+waitEle2( = 同步等待网页创建指定节点。\n如果在等待过程中可能打开多个不同的网页，\n则应使用 waitEle2 而不是限于在单页面使用的 waitEle 函数。
+waitEle2(.(selector,timeout) = 同步等待网页创建指定节点。\n不同于 waitEle 仅在当前网页有效，\nwaitEle2 支持跨网页等待，网址变更也不会退出等待。\n除非关闭窗口，此函数会一直等待直到指定选择器的对象创建成功。\n\n参数 @selector 指定 CSS 选择器，\n可选用参数 @timeout 指定超时，单位毫秒。\n\n找到节点则返回 CSS 选择器，失败返回 null，错误信息
 adjust() = 调整页面大小到适合窗口
 external = @.external = {
-	__/*导出为 JavaScript 中可访问的全局对象 aardio\nJS中该对象的所有成员都是 Promise 对象。\n\n通过此对象调用 aardio 函数时参数中的 JS 对象会转换为 COM 对象，\n而返回给 JS 的 aardio 对象会被转换为 Promise 对象\n\n被网页回调的 aardio 函数内不要调用可能阻塞的 webView.xcall，webView.eval 函数。\n应改用非阻塞的 webView.invoke 函数，或通过 winform.setTimeout 异步调用 webView.xcall，webView.eval 函数*/
+	__/*在 Javascript 中可通过全局变量 `aardio` 访问 ??.external 对象。
+在 JavaScript 中所有的 aardio 对象以及 aardio 对象的方法与属性都被包装为 Promise 对象
+
+在 JavaScript 中调用  ??.external 导出的函数时，参数与返回值都不需要经过 JSON 转换。
+除字符串、数值、布尔值、可兼容的数组、buffer 等基础值类型可以直接传值以外，
+其他对象类型（JavaScript 中的 object 或 aardio 中的表对象 ）自动转换为 COM 代理对象，
+让我们可以通过 COM 接口间接操作跨语言的对象。
+
+要注意不能将这种 COM 代理对象作为原生 JavaScript 对象使用，
+例如不能用于 JavaScript 图表或表格的数据源对象，而  ??.export 导出的 aardio 函数则无此限制。
+ 
+被网页回调的 aardio 函数内不要调用可能阻塞的 webView.xcall，webView.eval 函数。
+应改用非阻塞的 webView.invoke 函数，或通过 winform.setTimeout 异步调用同步阻塞的函数*/
 }
 onFullScreen = @.onFullScreen = lambda(enabled) owner.fullscreen(enabled);__/*响应网页全屏事件，\n参数 enabled 表示网页是否请求全屏，此函数忽略返回值。\n设为 null 移除事件*/
 fullscreen(__) = 全屏。\n参数指定是否全屏，不指定参数则切换全屏。\n返回值为当前是否全屏

@@ -173,7 +173,7 @@ namespace file{
 				
 				
 				if(len<0) {
-					len = owner.size(1) - len + 1; 
+					len = owner.size() - len + 1; 
 				}
 					
 				var ok,str,readSize = ReadFile( owner.hfile,len,len,0); 
@@ -184,7 +184,8 @@ namespace file{
 			}
 		};
 		readAll = function(){
-			len = owner.size(1);
+			owner.seek("set");
+			var len = owner.size();
 			var ok,str,readSize = ReadFile( owner.hfile,len,len,0);	
 			if(ok) return readSize ? ..string.left(str,readSize) : null; 
 		};
@@ -413,7 +414,7 @@ fsys.file("__/*文件路径*/","w+") = 读写模式打开,创建新文件清空�
 fsys.file("__/*文件路径*/","w+D") = 读写模式打开临时文件,关闭对象时自动删除文件
 fsys.file("__/*文件路径*/","a") = 只写追加模式打开,创建新文件保留原文件
 fsys.file("__/*文件路径*/","a+") = 读写追加模式打开,创建新文件保留原文件
-fsys.file(.(path,mode,shareMode,creation,flagsAndAttributes,secAttrib) = 所有参数可选,\n参数详细用法参考此函数源码与CreateFile参数用法,\nmode参数可指定数值指定打开模式,也可使用与io.open函数相同规则的描述字符\nshareMode参数默认为 _FILE_SHARE_READ | _FILE_SHARE_WRITE\ncreation参数默认值为 _OPEN_EXISTING\n@flagsAndAttributes 为可选参数，指定文件属性,省略则自动设置此参数\n@secAttrib 不必指定
+fsys.file(.(path,mode,shareMode,creation,flagsAndAttributes,secAttrib) = 所有参数可选,\n参数详细用法参考此函数源码与CreateFile参数用法,\nmode参数可指定数值指定打开模式,也可使用与io.file相同规则的描述字符\nshareMode参数默认为 _FILE_SHARE_READ | _FILE_SHARE_WRITE\ncreation参数默认值为 _OPEN_EXISTING\n@flagsAndAttributes 为可选参数，指定文件属性,省略则自动设置此参数\n@secAttrib 不必指定
 fsys.file.is(__) = 判断参数是不是fsys.file对象
 !fsysfile.readTo( = 读取直到以指定的字符串结束
 !fsysfile.readTo(.('结束串') = 读取直到以指定的字符串结束,返回值不包含结束串,\n该函数每次仅读取一个字节,效率较低
@@ -422,7 +423,7 @@ fsys.file.is(__) = 判断参数是不是fsys.file对象
 !fsysfile.read() = 读取一行文本\n返回文本不包含回车换行符
 !fsysfile.read(-1) = 读取所有内容到文件尾部
 !fsysfile.read(0) = 是否未到达文件尾。\n如果已经到达文件尾返回 null，否则返回空字符串。\n注意在布尔表达式工 null 等于 false，空字符串等于 true。
-!fsysfile.readAll() = 读取所有内容
+!fsysfile.readAll() = 移动指针到文件头，\n读取到文件尾返回全部数据。\n改用 -1 为参数调用 read 函数可自当前位置读取到文件尾。
 !fsysfile.write(__/*字符串*/) = 写入字符串\n参数也可以是数值、结构体
 !fsysfile.readBuffer( = 读取数据到 buffer ,成功返回读取长度,失败返回null
 !fsysfile.readBuffer(.(buffer,读取长度) = 直接读数据到内存\n参数@1可以是 buffer 对象,或内存指针,\n如果是指针则必须指定读取长度,否则长度参数可选\n成功返回读取长度

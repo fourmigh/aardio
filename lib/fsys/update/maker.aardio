@@ -93,7 +93,7 @@ class maker {
 	        		..fsys.createParentDir(outpath)
 	      		
 	      			var crc32;  
-	           		var file = ..io.open(fullpath,"rbS");	
+	           		var file = ..io.file(fullpath,"rbS");	
 	           		var size = file.size(1);
 	        		file.seek("set",0); 
 	        		this.onFile(path,size);
@@ -112,7 +112,7 @@ class maker {
 	        			return null,"压缩文件失败:" + path;
 	        		}
 	        		
-	        		var file = ..io.open(outpath + ".lzma","rbS");	
+	        		var file = ..io.file(outpath + ".lzma","rbS");	
 	           		var sizeLzma = file.size(1);
 	        		file.close();    
 	        		

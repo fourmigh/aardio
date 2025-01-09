@@ -1,0 +1,128 @@
+﻿//chat 聊天界面
+import web.form;
+import web.form.simpleMarkdown;
+import web.rest.aiChat.message;
+namespace web.form;
+
+class chat{
+	ctor( ... ){
+		this = ..web.form.simpleMarkdown(...)
+		this.chatMessage = ..web.rest.aiChat.message();
+	};
+	findSystem = function(pattern){
+		var chatMessage = this.chatMessage;
+		
+		for(i=1;#chatMessage;1){
+			var msg = chatMessage[i]
+			if(msg[["role"]]=="system"){
+				if(msg.content && ..string.find(msg.content,pattern) ){
+					return msg.content;
+				}
+			}
+		} 
+	};
+	aardioSystem = function(prompt,isUserPrompt){ 
+		this.chatMessage.aardioSystem(prompt,isUserPrompt);
+	};
+	system = function(content){
+		this.pushMessage({ 
+        	role = "system"; 
+        	content  = content;
+    	});
+	};
+	prompt = function(content){
+		this.pushMessage({ 
+        	role = "user"; 
+        	content  = content;
+    	});
+	};
+	assistant = function(content){
+		this.pushMessage(content);  
+	};
+	pushMessage = function(msg){ 
+	 
+		//加入聊天消息 
+		if(msg){
+			this.chatMessage.push(msg);
+			
+			if(type.isString(msg)){
+				this.writeDelta(msg); 
+			}
+			elseif(msg.role=="user"){ 
+				
+				if(..string.find(msg.content,"<#+\s+>|<!\N\s*[-+*]>|<!\N\s*\d+\.\s+>|<`>|<===>|<\-\-\->")){
+					this.writeDelta('\n\n<span class="chat-role user">我</span>\n
+    				<div class="chat-prompt">\n'+msg.content + '\n</div>\n\n<span class="chat-role assistant">AI</span>\n\n');
+				}
+				else{
+    				this.writeDelta('\n\n<span class="chat-role user">我</span>\n
+    				<div class="chat-prompt">'+msg.content + '</div>\n\n<span class="chat-role assistant">AI</span>\n\n');
+    			}
+    				
+    			this.showLoading("正在思考 ");
+    		}
+		}
+		else{
+			this.writeDelta(null);  
+		} 
+	}; 
+	lastMarkdown = function(){
+		var chatMessage = this.chatMessage;
+		var lastMsg = chatMessage[#chatMessage]
+		if(lastMsg[["role"]]=="assistant"){
+			return  lastMsg.content; 
+		}
+	}; 
+	lastAssistantMessage = function(){
+		var chatMessage = this.chatMessage;
+		var lastMsg = chatMessage[#chatMessage]
+		if(lastMsg[["role"]]=="assistant"){
+			return  lastMsg; 
+		}
+	}; 
+	errorMessage = function(msg){
+		this.showError(msg);
+	}; 
+	clear = function(){
+		this.setMarkdown("");
+		this.chatMessage.clear();
+	};
+	started = function(){
+		return this.chatMessage.started(); 
+	};
+}
+
+/*****intellisense()
+web.form.chat = 用于显示 Markdown 生成的 HTML 的 AI 助手专用 web 窗体。\n此对象继承自 web.form.simpleMarkdown 与 web.form 对象。
+web.form.chat( = 创建用于显示 Markdown 生成的 HTML 的 AI 助手专用 web 窗体。 \n此对象继承自 web.form.simpleMarkdown 与 web.form 对象。
+web.form.chat(.(winform,hostFlags,dlControl,userAgent,securityTrusted) = 创建 Web 窗体。\nwinform 必须指定窗体或 custom 控件。\n其他参数不必指定，这些参数的用法请参考 web.form 。
+web.form.chat() = !webFormChat.
+end intellisense*****/
+
+/*****intellisense(!webFormChat)
+enableKatex(true) = 允许解析数学公式，参数为 false 则禁用此功能（默认）。\n仅在 Win10 以上系统有效。
+started() = 是否已经发起对话。\n发起对话指的是消息队列中包含非 system 角色的消息。
+clear() = 清除会话记录
+errorMessage(__/*错误信息*/) = 显示错误信息
+assistant(__/*增量文本*/) = 显示并记录 AI 接口返回的增量文本。\n参数必须是文本或者表示输出完成的 null 值。
+prompt(__/*提示词*/) = 添加并显示用户提示词
+system(__/*提示词*/) = 添加并显示系统提示词
+aardioSystem( = 自动创建 aardio 编程助手系统提示词，\n并自动增加 aardio 语法速览文档。\n此函数可重复调用，不会重复添加相同的文档。\n除函数自带的基本的 aardio 助手提示词以外，EXE 目录下必须存在待添加的文档。
+aardioSystem(.(sysPrompt) =  增加基本的 aardio 编程助手提示词（如果已添加则忽略）。\n如果指定了参数 sysPrompt 则追加到系统提示词（不会检测之前是否已添加过 sysPrompt 的内容）。
+aardioSystem(.(userPrompt,true) = 如果用 userPrompt 指定稍后要发送的用户提示词。\n则分析 userPrompt 关键词附加关键的 aardio 文档（不会添加 userPrompt 本身）。\n附加规则请查看此函数源码。
+findSystem(__/*模式串*/) = 使用模式匹配语法查找消息队列中是否存在指定的系统提示词
+chatMessage = 消息队列，用于发送到 chat/completions 聊天接口。\n!webRestChatMessage.
+lastMarkdown() = 获取最后一次 AI 回复的原始 Markdown 格式内容。
+lastAssistantMessage() = AI 最后一次返回的消息，如果没有则返回 null。
+getMarkdown() = 返回输出到页面的所有 Markdown 格式内容。
+setMarkdown(__) = 输出 Markdown 格式内容到页面，覆盖控件存储的 Markdown。
+write(__) = 清空页面内容，解析并显示参数 @1 指定的 Markdown 为网页。\n控件仅解析与显示 Markdown，不会存储此 Markdown，\n也不会改变  getMarkdown 函数的返回值。
+writeDelta(__) = 向页面追加 Markdown 格式内容。\n解析、显示、并存储写入的 Markdown。
+onWriteEnd = @.onWriteEnd = function(){
+	__/*发出问题以后，AI 回复完成或出现错误回调此事件*/
+}
+beforerWriteEnd = @.beforerWriteEnd = function(markdown){
+	__/*在输出完整回复以前，可在此回调中修改返回输出的全部 Markdown。\n错误输出不会触发此函数。*/
+}
+showLoading(.(title) = 显示加载动画，可选用 title 指定标题。
+end intellisense*****/

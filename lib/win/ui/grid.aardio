@@ -189,6 +189,13 @@ win.ui.grid() = !win_ui_grid.
 !win_ui_grid.getTable(__) = 返回数据表。\n如果参数 @1 指定列名数组（被复制为返回表的 fields 字段），\n则返回的每行数据都是名值对，否则返回的每行数据都是文本数组。\n\n如果参数 @1 为 true，则返回的文本数组第一行为列标题文本数组。
 !win_ui_grid.setColumns(__) = 用一个字符串数组指定要显示的列\n如果参数为空则清空所有列
 !win_ui_grid.setReadonlyColumns(__) = 可以使用一个或多个参数指定要禁止编辑的列序号，\n也可以用一个数组参数指定多个列序号。\n\n如果参数为 -1，则禁止编辑所有列
+!win_ui_grid.setColumnText(.(位置,文本) = 设置指定列文本
+!win_ui_grid.getColumnText(__) = 取指定列文本
+!win_ui_grid.setColumnWidth(.(列宽,列序号,->->->) = 设置列宽，可指定一个或多个列序号。\n这里不能指定宽度为  -1 。
+!win_ui_grid.delColumn(__) = 删除指定列
+!win_ui_grid.columnCount = 列总数
+!win_ui_grid.setColumn(.({cx=100},列序号) = 改变列宽，参数@1必须是个表对象
+!win_ui_grid.setColumn(.(列参数表,列序号) = 参数一指定 wLVCOLUMN 结构体成员键值的参数表,\n也可以是LVCOLUMN结构体对象,自动设置掩码参数.
 !win_ui_grid.clear() = 清空所有行
 !win_ui_grid.clear(true) = 清空所有行,并且清空所有列
 !win_ui_grid.beginEdit(.(行,列) = 切换到编辑状态

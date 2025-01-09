@@ -11,6 +11,8 @@ namespace web;
 class form {
 
 	ctor(winform,hostFlags,dlControl,agent,securityTrusted) begin
+		if(!winform) winform = ..win.form({text="Web Form"});
+		
 		..inet.reloadSystemProxy();
 		
 		this.dlControl = dlControl;
@@ -231,6 +233,7 @@ namespace form {
 			}
 			
 			var js  = "(" + method + ").apply(" + jsThis + "," + ..web.json.stringifyArray({...}) + ")";
+			
 			return owner.eval(js);
 		}; 
 		eventScript = function(s,id,event="onclick",frame,n="javascript"){
@@ -551,7 +554,7 @@ namespace form {
 			if( stm ){
 				stm.fromString(strhtml); 
 				owner.waitDoc();
-				return true;
+				return owner;
 			}
 		};
 		loadcode = function(data,...){
@@ -911,6 +914,7 @@ namespace form {
 				}
 			}
 		};
+		doModal = lambda(...) owner._form.doModal(...);
 	) 
 	
 	with _metaProperty{ 
@@ -985,6 +989,8 @@ namespace form {
 		return ..web.form(...); 
 	}
 }
+
+..thread.set("@web.form.imported!!!", true);//用于避免与 web.script("ES6") 同时使用
  
 /******intellisense( ) 
 web.form = web 窗体。\n基于系统自带 IE 内核 WebBrowser 浏览器控件。\n注意新版系统虽移 除IE，但 WebBrowser 属于系统组件仍可正常使用.\n\n导入此库时已默认设为启用IE最高兼容版本,\n可调用web.form.emulation函数修改,或在网页HTML中设置,例如:\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n可自动启用IE最高版本
@@ -1004,7 +1010,8 @@ web.form.ie11() = !wb.
 !wb._browser = 浏览器控件,com对象 
 !wb._crossDomain = 该对象是否使用跨域框架创建
 !wb.addHeaders = 设置默认的请求头\n支持字符串值、或包含键值对的表,\n指定的HTTP头将会使用 web.joinHeaders 函数转换为字符串\n在调用go()或post()等打开网页的函数时,将自动附加addHeaders
-!wb.write("__") =  通过字符串参数载入HTML文件源码
+!wb.write("__") =  通过字符串参数载入 HTML 文件源码\n成功返回对象自身。
+!wb.write() = !wb.
 !wb.loadcode(__/*HTML模板代码*/) = 使用aardio模板语法加载HTML文件\n可选在第二个参数中传入模板参数,\n模板代码中使用owner参数获取首个模板参数
 !wb.write("__","框架名") = 将字符串值写入框架网页、不允许追加
 !wb.html = @.html = /**\n<!doctype html>\n<html>\n<head>\n    <meta charset="utf-8">\n    <meta http-equiv="X-UA-Compatible" content="IE=edge" />\n    <style type="text/css">\n    html,body{ height:100%; margin:0; } __\n    </style>\n    <script type="text/javascript"></script>\n</head>\n<body>\n    <div id="header"></div>\n    <div id="container"> \n        <div class="lside"> </div> \n        <div class="rside"> </div>  \n    </div>\n</body>\n</html>\n**/
@@ -1025,12 +1032,13 @@ web.form.ie11() = !wb.
 !wb.location = 当前网址
 !wb.host = 当前网址所在主机名 
 !wb.getFrame() = !jsGlobal.
+!jsGlobal.? = 访问 JavaScript 全局名字空间的成员。\n在 web.form 内使用全局对象调用 JS 函数，\n即使没有参数也至少要指定 1 个 null 参数，避免返回函数对象自身。
 !jsGlobal.frameElement = 获取在父文档中生成 window 的 frame 或 iframe 对象
 !jsGlobal.parent = 获取对象层次中的父窗口
 !jsGlobal.document = document.
 !jsGlobal.eval( = 运行js代码
 !jsGlobal.eval(.("JS代码") = 返回表达式的值
-!jsGlobal.location = 当前URL
+!jsGlobal.location = 当前 URL
 !jsGlobal.location.hash = 网址“#”号后面的分段
 !jsGlobal.location.host = URL的主机以及端口号部分
 !jsGlobal.location.hostname = URL中的域名主机部分
@@ -1238,8 +1246,6 @@ web.form.ie11() = !wb.
 !ele.outerHTML = 返回该节点的HTML代码
 !ele.innerText = 设置或获取对象的文本 
 !ele.outerText = 设置或获取对象的文本 
-!ele.innerHTMLUnicode = 返回节点内的HTML代码
-!ele.innerTextUnicode = 设置或获取对象的文本
 !ele.insertAdjacentHTML("beforeBegin",__/*HTML代码*/) = 在节点之前插入HTML
 !ele.insertAdjacentHTML("afterBegin",__/*HTML代码*/) = 在节点内部最前面插入HTML
 !ele.insertAdjacentHTML("beforeEnd",__/*HTML代码*/) = 在节点内部最后面插入HTML 
@@ -1285,7 +1291,6 @@ web.form.ie11() = !wb.
 !ele.getReadyState() = 获取对象的当前状态。 \n'uninitialized','loading','interactive','loaded' 'complete'
 !ele.sourceIndex = 获取对象在源序中的依次位置 
 !ele.title = 提示信息 
-!ele.titleUnicode = 提示信息
 !ele.attributes["name__/*属性名称*/"] = 对象 HTML 标签属性的集合指定名称的对象\n返回对象的 name 属性为 HTML 属性名称，\nvalue 属性为 HTML 属性值
 !ele.childNodes(0__) =  对象直接后代的 HTML元素和TextNode对象的集合指定位置的对象
 !ele.children(0__) =  获取作为对象直接后代的DHTML对象的集合指定位置的对象 
@@ -1332,7 +1337,6 @@ document.getElementById("__") = 获取对 ID 标签属性为指定值的第一�
 document.getElementsByName("__") =  根据 NAME 标签属性的值获取对象的集合。 
 document.getElementsByTagName("__") =  获取基于指定元素名称的对象集合。 
 document.title = 网页标题
-document.titleUnicode = 网页标题 
 document.body = !ele.
 document.focus() = 设置焦点
 document.hasFocus() = 是否拥有焦点
@@ -1413,6 +1417,7 @@ document.compatMode = "BackCompat" 对应 quirks mode(无DTD声明)\n"CSS1Compat
 !wb.loadScript("js地址","框架名字","utf-8") = 动态加载js文件\N可选用第三个参数指定文件编码
 !wb.jQuery("__") = jQuery选择器,并可自动载入jQuery库\nn首次调用按需加载jQuery v1.10:\n "/res/js/jQuery/jQuery.min.js"\n失败则通过网络CDN服务器下载jquery-1.9.0.min.js\n\n注意 jQuery v1.6.3 以上 ajax 函数才会支持 res 协议访问 EXE 资源文件\nIE11 内核默认已阻止 ajax 访问本地文件,\n改用 wsock.tcp.simpleHttpServer/asynHttpServer 访问本地文件即可
 !wb.jQuery() = 无参数时返回jQuery类对象\n首次调用按需加载 jQuery v1.9:\n "/res/js/jQuery/jQuery.min.js"\n失败则通过网络CDN服务器下载jquery-1.9.0.min.js\n!jQuery.
+!wb.doModal(.(ownerForm,showFlags) = 宿主窗口显示为模态对话框。\n可选用参数 @ownerForm 指定所有者窗口，\n参数 @showFlags 可选用 _SW_ 前缀常量指定显示选项。
 !jQuery.val() = 取值
 !jQuery.val("__") = 赋值
 !jQuery.hide() = 隐藏

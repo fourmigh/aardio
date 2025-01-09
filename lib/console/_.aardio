@@ -125,7 +125,7 @@ getch = ::Msvcrt._getwch;
 	
 getche = function(){
     var c = ::Msvcrt._getwche();
-    c =  ..string.fromUnicode(..raw.str( {WORD bytes = c },true));  
+    c =  ..string.fromUtf16(..raw.str( {WORD bytes = c },true));  
 	return c;
 }
 
@@ -349,21 +349,20 @@ setLoadingDots = function(dots,endDots,interval){
 }
 
 showLoading = function(msg,dotColor){
-	initLoading();
-	open();
+	initLoading();   
 	
 	if(!msg) {
 		eventLoadingStop.set()
-		eventLoadingStopped.waitOne(); 
+		eventLoadingStopped.waitOne(1000); 
 		return;
 	}
-	
+
 	loadingDotColor.set(type(dotColor)!=type.number ? 0xF : dotColor);
 	loadingMessage.set(type(msg)==type.string ? msg : "");
 	if(!eventLoadingStopped.waitOne(100)){
 		return;
 	}
-	
+
 	open();
 	eventLoadingStop.reset();
 	eventLoadingStopped.reset();
@@ -372,6 +371,8 @@ showLoading = function(msg,dotColor){
 			..io.utf8 = utf8;
 			
 			import console;
+			console.$isLoadingThread____ = true;
+			
 			var cursorVisible = console.isCursorVisible();
 			console.setCursorVisible(false);
 			var outHandle = console.getOutputHandle();
@@ -425,13 +426,18 @@ getText = function(s,len){
 }
 
 writeText = function(s,...){
+	
+	if(! $isLoadingThread____ ){
+		showLoading(false);
+	} 
+	
 	var written = {INT size}; 
-	s = tostring(s);
-	if( (!..string.isUtf8(s)) && (!..string.isUnicode(s)) ){
+	s = s!==null? tostring(s) : "";
+	if( (!..string.isUtf8(s)) && (!..string.isUtf16(s)) ){
 		..string.setUtf(s,1);
 	}
 	
-	s = ..string.toUnicode(s); 
+	s = ..string.toUtf16(s); 
 	if( ::Kernel32.WriteConsoleB( 
 		::Kernel32.GetStdHandle(-11/*_STD_OUTPUT_HANDLE*/),
 		s,#s/2,written,null) ) {
@@ -481,6 +487,8 @@ writeBack = function( s,... ){
 }
 
 self.error = function(x,...){
+	if(x===null && ... === null) return;
+	
 	if( _STUDIO_INVOKED ) openForWrite();
 	if( isOpened() ) setTextAttribute( color.red );
 	
@@ -508,6 +516,8 @@ class CONSOLE_SCREEN_BUFFER_INFO {
 }
 
 clearScreen = function(){
+	showLoading(false);
+	
 	var csbi = CONSOLE_SCREEN_BUFFER_INFO();
 	var hConsole = getOutputHandle(); 
 	
@@ -528,7 +538,7 @@ eraseToEndOfLine = function(){
 	
 	if(!width) return;
 		
-	var line = ..string.toUnicode(..string.repeat(width-y," ") );
+	var line = ..string.toUtf16(..string.repeat(width-y," ") );
 	::Kernel32.WriteConsoleW(getOutputHandle(),line,#line/2,{INT size},null);
 	setPos(x,y);
 }
@@ -729,7 +739,7 @@ dumpTable = function(t){
 	openForWrite();
 	if(type.isString(t)){
 		var s = t; t = {};
-		if(..string.isUnicode(s)){
+		if(..string.isUtf16(s)){
 			for(i=1;#s/2;1){ t[i] = s[i] } 
 		}
 		else {
@@ -892,13 +902,13 @@ open() = 打开控制台窗口,\n如果控制台窗口已打开,该函数不进�
 utf8 = 控制台是否启用UTF-8编码,\n所有线程设置必须相同,否则会导致重新打开控制台,\n如果操作系统为英文环境,控制台启用 UTF-8 可正常显示中文,\n此值为 null（默认值） 时由 aardio 自动选择编码（WIN10 以上系统默认开启 UTF-8）,\n启用这个选项在 WIN10 以下系统可能出现显示不正常的问题,\n但有一些程序，例如 Electron 主进程输出默认需要打开此选项
 setLoadingDots(.(动画字符数组,是否显示在尾部,动画间隔毫秒数) = 指定showLoading函数使用的默认动画字符数组\n除参数@1必须指定之外，其他参数可选
 showLoading( = 显示进度动画
-showLoading(.(状态文本,动画颜色) = n所有参数都可以省略,状态文本为false关闭动画,\n调用console.open,console.log等函数都能自动关闭动画\n参数@2只能使用 console.color 的成员值
+showLoading(.(状态提示文本,动画颜色) = 所有参数都可以省略,状态文本参数为 false 关闭动画,\n调用 console 库的其他函数基本都会自动停止动画。\n参数 @2 只能使用 console.color 的成员值。
 getNumber( "请输入数值:__" ) = 读取用户输入的数值,\n如果用户输入错误的数值则显示错误提示并重新读取输入直到成功,\n可选在参数@2中指定缓冲区大小
 getText( "请输入文本:__" ) = 此函数内部调用io.getText自控制台读取用户输入,\n可选在参数@2中指定缓冲区大小\n此函数不调用io.stdin.read等标准输入函数
 writeText(__) = 直接写入控制台，\n参数支持UTF8/UTF16/ANSI字符串，\n支持1个或多个参数，但遇到null参数会停止输出后面的参数,\n注意这个函数不会自动打开控制台，\n此函数不调用io.stdout.write,io.print等标准输出函数\n并且可以支持更多的Unicode字符
 writeColorText( = 调用 console.writeText 输出指定颜色文本,\n此函数不会自动打开控制台窗口
 writeColorText(.(文本,前景色,背景色) =  参数@2、参数@3只能使用 console.color 的成员值\n背景色可以省略
-log(__) = 调用console.writeText在控制台输出信息,支持多参数\n多个参数间使用制表符分隔，并且在最后输入一个换行,\n\n参数支持UTF8/UTF16/ANSI字符串，\n二进制或非UTF8或系统ANSI编码的字符串请使用 console.hex 函数。\n\n该函数可自动打开控制台窗口,而无需事先调用io.open();\n注意console.log与console.print指向同一函数\n如果是输出调试信息,建议大家使用console.error 函数。
+log(__) = 调用 console.writeText 在控制台输出信息，支持多参数。\n多个参数间输出时用制表符分隔，并且在最后输入一个换行。\n此函数必须先导入 console 库才能使用。\n\n参数支持 UTF8/UTF16/ANSI 字符串，\n二进制或非 UTF8 或系统 ANSI 编码的字符串请改用 console.hex 函数。\n\n该函数可自动打开控制台窗口,而无需事先调用 io.open 。\n注意 console.log 与 console.print 指向同一函数。\n如果是输出错误信息，请改用 console.error 函数。
 logPause(__) = 调用 console.log 函数输入所有参数,\n然后调用 console.pause 函数暂停
 print("__") = 调用console.writeText在控制台输出信息,支持多参数\n多个参数间使用制表符分隔，并且在最后输入一个换行,\n参数支持UTF8/UTF16/ANSI字符串，\n该函数可自动打开控制台窗口,而无需事先调用io.open();\n注意console.log与console.print指向同一函数\n如果是输出调试信息,建议大家使用 console.error 函数
 printf("%s__", ) = 自动打开控制台\n调用console.log函数输出格式化字符串,\n格式化语法与string.format相同
@@ -906,7 +916,7 @@ hex(__) = 调用console.log以16进制输出字符串、或缓冲区的所有字
 writeBack(__) = 控制台输出字符串并覆盖最后显示的等长字符\n如果有多个参数则调用string.format格式化后输出
 fullscreen() = 控制台窗口全屏切换
 modifyMode(.(输入输出句柄,移除模式,添加模式) = 设置控制台的显示模式\n参数用法参考 WINAPI SetConsoleMode\n参数@1如果省略则默认为标准输出句柄\n成功返回当前模式,失败返回null
-error("__") = 使用标准错误输出流（io.stderr）输出，可以重定向，\n可指定任意个参数，参数转换为字符串以后输出。\n\n在开发环境中会自动打开控制台以红色字体输出参数，并输出当前调用栈信息。\n发布后的程序不会自动打开控制台，不会输出调用栈信息。
+error(__/*错误信息*/) = 使用标准错误输出流（io.stderr）输出，可以重定向，\n可添加任意个参数，其他参数也转换为字符串以后输出。\n\n在开发环境中会自动打开控制台以红色字体输出参数，并输出当前调用栈信息。\n发布后的程序不会自动打开控制台，不会输出调用栈信息。\n如果不指定参数 @1 （null值），此函数不作任何操作。
 more( = 等待并在按任意键以后继续，用于在控制台分页输出时等待按键。
 more(.(分页大小,是否清屏) = 略参数  @1 则参数默认为 1 。\n如果参数 @2 为true，按任意键以后清除控制台已显示的内容。
 askYesNo("按Y键继续,按N键取消") = 等待用户按Y或N键

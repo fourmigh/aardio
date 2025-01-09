@@ -283,7 +283,7 @@ var g,u =  ::Gdi32,::User32;
 
 getTextExtent = function(hdc,s){
 	var sz = ::SIZE();
-	s = ..string.toUnicode(s);
+	s = ..string.toUtf16(s);
 	if( g.GetTextExtentPoint32(hdc,s,#s/2,sz) ) return sz.cx,sz.cy;
 }
 
@@ -294,7 +294,7 @@ textOut = function (hdc,font,s,x,y) {
 	var of = ::SelectObject(hdc,lf);
 	if( font.color!== null ) ::SetTextColor(hdc,font.color);
 	
-	s = ..string.toUnicode(s);
+	s = ..string.toUtf16(s);
 	::TextOut(hdc,x,y,s,#s/2);
 	
 	::SelectObject(hdc,of);
@@ -307,7 +307,7 @@ drawText = function(hdc,font,s,rc,ft) {
 	var of = ::SelectObject(hdc,lf);
 	if( font.color!== null ) ::SetTextColor(hdc,font.color);
 	
-	s = ..string.toUnicode(s);
+	s = ..string.toUtf16(s);
 	::DrawText(hdc,s,#s/2,rc,ft:0);
 	
 	::SelectObject(hdc,of);

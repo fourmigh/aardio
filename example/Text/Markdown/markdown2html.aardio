@@ -1,0 +1,36 @@
+//Markdown 转换为 HTML
+//HTML 转 Markdown: file://~/example/Web/HTML/html2md.aardio
+
+var md = /*
+# 列表
+
+1. 列表。
+2. 列表。
+	- 嵌套列表
+	- 嵌套列表
+	
+# 表格
+
+
+| foo | bar |
+| --- | ---: |
+| baz | bim |
+
+	
+# 代码块
+
+```aardio
+print("你好！");
+```
+*/
+
+import string.markdown;
+var markdown = string.markdown();
+
+var html = markdown.render(md); 
+print(html);
+
+/*
+import web.form.simpleMarkdown;
+web.form.simpleMarkdown().write(html).doModal();
+*/

@@ -64,7 +64,7 @@ namespace atlax {
 !atlAxWin.className = 运行时类名
 !atlAxWin.hwnd = 控件句柄
 !atlAxWin.id = 控件ID
-!atlAxWin.text = 控件文本
+!atlAxWin.text = 控件文本。\n在创建控件的构造参数中使用 text 段指定要创建的 COM 对象类名。
 !atlAxWin.getForm() = 如果是窗体返回自身\n如果是控件则返回_parentForm\n!winform.
 !atlAxWin.isForm = 窗体返回true,控件返回false
 !atlAxWin._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
@@ -114,7 +114,7 @@ namespace atlax {
 !atlAxWin.msgbox("__") = 弹出对话框,可选用参数@2指定标题
 !atlAxWin.msgboxErr("__") = 弹出错误对话框,可选用参数@2指定标题
 !atlAxWin.msgboxTest("__") = 弹出询问对话框,可选用参数@2指定标题
-!atlAxWin.orphanWindow(.(transparent,hwndBuddy) = 创建悬浮窗口,\n悬浮窗口仍然显示在原来的位置,\n悬浮窗口如影随形的跟随父窗口移动或改变大小,控件原来的固定边距等参数仍然有效\n此控件不建议指定参数
+!atlAxWin.orphanWindow(.(transparent,hwndBuddy,borderless) = 创建悬浮窗口。\n悬浮窗口是模仿子窗口外观效果的独立窗口，父窗口可自动调整子窗口到设定位置。\n可选参数 @transparent 为 true 则转换为分层透明窗口。\n可选利用 @hwndBuddy 参数指定外部进程窗口句柄的并附加在内部控件上以实现相同的效果。\n伙伴窗口总是会保持在悬浮窗口前面，并保持相同的大小、位置。\n可重复调用此函数更换伙伴窗口，旧的伙伴窗口必须自行关闭。\n可选指定 @borderless 参数 为 true 以移除 @hwndBuddy  的窗口边框。
 !atlAxWin.getControl() = 返回com控件对象\naardio默认会尝试将atlax创建控件自身注册为默认事件接口
 !atlAxWin.getControlTypeName() = 返回COM接口名
 !atlAxWin.getControlClsId() = 返回COM对象类名
@@ -123,3 +123,14 @@ namespace atlax {
 win.ui.ctrl.atlax() = 静态文本控件\n!atlAxWin.
 win.ui.ctrl.atlax = 静态文本控件支持库
 end intellisense***/
+
+/**details(用法步骤)
+
+请参考[使用自定义控件类](doc://library-guide/std/win/ui/ctrl/custom.html#cls)
+
+atlax 控件用法步骤：
+
+1. 拖一个 custom 控件放到界面上,控件类名改为"atlax"
+2. 然后在 atlax 控件的文本属性中指定要创建的 COM 类名，例如 "InkEd.InkEdit"
+
+end details**/

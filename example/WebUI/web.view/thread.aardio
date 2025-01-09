@@ -1,0 +1,51 @@
+//web.view( WebView2 浏览器控件) - 多线程界面回调
+//多线程开发入门: doc://guide/language/thread.html
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="web.view( WebView2 浏览器控件) - 多线程界面回调";right=759;bottom=469)
+winform.add()
+/*}}*/
+
+import web.view;
+var wb = web.view(winform);
+
+wb.external = {
+	ping = function(domain){
+		
+		//创建线程，
+		thread.invoke( 
+			function(wb,domain){
+				
+				import process.popen;
+				 
+				var prcs,err = process.popen("ping "+ domain); //请参考范例 > 进程 > 管道
+				
+				/*
+				如果创建进程失败，err 为错误信息，
+				aardio 中抛出异常，网页 DevTools 调试工具可查看错误信息
+				*/
+				//assert(prcs,err);
+				
+				for( all,out,err in prcs.each() ){
+		    		wb.invoke("document.body.insertAdjacentText",'beforeend',all); 
+				}
+				
+			  /*
+			  web.view 可通过线程参数传入工作线程，
+			  跨线程调用回发到界面线程执行。 	
+			  */	
+			},wb,domain 
+		) 
+	} 
+}
+
+wb.html = /**
+<body style="white-space: pre;">
+<button 
+	onclick="javascript:aardio.ping('www.example.com')"
+	>开始干活了</button>
+**/
+
+
+winform.show();
+win.loopMessage();

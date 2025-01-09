@@ -65,7 +65,7 @@ download = function(url,title="下载",saveDir,extraDir,saveName,parentForm,endP
 			}
 			
 			..io.createDir(extraDir);
-			var file = ..io.open(..io.joinpath(extraDir,..io.splitpath(downBox.savePath).name),"w+b",0x10 /* _SH_DENYRW */);
+			var file = ..io.file(..io.joinpath(extraDir,..io.splitpath(downBox.savePath).name),"w+b",0x10 /* _SH_DENYRW */);
 			if(!file){
 				gzFile.close();
 				downBox.labProgress.text = "写入文件时遇到错误"

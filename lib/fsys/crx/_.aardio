@@ -42,7 +42,7 @@ pathId = function(extPath){
 	var rsa = ..crypt.rsa();
 	extPath = ..fsys.path.canonicalize(extPath);
 	
-	extPath = ..string.toUnicode(extPath);
+	extPath = ..string.toUtf16(extPath);
 	var pubKeySha256 = rsa.createHashBySha256(extPath).getValue(); 	
 	var crxId =  ..string.left(pubKeySha256,16);
 	

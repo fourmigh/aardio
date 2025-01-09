@@ -1,0 +1,26 @@
+//UIA 入门
+//UIA 探测工具： file://~/tools/Spy/inspect.aardio
+
+//导入 .NET 类  
+import System.Windows.Automation;
+//改为 import System.Windows.Automation.3 可支持 TextPattern2 等接口，下面的代码不必更改。
+
+//访问 .NET 类的静态成员
+Automation = System.Windows.Automation;
+AutomationElement = Automation.AutomationElement;
+
+//直接获取当前输入焦点窗口的 UIA 节点对象
+var ele = AutomationElement.RootElement.FocusedElement;
+assert(ele,"输入焦点窗口没有找到 UIA 节点")
+
+// var hwnd = editBox.Current.NativeWindowHandle;//获取窗口句柄 
+// ele = Automation.AutomationElement.FromHandle(hwnd);//自窗口句柄得到 AutomationElement 对象
+
+//鼠标操作，移动鼠标到控件位置
+import mouse;
+
+// AutomationElement 对象文档: https://learn.microsoft.com/en-us/dotnet/api/system.windows.automation.automationelement?view=netframework-4.5
+//注意需要通过 Current 成员访问 UIA 对象的属性
+mouse.moveTo(ele.Current.BoundingRectangle);
+
+

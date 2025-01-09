@@ -1,0 +1,84 @@
+/*
+高级选项卡入门指南: doc://library-guide/std/win/ui/tabs/_.md 
+web.view 快速入门指南: doc://library-guide/std/web/view/_.html
+多选项卡操作浏览器控件: doc://example/tabs/web.view.aardio
+*/
+import fonts.fontAwesome;
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="CSS 弹性盒布局工具";right=992;bottom=623;bgcolor=16777215)
+winform.add(
+nav0={cls="plus";text="教程";left=524;top=573;right=599;bottom=603;align="left";border={top=1;color=-16744448};db=1;dr=1;iconStyle={align="left";font=LOGFONT(name='FontAwesome');padding={left=11}};iconText='\uF02D';textPadding={left=28;bottom=1};z=5};
+nav1={cls="plus";text="语法速览";left=598;top=573;right=692;bottom=605;align="left";border={top=1;color=-16744448};db=1;dr=1;iconStyle={align="left";font=LOGFONT(name='FontAwesome');padding={left=11}};iconText='\uF008';textPadding={left=28;bottom=1};z=6};
+nav2={cls="plus";text="Flexo";left=691;top=573;right=768;bottom=605;align="left";border={top=1;color=-16744448};db=1;dr=1;iconStyle={align="left";font=LOGFONT(name='FontAwesome');padding={left=11}};iconText='\uF0C9';textPadding={left=28;bottom=1};z=7};
+nav3={cls="plus";text="问 AI";left=768;top=573;right=850;bottom=605;align="left";border={top=1;color=-16744448};db=1;dr=1;iconStyle={align="left";font=LOGFONT(name='FontAwesome');padding={left=11}};iconText='\uF007';textPadding={left=28;bottom=1};z=8};
+nav4={cls="plus";text="HTMLayout / Sciter";left=850;top=573;right=994;bottom=606;align="left";border={top=1;color=-16744448};db=1;dr=1;iconStyle={align="left";font=LOGFONT(name='FontAwesome');padding={left=11}};iconText='\uF0FD';textPadding={left=28;bottom=1};z=9};
+navBegin={cls="plus";left=202;top=573;right=524;bottom=574;bgcolor=32768;border={color=-16744448};db=1;dl=1;dr=1;forecolor=16777215;linearGradient=180;z=1};
+navEnd={cls="plus";left=978;top=573;right=988;bottom=605;border={top=1;color=-16744448};db=1;dr=1;z=2};
+static={cls="static";left=17;top=36;right=977;bottom=570;db=1;dl=1;dr=1;dt=1;transparent=1;z=4};
+tabPanel={cls="~\example\WebUI\HTMLayout\flex.aardio";left=0;top=0;right=991;bottom=570;db=1;dl=1;dr=1;dt=1;hide=1;transparent=1;z=3}
+)
+/*}}*/
+
+import win.ui.tabs;
+var tabs = win.ui.tabs(winform.nav0,winform.nav1,winform.nav2,winform.nav3,winform.nav4)
+tabs.margin = 0;
+
+tabs.skin({
+	foreground={
+		active=0xFFFFFFFF;
+		default=0x00FFFFFF;
+		hover=0xFFCCCCCC;
+	};
+	checked={
+		foreground={ 
+			default=0x00FFFFFF; 
+		};
+		border = { 
+			default = {left=1;right=1;bottom=1;color=0xFF008000} 
+			disabled = {left=1;right=1;bottom=1;color=0xFF008000} 
+		}; 
+	}
+});
+
+import web.view;
+var wb = web.view(winform.static);
+
+wb.onDocumentInit = function(url){ 
+	if(url=="https://www.flexo.icu/"){
+		wb.waitEle(".onboarding__bottombar-next-button",`
+			for(var i=0; i < 3; i++){
+				document.querySelector(".onboarding__bottombar-next-button").click()
+			}
+		`)
+	}
+	
+	tabs.disabledText = null;
+}
+
+var urls = {
+	"https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_Flexible_Box_Layout/Basic_Concepts_of_Flexbox";
+	"https://quickref.me/css#css-flexbox";
+	"https://www.flexo.icu/";
+	"https://metaso.cn/?q=介绍%20css%20flexbox"; 
+}
+
+tabs.onSelchange = function(idx,tab,form){
+	var url = urls[idx]
+	if(url){ 
+		winform.tabPanel.show(false);
+		winform.static.show(true)
+		
+		tabs.disabledText = {'\uF254';'\uF251';'\uF252';'\uF253';'\uF250'}
+		wb.go(url);
+	}
+	else {
+		winform.tabPanel.show(true);
+		winform.static.show(false)
+	}
+}
+	
+tabs.selIndex = 3;
+
+winform.show(3/*_SW_MAXIMIZE*/);
+win.loopMessage();

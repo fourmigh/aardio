@@ -1,0 +1,62 @@
+//AI 调用本地函数（function calling ）
+//web.rest.aiChat 库参考: doc://library-reference/web/rest/aiChat/_.html
+//web.rest.aiChat 入门范例:file://~/example/AI/aiChat.aardio
+
+import console.int;  
+import web.rest.aiChat;
+
+/*
+web.rest.aiChat 支持 OpenAI 兼容接口的 function calling 功能。
+注意有些接口不支持这功能， DeepSeek 的 function calling 也暂时不能用。
+*/
+var ai = web.rest.aiChat(   
+	  
+	key = "密钥";
+	url = "https://api.*****.net/v1";//接口地址
+	model = "模型名称"; 
+	temperature = 0.1;//温度
+	maxTokens = 1024,//最大回复长度 
+	tools = { //关键在于增加 tools 字段声明可以调用的本地函数，细节请参考 API 文档。
+		{
+			"function":{
+				description="Get weather of an location, the user shoud supply a location first";
+				name="getWeather";
+				parameters={ //parameters 声明函数参数部分：应使用 JSON Schema 描述，这部分可以试试让 AI 写。
+					properties={
+						location={
+							description="The city and state, e.g. San Francisco, CA";
+							"type":"string"						
+						}					
+					};
+					required={"location"};
+					"type":"object"				
+				}			
+			};
+			"type":"function"		
+		}
+	}
+)
+
+//导出允许 AI 调用的函数，与前面的 tools 里声明的函数名称与原型说明要匹配。
+ai.external = {
+	getWeather = function(){
+		return "24℃"
+	} 
+}
+ 
+console.showLoading(" Thinking "); 
+
+//单独 创建 AI 会话消息队列以保存聊天上下文。
+var chatMsg = web.rest.aiChat.message();
+
+//添加用户提示词
+chatMsg.prompt("How's the weather in Hangzhou?" );
+
+/*
+调用聊天接口。
+如果参数 2 指定回调函数，则启用流式输出，并将 AI 逐步回复的增量文本作为回调参数。
+可选用参数 3 指定一个表，表中可指定要添加的其他请求参数。
+*/
+var ok,err = ai.messages(chatMsg,console.writeText);
+
+console.error(err);

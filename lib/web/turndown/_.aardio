@@ -55,7 +55,13 @@ class turndown{
 						return trBegin ++ trContent ++ trEnd;
 					} 
 				},1
+			)
+			
+			//暂时替换 h1,h2,h3 ... 为特殊占位符号，以避免转为 markdown 后出现换行
+			b = ..string.replace(b,"\<[hH](\d)[^\>]*\>(.+?)\<\/[hH]\1\>"
+				,"{---{H\1{--\2--}H\1}---}"
 			)	
+				
 			
 			b = ..string.replace(b,'\n','');
 			b = ..string.replace(b,'\r',''); 
@@ -79,6 +85,8 @@ class turndown{
            
            	md = ..string.replace(md,"\*\*```","```");
            	md = ..string.replace(md,"```\*\*","```");
+           	
+           	md = ..string.replace(md,"\{---\{H(\d)\{--(.+?)--\}H\1\}---\}","<h\1>\2</h\1>");
            	
            	return md; 
 		}

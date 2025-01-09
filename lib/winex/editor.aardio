@@ -1,0 +1,358 @@
+﻿//editor 外部编辑器
+import win.clip;
+import win.clip.data;
+import key;
+import winex.selection;
+import win.ui.ctrl.richedit;
+import win.ui.ctrl.edit;
+
+namespace winex;
+
+class editor{
+	ctor(hwnd){
+		if(!hwnd){
+			hwnd = ..winex.getFocus()
+		}
+		
+		if(!hwnd) return;
+		var cls = ..win.getClass(hwnd);
+		
+		if( ..string.find(cls,"@@richedit") ){
+			this = ..win.ui.ctrl.richedit();
+		}
+		else {
+			this = ..win.ui.ctrl.edit();
+		}
+		 
+		this.hwnd = hwnd;
+	};  
+}
+
+namespace editor; 
+
+var cbHtml = ..win.clip.data("HTML Format");
+var cbRtf = ..win.clip.data("RTF");
+var cbPng = ..win.clip.data("PNG");
+
+var clipBackup = function(){
+	var orig = ..win.clip.read();
+	var origBmp = ..win.clip.readBitmap();
+	var origHtml = cbHtml.read();
+	var origRtf = cbRtf.read();
+	var origPng = cbPng.read(); 
+	
+	if(!::User32.OpenClipboard(0)) return;
+	::User32.EmptyClipboard();
+	::User32.CloseClipboard();
+	
+	return function(){
+		..win.clip.write(orig:"");  
+		if(origBmp) ..win.clip.writeBitmap(origBmp,true,false); 
+		if(origHtml) cbHtml.write(origHtml,false); 
+		if(origRtf) cbRtf.write(origRtf,false); 
+		if(origPng) cbPng.write(origPng,false); 	
+	} 
+}
+
+sendStringByClip = function(text){ 
+	
+	var clipRestore = clipBackup(); 
+	if(!clipRestore) return; 
+	
+	if(..key.getState("CTRL")) ..key.up("CTRL");
+	if(..key.getState("ALT")) ..key.up("ALT"); 
+	
+	..win.clip.write(text) 
+	..key.combine("SHIFT","INSERT"); 
+    
+	clipRestore(); 
+}
+
+caretText = function(pattern,selText){
+	
+	if(::GetAsyncKeyState( 1/*_VK_LBUTTON*/ ) < 0) return; 
+	 
+	var retText = ..winex.selection.get(false);
+	
+	if(!#retText){
+		var txt,caretPos = getText();
+		if(txt!==null){
+			if(caretPos) {
+				txt = ..string.left(txt,caretPos);
+				if(txt){
+					retText =  ..string.match(txt,"\N+$");
+					if(pattern){
+						retText =  ..string.match(retText,pattern);
+					}
+					
+					if(selText){
+						..key.combine("SHIFT","HOME");
+					}
+					return retText;
+				}
+			}
+			return; 
+		}
+		
+		var clipRestore = clipBackup(); 
+		if(!clipRestore) return; 
+ 
+		var ctrl = ..key.getStateX("CTRL");
+		if(..key.getStateX("SHIFT")) ..key.up("SHIFT");
+		if(..key.getStateX("ALT")) ..key.up("ALT"); 
+	 	if(..key.getStateX("CTRL")) ..key.up("CTRL"); 
+	 	
+		..key.combine("SHIFT","HOME");
+ 		..thread.delay(50);
+ 		
+		..key.combine("CTRL","INSERT");
+    	..thread.delay(200);
+    		
+		retText = ..win.clip.read(); 	
+		
+		if(#retText && ..string.endWith(retText,'\r\n')){
+			retText = "";
+		}
+		
+		if(#retText) { 
+			if(!selText)..key.press("RIGHT");
+		}
+		..key.up("SHIFT"); 
+		
+		if(!ctrl)..key.up("CTRL");
+		else ..key.down("CTRL");
+		
+		clipRestore(); 
+		..thread.delay(10);
+	}
+
+	if(pattern && #retText){
+		return ..string.match(retText,pattern);
+	}
+	return retText; 	
+}
+
+getText2 = function(){
+	if(::GetAsyncKeyState( 1/*_VK_LBUTTON*/ ) < 0) return; 
+	
+	var rawText,caretPos,className = getText(); 
+	if(rawText!==null){ 
+		
+		if(caretPos){
+			var leftText =  ..string.left(rawText,caretPos,true);
+			var righText =  ..string.right(rawText,-(caretPos+1),true):null;
+			
+			return leftText,righText;	
+		} 
+		
+		//caretPos == 0
+		return "",rawText;
+	}
+	
+	var clipRestore = clipBackup(); 
+	if(!clipRestore) return; 
+	
+	var ctrl = ..key.getStateX("CTRL");
+	if(..key.getStateX("SHIFT")) ..key.up("SHIFT");
+	if(..key.getStateX("ALT")) ..key.up("ALT"); 
+	
+	var leftText,rightText;
+	..key.combine("CTRL","SHIFT","HOME");  
+	..thread.delay(50);
+    ..key.combine("CTRL","INSERT");
+    ..thread.delay(200);
+    
+	leftText = ..win.clip.read() || ""; 
+	 
+	if( #rawText 
+		&& (!#leftText || ..string.startWith(rawText,leftText)) 
+		){ 
+		if(#leftText){
+			rightText = ..string.right(rawText,-(#leftText+1));
+			..key.press("RIGHT"); 
+		}
+		else {
+			rightText = rawText;
+		} 
+	}
+	elseif( ::User32.OpenClipboard(0) ){ 
+		::User32.EmptyClipboard();
+		::User32.CloseClipboard(); 
+		..key.combine("CTRL","SHIFT","END");  
+		..thread.delay(50);
+    	..key.combine("CTRL","INSERT");
+    	..thread.delay(200);
+    	
+		rightText = ..win.clip.read() || "";
+		
+		if(#leftText  && #rightText ){
+			if(#rightText > 2
+				&& ..string.endWith(rightText,'\r\n')
+				&& ..string.endWith(leftText,..string.left(rightText,-3)) ){
+				rightText = "";
+			}
+			elseif(#leftText > 2
+				&& ..string.endWith(leftText,'\r\n')
+				&& ..string.startWith(rightText,leftText) ){
+				leftText = "";
+			}
+		}
+		
+		if(#rightText){
+			..key.press("LEFT"); 
+		}
+	}
+	elseif(#leftText){ 
+		..key.press("RIGHT"); 
+	}
+	
+	
+	if(!ctrl)..key.up("CTRL"); 
+	clipRestore(); 
+	
+	..thread.delay(10);
+	return leftText,rightText;
+}
+
+import System.Windows.Automation.3;
+Automation = ..System.Windows.Automation["3"]; 
+AutomationElement = Automation.AutomationElement;
+var TextPatternPattern2 = Automation.TextPattern2.Pattern;
+var TextPatternPattern = Automation.TextPattern.Pattern;
+var ControlTypeEdit = System.Windows.Automation.ControlType.Edit;
+ 
+var edit = ..win.ui.ctrl.edit();
+var richedit = ..win.ui.ctrl.richedit();
+
+uiaEditClasses = {
+	"RichEditD2DPT" : true;
+}
+win32EditClasses = {
+	"aardioCodeEditor" : true;
+}
+getText = function(hwnd){
+	var className; 
+	var editEle = AutomationElement.RootElement.FocusedElement;
+ 
+	var text,caretPosition; 
+	if(editEle){ 
+		
+		var textPattern;
+		
+		try{
+			textPattern = editEle.GetCurrentPattern(TextPatternPattern);
+		
+			if(textPattern){ 
+				var documentRange = textPattern.DocumentRange; 
+				
+				if(documentRange){
+					
+					var textElement = documentRange.GetEnclosingElement(); 
+					if(textElement){
+						
+						var currentProperties = textElement.Current;
+						className = currentProperties.ClassName;
+						
+						if(currentProperties.ControlType == ControlTypeEdit
+							|| uiaEditClasses[className||""]
+						){ 
+							text = documentRange.GetText(-1); 
+							
+							var selections = textPattern.GetSelection(); 
+							if(selections){
+								if(selections.Length>0){
+									var cursorRange = selections[1];  
+								 
+									//cursorRange.ExpandToEnclosingUnit(0);  
+        							caretPosition = cursorRange.CompareEndpoints(0/*TextPatternRangeEndpoint_Start*/
+        								,documentRange, 0/*TextPatternRangeEndpoint_Start*/);
+        							 
+        							if(!caretPosition && !#text){
+        								text = null;
+        							}
+        	 
+								}
+								else {
+									text = null;
+								}
+								
+								
+								..com.Release(selections); 
+							}
+							else {
+								text = null;
+							}
+							
+							if(className  && caretPosition == 1
+								&& className=="WpfTextView" ){ 
+								caretPosition = null;
+							}
+							
+							..com.Release(currentProperties); 
+						}
+						
+						..com.Release(textElement);
+					}
+					
+				}
+				
+			}
+		}
+		catch(e){ 
+			if(textPattern) ..com.Release(textPattern);
+		} 
+	}
+ 
+	if(text !== null){
+		return text,caretPosition,className||"";
+	}
+	
+	if(!hwnd){
+		hwnd = ..winex.getFocus()
+	}
+ 
+	if(!hwnd){
+		return;
+	}
+	  
+	className = ..win.getClass(hwnd);
+	var isEdit = className=="Edit";
+	if(!isEdit){
+		for( p in win32EditClasses){
+			if(..string.cmpMatch(className,p)){
+				isEdit = true; 
+			} 
+		}		
+	}
+ 
+	if(isEdit){ 
+		edit.hwnd = hwnd;
+		return edit.text,edit.caretPos,className;
+	}
+	elseif( ..string.find(className,"@@richedit") ){
+		richedit.hwnd = hwnd;
+		return richedit.text,richedit.caretPos,className; 
+	}  
+} 
+
+matchClass = function(pattern){
+	var hwnd = ..winex.getFocus();
+	if(hwnd){
+		var className = ..win.getClass(hwnd);
+		if(className){
+			return ..string.cmpMatch( className,pattern )
+		}
+	}
+}
+
+/*****intellisense()
+winex.editor = 用于操作外部编辑器。\n获取选区文本请使用 winex.selection 库。\n获取光标位置请使用 winex.caret 库。
+winex.editor.sendStringByClip(__/*发送字符串*/) = 使用剪贴板发送文本。\n改用 winex.sendString 或 key.sendString 可不使用剪贴板直接发送文本。\n参考教程: doc://library-guide/std/key/sendString.html
+winex.editor.caretText( = 如果鼠标左键不是放开状态返回 null 。\n如果当前存在选区，则直接返回选区文本 。\n如果获取选区失败，返回当前行插入点左侧的文本。\n\n如果目标窗口支持 UIA 接口或 edit,richedit 则直接获取，\n否则通过剪贴板与模拟按键读取（自动备份与恢复剪贴板的文本与图像）。
+winex.editor.caretText(.(pattern,selText) = 获取选区文本或当前行插入点左侧的文本。\n如果 pattern 参数指定模式串，则返回匹配该模式串的文本。\n如果 selText 为 true，则选中获取的文本（pattern 匹配前的文本）。
+winex.editor(__/*编辑框句柄*/) = 获取外部编辑框对象。\n如果不指定参数则自动获取输入焦点所在窗口句柄作为参数。\n仅支持兼容系统 edit 或 richedit 控件消息的目标窗口。
+winex.editor() = !edit.
+winex.editor.getText() = 读取当前输入焦点所在编辑框文本。\n第一个返回值为编辑框文本；\n第二个返回值为输入光标所在插入点的字符位置；\n└── 字符位置 1 表示输入光标在第一个字符后面，0 表示最前面。\n└── 获取输入光标所在屏幕位置可改用 winex.caret 库。\n第三个返回值为目标窗口类名。\n获取失败则 3 个返回值都有可能为 null。\n\n适用于 支持 UIA 接口或 edit,richedit 消息的目标窗口。\n改用 winex.editor.getText2 则允许在其他类型窗口模拟按键复制文本。
+winex.editor.getText2() = 如果鼠标左键是放开状态，读取当前编辑框插入点前后的文本。\n第一个返回值为插入点之前的文本，\n第二个返回值为插入点之后的文本。\n\n如果目标窗口支持 UIA 或 edit,richedit 消息则直接获取，\n否则通过剪贴板与模拟按键获取（自动备份与恢复剪贴板的文本与图像）。\n此函数可能模拟按键，因此不要密集自动调用，建议在热键中调用。
+winex.editor.matchClass(__/*模式串*/) = 检测当前输入焦点所在控件是否区配参数 @1 指定的窗口类名。\n调用 string.cmpMatch 函数匹配类名，\n支持完全匹配、部分匹配、模式匹配，比较时忽略大小写。\n\n参数指定为 "aardioCodeEditor" 可检测目标窗口是否 aardio 代码编辑器。
+end intellisense*****/

@@ -1192,7 +1192,7 @@ prefix_codefence(uint8_t *data, size_t size)
 
 /* check if a line is a code fence; return its size if it is */
 static size_t
-is_codefence(uint8_t *data, size_t size, struct buf *syntax)
+is_codefence(uint8_t *data, size_t size, struct buf *syntax,size_t *tagLength)
 {
 	size_t i = 0, syn_len = 0;
 	uint8_t *syn_start;
@@ -1200,6 +1200,11 @@ is_codefence(uint8_t *data, size_t size, struct buf *syntax)
 	i = prefix_codefence(data, size);
 	if (i == 0)
 		return 0;
+
+	if(tagLength) {
+		if(*tagLength && *tagLength!=i+1) return 0;
+		*tagLength = i+1;
+	}
 
 	while (i < size && data[i] == ' ')
 		i++;
@@ -1461,7 +1466,7 @@ parse_paragraph(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t 
 		 * let's check to see if there's some kind of block starting
 		 * here
 		 */
-		if ((rndr->ext_flags & MKDEXT_LAX_SPACING) && !isalnum(data[i])) {
+		if ((rndr->ext_flags & MKDEXT_LAX_SPACING) && !isalpha(data[i])) {
 			if (prefix_oli(data + i, size - i) ||
 				prefix_uli(data + i, size - i)) {
 				end = i;
@@ -1477,7 +1482,7 @@ parse_paragraph(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t 
 
 			/* see if a code fence starts here */
 			if ((rndr->ext_flags & MKDEXT_FENCED_CODE) != 0 &&
-				is_codefence(data + i, size - i, NULL) != 0) {
+				is_codefence(data + i, size - i, NULL, NULL) != 0) {
 				end = i;
 				break;
 			}
@@ -1544,8 +1549,9 @@ parse_fencedcode(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t
 	size_t beg, end;
 	struct buf *work = 0;
 	struct buf lang = { 0, 0, 0, 0 };
+	size_t tagLengh = 0;
 
-	beg = is_codefence(data, size, &lang);
+	beg = is_codefence(data, size, &lang, &tagLengh);
 	if (beg == 0) return 0;
 
 	work = rndr_newbuf(rndr, BUFFER_BLOCK);
@@ -1554,7 +1560,7 @@ parse_fencedcode(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t
 		size_t fence_end;
 		struct buf fence_trail = { 0, 0, 0, 0 };
 
-		fence_end = is_codefence(data + beg, size - beg, &fence_trail);
+		fence_end = is_codefence(data + beg, size - beg, &fence_trail, &tagLengh);
 		if (fence_end != 0 && fence_trail.size == 0) {
 			beg += fence_end;
 			break;
@@ -1631,6 +1637,7 @@ parse_listitem(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t s
 	struct buf *work = 0, *inter = 0;
 	size_t beg = 0, end, pre, sublist = 0, orgpre = 0, i;
 	int in_empty = 0, has_inside_empty = 0, in_fence = 0;
+	size_t fenceTagLengh = 0;
 
 	/* keeping track of the first indentation prefix */
 	while (orgpre < 3 && orgpre < size && data[orgpre] == ' ')
@@ -1680,8 +1687,16 @@ parse_listitem(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t s
 		pre = i;
 
 		if (rndr->ext_flags & MKDEXT_FENCED_CODE) {
-			if (is_codefence(data + beg + i, end - beg - i, NULL) != 0)
+			if (is_codefence(data + beg + i, end - beg - i, NULL,&fenceTagLengh ) != 0){
 				in_fence = !in_fence;
+
+				if(in_fence){
+					in_empty = 1; //列表项紧接 ```前面不需要空行
+				}
+				else{
+					fenceTagLengh = 0;
+				}
+			}
 		}
 
 		/* Only check for new list items if we are **not** inside
@@ -1691,14 +1706,18 @@ parse_listitem(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t s
 			has_next_oli = prefix_oli(data + beg + i, end - beg - i);
 		}
 
+
 		/* checking for ul/ol switch */
+		/*
 		if (in_empty && (
 			((*flags & MKD_LIST_ORDERED) && has_next_uli) ||
 			(!(*flags & MKD_LIST_ORDERED) && has_next_oli))){
+			
 			*flags |= MKD_LI_END;
-			break; /* the following item must have same list type */
+			break; // the following item must have same list type 
 		}
-
+		*/
+	
 		/* checking for a new item */
 		if ((has_next_uli && !is_hrule(data + beg + i, end - beg - i)) || has_next_oli) {
 			if (in_empty)
@@ -1713,7 +1732,7 @@ parse_listitem(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t s
 		/* joining only indented stuff after empty lines;
 		 * note that now we only require 1 space of indentation
 		 * to continue a list */
-		else if (in_empty && pre == 0) {
+		else if( (in_empty && pre == 0) && (!in_fence) ){
 			*flags |= MKD_LI_END;
 			break;
 		}
@@ -2105,7 +2124,7 @@ parse_table_header(
 		if (i < under_end && data[i] != '|')
 			break;
 
-		if (dashes < 3)
+		if (dashes < 1)
 			break;
 
 		i++;

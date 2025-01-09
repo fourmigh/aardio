@@ -34,7 +34,7 @@ class appDomain{
 		__appDomainCache[domainName] = this;
 		
 		this.clr = clr;
-		var hr,pAppDomain = clr.corRuntimeHost.CreateDomainEx( ..string.toUnicode(domainName),clr.AppDomainSetup ); 
+		var hr,pAppDomain = clr.corRuntimeHost.CreateDomainEx( ..string.toUtf16(domainName),clr.AppDomainSetup ); 
 		
 		var IsNetObject = ..com.IsNetObject
 		this.wrapObject = function(obj,...){

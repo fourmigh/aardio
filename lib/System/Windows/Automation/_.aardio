@@ -79,7 +79,21 @@ namespace System.Windows.Automation{
 			..table.push(arr,PropertyCondition(AutomationElement[k+"Property"],v));
 		}
 		 
-		return isNot? NotCondition(AndCondition(arr))  : AndCondition(arr);
+	
+		var cond;
+		if(#arr>1){
+			cond = AndCondition(arr)
+		}
+		else {
+			cond = arr[1]
+		}
+		
+		if(isNot){
+			cond = NotCondition(cond);
+		}
+		
+		
+		return cond;
 	}
 	
 	Or = function(cond,isNot){
@@ -106,7 +120,20 @@ namespace System.Windows.Automation{
 			} 
 		}
 		
-		return isNot? NotCondition(OrCondition(arr))  : OrCondition(arr);
+		var cond;
+		if(#arr>1){
+			cond = OrCondition(arr)
+		}
+		else {
+			cond = arr[1]
+		}
+		
+		if(isNot){
+			cond = NotCondition(cond);
+		}
+		
+		
+		return cond;
 	}
 	
 	FindByAnd = function(cond,root){
@@ -115,6 +142,65 @@ namespace System.Windows.Automation{
 	
 	FindByOr = function(cond,root){
 		return (root || AutomationElement.RootElement).FindFirst(TreeScope.Descendants, Or(cond) )  
+	}
+
+	var TextPatternPattern = TextPattern.Pattern;
+	GetCaret = function(hFocus){
+		var caretInfo;
+		var focusedEle; 
+
+    	try{
+    		if(hFocus) focusedEle = AutomationElement.FromHandle(hFocus) 
+			else {
+				focusedEle = AutomationElement.RootElement.FocusedElement;
+				hFocus = focusedEle.Current.NativeWindowHandle;
+			}
+    	} 
+    	if (!focusedEle) return false;
+    	
+		var textPattern;
+		try{	
+			textPattern = focusedEle.GetCurrentPattern(TextPatternPattern);
+			var selections = textPattern.GetSelection();
+			
+			..com.Release(textPattern);
+			textPattern = null;
+			
+			if(selections){
+				if(selections.Length){
+					var cursorRange = selections[1]
+					var boundingRectangles = cursorRange.GetBoundingRectangles();
+							
+            		if(!boundingRectangles.Length){
+            	 		//扩展光标位置为文本选区
+						cursorRange.ExpandToEnclosingUnit( TextUnit.Character ); 
+						boundingRectangles = cursorRange.GetBoundingRectangles();
+					}	 
+                        			
+           			if( boundingRectangles.Length>0) { 
+                   		var rc = boundingRectangles[1];
+                            
+                        caretInfo = {
+                           	top = rc.Top;
+                           	left = rc.Left;
+						   	bottom = rc.Bottom;
+						   	right = rc.Right; 
+						   	hwnd= hFocus;	
+                        }			
+                    
+            		}
+					..com.Release(cursorRange);  
+				} 
+				
+				..com.Release(selections);	
+			}
+		}
+		catch(e){
+			if(textPattern) ..com.Release(textPattern);
+		}
+		
+		..com.Release(focusedEle);	
+		return caretInfo;
 	}
 }
 
@@ -131,5 +217,8 @@ end intellisense**/
 And(与条件表) = @.And({\n	ClassName = "Notepad",\n	ControlType = "Window";\n})  
 And(或条件表) = @.And({\n	ClassName = {"RichEditD2DPT","RICHEDIT50W","Edit" }\n})  
 FindByAnd(与条件表) = @.FindByAnd({\n	ClassName = "Notepad",\n	ControlType = "Window";\n})  
-FindByOr(或条件表) = @.FindByOr({\n	ClassName = {"RichEditD2DPT","RICHEDIT50W","Edit" }\n})  
+FindByOr(或条件表) = @.FindByOr({\n	ClassName = {"RichEditD2DPT","RICHEDIT50W","Edit" }\n}) 
+AutomationElement.RootElement.FocusedElement = 获取当前拥有输入焦点的 AutomationElement 对象
+AutomationElement.FromHandle(.(hwnd) = 自 @hwnd 参数指定句柄的窗口获取 AutomationElement 对象
+GetCaret(__/*hFocus*/) = 获取当前输入光标位置，\n返回表示屏幕位置的 ::RECT 结构体，hwnd 字段指定句柄。\n可选用参数 @1 指定输入焦点所在窗口句柄。\n\n此函数用于 winex.caret ,\n 由 System.Windows.Automation.3 库实现。
 end intellisense*****/

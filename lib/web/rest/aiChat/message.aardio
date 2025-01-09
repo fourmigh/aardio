@@ -1,0 +1,212 @@
+//message 聊天消息
+import win.version;
+namespace web.rest.aiChat;
+
+class message{
+	ctor( /*输入构造函数所需要的参数*/ ){
+		this = ..table.array();
+		this.limit = 15;
+	};
+	push = function(msg){  
+		if(type.isString(msg)){
+			 
+			var lastMsg = this[#this]
+			if(lastMsg[["role"]]!="assistant"){
+				lastMsg = {
+            		role = "assistant";
+            		content  = msg||"";
+         		};
+         		
+         		..table.push(this,lastMsg);
+         		return;
+			}
+			elseif(msg) {
+				lastMsg.content = lastMsg.content++msg;
+			} 
+		}
+		else {
+			
+			//保留消息队列第一个与最后一个系统提示词 
+			if(this.limit && (#this-2)>=this.limit ){ 
+
+				while( var i = 1; i++ ; i < #this/*保留最后一个 system 知识库*/ ) {  
+					var msg = this[i];
+						
+					if(msg.role=="system" ){
+						//优先移除插入的知识库
+						..table.remove(this,i);
+						console.log("remove",i)
+						i--;
+					}
+						
+				}
+				
+				if( (#this-2)>=this.limit ){
+					..table.splice(this,2,(#this-2)-this.limit)
+				}  
+			}
+			
+			//加入聊天消息
+			..table.push(this,msg); 
+		} 
+	}
+	aardioSystem = function(prompt,isUserPrompt){
+		var p = "";
+		
+		if(!this.aardioSystemPrompt){
+			p = p ++ aardioSystemPrompt;
+			
+			var quickRef = ..string.load("~\doc\guide\language\syntax-quick-ref.md");
+			if(quickRef){
+				p = p + '\r\n\r\n---\r\n\r\n' + quickRef;
+			}
+			
+			p = p ++ '\r\n\r\n---\r\n\r\n## 当前运行环境\r\n- 当前 aardio 主版本号为：' + _AARDIO_VERSION;
+			p = p ++ '\r\n- 当前时间为：' + tostring(..time());
+			p = p ++ '\r\n- 当前应用程序根目录为："' + ..io.fullpath("/") + '"';
+			p = p ++ '\r\n- 当前进程 EXE 目录为："' + ..io._exedir + '"';
+			p = p ++ '\r\n- 当前进程 EXE 执行文件名为："' + ..io._exefile + '"';
+			p = p ++ '\r\n- 当前操作系统为："' + ..win.version.format() + '"';
+
+			this.aardioSystemPrompt = true; 
+		}
+		
+		if(#prompt){
+			if(!isUserPrompt){
+				p = p + '\r\n\r\n---\r\n\r\n' + prompt;
+			}
+			else{
+				if(!this.aiSystemPropmptSupperHotkeys){
+					if(..string.find(prompt,"<超级热键>|<@@imtip@>|<key\.hotkey>|<@@superHotkey@>")){
+						if(!this.findSystem("超级热键使用指南")){
+							this.system(..string.load("~/doc/library-guide/std/key/hotkey.md"))
+							this.aiSystemPropmptSupperHotkeys = true; 
+						}
+					} 
+				}  
+				elseif(!this.aiSystemPropmptWebView){
+					if(..string.find(prompt,"!\w<web.view>|<@@webview@>|<@@webview2@>|<@@react@>!\W")){
+						if(!this.findSystem("web.view 快速入门指南")){
+							this.system(..string.load("~/doc/library-guide/std/web/view/_.md"))
+							this.aiSystemPropmptWebView = true; 
+						}
+					} 
+				} 
+				elseif(!this.aiSystemPropmptPython){
+					if(..string.find(prompt,"!\w<@@python@>|<py3>|<py2>!\W")){
+						if(!this.findSystem("aardio 调用 Python 入门指南")){
+							var pyDoc = ..string.load("~/doc/library-guide/ext/python/_.md");
+							pyDoc = ..string.concat( pyDoc,'\r\n\r\n---\r\n\r\n',..string.load("~/doc/library-guide/ext/python/conversion.md"));
+							
+							this.system(..string.load(pyDoc))
+							this.aiSystemPropmptPython = true; 
+						}
+					} 
+				}
+				elseif(!this.aiSystemPropmptNet){
+					if(..string.find(prompt,"![\w\.]<\.<@@net@>>|<dotNet>|<System\.>|<[cC]#>![^#\.\a]")){
+						if(!this.findSystem("aardio 调用 .NET 入门指南")){
+							var pyDoc = ..string.load("~/doc/library-guide/std/dotNet/_.md");
+							pyDoc = ..string.concat( pyDoc,'\r\n\r\n---\r\n\r\n',..string.load("~/doc/library-guide/std/dotNet/type-conversion.md"));
+							
+							this.system(..string.load(pyDoc))
+							this.aiSystemPropmptNet = true; 
+						}
+					} 
+				}
+				elseif(!this.aiSystemPropmptStringPatterns){
+					if(..string.find(prompt,"<模式匹配>|<string\.find>|<string\.match>|<string\.gmatch>|<string\.replace>|<string\.replaceUnmatched>")){
+						if(!this.findSystem("模式匹配与正则表达式的区别")){
+							this.system(..string.load("~/doc/library-guide/builtin/string/patterns.md"))
+							this.aiSystemPropmptStringPatterns = true; 
+						}
+					} 
+				} 
+				elseif(!this.aiSystemPropmptWinform){
+					if(..string.find(prompt,"<win\.ui>|<winform>|<win\.form>|<按钮>|<窗口>|<文本框>|<编辑框>")){
+						if(!this.findSystem("如何创建窗口并添加控件")){
+							this.system(..string.load("~/doc/library-guide/std/win/ui/create-winform.md"))
+							this.aiSystemPropmptWinform = true; 
+						}
+					} 
+				}  
+			}
+		}
+		
+		if(#p) this.system(p);
+	} 
+	findSystem = function(pattern){
+		 
+		for(i=1;#this;1){
+			var msg = this[i]
+			if(msg[["role"]]=="system"){
+				if(msg.content && ..string.find(msg.content,pattern) ){
+					return msg.content;
+				}
+			}
+		} 
+	};
+	system = function(content){ 
+		if(#content){
+			this.push(
+    			{ 
+        			role = "system"; 
+        			content  = content;
+    			}
+			);			
+		} 
+	};
+	prompt = function(content){ 
+		this.push(
+    		{ 
+        		role = "user"; 
+        		content  = content;
+    		}
+		);
+	};
+	assistant = function(content){
+		this.push(content);
+	};
+	clear = function(){  
+		for(i=#this;1;-1){
+			..table.remove(this,i);
+		}
+		
+		this.aardioSystemPrompt = null;
+		this.aiSystemPropmptSupperHotkeys = null;
+		this.aiSystemPropmptWebView = null;
+		this.aiSystemPropmptPython = null;
+		this.aiSystemPropmptStringPatterns = null;
+		this.aiSystemPropmptWinform = null;
+		this.aiSystemPropmptNet = null;
+	};
+	started = function(){  
+		for(i=1;#this){ 
+			if(this[i][["role"]]!="system"){
+				return true;
+			} 
+		}   
+	};
+}
+
+/*****intellisense()
+web.rest.aiChat.message() = 创建 AI 聊天助手消息队列。\n可以在界面线程单独创建与管理消息队列，\n然后再通过线程参数发给后台线程的 web.rest.aiChat 对象。\n!webRestChatMessage.
+end intellisense*****/
+
+/*****intellisense(!webRestChatMessage)
+started() = 是否已经发起对话。\n发起对话指的是消息队列中包含非 system 角色的消息。
+clear() = 清除会话记录。
+assistant(__/*增量文本*/) = 显示并记录 AI 接口返回的增量文本。\n参数必须是文本或者表示输出完成的 null 值。
+prompt(__/*提示词*/) = 添加并显示用户提示词。
+system(__/*提示词*/) = 添加并显示系统提示词。
+aardioSystem( = 自动创建 aardio 编程助手系统提示词，\n并自动增加 aardio 语法速览文档。\n此函数可重复调用，不会重复添加相同的文档。\n除函数自带的基本的 aardio 助手提示词以外，EXE 目录下必须存在待添加的文档。
+aardioSystem(.(sysPrompt) =  增加基本的 aardio 编程助手提示词（如果已添加则忽略）。\n如果指定了参数 sysPrompt 则追加到系统提示词（不会检测之前是否已添加过 sysPrompt 的内容）。
+aardioSystem(.(userPrompt,true) = 如果用 userPrompt 指定稍后要发送的用户提示词。\n则分析 userPrompt 关键词附加关键的 aardio 文档（不会添加 userPrompt 本身）。\n附加规则请查看此函数源码。
+aardioSystemPrompt = 是否自动附加了 aardio 编程助手系统提示词。\n不可手动修改此属性。
+limit = 可选指定一个限制消息队列大小的数值。\nlimit 限制的队列大小不包含第一个系统提示词与最后一个系统提示词。
+findSystem(__/*模式串*/) = 使用模式匹配语法查找消息队列中是否存在指定的系统提示词
+end intellisense*****/
+
+namespace message{
+	aardioSystemPrompt = $"~\lib\web\rest\aiChat\.res\aardio.txt"; 
+}

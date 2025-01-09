@@ -31,7 +31,7 @@ namespace path {
 		};
 		addstring = function( str,family,style,emSize,rclayout,strformat ){
 			gdip.assert2(
-				gdip.AddPathString( owner[["pPath"]],..string.toUnicode(str), -1, family, style, emSize, rclayout, strformat)
+				gdip.AddPathString( owner[["pPath"]],..string.toUtf16(str), -1, family, style, emSize, rclayout, strformat)
 			);
 			
 		};

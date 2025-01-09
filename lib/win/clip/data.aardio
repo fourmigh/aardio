@@ -7,10 +7,10 @@ class data{
 	};
 	readText = function(){
 		var buf = this.read()
-		if(buf) return ..string.fromUnicode(buf);
+		if(buf) return ..string.fromUtf16(buf);
 	};
 	writeText = function(text){
-		this.write( ..string.toUnicode(text) );
+		this.write( ..string.toUtf16(text) );
 	};
 	read = function(){
 		var buf;

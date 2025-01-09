@@ -306,7 +306,7 @@ class asynHttpServer{
 						tempPath = ..io.joinpath(tempDir,pid ++ tempPathId);
 					}
 			
-					var file,err = ..io.open(tempPath,"w+b");
+					var file,err = ..io.file(tempPath,"w+b");
 					if(!file) error(..string.concat("Upload failed: ",err) ,2);
 					 
 					
@@ -736,7 +736,7 @@ class asynHttpServer{
 					if(remainSize==contentSize)response.status = 200;
 			
 					if( request.method != "HEAD" ){
-						var file2,err = ..io.open(path,"rb");
+						var file2,err = ..io.file(path,"rb");
 						if(!file2){
 							..io.stderr.write(err,'\r\n');
 							response.errorStatus(404);

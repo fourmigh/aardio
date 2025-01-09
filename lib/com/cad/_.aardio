@@ -372,7 +372,7 @@ cad.sendCopyData = function(hwnd,data,args,dataType){
 		if(!data) error(err,2);
 		
 		data = ..string.crlf(data,'\r')+'\r\0';
-		data = ..string.toUnicode(data);
+		data = ..string.toUtf16(data);
 	}
 		
     return ::User32.SendMessage(hwnd,0x4A/*_WM_COPYDATA*/,0, {
@@ -400,14 +400,14 @@ Documents.Open(.(fileame,readOnly,password) = 打开文件，返回文档对象�
 Documents.Open() = !stdComCadDoc.
 Documents.Add() = 文加文档，返回文档对象\n!stdComCadDoc.
 ActiveDocument = 当前活动文档，可读写属性\n!stdComCadDoc.
-LispExp(__) =  读取并执行字符串中的第一个 LISP 表达式，此函数无返回值。\n参数@1支持 aardio 模板语法，其他参数为模板参数。\n[aardio 模板语法](chm://the%20language/template_syntax.html)\naardio 模板中非数值、非布尔值一律转字符串,\n一次输出多个模板参数或数组时，字符串自动转义并加引号，多参数以空格分开。\n已知限制：\n1、此接口加载的 LISP 代码无法调用 command 命令\n2、AutoCAD 这个接口不太稳定，调用某些函数偶尔会出现
-LoadLisp( = 加载 LISP 代码。\n参数支持 aardio 模板语法 chm://the%20language/template_syntax.html
+LispExp(__) =  读取并执行字符串中的第一个 LISP 表达式，此函数无返回值。\n参数@1支持 aardio 模板语法，其他参数为模板参数。\n[aardio 模板语法](doc://language-reference/templating/syntax.md)\naardio 模板中非数值、非布尔值一律转字符串,\n一次输出多个模板参数或数组时，字符串自动转义并加引号，多参数以空格分开。\n已知限制：\n1、此接口加载的 LISP 代码无法调用 command 命令\n2、AutoCAD 这个接口不太稳定，调用某些函数偶尔会出现
+LoadLisp( = 加载 LISP 代码。\n参数支持[aardio 模板语法]doc://language-reference/templating/syntax.md
 LoadLisp(.(lisp,args,doc) = 加载 LISP 代码。\n参数@1可以是文件、资源文件、或 LISP 代码，\n支持 aardio 模板语法,可选用 @args 参数指定模板 owner 参数，\n可选用参数 @3 自定义执行此函数的文档对象。\n\n已加载的 LISP 代码无法卸载，可通过赋值 nil 删除定义的函数。
 LoadLispFile( = 加载 *.lsp 代码文件
 LoadLispFile(.(path,doc) = 加载 *.lsp 代码文件，\n参数@1指定 *.lsp 代码文件路径，\n可选用参数 @2 自定义执行此函数的文档对象
-SendCommand( = 同步发送 AutoCAD 命令\n[参数支持 aardio 模板语法](chm://the%20language/template_syntax.html)
+SendCommand( = 同步发送 AutoCAD 命令\n[参数支持 aardio 模板语法](doc://language-reference/templating/syntax.md)
 SendCommand(.(cmd,args,doc) = 同步发送 AutoCAD 命令，\n参数@1可以是文件、资源文件、LISP 表达式、命令，\n每句命令应以空格或回车结束,\n尾部的回车可省略\n\n支持 aardio 模板语法,模板中非数值、布尔值一律转字符串,\n一次输出多个模板参数时,字符串自动加引号,多参数自动以空格分开,\n可选用 @args 参数指定模板 owner 参数，\n可选用参数 @3 自定义执行此函数的文档对象
-PostCommand( = 异步发送 AutoCAD 命令\n[参数支持 aardio 模板语法](chm://the%20language/template_syntax.html)
+PostCommand( = 异步发送 AutoCAD 命令\n[参数支持 aardio 模板语法](doc://language-reference/templating/syntax.md)
 PostCommand(.(cmd,args,doc) = 异步发送 AutoCAD 命令，\n参数@1可以是文件、资源文件、LISP 表达式、命令，\n每句命令应以空格或回车结束,\n尾部的回车可省略\n\n支持 aardio 模板语法,模板中非数值、布尔值一律转字符串,\n一次输出多个模板参数时,字符串自动加引号,多参数自动以空格分开,\n可选用 @args 参数指定模板 owner 参数，\n可选用参数 @3 自定义执行此函数的文档对象
 GetAcadState().IsQuiescent = AutoCAD 当前是静止状态
 MajorVersionString() = AutoCAD 主版本号，字符串值。\n例如 AutoCAD 2022 主版本号为 24。
@@ -466,26 +466,26 @@ end intellisense**/
 /**details(模板语法)
 com.cad.sendCopyData 函数
 以及 com.cad 对象的 LispExp,SendCommand 函数
-支持模板语法: chm://the%20language/template_syntax.html
-	
+支持[模板语法](doc://language-reference/templating/syntax.md)
+
 LISP 模板由 com.cad.loadcode() 函数解析，
 转换规则如下：
 
 一、如果 aardio 输出非空数组或多个参数 ，
-	所有参数按以下规则转换为字符串。
-	
-	1、数值直接输输出，flase 转为 nil ，true 转为 T
-	2、数组或嵌套的数组参数都会转换为 LISP 表（首尾有括号）， 
-		如果 cons 字段为 true 则转换为点对（首尾有括号）。
-	3、包含 car,cdr 成员的表会转换为点对（首尾有括号）。
-		其他名值对转换为关联列表。
-	4、其他类型统一调用 tostring() 转换为字符串，
-	然后按 LISP 语法进行转义，首尾加双引号。 
-	
-	最后将所有参数以空格分开输出到 LISP 代码（首尾不加括号）
+所有参数按以下规则转换为字符串。
+
+1. 数值直接输输出，flase 转为 nil ，true 转为 T
+2. 数组或嵌套的数组参数都会转换为 LISP 表（首尾有括号）， 
+	如果 cons 字段为 true 则转换为点对（首尾有括号）。
+3. 包含 car,cdr 成员的表会转换为点对（首尾有括号）。
+	其他名值对转换为关联列表。
+4. 其他类型统一调用 tostring() 转换为字符串，
+然后按 LISP 语法进行转义，首尾加双引号。 
+
+最后将所有参数以空格分开输出到 LISP 代码（首尾不加括号）
 
 二、单个表参数为包含 car,cdr 成员的表会转换为点对（首尾有括号）。
-	如果表参数为其他名值对则转换为关联列表（首尾有括号。
-	
+如果表参数为其他名值对则转换为关联列表（首尾有括号。
+
 三、其他单个参数直接转为字符串并置入 LISP 代码。
 end details**/

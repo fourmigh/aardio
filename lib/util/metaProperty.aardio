@@ -89,9 +89,7 @@ namespace metaProperty{
 	}	
 }
 
-/**details(关于元表)
-chm://libraries/kernel/table/meta.html
-end details**/
+//@guide [关于元表](doc://language-reference/datatype/table/meta.md)
 
 /**intellisense()
 util.metaProperty = 用于创建属性元表,\n可在构造函数中指定一个或多个初始化参数表,\n按参数顺序混入到新创建的属性表并返回,\n\n用返回的属性表作为对象元表,\n读写对象中不存在的属性会触发属性元表。\n如果在属性元表中对应属性是一个表,\n则读属性会触发属性的get成员函数,写属性会触发该属性的set成员函数。\n否则直接返回属性元表中对应属性的值

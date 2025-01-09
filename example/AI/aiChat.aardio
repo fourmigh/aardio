@@ -1,0 +1,42 @@
+//AI 聊天简版
+//AI 调用本地函数: file://~/example/AI/function-calling.aardio
+//超级热键 + AI 编码助手: file://~/example/AI/aiHotkey.aardio
+//轻量 AI 聊天界面，支持数学公式： file://~/example/AI/aardioAgent.aardio
+
+import console; 
+console.showLoading(" Thinking "); 
+
+//1. 第一步：调用 web.rest.aiChat 创建 REST 客户端，用于调用服务端 HTTP 接口
+//---------------------------------------------------------------------
+import web.rest.aiChat;
+var ai = web.rest.aiChat(   
+	//测试密钥 24 小时后失效
+	key = '\0\48\67\91\29\5\83\2\3\4\5\0\83\8\4\85\5\4\0\83\83\9\5\9\4\1\85\3\86\6\82\5\4\83\86\2\0';
+	url = "https://api.deepseek.com/v1";//大模型接口地址，兼容 OpenAI 或 Anthropic  聊天接口
+	model = "deepseek-chat";//模型名称首字符为 @ 则使用 Anthropic 接口
+	temperature = 0.1;//温度
+	maxTokens = 1024,//最大回复长度
+)
+
+//2. 第二步：创建消息队列，必须在这里保存对话，不然 AI 的回复没有上下文。
+//---------------------------------------------------------------------
+var msg = web.rest.aiChat.message();
+
+//可调用 msg.system() 函数添加系统提示词。
+msg.system("你是桌面智能助手。");
+
+//添加用户提示词
+msg.prompt( "请输入问题:" );
+
+//3. 第三步：发送请求，调用聊天接口。
+//---------------------------------------------------------------------
+/* 
+如果参数 2 指定增量输出回调函数，则启用流式应答（打字效果）。
+可选用参数 3 指定一个表，表中可指定要添加的其他请求参数。
+*/
+var resp,err = ai.messages(msg,console.writeText);
+
+//流式应答 resp 为布尔值，否则调用成功 resp 为应答对象，失败则为 null 值。
+console.error(err);
+	
+ 

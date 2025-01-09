@@ -11,7 +11,7 @@ get = function(strTorrentData){
 			strTorrentData = ..string.load(strTorrentData);
 		}
 		elseif(  ..string.endWith(strTorrentData,".aria2",true) ){
-			var file = ..io.open(strTorrentData,"rb");
+			var file = ..io.file(strTorrentData,"rb");
 			if(file){ 
 				var header = file.seek("set",2) ? file.read({INT extension;INT infoHashLength})
 				if(header){

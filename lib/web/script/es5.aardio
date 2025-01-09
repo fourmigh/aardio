@@ -2,13 +2,13 @@
 import web.script;
 
 namespace web.script.es5{};
-if(_WIN10_LATER) return;
 
 namespace web.script.preload.es5 begin
 
 language = {
 	javascript = true;
 	jscript = true;
+	jscript9 = true; 
 }
 
 //@ENDDOCUMENT@//

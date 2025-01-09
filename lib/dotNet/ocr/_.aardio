@@ -5,7 +5,7 @@ import winex.mouse;
 
 namespace dotNet;
 
-//"~\codes\范例程序\2) 调用其他语言\2) dotNet\D.uwpCompiler.aardio"
+//"~/example/Languages/dotNet/Apps/uwpCompiler.aardio"
 var ocrAssembly = ..dotNet.loadFile($"~\lib\dotNet\ocr\.res\ocr.dll");
 
 class ocr{

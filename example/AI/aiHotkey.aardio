@@ -1,0 +1,121 @@
+//AI 自动续写补全
+//web.rest.aiChat 入门范例:file://~/example/AI/aiChat.aardio
+//关于超级热键: doc://library-guide/std/key/hotkey.md
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="超级热键 - AI 自动续写补全";right=757;bottom=467)
+winform.add(
+edit={cls="richedit";left=32;top=35;right=725;bottom=414;autohscroll=false;edge=1;multiline=1;vscroll=1;z=1}
+)
+/*}}*/
+
+winform.edit.text = /*
+从前有一个小孩，
+*/
+
+import key.hotkey;
+superHotkey = key.hotkey();
+
+superHotkey.loadTable({
+	// 按 Ctrl+ I 触发热键
+	["Ctrl+I"] = function(hFocus){   
+
+		//创建多线程以执行耗时操作，以避免阻塞键盘钩子消息导致热键失效。
+		thread.invoke( 
+			function(winform){  
+				import winex.editor;
+				import web.rest.aiChat; 
+				import key;
+				
+				//获取当前文本输入窗口光标插入点前后的文本。				
+				var leftText,rightText = winex.editor.getText2(true);
+				if(!#leftText) return;
+				 
+				//创建 AI 会话消息队列 
+				var msg = web.rest.aiChat.message();  
+				
+				msg.system("
+## 角色
+你是桌面智能助手
+
+## 任务
+你根据上下文（前缀内容，后缀内容 ）续写与补全内容。
+	
+				")
+ 		 
+	    		msg.prompt("
+	    		
+## 前缀内容  
+
+console.log(""Hello,
+
+## 后缀内容  
+
+;//在控制台输出一句话
+
+## 任务
+
+请分析前缀内容与后缀内容，并在前缀内容与后缀内容之间插入新的内容。
+
+## 要求
+
+- 请直接返回插入的内容，回复不要包含前缀内容或后缀内容 
+- 如果生成的是代码则直接回复代码， 不要放进 Markdown 代码块中 。
+") 
+
+				//利用小样本学习，以 AI 助手的角色教它一遍，胜过写千万句提示词
+				msg.assistant(`world!")`);
+	    		
+	    		//下面是真正的问题。
+	    		msg.prompt("
+	    		
+## 前缀内容  
+
+"+leftText+" 
+
+## 后缀内容  
+
+"+(rightText:"")+" 
+
+## 任务
+
+请分析前缀内容与后缀内容，并在前缀内容与后缀内容之间插入新的内容。
+
+## 要求
+
+- 请直接返回插入的内容，回复不要包含前缀内容或后缀内容 
+- 如果生成的是代码则直接回复代码， 不要放进 Markdown 代码块中 。
+")
+
+				if(string.find(leftText,"<//>|<# >|<!\N[ \t]*#>|<#:>\N*[ \t]*$")){
+					winex.sendString('\n')
+					//winex.sendString('\n')
+					key.sendString('\n')
+				}
+					   
+				var ai = web.rest.aiChat(
+					/*
+					下面的测试密钥 24 小时后失效，
+					DeepSeek 的 key 充 10 元估计能用一年，请自己申请一个吧！
+					*/
+					key = '\0\48\67\91\29\5\83\2\3\4\5\0\83\8\4\85\5\4\0\83\83\9\5\9\4\1\85\3\86\6\82\5\4\83\86\2\0';
+					url = "https://api.deepseek.com/v1";//接口地址
+					model = "deepseek-chat";//模型名称首字符为 @ 则使用 Anthropic 接口
+					temperature = 0.5;//温度
+					maxTokens = 1024,//最大回复长度
+				) 
+					
+				var ok,err = ai.messages(msg,function(delta){
+					//以打字方式逐步输出 AI 回复的增量文本到目标输入框。
+					//关于发送文本 doc://library-guide/std/key/sendString.html
+					//winex.sendString(delta)
+					key.sendString(delta)
+				} );
+			},winform
+		)
+
+	};
+})
+
+winform.show();
+win.loopMessage();

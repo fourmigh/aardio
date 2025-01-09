@@ -1,6 +1,7 @@
-import gdi;
+import win;
 import win.ui.background;
 import win.ui.ctrl; 
+import gdi;
 
 namespace win.ui{
     
@@ -396,7 +397,7 @@ namespace win.form{
        		
        		var unicode;
        		if(!(name&&struct)){
-       			proto = ..string.fromUnicode(p,,true); //::User32.SendMessageW
+       			proto = ..string.fromUtf16(p,,true); //::User32.SendMessageW
        			name,struct = ..string.match(proto,"\s*(.+?)\s*(%\(\))");
        			unicode = true;
        		}
@@ -411,7 +412,7 @@ namespace win.form{
        			var r;
        			var a = topointer(lParam);
        			if(struct=="JSON"&&..web[["json"]] ){ 
-       				var json = unicode ? ..string.fromUnicode(a,,-1) : ..raw.str(a); 
+       				var json = unicode ? ..string.fromUtf16(a,,-1) : ..raw.str(a); 
        				r = invoke(f,this,..table.unpack(..web.json.parse(json)) ); 
        				if( this.onThreadCallBackReturn ){ r = this.onThreadCallBackReturn(r) };
        			}
@@ -887,13 +888,15 @@ namespace win.form{
 			} 
 			
 			for(hwnd,ctrl in this._ctrlHwnd){ 
-				if(  ! ctrl.isForm ){ 
+				if(  ! ctrl.isForm ){
 					
-					if( ctrl._onDestroy )ctrl._onDestroy ();
 					if( ctrl.onDestroy){
 						ctrl.onDestroy ();
 						ctrl.onDestroy = null;
 					}
+					
+					if( ctrl._onDestroy ) ctrl._onDestroy();
+					if( ctrl._onDestroy_stdReserved__ ) ctrl._onDestroy_stdReserved__();
 					
 					if( ctrl[["(bgbrush)"]] ){  
 						::DeleteObject( ctrl[["(bgbrush)"]]  );
@@ -913,21 +916,22 @@ namespace win.form{
 				this[["(ownFontHandle)"]] = null;
 			}
    				
-			for(k,ctrl in this._onlyDirectDrawBackground){
-   				if( ctrl._onDestroy )ctrl._onDestroy ();
+			for(k,ctrl in this._onlyDirectDrawBackground){ 
    				if( ctrl.onDestroy){
 					ctrl.onDestroy ();
 					ctrl.onDestroy = null;
 				}
+				
+				if( ctrl._onDestroy ) ctrl._onDestroy();
+   				if( ctrl._onDestroy_stdReserved__ ) ctrl._onDestroy_stdReserved__();
    			}
-			
-			if( this._onDestroy ){ 
-				this._onDestroy ();
-			}
+
 			if( this.onDestroy){
 				this.onDestroy ();
 				this.onDestroy  = null;
 			}
+			if( this._onDestroy ) this._onDestroy (); 
+			if( this._onDestroy_stdReserved__ ) this._onDestroy_stdReserved__();
 			
 			if(this._onDestroyInTabs)this._onDestroyInTabs();
 
@@ -957,6 +961,8 @@ namespace win.form{
 			
 			if(this._messageOnly) return;
 			
+			if( (..win.autoQuitMessage===false) || (this.autoQuitMessage===false) ) return;
+
 			for(k,f in _forms){
 				 if( ! f._messageOnly ){
 					if( f == ..mainForm ) return;
@@ -1123,7 +1129,7 @@ namespace win.form{
 				return owner;
 			};
 			preloadForm = function(...){
-				if( (...)[["hwnd"]] || (...===null) ) return owner.loadForm(...); 
+				if( (...)[["hwnd"]] || (...===null) ) return owner.loadForm(...); //custom 控件
 				
 				var this = owner;
 				var args = {...};
@@ -1655,6 +1661,12 @@ namespace win.form{
 						owner.restoreFullScreen = null;
       				}
       			}
+      		
+      			if(owner.onSetOrphanWindowPos){
+      				var x,y,cx,cy = ..win.getPos(hwnd);
+					owner.onSetOrphanWindowPos(x,y,cx,cy,0x14); 	
+      			}	
+      			
       			return owner.restoreFullScreen;;
       		};
       		getScale = function(){
@@ -1940,8 +1952,6 @@ namespace win.form{
  	_fakeMeta = {
 		_float = true;
 		_get = function(k){
-			import console
-		 
 			var tParam = owner.tParam;
 			owner.tParam = null;
 			owner@ = null;
@@ -1992,7 +2002,7 @@ win._form.createWindowEx = @.createWindowEx = function(exStyle,className,windowN
 win.form.loadForm() = !winform.
 ?.loadForm = !winform.
 ?.getForm = !winform.
-win.form() = 创建的窗体对象,\n可选用一个表指定创建参数，\n请使用窗体设计器自动生成参数。\n\n窗体对象以及窗体创建的控件对象可作为参数传入其他线程，\n跨线程调用窗体对象的成员函数时将转发到创建窗口的线程执行。\n!winform.
+win.form(propertiesTable) = 创建的窗体对象,\n可选用参数 @propertiesTable 指定一个表对象以指定窗口设置和属性。\n请使用窗体设计器自动生成参数表。\n\n窗体对象以及窗体创建的控件对象可作为参数传入其他线程，\n跨线程调用窗体对象的成员函数时将转发到创建窗口的线程执行。\n!winform.
 win._form() = !winform.
 !winform._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
 end intellisense**/

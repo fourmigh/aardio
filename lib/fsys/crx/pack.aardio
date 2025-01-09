@@ -48,7 +48,7 @@ class pack{
 		fileHeader.version = 3; 
 		var header = fileHeader.serializeToString()
 		
-		var file = ..io.open(folder + ".crx","w+b");
+		var file = ..io.file(folder + ".crx","w+b");
 		file.write("Cr24");
 		file.write({INT version=3});
 		file.write({INT size=#header});//header 总长度

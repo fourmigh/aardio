@@ -44,7 +44,7 @@ class aes {
 }
  
 /**intellisense()
-crypt.aes = AES加密算法支持库,默认加密模式 CBC,填充模式PKCS7,\n注意PKCS5与PKCS7填充规则一样,PKCS5填充1到8字节,PKCS7填充1到255字节,\n而AES数据块分组为16字节也就是128位,指定PKCS5实际使用的也是PKCS7,\n[各编程语言兼容的AES兼容写法参考](http://bbs.aardio.com/forum.php?mod=viewthread&tid=13818)\n\n演示代码:\n\n```\nimport crypt.aes;\nvar aes = crypt.aes();\n\n//设置密钥\naes.setPassword("12345678");\n\n//加密\nvar sstr = aes.encrypt("Test String");\n\n//解密\nvar str = aes.decrypt(sstr);\n```
+crypt.aes = AES加密算法支持库,默认加密模式 CBC,填充模式PKCS7,\n注意PKCS5与PKCS7填充规则一样,PKCS5填充1到8字节,PKCS7填充1到255字节,\n而AES数据块分组为16字节也就是128位,指定PKCS5实际使用的也是PKCS7,\n[各编程语言兼容的AES兼容写法参考](http://bbs.aardio.com/forum.php?mod=viewthread&tid=13818)\n\n演示代码:\n\n```aardio\nimport crypt.aes;\nvar aes = crypt.aes();\n\n//设置密钥\naes.setPassword("12345678");\n\n//加密\nvar sstr = aes.encrypt("Test String");\n\n//解密\nvar str = aes.decrypt(sstr);\n```
 crypt.aes() = 返回AES加密容器,\n可选使用一个字符串参数指定密钥向量\n如果要与其他编程语言有相同加解密结果,建议不要设置该参数\n!crypy_aes.
 !crypy_aes.setPassword(.("密钥",选项) = 支持128位(16字节)、192位(24字节) 和 256位(32字节)密钥\n如果密钥长度不足指定位数自动填充'\0'到最适合的密钥长度,\n超过24字节使用使用MD5算法创建转换为24位密钥,\n参数@2不需要指定
 !crypy_aes.decrypt( = 解密数据

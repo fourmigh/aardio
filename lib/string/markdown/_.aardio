@@ -1,12 +1,15 @@
-//markdown 解释器
-//https://github.com/vmg/sundown
-import win.ui;
 namespace string;
 
 class markdown{
 	ctor( extensions,maxNesting=16,htmlOpt=0,useCallbacks){
 		if( extensions === null ){
-			extensions = 8/*_MD_MKDEXT_AUTOLINK*/ | 4/*_MD_MKDEXT_FENCED_CODE*/ | 2/*_MD_MKDEXT_TABLES*/  | 1/*_MD_MKDEXT_NO_INTRA_EMPHASIS*/
+			extensions = 8/*_MD_MKDEXT_AUTOLINK*/ 
+			| 4/*_MD_MKDEXT_FENCED_CODE*/ 
+			| 2/*_MD_MKDEXT_TABLES*/  
+			| 1/*_MD_MKDEXT_NO_INTRA_EMPHASIS*/
+			| 0x40/*_MD_MKDEXT_SPACE_HEADERS*/
+			| 0x10/*_MD_MKDEXT_STRIKETHROUGH*/ 
+			| 0x100/*_MD_MKDEXT_LAX_SPACING*/
 		}
 		this._callbacks = sd_callbacks() ;
 		this._options = html_renderopt();
@@ -26,12 +29,40 @@ class markdown{
 		..table.add_gc(this,"free");
 		
 	};
-	render = function(str){  
+	render = function(str){
+		str = tostring(str); 
 		var ob = buffer(64);
 		sd_markdown_render(ob, str, #str, hMarkdown);
 		var str = tostring(ob) ;
 		ob.release(); 
 		return str;
+	};
+	codeBlock = function(code,lang){
+		var tag = "```"
+		while(..string.indexOf(code,tag)){
+			tag++="```"
+		}
+		
+		//sundown 不支持这种引号配对，转换 HTML 应改用 renderCode 
+		return  tag ++ (lang||"")+ '\r\n'+code+'\r\n'+tag;
+	};
+	renderCode = function(code,lang){ 
+		//sundown 不支持反引号数目配对，所以需要自行处理嵌套的代码块
+		code = ..string.replace(code,'```',`&#x60;&#x60;&#x60;`); 
+		var html = this.render(  '```'+(lang||"")+'\r\n'+code+'\r\n```' );
+		html = ..string.replace(html,`\&amp;#x60;\&amp;#x60;\&amp;#x60;`,'```');
+		return html;
+	};
+	renderFile = function(path){
+		var buf = ..string.loadBuffer(path);
+		if(buf){
+			var ob = buffer(64);
+			sd_markdown_render(ob, buf, #buf, hMarkdown);
+			var str = tostring(ob) ;
+			ob.release(); 
+			
+			return str;	
+		}
 	};
 	free = function(){
 		if( hMarkdown ){
@@ -183,11 +214,39 @@ namespace markdown{
 	}
 }
 
+/*****intellisense(说明)
+
+string.markdown（Sundown） 解析器默认规则：
+
+- 列表解析默认使用宽松规则。
+无论一级列表还是二级列表（无论类型是否相同），都不要求前面有或没有空行。
+- 标题的开始标记 `#` 号后面必须有空格。
+- 强调语法使用严格模式，**星号内则不能有空格**，但前面必须有空格。
+- 默认支持删除线，示例： ~~这里显示删除线~~ 。
+- 默认启用表格扩展。
+- 默认启用围栏代码块（Fenced Code Blocks）扩展。
+
+---
+
+string.markdown 调用的 sundown.dll 
+由 aardio 基于 https://github.com/vmg/sundown 改进。
+
+aardio 用户可在遵循 aardio 用户协议与 aardio 开源许可证相关条款、原始开源项目相关条款
+的基础上将此此修改版 sundown 自由使用于 aardio 程序开发，但是禁止将其用于非 aardio 开发的程序。
+禁止基于其他目的单独分发由 aardio 提供的 sundown 组件与源码，所有权利保留。
+
+---
+
+end intellisense*****/
+
 /**intellisense()
-string.markdown(extensions,maxNesting,htmlOpt) = 创建MARKDOWN解析器,所有参数可选
+string.markdown(extensions,maxNesting,htmlOpt) = 创建 MARKDOWN 解析器,所有参数可选
 string.markdown(extensions,maxNesting,htmlOpt,自定义回调函数) = @.markdown(8,,,{\n	blockcode = function(ob, text, lang, opaque){  \n		ob = string.markdown.buffer(ob);\n		text = string.markdown.buffer(text);\n		ob.put( tostring(text) )\n	}; \n} );
 string.markdown() = !string_markdown.
-!string_markdown.render(.(MARKDOWN字符串) = 解析并返回HTML
+!string_markdown.render(.(markdownText) = 解析参数 @markdownText 指定的 Markdown 文本并返回 HTML。\n自动调用 tostring 函数将参数 @markdownText 转换为字符串。
+!string_markdown.renderFile(.(markdownFilePath) = 解析参数 @markdownFilePath 指定的 Markdown 文件并返回 HTML
+!string_markdown.codeBlock(.(code,lang) = 将 @code 参数指定的代码首尾加上三连反引号代码块标记。\n如果代码已经包含三连反引号，则会重复首尾三连反引号直到没有冲突。\nstring.markdown 不支持这种嵌套的代码块，可用 renderCode 函数单独处理。\n可选用 lang 参数指定编程语言名称
+!string_markdown.renderCode(.(code,lang) = 将代码中的三连反引号进行转义，\n然后首尾加上三连反引号代码块标记并转换为 HTML。\n可选用 lang 参数指定编程语言名称
 !string_markdown.free() = 释放解析器对象,\n该函数可在对象回收时自动调用
 string.markdown.buffer(.(缓冲区初始大小) = 创建缓冲区,参数可选
 string.markdown.buffer() = !string_markdown_buf.
@@ -228,4 +287,3 @@ _MD_MKDEXT_SPACE_HEADERS=@0x40/*_MD_MKDEXT_SPACE_HEADERS*/
 _MD_MKDEXT_SUPERSCRIPT=@0x80/*_MD_MKDEXT_SUPERSCRIPT*/
 _MD_MKDEXT_LAX_SPACING=@0x100/*_MD_MKDEXT_LAX_SPACING*/
 end intellisense**/
-

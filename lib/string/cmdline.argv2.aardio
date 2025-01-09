@@ -150,7 +150,7 @@ end intellisense*****/
 
 示例：
 
-```
+```aardio
 var argv = string.cmdline.argv2(` -a -deffff  "c:\test.txt" "c:\test2.txt"`,{
     m = true;
     n = function(value,argv){

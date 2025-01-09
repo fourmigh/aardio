@@ -83,7 +83,7 @@ namespace listbox{
 			}
 			_set = function( v ){
 				::SendMessage(owner.hwnd , 0x184/*_LB_RESETCONTENT*/);
-				for(i=1;#v) ::SendMessage(owner.hwnd , 0x180/*_LB_ADDSTRING*/, null,..string.toUnicode(v[i])); 
+				for(i=1;#v) ::SendMessage(owner.hwnd , 0x180/*_LB_ADDSTRING*/, null,..string.toUtf16(v[i])); 
 			}
 		};
 		selected = {
@@ -122,14 +122,15 @@ namespace listbox{
     		if (!i) i = owner.selIndex;
        		::SendMessageInt(owner.hwnd , 0x182/*_LB_DELETESTRING*/,i-1,0)
     	};
-    	add = function( str,ind=-1){
-    		if(ind<0) ind = owner.count + ind +1;
+    	add = function(str,ind=-1){
+    		if(ind<0) ind = owner.count + ind + 1;
     		else ind--;
     		
     		if(!str) error("参数不能为空",2); 
         	::User32.SendMessage(owner.hwnd,0x181/*_LB_INSERTSTRING*/,ind,tostring(str));
+        	return ind+1;
     	};
-		addfile = function( str){
+		addfile = function(str){
 			::User32.SendMessage(owner.hwnd, 0x196/*_LB_ADDFILE*/, ,str)
 		};
 		find = function( str ){
@@ -170,9 +171,9 @@ win.ui.ctrl.listbox() = 列表框\nlistbox 默认会自动调整高度以对齐�
 !listbox.getItemText(__/*项索引*/) = 获取指定项文本
 !listbox.getItemRect(__/*项索引*/) = 获取指定项区块位置\n返回::RECT() 结构体
 !listbox.hitTest(x,y) = 返回指定客户区坐标所在的项索引.
-!listbox.add(__/*请输入文本*/) = 添加列表项到尾部
-!listbox.add(__/*请输入文本*/,-1) = 添加列表项到尾部
-!listbox.add(__/*请输入文本*/,1) = 添加列表项到头部
+!listbox.add(__/*请输入文本*/) = 添加列表项到尾部，返回新项目索引。
+!listbox.add(__/*请输入文本*/,-1) = 添加列表项到尾部，返回新项目索引。
+!listbox.add(__/*请输入文本*/,1) = 添加列表项到头部，返回新项目索引。
 !listbox.selIndex = 获取或设置列表框当前选中项\n仅在单选模式下有效,多选模式下请使用 selected 获取所有获中项
 !listbox.selText = 获取当前选项的文本\n或根据指定的文本查找并改变选项
 !listbox.hwnd = 控件句柄
@@ -221,7 +222,7 @@ win.ui.ctrl.listbox() = 列表框\nlistbox 默认会自动调整高度以对齐�
 !listbox.setFocus() = 设置焦点 
 !listbox.setPos(.(x坐标,y坐标,宽,高,插入位置,参数) = 调整窗口位置或排序,所有参数可选\n同时指定x,y坐标则移动位置，同时指定宽高则改变大小，\n指定插入位置（句柄或_HWND前缀常量）则调整Z序\n\nlistbox 默认会自动调整高度以对齐项目行高,\n在创建参数中添加 integralHeight = false 可禁止此特性
 !listbox.getPos() = 返回相对坐标,宽,高\nx,y,cx,cy=win.getPos(hwnd) 
-!listbox.orphanWindow(.(transparent,hwndBuddy) = 创建悬浮窗口,\n悬浮窗口仍然显示在原来的位置,\n悬浮窗口如影随形的跟随父窗口移动或改变大小,控件原来的固定边距等参数仍然有效\n此控件不建议指定参数
+!listbox.orphanWindow(.(transparent,hwndBuddy,borderless) = 创建悬浮窗口。\n悬浮窗口是模仿子窗口外观效果的独立窗口，父窗口可自动调整子窗口到设定位置。\n可选参数 @transparent 为 true 则转换为分层透明窗口。\n可选利用 @hwndBuddy 参数指定外部进程窗口句柄的并附加在内部控件上以实现相同的效果。\n伙伴窗口总是会保持在悬浮窗口前面，并保持相同的大小、位置。\n可重复调用此函数更换伙伴窗口，旧的伙伴窗口必须自行关闭。\n可选指定 @borderless 参数 为 true 以移除 @hwndBuddy  的窗口边框。
 !listbox.threadCallable() = 开启此控件的跨线程调用功能
 !listbox.selected = 所有选中项目索引的数组,\n设为 null 或空表清除所有选中项
 !listbox.eachSelected() = @for index,text in ??.eachSelected(){
