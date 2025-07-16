@@ -1,17 +1,21 @@
 //列表视图（listview）控件 - 自绘
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="listview custom draw";right=627;bottom=294;bgcolor=128)
+var winform = win.form(text="listview custom draw";right=627;bottom=294;bgcolor=0x000080)
 winform.add(
-listview={cls="listview";left=12;top=13;right=614;bottom=287;bgcolor=128;dl=1;dr=1;fullRow=1;z=1}
+listview={cls="listview";left=12;top=13;right=614;bottom=287;bgcolor=0x000080;dl=1;dr=1;fullRow=1;z=1}
 )
 /*}}*/
 
-//移除列标题
+//不显示列标题
 winform.listview.modifyStyle(,0x4000/*_LVS_NOCOLUMNHEADER*/)
-winform.listview.insertColumn("列标题3",100) 
-winform.listview.insertColumn("列标题2",100) 
-winform.listview.insertColumn("列标题1",100) 
+
+//添加标题列
+winform.listview.columns = [
+	["列标题1",100/*列宽*/],
+	["列标题2",100],
+	["列标题3",100],
+]
 
 winform.listview.addItem( { 
 	text={"第一行内容";"1";"1,2"} 

@@ -1,0 +1,103 @@
+﻿//random 安全随机数
+import crypt; 
+
+namespace crypt;
+	  
+class random {
+    ctor(init,length) {
+        if(init!==null){
+            var ret;
+            var cr = ..crypt.random();
+            if(type(init)==="number" && type(length)==="number"){
+            	ret = cr.integer(init,length); 
+            }
+            else{
+            	ret = cr.buffer(init,length);
+            }
+            
+            cr.release();
+        	return ret;
+        }
+       this = ..crypt(  ,0x18/*_PROV_RSA_AES*/) ||..crypt(); 
+    }
+
+    buffer = function(init,length) {
+        if (!init) error("无效参数", 2);
+
+        var buf = ..raw.buffer(init,length); 
+        if (!cryptGenRandomApi(this.hCryptProv,#buf, buf)) {
+            error("CryptGenRandom failed: " + ..lasterr(,"CryptGenRandom"), 2);
+        }
+
+        return buf;
+    }
+
+    integer = function(min, max) {
+        if(max===null ) min,max = 1,min;
+        if(min > max) min,max = max,min;
+        if(min == max) return min; 
+
+        var range = max - min + 1;
+        if (range <= 0)  error("无效的数值范围", 2); 
+        
+        var limit =  ..math.size64("0xFFFFFFFFFFFFFFFF").div(range).mul(range)
+        var size64 = ..math.size64();
+        
+        do { 
+            ..raw.convert(this.buffer(8), {UINT64 v=size64});
+        } while (size64 >= limit); 
+         
+        return ..tonumber(size64.mod(range)) + min; 
+    }
+
+    number = function() { 
+        var u64 = ..math.size64(); 
+       ..raw.convert(this.buffer(8), {UINT64 v=u64})
+       
+        return u64.divf( ..math.size64("0xFFFFFFFFFFFFFFFF"));
+    }
+
+    string = function(length, charset) {
+        if(!length) error("参数 1 必须指定有效的随机字符串长度", 2); 
+         
+        charset = charset === null ? defaultCharset : charset;
+        if (type(charset) != "string" || #charset == 0) {
+            error("参数 2 必须指定非空字符串", 2);
+        }
+
+		var chars = ..string.split(charset);
+        var charsetLen = #chars;
+		var resultArr = []; 
+		
+        for (i = 1; length; 1) {
+            resultArr[i] = chars[this.integer(1, charsetLen)];  
+        }
+        
+        return ..string.join(resultArr,""); 
+    }
+}
+
+
+namespace random{
+	defaultCharset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	cryptGenRandomApi = ::Advapi32.api("CryptGenRandom", "bool(pointer hProv, INT dwLen, pointer pbBuffer)");	
+}
+
+//@guide [安全随机数](doc://library-guide/builtin/string/rand.md#csprng)
+
+/*****intellisense()
+crypt.random = 基于系统熵源（System Entropy Source）的密码学安全随机数生成器（CSPRNG）。\n系统熵源来自不可预测的操作系统随机事件，例如\n鼠标的移动与点击，按键，磁盘读写，网络数据到达等随机性事件。\n\n> math.random,string.random 属于伪随机数生成器（PRNG），\n伪随机数的生成速度更快。
+crypt.random(.() = 创建并返回安全随机数生成器。
+crypt.random(.(min,max) = 生成指定整数范围的随机整数，可使用 tostring 将返回数值转换为字符串。\n@min 指定最小随机整数，@max 指定最大随机整数。\n参数不能小于 0。
+crypt.random(.(length) = 生成参数 @length 指定长度的随机密钥，返回 buffer 类型字节数组。\n参数 @length 必须大于 0。
+crypt.random(.(length,seed) = 生成参数 @length 指定长度的随机密钥，返回 buffer 类型字节数组。\n参数 @length 必须大于 0。\n参数 @seed 可选用字符串、buffer、指针、结构体等指定辅助性的随机数种子（不必要）。
+crypt.random() = !stdCryptRandom.
+end intellisense*****/
+
+/*****intellisense(!stdCryptRandom)
+integer(.(min,max) = 生成指定整数范围的随机整数。\n@min 指定最小随机整数，@max 指定最大随机整数。\n参数不能小于 0。
+buffer(.(length) = 生成参数 @length 指定长度的随机密钥，返回 buffer 类型字节数组。\n参数 @length 必须大于 0。
+buffer(.(length,seed) = 生成参数 @length 指定长度的随机密钥，返回 buffer 类型字节数组。\n参数 @length 必须大于 0。\n参数 @seed 可选用字符串、buffer、指针、结构体等指定辅助性的随机数种子（不必要）。
+string(.(length, charset)) = 生成参数 @length 指定长度的随机字符串。\n可选用字符串参数 @charset 自定义字符集。\n不指定  @charset 则使用 crypt.random.defaultCharset 作为参数。\n默认字符集包含大小写英文字母与所有数字
+number() = 生成 0 到  1 之间的随机小数。
+end intellisense*****/

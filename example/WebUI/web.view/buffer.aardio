@@ -1,0 +1,87 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="WebView2 传输二进制字节数组";right=757;bottom=467)
+winform.add()
+/*}}*/
+
+import web.view;
+var wb = web.view(winform);
+
+var imageBuffer = string.loadBuffer("~\example\Graphics\.gdip.jpg");
+
+import wsock.tcp.asynHttpServer;
+
+//如果建立 aardio 工程下面这句可以省略
+wb.asynHttpServer = wsock.tcp.asynHttpServer();
+
+//下面模拟 aardio 工程文件结构，如果建立了工程下面的代码都可以省略。
+wb.asynHttpServer.run({
+	
+	//处理 HTTP 请求
+	["/res/image.aardio"] = function(){
+		response.contentType = "image/jpeg";
+		response.writeBuffer(imageBuffer);//输出图像数据
+	};
+	
+	//响应 HTTP 请求，直接回复 HTML 代码
+	["/index.html"] = /***
+<img id="native-image" src="res/image.aardio"> 网页里写相对路径就可以
+<script> (async()=>{
+	
+	setNativeBuffer = function(nativeBuffer){
+		
+		//如果参数来自 aardio 中的 wb.xcall 调用。
+		if(!Array.isArray(nativeBuffer)) {
+			//则 aardio 使用 与 Node.js 相同的 JSON 格式转换 buffer，字节数组在 data 字段内。
+			nativeBuffer = nativeBuffer.data;
+		}
+		
+		//nativeBuffer 本身也已转换为纯 JS 数组，下面是将 JS 数组转换为 uint8 类型化数组。
+		var uint8Array = new Uint8Array(nativeBuffer);
+
+		//自内存加载图像
+		var blob = new Blob([uint8Array], { type: 'image/jpeg' });
+		var imageUrl = URL.createObjectURL(blob);
+		document.getElementById('native-image').src = imageUrl;
+		
+		//uint8Array.size = uint8Array.length; //记录数组长度，避免类型化数组的内置属性在本地接口中被隐藏 
+		//aardio.setJsTypedArrayByRef(uint8Array);//将 JavaScript 的 uint8Array 传给 aardio
+		
+		//更简单的方法是转换为可以直接传值给 aardio 的普通 JS 数组。
+		var byteArray = Array.from( uint8Array )
+		aardio.setJsByteArray( byteArray );
+	}
+		
+	//自 aardio 获取二进制数据	
+	var nativeBuffer = await aardio.getNativeBuffer( ); 
+	
+	setNativeBuffer(nativeBuffer);   
+})() </script> 
+***/ 
+} );
+
+wb.external = {
+	getNativeBuffer = function(){ 
+		return imageBuffer;
+	};
+	setJsTypedArrayByRef = function(jsUint8Array){  
+		//print("数组长度",jsUint8Array.size); 
+		//print("数组元素",jsUint8Array[0]);// JS 数组起始索引为 0	
+	}; 
+	setJsByteArray = function(byteArray){  
+		//JS 数组转换为 buffer 
+		var buf = raw.buffer({BYTE data[]=byteArray})
+		
+		//写入 buffer 到文件
+		//io.file.write("/test.jpg",buf);
+	};
+}
+
+//打开网页，自动识别并支持 wsock.tcp.asynHttpServer 或 wsock.tcp.simpleHttpServer 服务端
+wb.go("/index.html");
+
+//传 buffer 给 JS 函数
+wb.xcall("setNativeBuffer",imageBuffer);
+
+winform.show();
+win.loopMessage();

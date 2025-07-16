@@ -58,21 +58,38 @@ hr{box-sizing:content-box;overflow:hidden;background:0 0;border-bottom:1px solid
 </style>
 <script> 
 
+var isAutoScrolling = false; 
+var userHasScrolled = false;;
+var checkThinkTagName = false;
+
 window.lastInsertElement = function(){
+	if(checkThinkTagName){
+		var thinks = document.getElementsByTagName("think")
+		
+		checkThinkTagName = false;
+		
+		if(thinks.length>0){
+			thinks[0].innerHTML = thinks[0].innerText;
+			return thinks[0];
+		}		
+	}
+
 	return document.body.children[ document.body.children.length -1 ]
 }
 
-window.onWriteEnd = function(){
-	if(window.interval){
-		clearInterval( window.interval );
-		window.interval  = 0;
-	}
-	
-	if(Prism)Prism.highlightAll(); 
-	document.documentElement.scrollTop = document.documentElement.scrollHeight + 50;
+
+function isScrollAtBottom(container) {
+    var threshold = 5;
+    return document.documentElement.scrollHeight - document.documentElement.scrollTop - document.documentElement.clientHeight <= threshold;
 }
 
+
+
 window.showLoading = function(title){ 
+	isAutoScrolling = false; 
+	userHasScrolled = false;
+	checkThinkTagName = true;
+	
 	if(!title) title = "正在加载 "
 	if(window.interval){
 		clearInterval( window.interval );
@@ -82,6 +99,18 @@ window.showLoading = function(title){
 	loading.innerText = title;
 	document.documentElement.scrollTop = document.documentElement.scrollHeight + 50;
 	
+
+	document.documentElement.onscroll = function(){ 
+    	if (!isAutoScrolling) {
+        	userHasScrolled = true;
+    	}
+    	
+    	if (isScrollAtBottom()) {
+        	userHasScrolled = false;
+    	}
+	};
+
+	
 	var dots = 1;
 	window.interval = setInterval(function() {
 		var loading = document.getElementById('loading');
@@ -90,8 +119,16 @@ window.showLoading = function(title){
 			clearInterval( window.interval );
 			
 			//用定时器滚动更轻快，不能打一个字就滚一下那会卡得不行
-			window.interval = setInterval(function() {
-				document.documentElement.scrollTop = document.documentElement.scrollHeight + 50;
+			window.interval = setInterval(function() { 
+				
+				if (!userHasScrolled) {
+					isAutoScrolling = true;
+					document.documentElement.scrollTop = document.documentElement.scrollHeight + 50;
+					
+					setTimeout(function() {
+            			isAutoScrolling = false;
+        			}, 0); 
+        		}
      		},800);
      		
 			return;
@@ -105,6 +142,19 @@ window.showLoading = function(title){
     	dots = (dots % 10) + 1;
 	}, 800); 			
 }
+
+window.onWriteEnd = function(){
+	if(window.interval){
+		clearInterval( window.interval );
+		window.interval  = 0;
+	}
+	
+	if(Prism)Prism.highlightAll(); 
+	
+	if (!userHasScrolled) {
+		document.documentElement.scrollTop = document.documentElement.scrollHeight + 50;
+	}
+}
 </script>
 
 <style><?=..web.form.simpleMarkdown._css?></style><script><?=..web.form.simpleMarkdown._js?></script><script><?=..web.form.simpleMarkdown._js2?></script>
@@ -113,6 +163,10 @@ window.showLoading = function(title){
 <link rel="stylesheet" href="https://lib.baomitu.com/KaTeX/latest/katex.min.css">
 <script src="https://lib.baomitu.com/KaTeX/latest/katex.min.js"></script>
 <? } ?>
+
+<script>
+!function(e,t){"function"==typeof define&&define.amd?define(t):"object"==typeof exports?module.exports=t():t()}(0,function(){var o="details",i="summary";(function(){var e=document.createElement(o);if(!("open"in e))return!1;e.innerHTML="<"+i+">a</"+i+">b",document.body.appendChild(e);var t=e.offsetHeight;e.open=!0;var n=t!=e.offsetHeight;return document.body.removeChild(e),n})()||(document.documentElement.className+=" no-details",window.addEventListener("click",function(e){if("summary"===e.target.nodeName.toLowerCase()){var t=e.target.parentNode;if(!t)return;t.getAttribute("open")?(t.open=!1,t.removeAttribute("open")):(t.open=!0,t.setAttribute("open","open"))}}),function(e,t){if(document.getElementById(e))return;var n=document.createElement("style");n.id=e,n.innerHTML=t,document.getElementsByTagName("head")[0].appendChild(n)}("details-polyfill-style","html.no-details "+o+":not([open]) > :not("+i+") { display: none; }\nhtml.no-details "+o+" > "+i+':before { content: "▶"; display: inline-block; font-size: .8em; width: 1.5em; }\nhtml.no-details '+o+"[open] > "+i+':before { content: "▼"; }'))});
+</script>
 </head><body></body></html>
 `)
 
@@ -136,18 +190,18 @@ window.showLoading = function(title){
 		   
 			if(enabled ){ 
 				
-				katexParse = function(html){ 
-					
-					return ..string.replaceUnmatched(html
-						,"<$[""'`$]?![^$]+$>|<$$[^$]+$$>|<%()>|<%\[\]>"
+				katexParse = function(md){ 
+					return ..string.replaceUnmatched(md 
+						,"<$[""'`$]?![^$]+$>|<$$[^$]+$$>|<%<\\\(><\\\)>>|<%<\\\[><\\]>>"
 						,function(text){
-							var t,e = ..string.match(text,"^(<\[|\(|<$$>|$>)(.+)<\]|\)|<$$>|$>$");
-				 			if(#e) return this.xcall("katex.renderToString",e,{
+							var t,e = ..string.match(text,"^(<<\\\[>|<\\\(>|<$$>|$>)(.+)<<\\\]>|<\\\)>|<$$>|$>$");
+				 			if(#e) return ..string.crlf(this.xcall("katex.renderToString",e,{
 								throwOnError: false,
 								displayMode: t=='[' || t =='$'
-							})
+							}),"");
 						}
-						,"\<code!\W[^\>]*\>.*?\<\/code\>"
+						,"!\N([ \t]*)(```+)<\a\w+>?(.+?)!\N\s*\2![^`\S]"
+						,"%``"
 						,"\<script!\W[^\>]*\>.*?\<\/script\>"
 						,`(["'])\s*javascript\:.+?\1`
 					);
@@ -157,25 +211,76 @@ window.showLoading = function(title){
 				katexParse = null;
 			} 
 		}
-		 
 		
-		this.write = function(md){
-			var html = markdown.render(md); 
-			if(katexParse) html = katexParse(html);
+		var renderFinalMarkdown = function(md){
+			if(katexParse) md = katexParse(md);
+			var html = markdown.render(md);  
+			html = ..string.replace(html 
+         		,"\<code\>(<@@Ctrl@>|<@@Shift@>|<@@Alt@>|<Fn>|<[Ff]\d>!\W.*?)\</code\>"
+         		,function(kbd){
+					var items = ..string.splitEx(kbd,"\s*\+\s*"); 
+					for(i,v in items){
+						items[i] = "<kbd>"+v+"</kbd>"
+					} 
+					
+					return ..string.join(items,"+");
+				}
+			)
 			
-    		this.body.innerHTML = html;  
+			html = ..string.replace(html,"\<(<think>|<thought>)\>(.+?)\</\1\>","<details><summary>推理过程</summary><blockquote>\2</blockquote></details>");
+			
+			html = ..string.replace(html
+				,`(\<pre>\<code\s+class="mermaid\s+language-mermaid">(.+?)\</code>)\</pre>`
+				,function(htm,code){
+					import crypt;
+					import string.html;
+					code = ..string.html.ncr(code)
+					var url = "https://aardio.com/util/mermaid/?code=" + ..crypt.encodeUrlBase64(code);
+					return htm + `<a href="`+url+`">查看图像</a></pre>`
+			})
+			
+			return html;
+		}
+		
+		this.write = function(md){ 
+    		this.body.innerHTML = renderFinalMarkdown(md);  
     		this.script.onWriteEnd(null);  
     		return this; 
 		}
 		
+		var eleThinking;
 		var deltaCatch = {}
 		this.showLoading = function(title){
+			eleThinking = null;
 			lastElement = null;
 			
 			this.body.insertAdjacentHTML("beforeEnd",`<div id="loading"></div>`)
 			this.script.showLoading(title);
 			
 			deltaCatch = {};
+		}
+		 
+		this.showThinking = function(delta){
+			lastElement = null;
+			deltaCatch = {};
+			
+			if(!#delta) return;
+			
+			if(!eleThinking){
+				eleThinking = this.getEle("loading");
+				if(eleThinking){
+					eleThinking.outerHTML = `<blockquote id="thinking"></blockquote>`;
+					..com.Release(eleThinking);
+				}
+				else {
+					this.body.insertAdjacentHTML("beforeEnd",`<blockquote id="thinking"></blockquote>`);
+				}
+				
+				eleThinking = this.getEle("thinking");
+				delta = ..string.replace(delta,"<\<br\>>|<\s*>","");
+			}
+			
+			eleThinking.insertAdjacentText("beforeEnd",delta);
 		}
 		
 		this.showError = function(msg){
@@ -190,21 +295,39 @@ window.showLoading = function(title){
 		}
 		
 		this.writeDelta = function(delta){
+			if(eleThinking){
+				if(!#delta) return;
+				
+				markdownText = ..string.concat(markdownText,
+					`<details><summary>推理过程</summary><blockquote>`+eleThinking.innerHTML +'</blockquote></details>\n\n');
+				 
+				..com.Release(eleThinking)
+				eleThinking = null;
+			}
+			
     		if(!delta){
-    		    deltaCatch = {};
+    		    if(this.$writeDeltaDone){
+    		    	return; 
+    		    }
+    		    this.$writeDeltaDone = true;
     		    
+    		    deltaCatch = {};
          		if(#markdownText) {
-         			
+         		    
+         		    var space,codeOpenTag = ..string.match(markdownText,"!\N([ \t]*)(```+)(<\a\w*><.\2?!>+)$") 
+					if(codeOpenTag){
+						markdownText = markdownText + '\r\n' + (space||"") ++ codeOpenTag;
+					}
+					
          			var html;
          			if(this.beforerWriteEnd){
          				var md = this.beforerWriteEnd(markdownText);
-         				html = markdown.render(md || markdownText);
+         				html = renderFinalMarkdown(md || markdownText);
          			}
          			else {
-         				html = markdown.render(markdownText);	
-         			}
+         				html = renderFinalMarkdown(markdownText);	
+         			} 
          			
-         			if(katexParse) html = katexParse(html);
         			this.body.innerHTML = html;
          		}
          		
@@ -213,14 +336,18 @@ window.showLoading = function(title){
          		if(this.onWriteEnd){ this.onWriteEnd(); }
          		return; 
     		}
+    		if(!#delta) return;
     		
+    		this.$writeDeltaDone = null;
     		markdownText = markdownText ++ delta; 
     		
+    		var lastTagName = lastElement && lastElement.tagName;
+    		
     		if(lastElement && 
-        		( (lastElement.tagName=="PRE"&&!..string.indexOf(delta,"`")) || !..string.find(delta,"\p")) ){
+        		( (lastTagName=="PRE"&&!..string.indexOf(delta,"`")) || !..string.find(delta,"\p") ) ){
         		 
         		..table.push(deltaCatch,delta);
-        		if(#deltaCatch>5){
+        		if(#deltaCatch>5){ 
         			lastElement.insertAdjacentText("beforeEnd",..string.join(deltaCatch));
         			deltaCatch = {};
         		}  
@@ -232,17 +359,26 @@ window.showLoading = function(title){
         		this.body.innerHTML = html; 
          		
          		if(#delta){
-         			lastElement = this.script.lastInsertElement(null) 
+         			lastElement = this.script.lastInsertElement(null)
          		}
     		}
     		
     		return this;
 		}
 		
-		this.BeforeNavigate2=function( pDisp, url,flags,target,postData,headers,cancel ) { 
+		this.BeforeNavigate2 = function( pDisp, url,flags,target,postData,headers,cancel ) { 
  			..raw.execute(url);
 			return url, flags, target, postData, headers,true;
 		} 
+		
+		this.NewWindow3 = function(ppDisp,cancel,dwFlags,bstrUrlContext,bstrUrl ) { 
+    		..thread.invoke( 
+        		function(url){
+            		..raw.execute(url);
+        		},bstrUrl
+    		)
+    		return ppDisp,true;
+		};
 		
 	} }; 
 }

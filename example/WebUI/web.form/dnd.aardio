@@ -3,7 +3,6 @@
 richedit 拖放： doc://example/Windows/Edit/oleCallback.aardio
 web.view 拖放： doc://example/WebUI/web.view/dnd.aardio
 web.layout 拖放： doc://example/WebUI/HTMLayout/exchange.aardio
-web.sciter 拖放： doc://example/WebUI/Sciter.JS/exchange.aardio
 文件拖放： doc://example/Windows/Effects/onDropFiles.aardio
 */
 import win.ui;

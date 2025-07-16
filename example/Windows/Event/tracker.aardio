@@ -1,0 +1,77 @@
+//捕获鼠标与按键事件
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="捕获鼠标与按键事件";right=759;bottom=469)
+winform.add(
+button={cls="button";text="普通控件";left=57;top=154;right=255;bottom=206;z=2};
+plus={cls="plus";text="plus 控件";left=57;top=63;right=256;bottom=103;bgcolor=0xF0CAA6;color=0x800000;font=LOGFONT(h=-13);textPadding={left=5};z=1}
+)
+/*}}*/
+
+winform.plus.skin({
+	color={
+		active=0xFF002200;
+		default=0xFF000080;
+		disabled=0xFF6D6D6D;
+		hover=0xFFFF0000		
+	}
+})
+
+import win.ui.tracker;
+
+/*
+普通控件需要调用 win.ui.tracker 以监听
+onMouse...,onKey...,onSysKey... 前缀的鼠标与按键事件以及 onFocusGot,onFocusLost 事件。
+并且所有状态切换都会触发 onStateChange 事件。
+*/
+var tracker = win.ui.tracker(winform.button);//返回的 tracker 实际上等于控件自身，但可以获得 win.ui.tracker 的智能提示支持。
+
+tracker.onMouseEnter = function(wParam,lParam){
+	owner.text = "鼠标移入"	
+}
+
+tracker.onMouseLeave = function(wParam,lParam){
+	owner.text = "鼠标移出"	
+}
+
+//plus 控件已默认调用了 win.ui.tracker，支持 win.ui.tracker 对象的所有事件
+winform.plus.onMouseEnter = function(wParam,lParam){
+	owner.text = "鼠标移入"
+}
+
+winform.plus.onMouseLeave = function(wParam,lParam){
+	owner.text = "鼠标移出"	
+}
+
+winform.plus.onMouseDrag = function(wParam,lParam){ 
+    var x,y = win.getMessagePos(lParam);
+	owner.text = "鼠标拖拽"		 
+}
+
+winform.plus.onMouseClick = function(wParam,lParam){
+    var x,y = win.getMessagePos(lParam);
+	owner.text = "鼠标单击"		
+}
+
+winform.plus.onMouseDoubleClick = function(wParam,lParam){
+    var x,y = win.getMessagePos(lParam);
+	owner.text = "鼠标双击"		
+}
+
+winform.plus.onMouseDown = function(wParam,lParam){
+    var x,y = win.getMessagePos(lParam);
+	owner.text = "鼠标按下"	
+}
+
+winform.plus.onRightMouseDown = function(wParam,lParam){
+    var x,y = win.getMessagePos(lParam);
+	owner.text = "鼠标右键按下"		
+}
+
+winform.plus.onMouseWheel = function(flags,delta,lParam){
+    delta = delta/(120/3); 
+	owner.text = "鼠标滚轮事件 delta=" + delta;		
+}
+
+winform.show();
+win.loopMessage();

@@ -1,4 +1,4 @@
-RUNAS//窗口探测=WinSpy.aardio
+﻿WinSpy 窗口探测器=WinSpy.aardio
 FlaUI 探测器=flaUISpy.aardio
 UIA/ACC 探测器=inspect.aardio
 DLL 查看工具=dllView.aardio

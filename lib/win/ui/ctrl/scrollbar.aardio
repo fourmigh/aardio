@@ -104,7 +104,7 @@ namespace scrollbar{
 !scrollbar.enable( _ESB___ ) = 激活一个或两个滚动条箭头或是使其失效
 !scrollbar.hwnd = 控件句柄
 !scrollbar.id = 控件ID 
-!scrollbar._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!scrollbar._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !scrollbar.getParent() = 返回父窗口\n!scrollbar.
 !scrollbar.setParent(__/*控件对象*/) = 改变父窗口 
 !scrollbar.hide = 控件是否隐藏

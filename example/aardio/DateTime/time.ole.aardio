@@ -1,37 +1,48 @@
-//OLE时间对象
+//OLE 时间对象
+//📄 time.ole 库参考: doc://library-reference/time/ole.md
+/*
+time.ole 则继承自 time 对象，基本用法与 time 对象相同。
+time 与 time.ole 都可以作为 SYSTEMTIME 结构体使用。
+time 为内置对象，time.ole 属于标准库。
 
-import console;
-import time.ole;
+OLE 时间表示自 1899 年 12 月 30 日算起的天数。
+小数部分表示一天当中的片段时间。
 
-//我们试一下创建一个OLE时间对象
+Excel 日期序列号（Excel date serial number）存储的也是 OLE 时间值。
+但 Excel 将 1900/1/1 作为第 1 天，并多出了不存在的 1900/2/29 这一天。
+因此 Excel 在 1900/2/29 之前的时间会少一天。
+*/
+
+import time.ole;//非内置库需要导入才能使用
+
+//创建一个 OLE 时间对象
 var tm = time.ole(); 
 
-//给他1970年以前的时间
+//给他 1970 年以前的时间
 tm.year = 1932; 
 
-//正确出现数值
-console.log(  tonumber( tm )  ) 
+//正确转换为 OLE 时间数值，OLE 时间可作数值运算的范围更大
+print(  tonumber( tm )  ) 
 
-tm.year = 3010;//年
+/*
+time 对象转换 UTC/本地时区以后 Unix 时间戳不变，
+但 time.ole 对象转换 UTC/本地时区以后 OLE 时间值会改变。
+这是因为 OLE 时间未约定标准时区（并且多会使用本地时区）。
+*/
+print(  tonumber( tm.utc(true) )  ) 
 
-//再把他转换回来,仍然正确显示年份
-console.log( time.ole( tonumber( tm ) ) ) 
+//OLE 时间支持无百分号的格式化语法(调用操作系统 API )
+var str = tm.format("yyyy-MM-dd HH:mm:ss")
+print(str)
 
-//OLE时间支持系统格式化语法
-var str = tostring(tm,"yyyy-MM-dd HH:mm:ss")
-console.dump(str)
+//也默认支持 time 对象的百分号格式化语法
+print( tm.format("%Y年%m月%d日 %H时%M分%S秒") ) 
 
-//也默认支持time对象的格式化语法
-console.log(tostring(tm,"%Y年%m月%d日 %H时%M分%S秒")) 
+//可以如下转换格式化语法
+print( tm.toSystemFormat("%Y年%m月%d日 %H时%M分%S秒") )
 
-//还可以转换格式化语法
-console.log( tm.toSystemFormat("%Y年%m月%d日 %H时%M分%S秒"))
-
-//time对象也支持1900年到9999年之间的时间
+//time 对象可以存储 1900 年到 9999 年之间的时间
 var tm = time("1969/1/1 11:21:03","%Y/%m/%d %H:%M:%S")
-console.log(tm)
 
 //但是数值运行就不支持了
-console.log( tonumber(tm) )
-  
-console.pause()
+print( tonumber(tm) )

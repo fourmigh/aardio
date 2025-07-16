@@ -112,7 +112,7 @@ class hotkey{
 							var str = ..string.trimright(event,"$");  
 							this.say( str );
 						} 
-						if( ..string.endWith(event,'$') ){  
+						if( ..string.endsWith(event,'$') ){  
 							if( this.downKeys[lastPressVkCode] ){
 								..key.down(lastPressVkCode) 
 							} 

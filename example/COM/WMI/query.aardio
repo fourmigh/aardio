@@ -1,0 +1,98 @@
+//WMI 查询入门
+//com.wmi 库文档: doc://library-reference/com/wmi.md
+import com.wmi;
+
+/*
+com.wmi 库查询类函数 WQL 参数规则：
+- 所有 wql 参数可指定 WQL 语句也可以指定单个 WMI 类名，  
+指定单个 WMI 类名时可省略 "Win32_" 前缀或使用 wmic 兼容的别名。  
+如果不是仅省略 "Win32_" 前缀的别名由 com.wmi._alias 表对象记录（键名必须小写）  。
+查询参数中 WQL 或 WMI 类名忽略大小写区别，非单个 WMI 类名的 WQL 语句内不能使用别名。  
+- com.wmi 库由第一个参数指定 WQL 参数的函数，  
+如果第二个参数是一个表对象，则支持参数化 WQL 语句。  
+WQL 语句中 `@` 开头的命名参数由参数表中的名值对指定值，  
+而WQL 语句中 `?` 表示的匿名参数则由参数表中的数组成员指定值。  
+*/
+
+/*
+WMI 的原始查询结果是包含多个 COM 对象的数组，
+而 com.wmi.get 会返回这个查询结果数组中的首个元素，
+如果在参数 @2 中指定了一个属性名（只含字母数字或下划线）则会直接返回对应的属性值。
+下面的示例获取操作系统版本名称，作用类似执行命令 wmic os get caption
+*/
+var osCaption = com.wmi.get("os","caption");
+
+//也可以仅省略 Win32_ 前缀
+var osCaption = com.wmi.get("OperatingSystem","Caption");
+
+//也可以写完整类名
+var osCaption = com.wmi.get("Win32_OperatingSystem","Caption");
+
+// com.wmi.get 第二个参数指定属性时，返回 CIM DATETIME 字符串自动转为 time 对象
+var installDate = com.wmi.get("os","installDate");//取当前操作系统安装时间
+
+//这样返回的是 COM 对象
+var wmiOperatingSystem = com.wmi.get("Win32_OperatingSystem");
+
+//也可以写完整的 WQL 语句，效果是一样的
+var wmiOperatingSystem = com.wmi.get("SELECT * FROM Win32_OperatingSystem");
+
+//这样通过 WMI 对象（ COM 对象）读取属性值
+print(wmiOperatingSystem.Caption)
+
+//这样返回的是包含了 WMI 对象所有属性的普通表对象
+//属性表中只保存 WMI 对象的属性值，不再拥有 WMI 对象的方法。
+var osProperties = com.wmi.getProperties("SELECT * FROM Win32_OperatingSystem");
+
+//获取表的属性
+print(osProperties.Caption) //要注意 WMI 属性名首字母大写，属性表不再是 WMI 对象，因此是大小写敏感的。
+
+//仅 SELECT 需要的字段 Caption
+var osProperties = com.wmi.getProperties("SELECT Caption FROM Win32_OperatingSystem");
+
+//返回的表结构还是一样的，表中只有 SELECT 筛选的字段。
+print(osProperties.Caption)
+
+//com.wmi.query 返回包含所有查询结果的 COM 集合对象
+var wmiResults = com.wmi.query("SELECT * FROM Win32_OperatingSystem")
+
+//用 com.each 遍历 COM 对象，当然操作系统只能有一个，所以这个集合里只有一个元素
+for index,wmiObject in com.each(wmiResults) {
+	print(index,wmiObject.Caption)
+} 
+ 
+/*
+com.wmi.getTable 也是返回包含所有查询结果的数组，
+但已经转换为了普通的属性表数组，返回值不再是 COM 对象。
+相当于数组中的每个元素都是用 com.wmi.getProperties 转换得到的属性表。
+属性表中只保存 WMI 对象的属性值，不再拥有 WMI 对象的方法。
+*/
+var results = com.wmi.getTable("SELECT * FROM Win32_OperatingSystem")
+
+//普通表可以直接遍历，不需要用 com.each 。
+for(i,props in results){
+	print(i,props.Caption) 
+}
+
+//查询并遍历查询结果中的 WMI 对象（COM 对象）
+for i,wmiObject in com.wmi.each("SELECT * FROM Win32_OperatingSystem") {
+	print(i,wmiObject.Caption) 	
+}
+
+//查询并遍历由所有查询结果转换而来的属性表
+for props,i in com.wmi.eachProperties("SELECT * FROM Win32_OperatingSystem") {
+	print(i,props.Caption) 	
+}
+
+//所有 WQL 参数都可以直接用 WMI 类名,，支持别名
+for props,i in com.wmi.eachProperties("os") {
+	print(i,props.Caption) 	
+}
+
+//WQL 参数化查询
+var props = com.wmi.getProperties(
+	"SELECT * FROM Win32_UserAccount WHERE Status=@status",
+	{ status="OK"}
+) 
+			
+print( props.Name ) 

@@ -54,7 +54,7 @@ event.waitOne();
 - event.wait() 内部是调用 thread.wait 函数。
 - event.waitOne() 内部是调用 thread.waitOne 函数。
 
-event.wait() 与 event.waitOne() 都可以指定一个超时参数，超时后返回 null 。范例  [thread.event 定时器](../../../example/aardio/Thread/09.timer.html) 的原理就是利用了 event.wait() 的超时参数。
+event.wait() 与 event.waitOne() 都可以指定一个超时参数，超时后返回 null 。范例  [thread.event 定时器](../../../example/aardio/Thread/timer.html) 的原理就是利用了 event.wait() 的超时参数。
 
 
 ## 三、命名线程事件对象用法示例

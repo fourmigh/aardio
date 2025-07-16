@@ -1,10 +1,11 @@
 //用 plus 控件创建进度条动画
+//plus 控件使用指南: doc://library-guide/std/win/ui/ctrl/plus.md
 import win.ui;
 /*DSG{{*/
 var winform = win.form(text="plus控件 - 进度条动画";right=759;bottom=469)
 winform.add(
 button={cls="button";text="测试进度条动画";left=159;top=356;right=325;bottom=409;z=2};
-plus={cls="plus";left=161;top=282;right=707;bottom=316;bgcolor=6447459;forecolor=9959653;hide=1;notify=1;z=1}
+plus={cls="plus";left=161;top=282;right=707;bottom=316;bgcolor=0x626163;forecolor=0x97F8E5;hide=1;notify=1;z=1}
 )
 /*}}*/
 

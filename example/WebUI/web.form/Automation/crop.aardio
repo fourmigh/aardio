@@ -1,15 +1,17 @@
-﻿//显示部分网页
+//显示部分网页
 import win.ui;
 /*DSG{{*/
-var winform = win.form(bottom=518;text="aardio form";border="resizable";right=831 )
-winform.add( 
-staticParent={ dl=1;bottom=270;right=525;left=34;dt=1;top=20;z=1;text="PIC";edge=1;cls="static" };
-static={ dl=1;bottom=209;right=425;left=107;dt=1;top=75;z=2;text="static";edge=1;cls="static" }
+var winform = win.form(text="aardio form";right=831;bottom=518)
+winform.add(
+static={cls="static";text="static";left=107;top=75;right=425;bottom=209;dl=1;dt=1;edge=1;z=2};
+staticParent={cls="static";text="PIC";left=34;top=20;right=525;bottom=270;dl=1;dt=1;edge=1;z=1}
 )
 /*}}*/
 
 import web.form;
 var wb = web.form(winform.static, 0x4/*_UIFLAG_NO3DBORDER*/ | 0x8/*_UIFLAG_SCROLL_NO*/);
+wb.noScriptErr = true;
+
 wb.go("http://www.aardio.com");
 
 winform.static.setPos(-80,-200,1000,1000) 

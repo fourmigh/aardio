@@ -1,7 +1,7 @@
 ﻿import inet.url;
 import util.metaProperty;
 import util.registry;
-import web.json;
+import JSON;
 import win.reg;
 import wsock;
 import string.args; 
@@ -14,6 +14,16 @@ class view {
 		
 		if(!checkRuntime(winform)) return;
 		if(!winform) winform = ..win.form().messageOnly();
+		elseif(!winform[["_defClientRect"]]){
+			var errMsg = `web.view 的容器窗口（参数 @1 ）必须指定同一线程创建的窗体或控件对象。如果希望在独立线程启动 web.view ，可创建 cls 为 "thread" 的线程控件作为容器窗口，并在创建控件的参数中使用 loadForm 字段指定启动创建线程窗口的函数或代码（或代码文件路径）。`;
+			if(!..thread.get("web.view.thread.firstError")){
+				..thread.set("web.view.thread.firstError",true)
+				winform.msgboxErr(errMsg)
+			}
+			
+			error(errMsg,2);
+			return;
+		}
 		 
 		if(type.isString(createBrowserOptions)){
 			createBrowserOptions = {
@@ -27,7 +37,7 @@ class view {
 			createBrowserOptions.userDataDir = ..io.appData("/aardio/webview2/user-data/" + ..io._exefile);
 		}
 		
-		if(!browserArguments) browserArguments = createBrowserOptions.startArguments;
+		if(browserArguments===null) browserArguments = createBrowserOptions.startArguments;
 		
 		if(browserArguments!==null){
 			if(type(browserArguments)=="number"){
@@ -72,6 +82,7 @@ class view {
 		}
 		this.userDataDir = createBrowserOptions.userDataDir;
 		
+		if(winform._onDestroy) error("参数 @1 只能指定窗体（win.form）、custom 控件或 static 控件。",2);
 		winform._onDestroy = function(){
 			if(this.browser){
 				_dll.webview_destroy(this.browser);	
@@ -106,7 +117,7 @@ class view {
 				var ok,ret;
 				
 				if(req){
-					req = ..web.json.parse(req);
+					req = ..JSON.parse(req);
 					ok,ret = call(callback,this,..table.unpackArgs(req))	
 				}
 				else {
@@ -115,12 +126,12 @@ class view {
 				
 				if(!ok){
 					if(ret) errput(ret); 
-					_dll.webview_do_script(this.browser,"window._rpc[" + seq + "].reject(" + ..web.json.stringify(ret) + "); window._rpc[" +  seq + "] = undefined",null);
+					_dll.webview_do_script(this.browser,"window._rpc[" + seq + "].reject(" + ..JSON.stringify(ret) + "); window._rpc[" +  seq + "] = undefined",null);
 					return;
 				}
 				
 				if(ret!==null){  
-					_dll.webview_do_script(this.browser,"window._rpc[" + seq + "].resolve(" + ..web.json.stringify(ret) + "); window._rpc[" +  seq + "] = undefined",null);
+					_dll.webview_do_script(this.browser,"window._rpc[" + seq + "].resolve(" + ..JSON.stringify(ret) + "); window._rpc[" +  seq + "] = undefined",null);
 				}
 			}
 			,"void(string seq,string req,ptr arg)")
@@ -132,11 +143,11 @@ class view {
 			if(browser && _dll.webview_ready(browser)){ 
 				this._jsEvalCallback = ..util.registry();
 				this.export(
-					$aardioEvalCallback = function(result,err,callbackId){
+					$aardio_external_evalCallback = function(result,err,callbackId){
 						var cb = this._jsEvalCallback.unReg(callbackId);
 						if(cb){ cb(result,err); }
 					};
-					$aardioDocumentLoad = function(url){
+					$aardio_external_onDDocumentInit = function(url){
 						var r = this._jsEvalCallback;
 						for(i,cb in r){
 							if(type(i)=="number") {
@@ -148,13 +159,23 @@ class view {
 						this.$readyUrl = url;
 						if(this.onDocumentInit)this.onDocumentInit(url);
 					};
+					$aardio_external_onWindowLoad = function(url){ 
+						if(owner[["(onWindowLoad)"]]) invoke(owner[["(onWindowLoad)"]] ,owner,url); 
+					};
+					$aardio_external_onDocumentComplete = function(url){
+						this.$readyUrl = url;
+						if(owner[["(onDocumentComplete)"]]) invoke(owner[["(onDocumentComplete)"]] ,owner,url); 
+					};
 				);
 				
 				_dll.webview_set_size(browser);
 				_dll.webview_init(browser,"
 				window.external={invoke:s=>window.chrome.webview.postMessage(s)};
+				chrome.webview.hostObjects.options.shouldSerializeDates = true;
 				window.external.waitEle = function(selector, timeout, frequency){return new Promise((resolve, reject) => {var b = Date.now();(function retry() {let el = document.querySelector(selector);if (el != null) { resolve(el);}else {setTimeout(function () {let ms;if (timeout && (ms = Date.now() - b) > timeout) { reject('Promise timed out after ' + ms + ' ms');  }else{  retry();} }, frequency || 200);}})();})};
-				if(top==self)$aardioDocumentLoad(location.href);")
+				if(top==self){
+					$aardio_external_onDDocumentInit(location.href);
+				}")
 				return true;
 			}
 		},,300)) return;
@@ -229,7 +250,7 @@ class view {
 				  
 				if(..inet.url.cmp(urlPath,readyPath)==0 ){ 
 					var path = ..string.match(urlPath,"([^\?]+)"); 
-					if(..string.endWith(path,".pdf",true)){ 
+					if(..string.endsWith(path,".pdf",true)){ 
 						
 						//https://github.com/MicrosoftEdge/WebView2Feedback/issues/2409
 						_dll.webview_navigate(this.browser, "about:blank");
@@ -320,7 +341,7 @@ class view {
 			jsThis = ..string.match(method,"(.+)\.[^.]+$") : "null";
 		}
 		
-		var js  = "(" + method + ").apply(" + jsThis + "," + ..web.json.stringifyArray({...}) + ")";
+		var js  = "(" + method + ").apply(" + jsThis + "," + ..JSON.stringifyArray({...}) + ")";
 		return this.eval(js);
 	}; 
 	invoke = function(method,...){
@@ -329,18 +350,19 @@ class view {
 			jsThis = ..string.match(method,"(.+)\.[^.]+$") : "null";
 		}
 		
-		var js  = "(" + method + ").apply(" + jsThis + "," + ..web.json.stringifyArray({...}) + ")";
+		var js  = "(" + method + ").apply(" + jsThis + "," + ..JSON.stringifyArray({...}) + ")";
 		_dll.webview_do_script(this.browser,js,null)
 	};
 	waitEle = function(selector,callback,timeout){
 		if(!this.browser) return; 
+		if(type(callback)==="number") timeout,callback = callback,null;
 		
 		if(type.isString(callback)){//当前文档对象关闭退出等待
 			_dll.webview_do_script(this.browser,"external.waitEle('"+selector+"',"+(timeout:0)+").then( (el)=>{ ((function(){"+callback+'\n}).bind(el))() } )',null) 
 		}
 		elseif(callback){//当前文档对象关闭退出等待
 			var callbackId = this._jsEvalCallback.reg(callback); 
-			_dll.webview_do_script(this.browser,"external.waitEle('"+selector+"',"+(timeout:0)+").then( ()=>{ window.$aardioEvalCallback('"+selector+"',null,"+callbackId+")} ).catch( (e)=>{ window.$aardioEvalCallback(null,e,"+callbackId+")} )",null) 
+			_dll.webview_do_script(this.browser,"external.waitEle('"+selector+"',"+(timeout:0)+").then( ()=>{ window.$aardio_external_evalCallback('"+selector+"',null,"+callbackId+")} ).catch( (e)=>{ window.$aardio_external_evalCallback(null,e,"+callbackId+")} )",null) 
 		}
 		else {//页面跳转或网上退出等待
 			var url = this.$readyUrl;
@@ -358,12 +380,26 @@ class view {
 			},,timeout); 
 		} 
 	};
-	waitEle2 = function(selector,timeout){
+	waitEle2 = function(selector,timeout,...){ 
+		if( timeout && type(timeout)!=="number"){
+			 
+			var callback,timeout = timeout,...; 
+			
+			return this._form.wait(function(){
+				var resultOk,resultErr = this.waitEle(selector,,timeout);
+				if(resultOk) {
+					this.waitEle(selector,callback,timeout);
+					
+					return resultOk;
+				}
+			},,timeout); 
+		}
+		
 		return this._form.wait(function(){
 			var resultOk,resultErr = this.waitEle(selector,,timeout);
 			if(resultOk) return resultOk;
 		},,timeout); 	
-	}
+	};
 	wait = function(p,timeout){ 
 		return this._form.wait(function(){
 			var url = this.$readyUrl; 
@@ -390,7 +426,7 @@ class view {
 	};
 	cdp = function(name,param,callbackArg){
 		if(!this.browser) return;  
-		if(!type.isString(param)) param = param?..web.json.stringify(param):"{}";
+		if(!type.isString(param)) param = param?..JSON.stringify(param):"{}";
 	 
 		var err;
 		var result;
@@ -467,7 +503,7 @@ class view {
 		if(callback){
 			
 			var callbackCdecl = ..raw.tocdecl(function(json){
-				var ret  = callback( ..web.json.parse(json) );
+				var ret  = callback( ..JSON.parse(json) );
 				if(type(ret) === "function"){
 					this._form.setTimeout(ret,0)
 				}
@@ -489,6 +525,7 @@ class view {
 		if(!..com.IsObject(object) ){
 			if( t==type.table || t == type.function ){
 				object = ..com.ImplInterface(object);
+				..com.SetPreferredInvokeKind(object,1/*_INVOKE_FUNC*/);
 			}	
 		} 
 			
@@ -545,6 +582,11 @@ namespace view{
 				return owner.eval("document.body.outerHTML");
 			} 	
 		}; 
+		script  = {
+			_set = function(v){
+				owner.doScript(v);
+			}
+		};
 		external = {
 			_set = function( object ){ 
 				if(object && !owner.__initExternalObject__){
@@ -586,10 +628,33 @@ namespace view{
 			_get = function(){
 				return callback;
 			}	
-		}; 
-		
+		}; 	
+		onDocumentComplete = {
+			_set = function( callback ){ 
+				owner[["(onDocumentComplete)"]] = callback
+				if(!owner[["__(onDocumentCompleteEnabled)"]] ){
+					owner[["__(onDocumentCompleteEnabled)"]] = true;
+					owner.preloadScript(`if(top==self){ document.addEventListener("DOMContentLoaded", function(){ $aardio_external_onDocumentComplete(location.href) });}`)
+				}
+			} 
+			_get = function(){
+				return owner[["(onDocumentComplete)"]];
+			}	
+		};
+		onLoad = {
+			_set = function( callback ){ 
+				owner[["(onWindowLoad)"]] = callback
+				if(!owner[["__(onWindowLoadEnabled)"]] ){
+					owner[["__(onWindowLoadEnabled)"]] = true;
+					owner.preloadScript(`if(top==self){ window.addEventListener("load", function(){ $aardio_external_onWindowLoad() });}`)
+				}
+			} 
+			_get = function(){
+				return owner[["(onWindowLoad)"]];
+			}	
+		};
 		location  = {
-			_set = function( url ){ 
+			_set = function( url ){
 				if(owner[["$readyUrl"]]){
 					owner.doScript( `location.href="`+url+`"`);
 					return;
@@ -621,6 +686,9 @@ namespace view{
 		notifyPositionChanged = function(){
 			_dll.webview_notifyParentWindowPositionChanged(owner.browser)
 		};
+		openDevToolsWindow = function(enabled){
+			_dll.webview_openDevToolsWindow(owner.browser);
+		};
 		enableDevTools = function(enabled){
 			_dll.webview_setAreDevToolsEnabled(owner.browser,enabled);
 		}; 
@@ -630,6 +698,9 @@ namespace view{
 		enableDefaultContextMenus = function(enabled){
 			_dll.webview_setAreDefaultContextMenusEnabled(owner.browser,enabled);
 		};
+		enableBrowserAcceleratorKeys = function(enabled){
+			_dll.webview_setAreBrowserAcceleratorKeysEnabled(owner.browser,enabled);
+		}; 
 		loadExtension = function(path){ 
 			if(..chrome[["extensions"]]){
 				if(!..io.exist(path)){
@@ -654,6 +725,10 @@ namespace view{
 			..win.setFocus( owner.hwndChrome );
 		};
 	) 
+	
+	with _metaProperty{
+		showDevTools = openDevToolsWindow; //@Deprecated
+	}
 	
 	//https://docs.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution#understand-the-webview2-runtime-and-installer-preview
 	getRuntimeInfo = function(path){
@@ -696,7 +771,7 @@ namespace view{
 		} 	 
 	}
 	
-	jsonTryParse = ..web.json.tryParse;
+	jsonTryParse = ..JSON.tryParse;
 	
 	if(!_WIN10_LATER) {
 		return;
@@ -723,12 +798,14 @@ web.view.browserArguments = 用于指定默认的浏览器启动参数。\n可�
 end intellisense**/
 
 /****intellisense(!stdWebView2) 
+asynHttpServer = 如果导入了 wsock.tcp.asynHttpServer ，如果未显示创建此对象，则调用 go 函数打开单个斜杠或反斜杆开始的路径时自动创建此对象。web.view 自动调用此 HTTP 服务器对象打开应用程序根目录内的网页与网页资源路径。\n!stdasynHttpServer.
 go( = 打开网址或文件地址。\n如果需要用这个函数打开工程内的资源文件，\n请提前导入 wsock.tcp.simpleHttpServer 或 wsock.tcp.asynHttpServer 。\n\n如果要在打开的网页上跳转锚点（也就是跳转 # 开头的网址），\n可改用 location 属性跳转
 go(.(url,devPort,devTimeout) = 打开 @url 参数指定的网址。\n\n如果提前导入 wsock.tcp.simpleHttpServer 或 wsock.tcp.asynHttpServer \n则 io.localpath 支持的路径转换为通过嵌入 HTTP 服务器访问的网址。\n\n使用 HTTP 嵌入服务器可自动支持嵌入资源路径与 SPA 单页应用。\n如果同时文件名为 index.html 或 index.aardio。\n则上级目录设为 documentBase 根目录，后续请求路径应当以 "/" 代替 documentBase。\n\n可选使用@devPort参数指定前端项目开发环境调试端口，\n可选用@devTimeout参数指定检测调试端口超时\n@devPort,@devTimeout参数仅在开发环境中有效
 go(.(url,params) = 打开 @url 参数指定的网址。\n@params 用一个表对象（table）指定 URL 参数。\n调用 inet.url.appendExtraInfo 函数在网址后添加参数 。
 preloadScript(__/*JS 脚本*/) = 将 字符串参数@1 指定的 JS 脚本添加为网页默认加载脚本,\n在网页初始化时执行，保证在 window.onload 事件前执行,\n不会覆盖之前添加的脚本
 doScript(__/*JS 脚本*/) = 执行 字符串参数@1 指定的 JS 脚本
-html = @.html = /**\n<!doctype html>\n<html>\n<head>\n    <meta charset="utf-8">\n    <style type="text/css">\n    html,body{ height:100%; margin:0; } __/*将网页写入内存。\n支持 aardio 模板语法，模板的 owner 参数为当前 web.view 对象。\n包含 HTML 的块注释可赋值为字符串，首尾星号数目要一致。\n\nWebView2 通过 html 属性内存加载体积太大的 HTML 会卡住，改用本地文件可流畅打开。\n如果要引用其他本地文件，也必须改用 wb.go 打开 html 文件。*/\n    </style>\n    <script></script>\n</head>\n<body></body>\n</html>\n**/
+html = @.html = /***\n<!doctype html>\n<html>\n<head>\n    <meta charset="utf-8">\n    <style type="text/css">\n    html,body{ height:100%; margin:0; } __/*将网页写入内存。\n支持 aardio 模板语法，模板的 owner 参数为当前 web.view 对象。\n包含 HTML 的块注释可赋值为字符串，首尾星号数目要一致。\n\nWebView2 通过 html 属性内存加载体积太大的 HTML 会卡住，改用本地文件可流畅打开。\n如果要引用其他本地文件，也必须改用 wb.go 打开 html 文件。*/\n    </style>\n    <script></script>\n</head>\n<body></body>\n</html>\n***/
+script = @.script = /***\n__/*这是一个只写的字符串属性。\n用于指定立即执行的网页 JavaScript 代码，等价于调用 doScript 函数执行 JS，\n在网页脚本中可以使用 `aardio` 对象调用浏览器对象的 external 属性。*/\n***/
 export( = 导出 aardio 函数为 JS 全局变量。\n注意 JS 调用这里导出的本地函数时，\n调用参数会通过 JSON 转换为纯 aardio 对象。\n返回值也会通过 JSON 转换为纯 JS 对象。\n\n在被网页回调 aardio 函数内执行 JS 时要避免在 JS 中再次回调此 aardio 函数。\n\n被网页回调的 aardio 函数内不要调用可能阻塞的 webView.xcall，webView.eval 函数。\n应改用非阻塞的 webView.invoke 函数，或通过 winform.setTimeout 异步调用会导致同步阻塞的函数。
 export(.(JS变量名,回调函数) = 导出aardio函数为JS全局变量,\n参数也可以使用一个表包含多个需要绑定到JS的变量名值对,值必须是函数。\nJS脚本中调用这里绑定的本地函数返回值为 Promise 对象
 exportHostObject( = 直接导出 aardio 对象到 JavaScript，\n直接转换为 COM 对象，中间不需要经过 JSON 转换,\n用法请参考: https://docs.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2?view=webview2-1.0.705.50#addhostobjecttoscript
@@ -752,11 +829,13 @@ cdpQuery(.(selector,parent,callback) = 异步调用 WebView2 内置 CDP 接口�
 cdpWaitQuery( = 使用 WebView2 内置 CDP 接口查询并等待 DOM 节点。\n调用内置 CDP（Chrome DevTools Protocol）接口，多个 WebView2 不会冲突。\n但同一用户数据目录不能在使用内置 CDP 接口的同时开放远程调试端口
 cdpWaitQuery(.(selector,parent,timeout) = 使用 WebView2 内置 CDP 接口接口查询并等待节点，\n@selector 指定 CSS 选择器，\n@parent 可选指定父节点或父节点的 nodeId。\n不指定父节点则 @parent 默认取页面根节点。\n可选用 @timeout 指定超时，单位毫秒，默认在窗口关闭前一直等待。\n成功返回表对象，失败返回 null,错误代码。\n超时错误代码为 0x102/*_WAIT_TIMEOUT*/
 waitEle( = 等待网页创建指定节点。\nwaitEle 仅在当前网页等待，打开其他网页（指创建不同的 document ）则会退出等待。\n改用　waitEle2 函数可支持跨网页等待。。
-waitEle(.(selector) = 同步等待网页创建指定节点。\n网页文档对象关闭，或当前网址变更也会退出等待。\n@selector 参数指定CSS选择器,\n省略参数@2时同步等待节点出现。\n\n成功返回 CSS 选择器，失败返回 null,错误对象（表对象或字符串）
-waitEle(.(selector,callback,timeout) = 异步等待网页创建指定节点\n@selector 参数指定CSS选择器,\n参数@2指定 aardio 回调函数,\n找到节点回调参数@1为选择器，\n失败回调参数@2为错误信息,回调参数@1为null,\n可选用参数@3指定超时，单位毫秒
-waitEle(.(selector,js,timeout) = 异步等待网页创建指定节点\n@selector 参数指定CSS选择器,\n找到节点执行参数@2指定的 JavaScript 代码,\n执行 JS 代码时自动绑定 this 对象为找到的节点,\n可选用参数@3指定超时，单位毫秒
-waitEle2( = 同步等待网页创建指定节点。\n如果在等待过程中可能打开多个不同的网页，\n则应使用 waitEle2 而不是限于在单页面使用的 waitEle 函数。
-waitEle2(.(selector,timeout) = 同步等待网页创建指定节点。\n不同于 waitEle 仅在当前网页有效，\nwaitEle2 支持跨网页等待，网址变更也不会退出等待。\n除非关闭窗口，此函数会一直等待直到指定选择器的对象创建成功。\n\n参数 @selector 指定 CSS 选择器，\n可选用参数 @timeout 指定超时，单位毫秒。\n\n找到节点则返回 CSS 选择器，失败返回 null，错误信息
+waitEle(.(selector,timeout) = 同步等待网页创建指定节点。\n网页文档对象关闭，或当前网址变更也会退出等待。\n@selector 参数指定CSS选择器,\n可选用参数 @timeout 指定超时，单位毫秒。\n\n成功返回 CSS 选择器，失败返回 null,错误对象（表对象或字符串）
+waitEle(.(selector,callback,timeout) = 异步等待网页创建指定节点\n@selector 参数指定 CSS 选择器。\n\n参数 @2 指定 aardio 回调函数。\n找到节点回调参数 @1 为 CSS 选择器，\n失败则回调参数 @2 为错误信息,回调参数 @1 为 null。\n\n可选用参数@3指定超时，单位毫秒
+waitEle(.(selector,js,timeout) = 异步等待网页创建指定节点\n@selector 参数指定 CSS 选择器。\n\n找到节点则执行参数 @2 指定的 JavaScript 代码。\n执行 JS 代码时自动绑定 this 对象为找到的节点。\n\n可选用参数 @3 指定超时，单位毫秒
+waitEle2( = 等待网页创建指定节点。\n不同于 waitEle 仅在当前网页有效，\nwaitEle2 支持跨网页等待，网址变更也不会退出等待。\n如果在等待过程中可能打开多个不同的网页，\n则应使用 waitEle2 而不是限于在单页面使用的 waitEle 函数。
+waitEle2(.(selector,timeout) = 同步等待网页创建指定节点。\n除非关闭窗口，此函数会一直等待直到指定选择器的对象创建成功。\n\n参数 @selector 指定 CSS 选择器，\n可选用参数 @timeout 指定超时，单位毫秒。\n\n找到节点则返回 CSS 选择器，失败返回 null，错误信息
+waitEle2(.(selector,callback,timeout)) = 同步等待网页创建指定节点。\n@selector 参数指定 CSS 选择器,\n找到节点后异步回调参数 @2 指定的 aardio 函数，参数@1为 CSS选择器。\n可选用参数 @3 指定超时，单位毫秒
+waitEle2(.(selector,js,timeout)) = 同步等待网页创建指定节点。\n@selector 参数指定CSS选择器,\n找到节点异步执行参数@2指定的 JavaScript 代码,\n执行 JS 代码时自动绑定 this 对象为找到的节点,\n可选用参数@3指定超时，单位毫秒
 adjust() = 调整页面大小到适合窗口
 external = @.external = {
 	__/*在 Javascript 中可通过全局变量 `aardio` 访问 ??.external 对象。
@@ -776,11 +855,13 @@ external = @.external = {
 onFullScreen = @.onFullScreen = lambda(enabled) owner.fullscreen(enabled);__/*响应网页全屏事件，\n参数 enabled 表示网页是否请求全屏，此函数忽略返回值。\n设为 null 移除事件*/
 fullscreen(__) = 全屏。\n参数指定是否全屏，不指定参数则切换全屏。\n返回值为当前是否全屏
 isVisible = 浏览器控件是否显示
-defaultBackgroundColor =  网页默认背景色, GDI+ 兼容的 ARGB 格式数值\n颜色透明度仅支持透明或不透明
+defaultBackgroundColor =  网页默认背景色, GDI+ 兼容的 ARGB 格式数值（0xAARRGGBB）。\n颜色透明度仅支持透明或不透明（AA 部分只能为 0 或 0xFF）。
 notifyPositionChanged() = 通知 WebView2 控件父窗口已移动
 enableStatusBar(__) = 是否允许在网页窗口底部显示默认状态栏，默认不显示。\n参数 @1 可指定 true 或 false
-enableDevTools(__) = 设置是否启用网页开发工具。\n参数 @1 可指定 true 或 false 。\n必须在加载网页前设置
-enableDefaultContextMenus(__) = 设置是否启用默认右键菜单。\n参数 @1 可指定 true 或 false 。\n必须在加载网页前设置
+enableDevTools(__) = 设置是否启用网页开发工具（DevTools）。\n参数 @1 可指定 true 或 false 。\n在下一次打开网页时生效。
+enableBrowserAcceleratorKeys(__) = 设置是否启用浏览器默认快捷键。\n参数 @1 可指定 true 或 false 。\n在下一次打开网页时生效。\n\n此设置影响的是与网页浏览功能有关的特定快揵键，包括但不限于：  \n`Ctrl-F`,`F3`,`Ctrl-P`,`Ctrl-R`,`F5`,`Ctrl-Plus`,`Ctrl-Minus`,`Ctrl-Shift-C`,`F12`  \n但不会影响内容选择、移动、编辑有关的用户常用快捷键，包括但不限于：\n`Ctrl-A`,`Ctrl-X`,`Ctrl-C`, `Ctrl-V` 等。
+openDevToolsWindow(__) = 打开网页开发工具（DevTools）。\n无论是否调用 enableDevTools 禁用 DevTools 这个函数都可用。
+enableDefaultContextMenus(__) = 设置是否启用默认右键菜单。\n参数 @1 可指定 true 或 false 。\n在下一次打开网页时生效。
 loadExtension(__) =  加载浏览器扩展目录。\n参数 @1 必须指定浏览器扩展配置文件 manifest.json 所在的目录。\n\n如果事先导入 chrome.extensions 库，\n则参数可指定系统浏览器扩展 ID、或名称、描述包含的关键字（忽略大小写）。\n在浏览器扩展管理页面可查看 ID。
 _form = 创建浏览器控件传入的窗口对象\n!static.
 userDataDir = 创建浏览器控件指定的浏览器用户数据目录\n如果该目录下数据异常会导致浏览器异常组件并显示空白，\n此时关闭程序并清空或更新用户数据目录即可
@@ -788,7 +869,38 @@ wait("__") = 等待参数@1指定的网址打开，\n参数@2支持模式匹配�
 waitUrlParam("__","") = 等待参数@1指定的网址打开，支持模式匹配。\n参数 @1 的等待规则与 wait 函数相同。\n\n参数 @2 指定要等待的 URL 参数名，\n如果找到该参数则返回参数值，否则继续等待到参数出现或社会窗口关闭
 waitDoc() = 等待文档对象准备就绪。\n也就是页面的 document.readyState 为 "interactive" 时返回 true。\n如果参数 @1 为 true 则  document.readyState 为 "complete" 时返回 true。\n可选用参数 @2 指定超时。
 onDocumentInit(url) = @.onDocumentInit = function(url){
-	__/*打开网页并创建 document 对象后触发此事件,\nurl为当前网址*/
+	__/*回调参数 @url 为当前网址。
+
+打开网页并初始化文档（ document ）对象后触发此事件,
+此事件先于 onDocumentComplete 事件，而 onDocumentComplete 先于 onLoad 事件。
+
+注意不要阻塞此事件及时返回。
+耗时操作建议用 web.view 的 setTimeout 延时异步执行，
+阻塞界面线程的操作建议创建工作线程执行。*/
+}
+onDocumentComplete(url) = @.onDocumentComplete = function(url){
+	__/*回调参数 @url 为当前网址。
+
+此事件在网页的 document 对象的 DOMContentLoaded 事件触发时执行。
+此事件在网页 DOM 加载完成就会触发，先于 onLoad 事件，晚于 onDocumentInit 事件。
+
+即使 DOM 加载完成，之后仍然可能动态创建页面元素，
+使用 web.view 的 waitEle 或 waitEle2 函数可检测等待指定的页面元素。
+
+注意不要阻塞此事件及时返回。
+耗时操作建议用 web.view 的 setTimeout 延时异步执行，
+阻塞界面线程的操作建议创建工作线程执行。*/
+}
+onLoad() = @.onLoad = function(){
+	__/*此事件在网页的 window 对象的 load 事件触发时执行。
+此事件晚于 onDocumentComplete，此时页面及所有依赖资源如样式表和图片都已完成加载。
+
+即使网页加载完成，之后仍然可能动态创建页面元素，
+使用 web.view 的 waitEle 或 waitEle2 函数可检测等待指定的页面元素。
+
+注意不要阻塞此事件及时返回。
+耗时操作建议用 web.view 的 setTimeout 延时异步执行，，
+阻塞界面线程的操作建议创建工作线程执行。*/
 }
 location = 获取或设置当前网址。\n可以用于跳转锚点（也就是指定#开头的网址)。\n如果当前已经打开其他网页，则修改 location.href 跳转。\n否则调用 go 函数跳转
 remoteDebuggingPort = 远程调试端口,只读属性

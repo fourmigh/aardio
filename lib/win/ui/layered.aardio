@@ -12,7 +12,7 @@ class layered{
 		winform.modifyStyle(0xC40000/*_WS_BORDER|_WS_CAPTION|_WS_SIZEBOX|_WS_DLGFRAME*/);
 		winform.setPos(,,,,,0x20/*_SWP_FRAMECHANGED*/|0x10/*_SWP_NOACTIVATE*/);
 
-        winform.transparent(true);
+        winform.transparent = true;
         
         winform.background.drawRect	= function(){};
         winform.background.update	= function(){  

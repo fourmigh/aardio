@@ -1,62 +1,89 @@
 //AI 调用本地函数（function calling ）
-//web.rest.aiChat 库参考: doc://library-reference/web/rest/aiChat/_.html
-//web.rest.aiChat 入门范例:file://~/example/AI/aiChat.aardio
+//调用 AI （function calling ）： doc://library-guide/std/web/rest/aiChat.html#function-calling 
 
 import console.int;  
 import web.rest.aiChat;
 
 /*
 web.rest.aiChat 支持 OpenAI 兼容接口的 function calling 功能。
-注意有些接口不支持这功能， DeepSeek 的 function calling 也暂时不能用。
+
+注意有些接口不支持这功能。
+如果服务端报错缺少 content 字段，这是因为接口不支持 function calling，只能处理包含 content 的普通消息。
+不支持 function calling 接口可能会不停地重复调用本地函数，而非直接出错。
+
+DeepSeek V3 0324 以上版本支持 function calling。
+注意智能体接口通常不支持 function calling，因为它自己就要占用这个功能。
 */
-var ai = web.rest.aiChat(   
-	  
-	key = "密钥";
-	url = "https://api.*****.net/v1";//接口地址
-	model = "模型名称"; 
-	temperature = 0.1;//温度
-	maxTokens = 1024,//最大回复长度 
+ 
+var aiClient = web.rest.aiChat( 
+	key =   '\0\1\96';
+	url = "https://ai.aardio.com/api/v1/";//接口地址
+	model = "test-model-id";
+	toolChoice = "required"; //设置为必须调用工具，不指定则默认由 AI 自动决定是否调用工具
+	temperature = 0.5,
 	tools = { //关键在于增加 tools 字段声明可以调用的本地函数，细节请参考 API 文档。
-		{
-			"function":{
-				description="Get weather of an location, the user shoud supply a location first";
-				name="getWeather";
-				parameters={ //parameters 声明函数参数部分：应使用 JSON Schema 描述，这部分可以试试让 AI 写。
-					properties={
-						location={
-							description="The city and state, e.g. San Francisco, CA";
-							"type":"string"						
-						}					
-					};
-					required={"location"};
-					"type":"object"				
-				}			
-			};
-			"type":"function"		
-		}
-	}
+        {
+            "type": "function",
+            "function": {
+                "name": "getWeather",
+                "description": "获取给定地点的天气",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "location": {
+                            "type": "string",
+                            "description": "地点的位置信息，比如北京"
+                        },
+                        "unit": {
+                            "type": "string",
+                            "enum": {
+                                "摄氏度",
+                                "华氏度"
+                            }
+                        }
+                    },
+                    "required": {
+                        "location"
+                    }
+                }
+            }
+        }
+    }
 )
 
 //导出允许 AI 调用的函数，与前面的 tools 里声明的函数名称与原型说明要匹配。
-ai.external = {
-	getWeather = function(){
-		return "24℃"
+aiClient.external = {
+	getWeather = function(args){ 
+		
+		//如果重复调用相同的函数，是因为模型实际并不支持 function calling
+		console.log("正在调用函数，参数：",args.location,args.unit)
+		
+		//如果返回值不是字符串会自动调用 JSON.stringify 转为字符串
+		//尽量用自然语言描述清楚，DeepSeek 偶尔会输出 JSON，所以在这里提示一下 AI 不要这么做。
+		return  args.location + "天气晴，24~30 度，以自然语言回复不要输出 JSON"
 	} 
 }
- 
-console.showLoading(" Thinking "); 
 
 //单独 创建 AI 会话消息队列以保存聊天上下文。
 var chatMsg = web.rest.aiChat.message();
 
 //添加用户提示词
-chatMsg.prompt("How's the weather in Hangzhou?" );
+chatMsg.prompt("杭州天气如何？" );
+
+console.showLoading(" Thinking "); 
 
 /*
 调用聊天接口。
 如果参数 2 指定回调函数，则启用流式输出，并将 AI 逐步回复的增量文本作为回调参数。
 可选用参数 3 指定一个表，表中可指定要添加的其他请求参数。
 */
-var ok,err = ai.messages(chatMsg,console.writeText);
+var ok,err = aiClient.messages(chatMsg,
+	function(deltaText,reasoning){ 
+		
+		if(reasoning) return console.writeColorText(reasoning,0xA); 
+		 
+		console.writeText(deltaText) 
+	}
+);
 
-console.error(err);
+console.log(err)

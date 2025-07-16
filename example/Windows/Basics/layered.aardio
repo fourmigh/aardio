@@ -1,7 +1,7 @@
-//窗口程序 - 分层透明窗口
+//窗口程序 - 透明分层窗口
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="分层透明窗口";right=759;bottom=469)
+var winform = win.form(text="透明分层窗口";right=759;bottom=469)
 winform.add(
 plus={cls="plus";left=67;top=46;right=664;bottom=399;notify=1;repeat="scale";z=1}
 )
@@ -11,9 +11,9 @@ import win.ui.layered;
 win.ui.layered(winform);
 
 /*
-win.ui.layered 创建的分层窗口支持 png 背景图，
+win.ui.layered 创建的分层透明窗口支持 png 背景图，
 分层窗口上可添加 bkplus,plus 控件，其他控件暂不支持。
-web.view, web.layout, web.sciter,web.kit …… 等也都可以创建桌面透明窗口。
+web.view, web.layout, web.kit …… 等也都可以支持分层窗口并实现透明窗口的效果。
 */
 
 import inet.http;
@@ -28,5 +28,19 @@ winform.plus.oncommand = function(id,event){
     winform.close();
 }
 
+/*
+与透明度有关的窗口属性：
+- winform.opacity 设置不透明度，值为 0 到 255，null 值表示禁用。
+- winform.transparentColor 设置指定颜色透明（ 0xBBGGRR 格式颜色值），null 值表示禁用。
+- winform.transparent 设为 true 或 false 用于启用或禁用透明。
+
+winform.transparentColor 或 winform.opacity 是以不同的方式实现分层窗口的透明效果。
+当 winform.transparentColor 或 winform.opacity  为非 null 值时，
+winform.transparent 的值也会自动设为 true。
+
+单纯设置 winform.transparent 为 true 
+只是启用分层窗口支持透明功能，并不负责绘制透明效果， 
+需要用 win.ui.layered ,web.view 这些支持分层窗口的对象实际绘制透明效果。
+*/
 winform.show();
 win.loopMessage();

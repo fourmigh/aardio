@@ -215,7 +215,7 @@ var dropTarget = com.interface("IDropTarget");
 
 以下是一个较完整的示例：
 
-```aardio 
+```aardio
 import com.interface.IDropTarget;
 
 //实现 COM 原生接口对象

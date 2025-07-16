@@ -1,0 +1,53 @@
+import console;
+import fsys;
+
+//删除文件到回收站
+fsys.delete("/example.txt",0x40/*_FOF_ALLOWUNDO*/);
+
+import com.shell;  
+var shellApp = com.shell()
+
+// 获取回收站命名空间 (0xA 是回收站的 )
+var recycleBin = shellApp.NameSpace(0xA/*_CSIDL_BITBUCKET*/)
+ 
+// 3. 获取回收站中的所有项目
+var items = recycleBin.Items();
+var count = items.Count;
+
+console.log("回收站中共有", count, "个项目。");
+console.log("------------------------------------");
+
+// 4. 遍历所有项目并获取信息
+for(i=0; count; 1){
+    var item = items.Item(i);
+    if(item){
+        /*
+         * GetDetailsOf(item, index) 的 index 含义:
+         * 0: 文件名
+         * 1: 原始位置
+         * 2: 删除日期
+         * 3: 大小
+         * 4: 类型
+         * ... 其他索引可能因系统版本和语言而异
+         */
+        var name = recycleBin.GetDetailsOf(item, 0);
+        var originalPath = recycleBin.GetDetailsOf(item, 1);
+        var deleteDate = recycleBin.GetDetailsOf(item, 2);//根据删除时间进行排序可找出最后删除的文件
+        var size = recycleBin.GetDetailsOf(item, 3);
+
+        console.log("文件名: ", name);
+        console.log("原始位置: ", originalPath);
+        console.log("删除日期: ", deleteDate);
+        console.log("大小: ", size);
+        console.log("------------------------------------");
+        
+        if(name==="example.txt"){ 
+        
+        	if( 0 == fsys.path.cmp(originalPath,"/") ){ 
+        	 	item.InvokeVerb("undelete");//撤消删除
+        	}
+        }
+    }
+}
+
+console.pause();

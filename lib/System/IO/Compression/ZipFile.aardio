@@ -1,4 +1,5 @@
 ﻿import dotNet;
+dotNet.import("System.IO.Compression") 
 dotNet.load("System.IO.Compression.FileSystem").import("System.IO.Compression.ZipFile")
 
 /**intellisense()

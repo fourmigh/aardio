@@ -4,7 +4,7 @@ import win.ui;
 /*DSG{{*/
 var winform = win.form(text="窗口探测器";left=-2;top=100;right=688;bottom=526)
 winform.add(
-btnIlSpy={cls="plus";text=" .Net 程序 - 点这里反编译";left=310;top=32;right=485;bottom=56;align="left";color=8388608;dl=1;dt=1;hide=1;iconColor=32768;iconStyle={align="left";font=LOGFONT(name='FontAwesome');padding={left=5}};iconText='\uF1C9';notify=1;textPadding={left=17};z=40};
+btnIlSpy={cls="plus";text=" .Net 程序 - 点这里反编译";left=310;top=32;right=485;bottom=56;align="left";color=0x800000;dl=1;dt=1;hide=1;iconColor=0x008000;iconStyle={align="left";font=LOGFONT(name='FontAwesome');padding={left=5}};iconText='\uF1C9';notify=1;textPadding={left=17};z=40};
 chkHex={cls="checkbox";text="16 进制显示句柄";left=187;top=35;right=307;bottom=54;checked=1;dl=1;dt=1;z=36};
 chkPassword={cls="checkbox";text="显示密码";left=422;top=119;right=501;bottom=138;dr=0.27;dt=1;z=30};
 chkSkipDiabled={cls="checkbox";text="忽略禁用窗口";left=288;top=354;right=390;bottom=376;db=1;dl=1;z=35};
@@ -14,8 +14,8 @@ chkUnicodeWindow={cls="plus";text="Unicode 窗口";left=76;top=32;right=179;bott
 editClass={cls="edit";left=77;top=151;right=214;bottom=172;dl=1;dt=1;edge=1;hidesel=1;readonly=1;tabstop=1;z=23};
 editHwnd={cls="edit";left=77;top=9;right=167;bottom=32;dl=1;dt=1;edge=1;hidesel=1;multiline=1;readonly=1;tabstop=1;z=18};
 editId={cls="edit";left=353;top=181;right=455;bottom=204;dl=1;dr=0.34;dt=1;edge=1;hidesel=1;readonly=1;tabstop=1;z=27};
-editOwnerHwnd={cls="plus";text="0";left=373;top=12;right=463;bottom=26;align="left";color=16711680;dl=1;dt=1;notify=1;z=17};
-editParenHwnd={cls="plus";text="0";left=224;top=12;right=300;bottom=26;align="left";color=16711680;dl=1;dt=1;notify=1;z=15};
+editOwnerHwnd={cls="plus";text="0";left=373;top=12;right=463;bottom=26;align="left";color=0xFF0000;dl=1;dt=1;notify=1;z=17};
+editParenHwnd={cls="plus";text="0";left=224;top=12;right=300;bottom=26;align="left";color=0xFF0000;dl=1;dt=1;notify=1;z=15};
 editParentPid={cls="edit";left=194;top=90;right=244;bottom=111;dl=1;dt=1;edge=1;hidesel=1;readonly=1;tabstop=1;z=39};
 editPath={cls="edit";left=77;top=57;right=494;bottom=80;dl=1;dr=0.28;dt=1;edge=1;hidesel=1;readonly=1;tabstop=1;z=19};
 editPid={cls="edit";left=77;top=89;right=127;bottom=110;dl=1;dt=1;edge=1;hidesel=1;readonly=1;tabstop=1;z=20};
@@ -43,7 +43,7 @@ static={cls="static";text="启动文件:";left=5;top=59;right=73;bottom=76;align
 static2={cls="static";text="请拖动左侧瞄准器图标到目标窗口";left=64;top=392;right=293;bottom=417;db=1;dl=1;dr=1;z=14};
 static3={cls="static";text="下级子窗口:";left=503;top=4;right=603;bottom=18;dl=0.73;dt=1;transparent=1;z=32};
 static4={cls="static";text="父进程ID:";left=129;top=91;right=188;bottom=113;align="right";dl=1;dt=1;z=38};
-treeview={cls="treeview";left=501;top=23;right=686;bottom=416;asel=false;bgcolor=16777215;db=1;dl=0.73;dr=1;dt=1;edge=1;hscroll=1;vscroll=1;z=31}
+treeview={cls="treeview";left=501;top=23;right=686;bottom=416;asel=false;bgcolor=0xFFFFFF;db=1;dl=0.73;dr=1;dt=1;edge=1;hscroll=1;vscroll=1;z=31}
 )
 /*}}*/
 
@@ -408,7 +408,7 @@ winform.editStyle.onFocusGot = function(){
 	
 	winform.richedit.text = "";
 
-	var style={
+	var style = {
 		_WS_POPUP = 0x80000000;
 		_WS_CHID = 0x40000000;
 		_WS_MINIMIZE = 0x20000000;
@@ -416,45 +416,63 @@ winform.editStyle.onFocusGot = function(){
 		_WS_DISABED = 0x8000000;
 		_WS_CLIPSIBLINGS = 0x4000000;
 		_WS_CLIPCHILDREN = 0x2000000;
-		_WS_MAXIMIZE = 0x1000000;
-		_WS_CAPTION = 0xC00000;    
+		_WS_MAXIMIZE = 0x1000000; 
 		_WS_BORDER = 0x800000;
 		_WS_DLGFRAME = 0x400000;
 		_WS_VSCROLL = 0x200000;
 		_WS_HSCROLL = 0x100000;
 		_WS_SYSMENU = 0x80000;
-		_WS_THICKFRAME = 0x40000;
-		_WS_GROUP = 0x20000;
-		_WS_TABSTOP = 0x10000; 
 		_WS_MINIMIZEBOX = 0x20000;
 		_WS_MAXIMIZEBOX = 0x10000;
+		_WS_GROUP = 0x20000;
+		_WS_TABSTOP = 0x10000; 
+		["_WS_SIZEBOX(_WS_THICKFRAME)"] = 0x40000;
+		["_WS_CAPTION(_WS_DLGFRAME | _WS_BORDER)"] = 0xC00000; 
 	}
 
+	var dumpWindowStyle = function(s){
+	
+		if( ! ( s&0x80000000 || s&0x40000000 ) ){
+			winform.richedit.print("_WS_OVERLAPPED") 
+		}
+		
+		for(k,v in style){
+			if( (v &  s) == v) {
+				if((v==0x400000/*_WS_DLGFRAME*/||v==0x800000/*_WS_BORDER*/) 
+					&& (s & 0xC00000/*_WS_CAPTION*/)){
+					/*
+					_WS_BORDER 样式显示边框
+					_WS_CAPTION 样式显示标题栏
+					
+					_WS_CAPTION == _WS_DLGFRAME | _WS_BORDER 
+					
+					因为 _WS_CAPTION 包含 _WS_BORDER 
+					所以有标题栏的窗口一定有边框，而无边框的窗口一定没有标题栏。 
+					
+					窗口边框样式有四种：
+					- _WS_BORDER 细边框
+					- _WS_DLGFRAME 或 _WS_CAPTION 对话框风格边框
+					- _WS_SIZEBOX( 或 _WS_THICKFRAME) 可拖动调整大小边框
+					- 无边框
+					*/
+				}
+				elseif( (k=="_WS_GROUP" || k=="_WS_TABSTOP")) && !(s & 0x40000000){
+				
+				} 
+				elseif( (k=="_WS_MINIMIZEBOX" || k=="_WS_MAXIMIZEBOX")) && (s & 0x40000000){
+				
+				} 
+				else {
+					winform.richedit.print(k) 
+				} 
+			}
+		}	
+	}
+	
 	var s = tonumber(winform.editStyle.text);
 	if(!s) return;
 	
-	if( ! ( s&0x80000000 || s&0x40000000 ) ){
-		winform.richedit.print("_WS_OVERAPPED") 
-	}
-	
-	for(k,v in style){
-		if( v &  s) {
-			if(v==0x400000/*_WS_DLGFRAME*/ && s & 0xC00000/*_WS_CAPTION*/){
-				/*
-				_WS_BORDER 样式显示边框
-				_WS_CAPTION 样式显示标题栏
-				
-				_WS_CAPTION == _WS_DLGFRAME | _WS_BORDER 
-				
-				因为 _WS_CAPTION 包含 _WS_BORDER 
-				所以有标题栏的窗口一定有边框，而无边框的窗口一定没有标题栏。 
-				*/
-			}
-			else {
-				winform.richedit.print(k) 
-			} 
-		}
-	}
+	dumpWindowStyle(s);
 	
 };
 

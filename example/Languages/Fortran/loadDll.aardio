@@ -6,7 +6,7 @@ var dll = raw.loadDll($"/fortran.dll",,"cdecl");
 
 /*
 不声明直接调用，结构体默认传址，这不用改什么。
-生成的函数名用 「aardio 工具 / 探测器 / DLL 查看工具」 看一下就明白了，前面加模块名，函数名全转小写。
+生成的函数名用 「aardio 工具 » 探测器 » DLL 查看工具」 看一下就明白了，前面加模块名，函数名全转小写。
 */
 var c = dll.__test_MOD_addbypoint({
 	int x = 22;

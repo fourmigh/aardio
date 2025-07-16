@@ -1,20 +1,13 @@
 //取硬盘序列号
 import console;
 
-//方法一：得到所有硬盘序号,分区等
+//取硬盘序列号
 import sys.storage;
-var devices = sys.storage.getDevices()
-for(idx,drives in devices){
-	var property = sys.storage.queryProperty( idx );
-	if(!property) continue ;
-	console.log( property.productId )
-	console.log( property.serialNumber )
-	for(j=1;#drives;1){
-		console.log( drives[j] ) 
-	}  
-}
+var hdInfo = sys.storage.queryProperty();//参数可指定设备序号或设备路径，省略参数取系统硬盘信息
+print("系统硬盘名称:", hdInfo.productId )
+print("系统硬盘序列号:", hdInfo.serialNumber )
 
-//方法二：取所有分区信息、分区序列号
+//取所有分区信息、分区序列号
 import sys.volume;
 var drives = sys.volume.getLogicalDrives()
 for(i,drv in drives){
@@ -28,8 +21,5 @@ for(i,drv in drives){
           	);	
 
 }
-
-import sys.hd; //需要管理权限
-console.log( "物理序列号", ..sys.hd.getInfo()[["sSerialNumber"]] );
 
 console.pause();

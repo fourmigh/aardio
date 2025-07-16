@@ -15,7 +15,7 @@ var array = table.array();
 console.dumpJson(array);
 
 /*
-table.isArray() 的检测规则为：
+table.isArrayLike() 的检测规则为：
 如果参数不是 table 类型返回 false ；
 参数的 _type 元属性为 "object" 返回 false ；
 参数的 _type 元属性为 "array" 返回 true ；
@@ -23,6 +23,6 @@ table.isArray() 的检测规则为：
 参数对象包含数组成员返回 true ；
 其他情况返回 false 。
 */
-if(table.isArray(array)){
+if(table.isArrayLike(array)){
 	console.log("array 是一个数组")
 }

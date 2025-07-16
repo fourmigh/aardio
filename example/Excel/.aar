@@ -2,7 +2,8 @@
 NPOI=NPOI.aardio
 SheetJS=SheetJS.aardio
 com.excel =com.excel.aardio
+多线程操作=~\example\COM\Excel\thread.aardio
 SQL 操作 =SQL.aardio
 Excelize=Excelize.aardio
 VBA=~\example\Languages\VBA JSA\Excel.aardio
-更多=more.aardio
+DsoFramer=~/example/COM/Others/DsoFramer.aardio

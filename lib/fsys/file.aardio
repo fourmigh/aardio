@@ -148,15 +148,15 @@ namespace file{
 						var bytes = {} 
 						var ok,byte = ReadByte(owner.hfile,0,1,0) ;
 						while( byte ? (byte!='\n'#) ){  
-							if( !ok ) return null,..lasterr();
+							if( !ok ) {
+								return null,..lasterr();
+							}
+							
 							if(byte!='\r'#) push(bytes,byte);  
-								
-							ok,byte = ReadByte(owner.hfile,0,1,0);
+							ok,byte = ReadByte(owner.hfile,0,1,0); 
 						}
 						
-						if(#bytes)
-							return ..string.pack(bytes);
-						 
+						if(#bytes) return ..string.pack(bytes);
 						return byte?"":null;
 					};
 					error("不支持的参数",2)
@@ -188,6 +188,13 @@ namespace file{
 			var len = owner.size();
 			var ok,str,readSize = ReadFile( owner.hfile,len,len,0);	
 			if(ok) return readSize ? ..string.left(str,readSize) : null; 
+		};
+		readLine = lambda() owner.read();//@Deprecated
+		lines = function(){
+			var f = owner;
+			return function(){
+				return f.read();
+			} 
 		};
 		write = function(s,...){
 			if(owner.hfile){
@@ -384,7 +391,6 @@ namespace file{
 			var s = file.read();
 			return s;
 		},function() { file.close(); }
-		
 	}
 	
 	lastModified = function(path,last){
@@ -397,6 +403,9 @@ namespace file{
 		if(last) return tmWrite > ..time.iso8601(last);
 		if(tmWrite) return tmWrite;
 	}
+	
+	write = ..io.file.write; //@Deprecated
+	read = ..io.file.read; //@Deprecated
 }
 
 /**intellisense() 
@@ -424,6 +433,9 @@ fsys.file.is(__) = 判断参数是不是fsys.file对象
 !fsysfile.read(-1) = 读取所有内容到文件尾部
 !fsysfile.read(0) = 是否未到达文件尾。\n如果已经到达文件尾返回 null，否则返回空字符串。\n注意在布尔表达式工 null 等于 false，空字符串等于 true。
 !fsysfile.readAll() = 移动指针到文件头，\n读取到文件尾返回全部数据。\n改用 -1 为参数调用 read 函数可自当前位置读取到文件尾。
+!fsysfile.lines() = @for line in ??.lines(){
+	__/*逐行读取文件，循环返回当前行（字符串值）。\n无论是否以文本模式打开，读取数据总是移除回车符与换行符。*/	
+}
 !fsysfile.write(__/*字符串*/) = 写入字符串\n参数也可以是数值、结构体
 !fsysfile.readBuffer( = 读取数据到 buffer ,成功返回读取长度,失败返回null
 !fsysfile.readBuffer(.(buffer,读取长度) = 直接读数据到内存\n参数@1可以是 buffer 对象,或内存指针,\n如果是指针则必须指定读取长度,否则长度参数可选\n成功返回读取长度

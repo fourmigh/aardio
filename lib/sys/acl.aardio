@@ -209,7 +209,7 @@ getUserName = function(){
 }
 	
 /**intellisense(sys.acl)
-sidCreate(.(identifierAuthority,->->->) = 创建SID，返回SID句柄\n参数@1使用数值数组指定SID_IDENTIFIER_AUTHORITY结构体的值,\n后续可使用1到8个参数指定SID子权限
+sidCreate(.(identifierAuthority,->->->) = 创建 SID，返回SID句柄\n参数@1使用数值数组指定SID_IDENTIFIER_AUTHORITY结构体的值,\n后续可使用1到8个参数指定SID子权限
 sidEveryone()  = 创建SID，返回Everyone用户SID句柄
 sidAdmin() = 创建SID，返回管理员用户组SID句柄
 sidFromString(.(sidStr) = 参数传入文本格式SID,\n返回SID内存句柄
@@ -230,5 +230,5 @@ getUserName() = 返回当前系统用户名
 end intellisense**/
 
 /**intellisense()
-sys.acl = 系统用户访问权限控制接口
+sys.acl = 系统用户访问权限控制接口。\n管理文件权限应当改用 fsys.acl 库。
 end intellisense**/

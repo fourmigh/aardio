@@ -51,7 +51,7 @@ win.loopMessage();
 - 虚拟键名分隔符前后不能有空白。例如 `CTRL + I` 是错误写法。
 - 所有虚拟键名都是单字符时可省略分隔符。 
 - 任何虚拟键名都只表示该虚拟键名所在的单个按键，例如 `~` 表示 `~` 字符所在的单个按键而非`Shift+~` 这两个按键。
-- 连续的普通字符串触发的热键可用 `'\0'` 指定终止键，例如 `'~hi\0'` 。调用 `superHotkey.setEndKeys()` 函数设置终止键，此函数参数为不定个数的虚拟键名参数。
+- 连续的普通字符串触发的热键可用字节码为 0 的 `'\0'` 字符结束以启用终止键，例如 `'~hi\0'` 表示必须按下预设的终止键才会触发热键。可调用 `superHotkey.setEndKeys()` 函数设置预设终止键，此函数参数为不定个数的虚拟键名参数。
 
 超级热键的检测与触发规则：
 
@@ -103,7 +103,7 @@ superHotkey.loadTable({
 
 超级热键所在线程应避免阻塞消息循环的耗时操作，任何阻塞消息循环或热键回调函数的操作执行时间不应超过 200 毫秒。如果阻塞时间超过一秒或超过注册表限制的更小时间，系统可能会直接删除键盘钩子（导致超级热键不可用）。
 
-**如果超级热键出现异常（例如热键失效，对按键的拦截失效，本应被取消的按键发送到了目标窗口等等问题），应当首先检查超级热键所在线程是否执行了阻塞钩子消息的耗时操作。**
+**如果超级热键出现异常（例如热键失效，对按键的拦截失效，本应被取消的按键发送到了目标窗口等问题），应当首先检查超级热键所在线程是否执行了阻塞钩子消息的耗时操作。**
 
 建议用单独的线程运行超级热键（ [ImTip](#imtip) 就是这样做的 ），超级热键回调函数中使用 thread.invoke 等方法创建新的线程执行耗时操作。请参考：。
 
@@ -136,6 +136,326 @@ superHotkey.loadTable({
 
 上面的 `dlg.doModal()` 会显示一个模态对话框，此函数运行直到对话框关闭才会退出，代码才能继续向后执行。但 `dlg.doModal()` 函数本身就会创建窗口消息循环直到对话框关闭，所以并不会影响当前线程处理窗口消息或键盘钩子消息（超级热键基于键盘钩子消息）。
 
+## ▶ 在超级热键中调用 AI 助手 <a id="ai" href="#ai">&#x23;</a>
+
+记事本里的运行效果：
+
+![记事本里超级热键调用 AI 续写与补全文本](https://www.aardio.com/zh-cn/doc/images/fim-notepad.gif)
+
+PowerShell 里的运行效果：
+
+![PowerShell 里超级热键调用 AI 自动写代码](https://www.aardio.com/zh-cn/doc/images/fim-ps.gif)
+
+相关文档与范例:
+
+- [使用 web.rest.aiChat 调用 AI 大模型](../../std/web/rest/aiChat.md)
+- [更多 AI 调用范例](../../../../example/AI/aiChat.html)
+
+调用 AI 自动续写与补全的范例源码：
+
+```aardio
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="超级热键示例")
+winform.add(
+edit={cls="edit";left=32;top=35;right=725;bottom=414;edge=1;multiline=1}
+)
+/*}}*/
+
+import key.hotkey;
+superHotkey = key.hotkey();
+
+superHotkey.loadTable({
+	
+	// 按 Ctrl+ I 触发热键
+	["Ctrl+Shift+F1"] = function(hFocus){  
+			
+			
+		//创建多线程以执行耗时操作，以避免阻塞键盘钩子消息导致热键失效。
+		thread.invoke( 
+			function(winform){
+				import key;
+				import web.rest.aiChat;
+				import winex.editor;
+				
+				//获取当前选区文本
+				var leftText,rightText = winex.editor.getText2();
+				if(!#leftText) return;
+					
+				var ai = web.rest.aiChat(
+					key = "sk-请修改密钥";
+					url = "https://api.deepseek.com/v1";//大模型接口地址
+					model = "deepseek-chat";//模型名称首字符为 @ 则使用 Anthropic 接口
+					temperature = 0.5;//温度
+					maxTokens = 1024,//最大回复长度
+				)
+				
+				//创建 AI 会话消息队列 
+				var msg = web.rest.aiChat.message();
+				
+				//添加系统提示词
+				msg.system(`你是一个续写与补全助手。`) 
+				msg.system(`用户当前输入光标插入点前面的"""前置文本"""为: `+leftText);
+				msg.system(`用户当前输入光标插入点后面的"""后置文本"""为: `+rightText);
+					
+				//添加用户提示词
+				msg.prompt(`请在"""前置文本"""与"""后置文本"""中间继续写，仅回复可以直接插入其中的文本，不要返回"""前置文本"""与"""后置文本"""`);
+					
+				var ok,err = ai.messages(msg,function(delta){
+					//以打字方式逐步输出 AI 回复的增量文本到目标输入框。
+					winex.editor.sendString(delta)
+
+					//如果不需要输入可以改用 winex.tooltip.popupDelta() 函数显示为屏幕汽泡提示，支持增量文本。
+				} );
+				
+				if(err) winform.msgboxErr(err);
+			},winform
+		)
+	};
+})
+
+winform.show();
+win.loopMessage();
+```
+
+web.rest.aiChat 需要发送 HTTP 请求以执行调用远程接口的耗时操作，因此我们[创建多线程以避免阻塞键盘钩子消息](#thread)。
+
+如果需要更好的效果，则建议在 AI 提示词中添加更多的信息，例如让 AI 知道目标进程的文件名，并要求 AI 根据不同的程序给出更合适的解答，完整示例请参考： [范例 - 超级热键调用 AI 大模型自动续写补全](../../../example/AI/aiHotkey.html) 
+
+![复制 aardio 超级热键范例到 ImTip](https://www.aardio.com/zh-cn/doc/images/copy-to-imtip.jpg)
+
+
+aardio 基于上面的范例已经内置了 F1 键 AI 助手，运行效果：
+
+![F1 键助手](https://imtip.aardio.com/screenshots/fim.gif)
+
+利用 F1 键还可以在 aardio 中调用 AI 写其他编程语言的代码，例如写 Python 代码：
+
+![F1 键助手写 Python 代码](https://www.aardio.com/zh-cn/doc/images/fim-py.gif)
+
+在调用 AI 续写补全时，清晰的提示很重要。例如上面我们简明扼要地通过变量命名与注释让 AI 明确  pyCode 里放的是 Python 代码。在编码补全时，在清晰的注释提示后面补全有更好的效果。 注意用法，那么在 aardio 环境中调用 AI 写前端代码、Python 代码、 Go 语言的代码的效果会很好，利用 AI 可以更好地利用 aardio 在混合语言编程上的优势。
+
+## ▶ 在超级热键中获取输入上下文、输入位置与状态
+
+获取输入光标前后的文本：
+
+```aardio
+//允许安装扩展库 
+import ide;
+
+//导入此扩展库则在当前线程范围启用 JAB 以支持 Java 开发的程序。
+import java.accessBridge;
+
+//导入外部编辑器接口
+import winex.editor; 
+
+/*
+获取当前输入窗口光标插入点前后的文本，
+支持各种自动化接口，任何接口都不可用时退化为模拟按钮复制操作。
+*/
+var leftText,righText = winex.editor.getText2(true);
+
+//获取当前行光标插入点之前的文本，如果存在选区优先返回选区文本。
+var caretText = winex.editor.caretText() 
+```
+
+将 leftText,righText 作为上下文发给 AI 助手就可以方便地实现续写与补全效果。
+
+相关范例: [获取外部编辑器文本](../../../example/Automation/Text/editor.html) [AI 续写与补全](../../../example/AI/aiHotkey.html)
+
+获取前输入窗口的文本选区：
+
+```aardio
+import ide; 
+import java.accessBridge;  
+import winex.selection;
+ 
+/*
+获取选区，
+参数 @1 为 true 允许在获取失败时复制文本，
+参数 @2 为　true 则通过 UIA 接口获取到空文本时尝试复制。
+*/
+var selText = winex.selection.get(true,true);
+```
+
+一个常见的应用是获取选区查单词或者翻译：[示例源码](#web.view) 
+
+
+获取输入法状态：
+
+```aardio
+import key.ime;
+import winex.candidate;
+
+//是否正在显示输入法候选窗
+var caretRect = winex.candidate.visible()
+
+//输入法状态
+var opened,symbol,lang,conv  = key.ime.state()
+ 
+```
+
+如果提前导入 java.accessBridge 扩展库则上述获取编辑框文本信息的功能自动支持启用了 JAB 接口的 Java 程序窗口，不需要任何其他步骤或操作。
+
+```aardio
+import ide; //允许 IDE 按需自动安装扩展库
+import java.accessBridge; //在当前线程范围启用 JAB 扩展。
+```
+
+获取当前输入光标的位置：
+
+```aardio
+import winex.caret;
+
+/*
+获取光标位置，
+返回值为 ::RECT 结构体（含 left,top,right,bottom 字段）, 
+返回结构体额外有一个 hwnd 字段记录输入焦点窗口句柄。
+*/
+var caretRect = winex.caret.get()
+```
+
+如果需要获取 WPF 窗口与 Java 窗口的输入光标位置请参考 winex.caret.getEx 函数说明与源码实现。
+
+## ▶ 在超级热键中常用的自动化操作 <a id="auto" href="#auto">&#x23;</a>
+
+请参考： [自动化程序开发](../../../guide/quickstart/automation.md)
+
+### 1. 获取与设置输入焦点：<a id="focus" href="#focus">&#x23;</a>
+
+在 aardio 中可使用 `winex.getFocus()` 获取当前输入焦点所在的窗口句柄。在 aardio 中很多与自动化有关的参数在省略  hwnd 参数时都会自动调用 `winex.getFocus()` ，例如前面的获取输入框文本与状态有关的函数。
+
+如果要修改外部线程的输入焦点，则必须先用 winex.attach 附加到目标线程以共享输入状态，示例：
+
+```aardio
+winex.attach(hwnd,function(){
+	win.setFocus(hwnd)
+});
+```
+
+### 2. 向外部窗口发送字符串：<a id="sendString" href="#sendString">&#x23;</a>
+
+
+```aardio
+import winex;
+import winex.editor;
+import key;
+
+//自动选择合适的发送文式
+winex.editor.sendString("这里是要发送的字符串")
+
+//使用剪贴板与模拟粘贴发送字符串
+winex.editor.sendStringByClip("这里是要发送的字符串")
+
+//直接发送所有字符，不需要发送按键，适用于支持 EM_REPLACESEL 消息的传统编辑框
+winex.sendString("这里是要发送的字符串")
+
+//发送字符串，换行发送回车键，制表符发送 tab 键，其他非控制字符直接发送
+key.sendString("这里是要发送的字符串")
+```
+
+请参考：[自动发送文本](sendString.md)
+
+key.sendString 类似输入法的效果，通常是更好的选择。但是 key.sendString 对于控制键发送的是按键而不是字符，对于 tab 或 enter 键可能自动触发代码补全的编辑器（例如 aardio 编辑器）使用 winex.sendString 是更好的选择。而 winex.editor.sendString 则自动进行判断并选择更合适的发送方式，编写 aardio 插件时，使用 ide.getActiveCodeEditor 函数可以获取到直接可以操作的编辑框对象，这时候可以使用返回编辑框的  selText 属性直接输入文本覆盖到当前选区或插入点。
+
+### 3. 获取按键状态 <a id="keyState" href="#keyState">&#x23;</a>
+
+参考：[虚拟键名称与代码](virtual-key-names.md)
+
+- 在 aardio 中可以使用 `虚拟键名` 或 `虚拟键码` 表示键盘上的按键。虚拟键名称通常与键盘上显示的名称相同。
+- 可调用 key.getName(virtualKeyCode) 函数将`虚拟键码` 转换为字符串类型的`虚拟键名`，也可调用 key.getCode(virtualKeyName) 函数将`虚拟键名`或者`虚拟键码`都统一转换为数值类型的`虚拟键码`。
+- key 库函数表示按键的参数基本都兼容 `虚拟键名` 或者 `虚拟键码`。
+
+获取获取按键状态可使用 `key.getState()` 或 `key.getStateX()` 函数，这两个函数都支持以键名或键码作为参数。
+
+主要区别：
+
+- key.getState() 主要用于自界面线程的消息队列中检测按键状态（模拟按键操作也会影响这个函数的返回值），界面线程在后台时仍然可用。
+- key.getStateX() 则用于检测真实物理按键的状态，在工作线程中也可以使用。
+
+在超级热键中还可以使用 superHotkey 对象的 [onKeyDown,onKeyUp 事件](#event) 检测按键状态。
+
+获取鼠标按键状态：
+
+- 使用 mouse.state() 函数获取鼠标左键是否按下。
+- 使用 mouse.rb.state() 函数获取鼠标右键是否按下。
+- 使用 mouse.mb.state() 函数获取鼠标中键是否按下。
+
+如果不想引入 mouse 库也可以直接调用 API，例如使用 `::User32.GetAsyncKeyState(1/*_VK_LBUTTON*/) & 0x8000` 就可以判断鼠标左键是否按下。
+
+### 4. 模拟按键：<a id="key-press" href="#key-press">&#x23;</a>
+
+```aardio
+//可转换为虚拟按键的字符发送对应按键，其他字符用 key.sendString 相同的规则直接发送
+key.send("/hello中文")
+
+//发送按键，可用任意个参数指定要发送的虚拟键名或键码
+key.press("ENTER")
+
+//发送组合键，可用任意个参数指定要发送的虚拟键名或键码
+key.combine("CTRL","A")
+
+//仅按下按键，可用任意个参数指定要发送的虚拟键名或键码
+key.down("CTRL")
+
+//释放按键，可用任意个参数指定要发送的虚拟键名或键码
+key.up("CTRL")
+```
+
+在超级热键中如果需要模拟键键，可用类似 `key.up("CTRL")` 的方法释放按键以改变目标程序获取的组合键状态。
+
+[key 库函数参考](../../../library-reference/key/_.md)
+
+### 5. 后台发送按键与鼠标消息
+
+winex.key 可以向指定窗口后台发送按键消息（ 发送组合键则必须先调用 winex.attach 共享输入状态 ），winex.mouse 可以向指定窗口后台发送鼠标消息。不是所有程序都支持这种后台按键与鼠标消息，这种方法不是很通用。用法请参考相关库文档。
+
+## ▶ 在超级热键中创建窗口界面、网页浏览器 <a id="web.view" href="#web.view">&#x23;</a>
+
+在下面的超级热键示例中，我们调用 web.view 创建 WebView2 浏览器控件以展示查单词与英中翻译结果。
+
+```aardio
+import ide;//允许自动安装扩展库
+import web.view.translate; //翻译窗口
+import web.view.dict;//查单词窗口
+
+superHotkey.loadTable({
+    
+    ["ctrl+Shift+#"] = function(){
+        
+        //获取当前选区文本
+        var txt = winex.selection.get(true);
+        if(!#txt) return true;//选区文本为空，继续发送按键
+        
+        var words = string.splitEx(txt,"\s");
+         
+		//返回函数对象以异步启动查词翻译避免阻塞热键消息。
+        return function(){ 
+			
+            if(#words>3){ 
+				//创建 WebView2 浏览器控件以展示翻译结果。
+                ..web.view.translate(txt);   
+            }
+            else{
+				//创建 WebView2 浏览器控件以展示查单词结果。
+                ..web.view.dict(txt,true)
+            }
+        }  
+    }
+);
+```
+
+要点：
+
+- 如果不创建新线程，则热键回调函数应当返回一个函数对象启动新的界面。
+这样热键回调可以先返回，再异步延时启动窗口，避免启动窗口耗时并阻塞热键消息。
+- 如果使用 web.view 创建  WebView2 浏览器控件，则建议使用单例模式重用之前创建的浏览器。
+跳转一下网址比每次都创建新的浏览器控件肯定要快很多倍，上面的 web.view.dict，web.view.translate( 就是这样做的，可以参考这几个库的源码。 
+- 创建这种用于外部窗口的提示工具，可以在 win.form 构造参数表中添加 `parent=win.getForeground();` 参数将父窗口指定为前景窗口的子窗口以避免窗口出现在后台，可选添加 `topmost=true` 参数让窗口保持显示在最顶层。
+- 使用 `winform.show(4/*_SW_SHOWNOACTIVATE*/)` 显示窗口可避免抢占当前输入焦点。 
+- 如有必要，可选使用 winex.attach 结合 win.setFocus 设置或改变外部窗口输入焦点。
+
+相关范例： [获取选区调用本地词库查单词](../../../example/Automation/Text/selection.html)
 
 ## ▶ ImTip 的超级热键 <a id="imtip" href="#imtip">&#x23;</a>
 
@@ -156,8 +476,6 @@ ImTip 运行超级热键时会自动查找 aardio 开发环境，并以 aardio �
 import win.ui;
 
 /*开发环境（请勿修改）{{*/
-import win.ui;
-
 //如果是在开发环境中启动，而不是由 ImTip 启动 
 if(_STUDIO_INVOKED && ...!="ImTip"){
 
@@ -188,335 +506,22 @@ win.loopMessage();
 
 注意不要删除上面的 hotkey.aardio 代码中检测 aardio 开发环境与 ImTip 运行环境的代码。
 
-ImTip 创建独立的工作线程运行超级热键（ hotkey.aardio ），每次更新超级热键配置都会退出原来的超级热键线程并且创建新的线程。在超级热键中可调用 [processs.imTip](../../../language-reference/process/imTip/_.md) 库向 ImTip 主程序或主窗口发送指令。
+ImTip 创建独立的工作线程运行超级热键（ hotkey.aardio ），每次更新超级热键配置都会退出原来的超级热键线程并且创建新的线程。在超级热键中可调用 [process.imTip](../../../language-reference/process/imTip/_.md) 库向 ImTip 主程序或主窗口发送指令。
 
 在 ImTip 超级热键中可以导入并使用 ide 库，ide 库提供了丰富的 aardio 开发环境接口。
 
-## ▶ 在超级热键中常用的自动化操作 <a id="auto" href="#auto">&#x23;</a>
-
-
-### 1. 获取当前输入窗口文本：<a id="getText" href="#getText">&#x23;</a>
-
-
-- 使用 `var caretText = winex.editor.caretText()` 函数可获取当前输入窗口当前行光标插入点之前的文本，如果已经存在选区这个函数会优先返回选区文本。
-- 使用 `var leftText,rightText = winex.editor.getText2(true)` 函数可获取当前输入窗口光标插入点前后的文本，不指定参数则仅返回 leftText。
-- 使用 `var text = winex.selection.get(true,true)` 可获取当前输入窗口当前选区文本。
-
-请参考: [范例 - 获取外部编辑器文本](../../../example/Automation/Text/editor.html)
-
-### 2. 向外部窗口发送字符串：<a id="sendString" href="#sendString">&#x23;</a>
-
-
-```aardio
-//使用剪贴板与模拟粘贴发送字符串
-winex.editor.sendStringByClip("这里是要发送的字符串")
-
-//直接发送所有字符，不需要发送按键，适用于支持 EM_REPLACESEL 消息的传统编辑框
-winex.sendString("这里是要发送的字符串")
-
-//发送字符串，换行发送回车键，制表符发送 tab 键，其他非控制字符直接发送
-key.sendString("这里是要发送的字符串")
-```
-
-请参考：[自动发送文本](sendString.md)
-
-### 3. 获取按键状态 <a id="keyState" href="#keyState">&#x23;</a>
-
-参考：[虚拟键名称与代码](virtual-key-names.md)
-
-- 在 aardio 中可以使用 `虚拟键名` 或 `虚拟键码` 表示键盘上的按键。虚拟键名称通常与键盘上显示的名称相同。
-- 可调用 key.getName(virtualKeyCode) 函数将`虚拟键码` 转换为字符串类型的`虚拟键名`，也可调用 key.getCode(virtualKeyName) 函数将`虚拟键名`或者`虚拟键码`都统一转换为数值类型的`虚拟键码`。
-- key 库函数表示按键的参数基本都兼容 `虚拟键名` 或者 `虚拟键码`。
-
-获取获取按键状态可使用 `key.getState()` 或 `key.getStateX()` 函数，这两个函数都支持以键名或键码作为参数。
-
-主要区别：
-
-- key.getState() 主要用于自界面线程的消息队列中检测按键状态（模拟按键操作也会影响这个函数的返回值），界面线程在后台时仍然可用。
-- key.getStateX() 则用于检测真实物理按键的状态，在工作线程中也可以使用。
-
-在超级热键中还可以使用 superHotkey 对象的 [onKeyDown,onKeyUp 事件](#event) 检测按键状态。
-
-获取鼠标按键状态：
-
-- 使用 mouse.state() 函数获取鼠标左键是否按下。
-- 使用 mouse.rb.state() 函数获取鼠标右键是否按下。
-- 使用 mouse.mb.state() 函数获取鼠标中键是否按下。
-
-如果不想引入 mouse 库也可以直接调用 API，例如使用 `::User32.GetAsyncKeyState(1/*_VK_LBUTTON*/) & 0x8000` 就可以判断鼠标左键是否按下。
-
-### 4. 模拟按键：<a id="key-press" href="#key-press">&#x23;</a>
-
-
-```aardio
-//可转换为虚拟按键的字符发送对应按键，其他字符用 key.sendString 相同的规则直接发送
-key.send("/hello中文")
-
-//发送按键，可用任意个参数指定要发送的虚拟键名或键码
-key.press("ENTER")
-
-//发送组合键，可用任意个参数指定要发送的虚拟键名或键码
-key.combine("CTRL","A")
-
-//仅按下按键，可用任意个参数指定要发送的虚拟键名或键码
-key.down("CTRL")
-
-//释放按键，可用任意个参数指定要发送的虚拟键名或键码
-key.up("CTRL")
-```
-
-在超级热键中如果需要模拟键键，可用类似 `key.up("CTRL")` 的方法释放按键以改变目标程序获取的组合键状态。
-
-[key 库函数参考](../../../library-reference/key/_.md)
-
-
-## ▶ 示例: 在超级热键中创建多线程调用 AI 助手 <a id="ai" href="#ai">&#x23;</a>
-
-参考链接：[使用 web.rest.aiChat 创建 AI 助手](../../../example/AI/aiChat.html)
-
-在下面的超级热键示例中我们调用 web.rest.aiChat 创建了一个 AI 助手以处理通过 winex.selection 获取的选区文本。web.rest.aiChat 需要发送 HTTP 请求调用远程接口的耗时操作，因此我们[创建多线程以避免阻塞键盘钩子消息](#thread)。
-
-```aardio
-import win.ui;
-/*DSG{{*/
-var winform = win.form(text="超级热键示例")
-winform.add(
-edit={cls="edit";left=32;top=35;right=725;bottom=414;edge=1;multiline=1}
-)
-/*}}*/
-
-import winex.selection;
-import key.hotkey;
-superHotkey = key.hotkey();
-
-superHotkey.loadTable({
-	// 按 Ctrl+ I 触发热键
-	["Ctrl+I"] = function(hFocus){  
-		//获取当前选区文本
-		var txt = winex.selection.get(true);
-	
-		if(!#txt) { 
-			return true;
-		}
-			
-		//创建多线程以执行耗时操作，以避免阻塞键盘钩子消息导致热键失效。
-		thread.invoke( 
-			function(txt){
-				
-				import web.rest.aiChat;
-				import key;
-				
-				var ai = web.rest.aiChat(
-					key = "sk-请修改密钥";
-					url = "https://api.deepseek.com/v1";//大模型接口地址
-					model = "deepseek-chat";//模型名称首字符为 @ 则使用 Anthropic 接口
-					temperature = 0.5;//温度
-					maxTokens = 1024,//最大回复长度
-				)
-				
-				//创建 AI 会话消息队列 
-				var msg = web.rest.aiChat.message();
-				
-				//添加系统提示词
-				msg.system("你是一个翻译助手，如果用户输入主要为中文请翻译为英文，反之则将输入翻译为英文。")
-					
-				//添加用户提示词
-				msg.prompt(txt);
-					
-				var ok,err = ai.messages(msg,function(delta){
-					//以打字方式逐步输出 AI 回复的增量文本到目标输入框。
-					key.sendString(delta)
-				} );
-			},txt
-		)
-
-	};
-})
-
-winform.show();
-win.loopMessage();
-	
-```
-
-## 在 aardio 中使用超级热键调用 AI 助手自动续写补全。
-
-aardio 提供了 winex.editor.getText2 函数可以方便地获取外部编辑器光标插入点前后的代码。
-
-示例：
-
-```aardio
-import winex.editor;
-var leftText,righText = winex.editor.getText2(true);
-```
-
-将 leftText,righText 作为上下文发给 AI 助手就可以方便地实现续写与补全效果。
-
-请参考：[范例 - 超级热键调用 AI 大模型自动续写补全](../../../example/AI/aiHotkey.html)
-
-运行效果：
-
-![超级热键调用 AI 实现续写补全](https://imtip.aardio.com/screenshots/fim.gif)
-
-**aardio 开发环境默认已经提供了 `F1 键编码助手`，支持自动实现续写与补全 aardio 代码。**
-
-## ▶ 示例: 在 ImTip 超级热键中自动安装扩展库 <a id="external" href="#external">&#x23;</a>
-
-
-在 aardio 开发环境中运行 aardio 代码，如果使用了未安装的扩展库则会自动安装。  
-而在 ImTip 中运行的超级热键中则必须提前运行 `import ide;` 以启用自动安装扩展库的功能。
+在超级热键中导入 ide 库还会启用启用自动安装缺少的扩展库到开发环境（ IDE ）的功能（ 在 IDE 中直接运行代码则总是启用此功能 ）。
 
 示例：
 
 ```aardio
 import ide;
-import web.view.dict;
-```
-
-直接在 aardio 开发环境启动的程序则总是支持用自动安装缺少的扩展库。
-
-## ▶ 示例: 超级热键查单词
-
-在下面的超级热键示例中，我们调用 web.view 创建 WebView2 浏览器控件以展示查单词结果。
-
-```aardio
-import win.ui;
-/*DSG{{*/
-var winform = win.form(text="超级热键翻译英文单词示例")
-winform.add(
-edit={cls="edit";left=32;top=35;right=725;bottom=414;edge=1;multiline=1}
-)
-/*}}*/
-
-import winex.selection;
-import key.hotkey;
-import ide;
-import web.view.dict;
-
-superHotkey = key.hotkey();
-superHotkey.loadTable({
-    // 按 Ctrl+ $ 键打开大写金额与中文数字输入框
-    ["ctrl+Shift+#"] = function(){
-		
-		//获取当前选区文本
-        var txt = winex.selection.get(true);
-        if(!#txt) return true;//选区文本为空，继续发送按键
- 
-        return function(){ 
-            
-            //打开词典显示结果。
-        	web.view.dict(txt,true)
-        }
-        	
-	}
-})
-
-winform.show();
-win.loopMessage();
-```
-
-要点：
-
-- web.view.dict 不会重复创建 WebView2 控件，而是重用之前创建的控件，这样热键响应速度更快。
-- 创建这种用于外部窗口的提示工具，可以在 win.corm 构造参数表中添加 `parent=win.getForeground();` 参数将父窗口指定为前景窗口的子窗口以避免窗口出现在后台，添加 `topmost=true` 参数让窗口保持显示在最顶层，使用 `this.show(4/*_SW_SHOWNOACTIVATE*/)` 显示窗口以免抢占焦点。 
-
-## ▶ 示例: 在超级热键中查单词，调用 AI 翻译当前选区文本
-
-```aardio
-import win.ui;
-import win.ui;
-/*DSG{{*/
-var winform = win.form(text="超级热键示例")
-winform.add(
-edit={cls="edit";left=32;top=35;right=725;bottom=414;edge=1;multiline=1}
-)
-/*}}*/
-
-import winex.tooltip;
-import winex.selection; 
-import winex.caret;
-import key.hotkey;
-
-superHotkey = key.hotkey();
-superHotkey.loadTable({
-	
-	// 按 Ctrl + Shift + I 触发热键
-	["Ctrl+Shift+I"] = function(hFocus){
-		
-		//获取当前选区文本
-		var txt = winex.selection.get(true);
-		if(!#txt) return true;//选区文本为空，继续发送按键
-			
-		//本地英中翻译查词
-		import string.words;
-		var cn,en = string.words(txt) 
-		if(cn){
-			var x,y = winex.caret.getPos();  
-			winex.tooltip.popup(cn,x,y - 50); 
-		}
-		
-		//朗读单词
-		if(en){
-			//用 := 操作符避免重复创建控件
-			wmPlayer := com.CreateObject("WMPlayer.OCX"); 
-			wmPlayer.url = "https://dict.youdao.com/dictvoice?audio="+txt+"&type=2";
-			
-			return;	
-		} 
-		
-		//如果不包含空格分隔的英文单词则退出
-		if(!string.find(txt,"\a+\s+\a+")){
-			return true;
-		} 
-		
-		//创建多线程以执行耗时操作，以避免阻塞键盘钩子消息导致热键失效。
-		thread.invoke( 
-			function(txt){ 
-				import web.rest.aiChat;
-				import key;
-
-				var ai = web.rest.aiChat(
-					key = "sk-请修改密钥";
-					url = "https://api.deepseek.com/v1";//接口地址
-					model = "deepseek-chat";//模型名称首字符为 @ 则使用 Anthropic 接口
-					temperature = 0.5;//温度
-					maxTokens = 1024,//最大回复长度
-				)
-
-				//创建 AI 会话消息队列 
-				var msg = web.rest.aiChat.message();
-
-				//添加系统提示词
-				msg.system("你是一个翻译助手，如果用户输入主要为中文请翻译为英文，反之则将输入翻译为英文。")
-
-				//添加用户提示词
-				msg.prompt("请翻译:"+txt);
-				
-				//获取文本选区坐标
-				import winex.caret;
-				var x,y = winex.caret.getPos(,-50);
-
-				import winex.tooltip;
-				var ok,err = ai.messages(msg,function(delta){ 
-					
-					//增量显示屏幕提示
-					if( winex.tooltip.popupDelta(delta,x,y ) ){
-						thread.delay(3000);//已完成输出，延时避免线程退出导致提示立即关闭。
-					} 
-				} ); 
-				
-				//显示错误信息
-				if(err)winex.tooltip.popupDelta(err,x,y ) 
-			},txt
-		) 
-	}
-})
-
-win.loopMessage();
+import java.accessBridge;
 ```
 
 ## ▶ 调用 ImTip 聊天助手 <a id="imtip-ai-chat" href="#imtip-ai-chat">&#x23;</a>
 
-如果不需要会话界面，可参考前面的范例：[自动输入回复文本到目标窗口](#ai) 。
+直接调用 AI 大模型不需要会话界面请参考：[在超级热键中调用 AI 大模型接口](#ai) 
 
 使用 [process.imTip](../../../library-reference/process/imTip/_.md) 库可自动打开 ImTip 的 AI 聊天助手会话界面，通过 chat 参数自动选择指定 AI 助手配置名称，并且自动发送 q 参数指定的问题。
 
@@ -566,7 +571,8 @@ import process.imTip;
 process.imTip.imeSwitch();
 ```
 
-## ▶ 更多超级热键示例
+## ▶ 更多超级热键示例 <a id="more" href="#more">&#x23;</a>
+
 
 ```aardio
 /*导入库{{*/
@@ -879,7 +885,7 @@ superHotkey.onKeyDown = function(vk){
 		return;
 	} 
 	
-	//当前输入是否数值分隔答
+	//当前输入是否数值分隔符
 	var sep = key.number.getSeparator(vk);
 
 	if(sep){ 

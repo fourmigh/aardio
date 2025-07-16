@@ -79,6 +79,6 @@ winform.show();
 win.setOwner(winform.hwnd,listview.hwnd)
 win.setForeground( winex.find( "<Progman>|<WorkerW>" ),);
 winform.modifyStyleEx(, 0x8000000/*_WS_EX_NOACTIVATE*/);
-winform.transparent(true);
+winform.transparent = true;
 
 win.loopMessage();

@@ -15,7 +15,7 @@ theApp.external = {
 前端应用发布根目录使用默认的 "/" 即可，不需要改动。
 
 去掉下面的前端项目调试端口号 37252 或发布 EXE 后运行才会打开 "\web\index.html"。
-否则打开 http://localhost:37252
+否则打开 http://127.0.0.1:37252
 */
 theApp.start("\web\index.html",37252);
   

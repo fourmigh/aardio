@@ -69,6 +69,14 @@ public class utility{
         		catch (Exception ea1 ){
         		
         		}
+        		
+        		try {
+        			field.set(args[0],((Byte)(byte)v));
+        			return;
+        		} 
+        		catch (Exception ea1 ){
+        		
+        		}
         	}
         } catch (Exception e) {
         	e.printStackTrace();
@@ -78,12 +86,26 @@ public class utility{
      	Class ownerClass = args[0].getClass();
      	Class[] argsClass = new Class[args.length-2];  
      	Object[] args2 = new Object[args.length-2]; 
+     	
      	boolean numberTest = false;
      	Method method = null;
      	String methodName = (String)args[1];
      	
      	if( ownerClass.equals( Class.class ) ) ownerClass = (Class)args[0];
-     	 
+     	
+     	if(args2.length==0){
+     		method = ownerClass.getMethod((String)args[1],argsClass);
+     		
+     		if( method != null ){
+     		    if (!method.isAccessible()) {
+                	method.setAccessible(true);
+           		}
+     			return method.invoke(args[0],args2); 
+     		}
+     		
+     		//throw new NoSuchMethodException("No such method found: " + methodName);
+     	}
+     	
      	for (int i = 2, j = args.length; i < j; i++) {    
         	args2[i-2] = args[i];  
         }
@@ -176,6 +198,10 @@ public class utility{
 		}    
       	
       	if( method != null ){
+      	    if (!method.isAccessible()) {
+                method.setAccessible(true);
+           	}
+           		
      		return method.invoke(args[0], args2);
      	}
      	
@@ -194,6 +220,10 @@ public class utility{
                 	}
                 	
                 	if (match) {
+                	     if (!method2.isAccessible()) {
+                			method2.setAccessible(true);
+           				 }
+           	
                     	 return method2.invoke(args[0], args2);
                 	}
             	} 
@@ -325,10 +355,29 @@ public class utility{
 		if( v instanceof Short ) return true;
 		if( v instanceof Character ) return true;
 		if( v instanceof Long ) return true;
+		if( v instanceof Byte ) return true;
 		return false;
 	} 
 	public static boolean objectIsString(Object v){
 		return v instanceof String;
+	}
+	public static boolean objectIsBoolean(Object v){
+		return v instanceof Boolean;
+	} 
+	public static boolean objectIsHashMap(Object v){
+		return v instanceof java.util.HashMap;
+	} 
+	public static boolean objectIsMap(Object v){
+		return v instanceof java.util.Map;
+	}  
+	public static boolean objectIsCollection(Object v){
+		return v instanceof java.util.Collection;
+	} 
+	public static boolean objectIsArrayList(Object v){
+		return v instanceof java.util.Collection;
+	}
+	public static boolean object2Boolean(Object v){
+		return (Boolean)v;
 	} 
 	public static String object2String(Object v){
 		return (String)v;
@@ -336,6 +385,22 @@ public class utility{
 	public static boolean objectIsStringArray(Object v){
 		return v instanceof String[];
 	} 
+	public static boolean objectIsByteArray(Object v){
+		return v instanceof byte[];
+	}
+	public static int objectTypecode(Object v){ 
+		if( objectIsString(v) ) return 1;
+		if( objectIsNumber(v) )  return 2; 
+		if( objectIsStringArray(v) ) return 3; 
+		if( objectIsNummberArray(v) ) return 4;
+		if( objectIsByteArray(v) ) return 5;
+		if( objectIsBoolean(v) ) return 6;
+		if( v instanceof java.util.Date ) return 7;
+		if( v instanceof java.util.Map ) return 8;
+		if( v instanceof java.util.Collection ) return 9;
+		
+		return 0; 
+	}
 	public static String[] object2StringArray(Object v){
 		return (String[])v;
 	} 
@@ -345,7 +410,8 @@ public class utility{
 		if( v instanceof Float ) return ((Float)v).doubleValue();
 		if( v instanceof Short ) return  ((Short)v).doubleValue();
 		if( v instanceof Character ) return (double)(char)((Character)v);
-		if( v instanceof Long ) ((Long)v).doubleValue();
+		if( v instanceof Long ) return ((Long)v).doubleValue();
+		if( v instanceof Byte ) return ((Byte)v).doubleValue();
 		return (double)( (Double)(v) );
 	} 
 	public static boolean objectIsNummberArray(Object v){

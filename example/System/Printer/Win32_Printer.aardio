@@ -1,4 +1,6 @@
 //查找打印机
+//打印网页: file://~/example/WebUI/web.view/OtherApps/print.aardio
+
 /*
 //添加网络打印机
 var network = com.CreateObject("WScript.Network")
@@ -7,20 +9,36 @@ network.AddWindowsPrinterConnection "\\IP地址或主机名\打印机名"
 //参考：
 %windir%/System32/Printing_Admin_Scripts/zh-CN
 https://learn.microsoft.com/zh-cn/windows/win32/cimwin32prov/win32-printer
+
+网络打印机可参考『 aardio 工具 » 网络管理 » 端口扫描» 端口检测 』源码
 */
 
-import console
 import com.wmi;
 
+//遍历所有系统打印机
 for index,printer in com.wmi.each("Select * From Win32_Printer") {
 	
-	console.log(printer.Name,printer.Network?"网络打印机":"本地打印机");
+	print(printer.Name,printer.Network?"网络打印机":"本地打印机");
 	
+	//是否默认打印机
+	if(printer.Default) {
+		
+		print("这是默认打印机");
+	}  
+		
 	com.Release(printer);
 }
 
-/*
-网络打印机可参考『 aardio 工具 > 网络管理 > 端口扫描 / 端口检测 』源码。
-*/
+//查找指定名称的打印机
+var printer = com.wmi.get("Select * From Win32_Printer WHERE Name=@name",{
+	name = "EPSON L360 Series"
+})
+
+if(printer){
+	//设为默认打印机
+	printer.SetDefaultPrinter()
+	print("已修改默认打印机")
+	
+	//WMI 速度比 com.CreateObject("WScript.Network").DefaultPrinter("EPSON L360 Series") 快
+}
  
-console.pause(true);

@@ -79,6 +79,13 @@ namespace stream{
 			owner.reset();
 			return owner.read(-1);
 		};
+		readLine = lambda() owner.read();//@Deprecated
+		lines = function(){
+			var f = owner;
+			return function(){
+				return f.read();
+			} 
+		};
 		read = function(len){
 			if( len === null ){
 				var d = {};
@@ -91,7 +98,9 @@ namespace stream{
 					if( buf[1] == '\n'# ) return ..string.join(d);
 					if( buf[1]!='\r'#)..table.push(d,tostring(buf));
 				}
-				return; 
+				
+				if(#d) return ..string.join(d); 
+				return;
 			}
 			
 			if( len[["_struct"]] ){
@@ -268,6 +277,9 @@ fsys.stream() = !fsys_stream.
 !fsys_stream.readAll() = 移到指针到文件头\n读取到文件尾返回所有数据
 !fsys_stream.readTo( = 读取直到以指定的字符串结束
 !fsys_stream.readTo(.('结束串') = 读取直到以指定的字符串结束,返回值不包含结束串,\n该函数每次仅读取一个字节,效率较低
+!fsys_stream.lines() = @for line in ??.lines(){
+	__/*逐行读取数据，循环返回当前行（字符串值）。\n无论是否以文本模式打开，读取数据总是移除回车符与换行符。*/	
+}
 !fsys_stream.size() = 得到数据长度
 !fsys_stream.write( = 写数据
 !fsys_stream.write(.(数据,长度) = 写入数据\n参数@1可使用字符串、buffer、指针、结构体等\n如果指定指针就必须明确指定写入长度

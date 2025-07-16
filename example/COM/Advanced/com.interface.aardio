@@ -1,0 +1,55 @@
+import com;
+import com.interface.IWinHttpRequestEvents;
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="com.interface 原生事件接口";right=759;bottom=469)
+winform.add(
+edit={cls="edit";left=16;top=10;right=748;bottom=458;edge=1;multiline=1;z=1}
+)
+/*}}*/
+
+//创建COM对象
+var winHttp = com.CreateObject("WinHttp.WinHttpRequest.5.1");
+
+//使用原生静态类型接口创建事件接收器
+var eventSink = com.interface({
+	
+	OnResponseStart = function(status,contentType){
+		
+	};
+	
+	OnResponseDataAvailable = function(pSafeArrayData){
+		
+		//将 SAFEARRAY 指针转换为 COM 数组，_VT_UI1 类型数组会转换为 buffer 。
+		var bytes = com.SafeArray(pSafeArrayData);
+		
+		winform.edit.print(bytes);
+	};
+	
+	OnResponseFinished = function(){
+		winform.edit.print("OnResponseFinished");
+	};
+	
+	OnError = function(errCode,message){
+		winform.edit.print("OnError",errCode,messag);
+	};
+},"IWinHttpRequestEvents")
+ 
+//挂接事件接收器
+var cookie = com.AddConnection( winHttp,eventSink );
+
+winHttp.setOption(6,0 ) //禁止自动重定向，不能写为 winHttp.Option(6) = 0 
+winHttp.SetTimeouts( 9999999,9999999,9999999,9999999 ) //设置超时,调用函数不能省略括号
+ 
+//创建请求
+winHttp.Open("GET", "https://www.example.com", true/*启用异步*/ ) 
+
+//自定义请求头,下面修改 User Agent
+winHttp.setRequestHeader("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; zh-CN; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3 (.NET CLR 3.5.30729)"); 
+
+//发送请求,调用函数不能省略括号
+winHttp.Send()
+ 
+
+winform.show();
+win.loopMessage();

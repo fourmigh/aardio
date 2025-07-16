@@ -5,6 +5,7 @@ var winform = win.form(text="aardio form";right=759;bottom=469)
 winform.add()
 /*}}*/
 
+//HTTP 服务端开发指南: doc://guide/quickstart/web-server.md
 import wsock.tcp.simpleHttpServer;  
 /*
 wsock.tcp.simpleHttpServer 用于创建多线程 HTTP 服务器。
@@ -19,7 +20,7 @@ wsock.tcp.simpleHttpServer.startUrl() 函数
 并在界面线程退出前自动退出服务器线程，最适合用于创建软件内嵌的 HTTP 服务端。 
 */
 
-//服务端 aardio 支持模板语法： doc://language-reference/templating/syntax.md
+//服务端 aardio 支持模板语法: doc://language-reference/templating/syntax.md
 var url = wsock.tcp.simpleHttpServer.startUrl("/.www/main.aardio");//参数支持 aardio 工程嵌入资源目录路径
 //上面的函数可以重复调用，不会重复创建新的 HTTP 服务器端。
 

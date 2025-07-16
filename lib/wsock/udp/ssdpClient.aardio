@@ -28,7 +28,7 @@ class ssdpClient{
 			responseLines = ..string.trimright(responseLines);
 			var httpHeaders = ..string.split(responseLines,'<\r\n>');
 			var statusLine = httpHeaders[1] ? ..string.splitEx(httpHeaders[1],"\s+",3); 
-			if(  ..string.startWith(statusLine[1],"HTTP/",true) ){
+			if(  ..string.startsWith(statusLine[1],"HTTP/",true) ){
 			 	
 			 	if( this.onDeviceDiscovered ){
 					var status = statusLine[2];

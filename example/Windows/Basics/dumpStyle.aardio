@@ -1,0 +1,83 @@
+ /*
+在「 aardio 工具 » 探测器 » 窗口探测器（WinSpy）」
+工具内点击窗口样式数值可查看对应的窗口样式名。
+*/
+var style = {
+	_WS_POPUP = 0x80000000;
+	_WS_CHID = 0x40000000;
+	_WS_MINIMIZE = 0x20000000;
+	_WS_VISIBLE = 0x10000000;
+	_WS_DISABED = 0x8000000;
+	_WS_CLIPSIBLINGS = 0x4000000;
+	_WS_CLIPCHILDREN = 0x2000000;
+	_WS_MAXIMIZE = 0x1000000; 
+	_WS_VSCROLL = 0x200000;
+	_WS_HSCROLL = 0x100000;
+	_WS_SYSMENU = 0x80000;
+	_WS_MINIMIZEBOX = 0x20000;
+	_WS_MAXIMIZEBOX = 0x10000;
+	_WS_GROUP = 0x20000;
+	_WS_TABSTOP = 0x10000; 
+	_WS_BORDER = 0x800000;
+	_WS_DLGFRAME = 0x400000;
+	["_WS_SIZEBOX(_WS_THICKFRAME)"] = 0x40000;
+	["_WS_CAPTION(_WS_DLGFRAME | _WS_BORDER)"] = 0xC00000; 
+}
+
+
+//窗口样式数值转换为样式名称并输出到控制台
+var dumpWindowStyle = function(s){
+
+	if( ! ( s&0x80000000 || s&0x40000000 ) ){
+		print("_WS_OVERLAPPED") 
+	}
+	
+	for(k,v in style){
+		if( (v &  s) == v) {
+			if((v==0x400000/*_WS_DLGFRAME*/||v==0x800000/*_WS_BORDER*/) 
+				&& (s & 0xC00000/*_WS_CAPTION*/)){
+				/*
+				_WS_BORDER 样式显示边框
+				_WS_CAPTION 样式显示标题栏
+				
+				_WS_CAPTION == _WS_DLGFRAME | _WS_BORDER 
+				
+				因为 _WS_CAPTION 包含 _WS_BORDER 
+				所以有标题栏的窗口一定有边框，而无边框的窗口一定没有标题栏。 
+				
+				窗口边框样式有四种：
+				- _WS_BORDER 细边框
+				- _WS_DLGFRAME 或 _WS_CAPTION 对话框风格边框
+				- _WS_SIZEBOX( 或 _WS_THICKFRAME) 可拖动调整大小边框
+				- 无边框
+				*/
+			}
+			elseif( (k=="_WS_GROUP" || k=="_WS_TABSTOP")) && !(s & 0x40000000){
+			
+			} 
+			elseif( (k=="_WS_MINIMIZEBOX" || k=="_WS_MAXIMIZEBOX")) && (s & 0x40000000){
+			
+			} 
+			else {
+				print(k) 
+			} 
+		}
+	}	
+}
+
+//打印窗口样式名
+dumpWindowStyle(0xCF0000) 
+
+/*
+获取样式
+var style = win.getStyle(hwnd) //获取窗口样式
+var styleEx = win.getStyleEx(hwnd) //获取窗口扩展样式
+
+修改样式：
+win.modifyStyle(hwnd,移除样式,增加样式,选项）
+win.modifyStyleEx(hwnd,移除样式,增加样式,选项）
+
+修改窗口或控件对象的样式：
+winformOrControl.modifyStyle(移除样式,增加样式,选项)
+winformOrControl.modifyStyleEx(移除样式,增加样式,选项)
+*/

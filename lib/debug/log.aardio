@@ -3,7 +3,7 @@ import fsys;
 import debug;
 import crypt.bin;
 import util.table;
-import web.json;
+import JSON;
 import console;
 
 namespace debug.log
@@ -114,7 +114,7 @@ dump = function(...){
 }
 
 dumpJson = function(v){ 
-	printArgs( { ..web.json.stringify(v,true,false) } );
+	printArgs( { ..JSON.stringify(v,true,false) } );
 }
 
 traceback = function(){

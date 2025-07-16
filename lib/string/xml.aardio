@@ -14,7 +14,7 @@ var lower = lower;
 var cmp = cmp;
 var createElementMeta;
 
-var ncr = function(html){
+var ncrDecode = function(html){
 
 	html = ..string.replace(html,"&#x(\x+);",function(c){
     	return ..string.unescape( ..string.format("\U%06x",tonumber(c,16) ) );
@@ -132,7 +132,7 @@ var nodePrototype = {
 				push(children,owner[i].innerText() ) 
 		}
 		var s = ..string.join( children,"");
-		return ncr(s);
+		return ncrDecode(s);
 	};
 	innerXml = function(indent,line='\r\n'){
 		var children = {};
@@ -541,7 +541,9 @@ class xml{
 	} };
 }
 
-xml.ncr = ncr;
+xml.ncrDecode = ncrDecode;
+xml.ncr = xml.ncrDecode; //@Deprecated 
+
 xml.elementPattern = "\<([\/]?)([\d\s]?![\?!\w_\-\::]+)(.*?)([\/\?]?)\>";
 
 //xml 只规定了 5 个实体字体，HTML 4 则规定了 252 个
@@ -589,6 +591,6 @@ string.xml() = !string_xml.
 !string_xml.getParent() = 获取父节点
 !string_xml.remove() = 如果存在父节点,在父节点中移除此节点
 string.xml.ncrEncode(.(str,pattern) = 将字符串参数 @str 中以 @pattern 指定模式串所匹配的字符进行 NCR 编码。\n参数 @pattern 可用模式匹配语法指定要编码的字符，省略则默认为 ":|."。\n返回编码后的字符串。
-string.xml.ncr(__) = NCR 字符编码、HTML实体字符还原为 UTF8 文本
+string.xml.ncrDecode(__) = NCR 编码字符、HTML 实体字符还原为 UTF8 文本
 string.xml.escape(__) = 将字符串中的 < > " ' & 等 XML 标记字符编码为实体字符（entity）。\n如果参数为非 null 值则返回转换后的字符串。\n参数只能是 null 或字符串、buffer
 end intellisense**/

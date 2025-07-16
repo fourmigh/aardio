@@ -7,7 +7,7 @@ class time{
 		if(type(fileTime)=="string") format,fileTime = fileTime;
 		
 		this = ::FILETIME();
-		this.format = format || "!%c";
+		this.format = format || '!%Y/%m/%d %H:%M:%S';
 		
 		if(fileTime!==null){ 
 			var t = type(fileTime);
@@ -84,7 +84,7 @@ namespace time{
 				return owner.copy();
 			}
 			
-			var tm = ..fsys.time(,"!%c");
+			var tm = ..fsys.time(,"!%Y/%m/%d %H:%M:%S");
 			LocalFileTimeToFileTime(owner,tm);
 			if( copy ){
 				return tm;
@@ -92,7 +92,7 @@ namespace time{
 			else {
 				owner.dwLowDateTime = tm.dwLowDateTime
 				owner.dwHighDateTime = tm.dwHighDateTime
-				owner.format = "!%c";
+				owner.format = "!%Y/%m/%d %H:%M:%S";
 				return owner;
 			} 
 		}; 
@@ -127,7 +127,7 @@ namespace time{
 /**intellisense()
 fsys.time = 与 ::FILETIME 兼容的结构体，扩展了更多函数。\n用于存储自 1601年1月1日 开始以 100纳秒 为间隔的数值。\n100纳秒 也就是 0.0001毫秒
 fsys.time( = 创建 ::FILETIME 兼容结构体。\n\nfsys.time 对象可传入 tostring 转换为文本格式时间，\n可转换为文本的时间范围与 time 对象相同。\n\nfsys.time 对象传入 tonumber 函数返回存储 64 位无符号时间值的浮点数。\n使用 size64 函数可得到 64位 无符号数表示的时间值。\n该时间值为自 1601年1月1日 开始以 100纳秒 为间隔的数值
-fsys.time(.(fileTime,format) = 创建 FILETIME 结构\n\n@fileTime 参数可选传入以下类型参数：\n1、省略，null 值，注意这不会导致初始化为当前时间。\n2、::FILETIME 结构体或结构体的部分字段\n3、需要复制的 fsys.time 对象\n4、普通数值，应为存储 64位 无符号时间值的浮点数。\n5、存储无符号 64 位整数的 math.size64 对象\n此 64 位整数表示自 1601年1月1日 开始以 100纳秒 为间隔的时间值。\n\n可选用 @format 参数指定格式化串，语法与 time 对象相同。\n注意 format 首字符为 "!" 表示存储 UTC 时间。\n默认使用 UTC 时间格式 "!%c"
+fsys.time(.(fileTime,format) = 创建 FILETIME 结构\n\n@fileTime 参数可选传入以下类型参数：\n1、省略，null 值，注意这不会导致初始化为当前时间。\n2、::FILETIME 结构体或结构体的部分字段\n3、需要复制的 fsys.time 对象\n4、普通数值，应为存储 64位 无符号时间值的浮点数。\n5、存储无符号 64 位整数的 math.size64 对象\n此 64 位整数表示自 1601年1月1日 开始以 100纳秒 为间隔的时间值。\n\n可选用 @format 参数指定格式化串，语法与 time 对象相同。\n注意 format 首字符为 "!" 表示存储 UTC 时间。\n默认使用 UTC 时间格式 `!%Y/%m/%d %H:%M:%S`
 fsys.time() = !fsys_time.
 !fsys_time.dwLowDateTime = 时间值低位
 !fsys_time.dwHighDateTime = 时间值高位

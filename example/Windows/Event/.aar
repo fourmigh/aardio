@@ -1,0 +1,6 @@
+﻿消息回调=~/example/Windows/Basics/wndproc..aardio
+响应命令=~/example/Windows/Basics/command.aardio
+响应通知=~/example/Windows/Basics/notify.aardio
+鼠标与按键事件=tracker.aardio
+激活程序事件=onActivateApp.aardio
+WM_SETTEXT=_WM_SETTEXT.aardio

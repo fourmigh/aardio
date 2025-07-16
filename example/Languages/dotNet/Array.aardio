@@ -1,4 +1,7 @@
 //在 aardio 中使用 .NET 数组
+//.NET 下标: doc://example/Languages/dotNet/Item.html
+//.NET 多项索引: doc://example/Languages/dotNet/Multidimensional-Array.html
+
 import console;
 import dotNet; 
 var compiler = dotNet.createCompiler("C#");

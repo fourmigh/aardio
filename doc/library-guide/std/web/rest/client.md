@@ -6,7 +6,7 @@ web.rest 是一种调用规则，也是 aardio 里的一个名字空间，web.re
 
 web.rest 名字空间的所有客户端默认都可选使用第一个构造参数指定 User Agent，可选用第二个构造参数指定代理服务器，请参考：[设置代理服务器](../../inet/proxy.md) 。
 
-## 一、简单示例 
+## 一、简单示例 <a id="quickstart" href="#quickstart">&#x23;</a>
 
 
 ```aardio
@@ -80,7 +80,8 @@ var result = api.object.method({
     上面的 object , method 我们称为『网址模板参数』。  
   
 
-##  二、网址模板参数
+##  二、网址模板参数 <a id="url-template-parameters" href="#url-parameters">&#x23;</a>
+
 
 在声明 API 对象时， HTTP 接口网址中可选使用大括号 `{}` 包含模板参数名，示例：
 
@@ -112,6 +113,8 @@ console.dumpJson(result);
 console.pause();
 ```
 
+> 如果我们事先在 http.defaultUrlTemplate 里指定了默认的 URL 模板，则谳用 http.api 时可省略参数，或者仅指定以 `/` 或 `.` 开始的 URL 路径部分。一些继承自 web.rest.client 的客户端可能会使用 defaultUrlTemplate 指定默认的 API 接口地址。
+
 上面调用 api.aardio.jacen() 函数的实际请求地址为：
 
 ```aardio
@@ -121,7 +124,7 @@ console.pause();
 
 模板实参 "aardio" 会替换模板参数  `{org}` ，模板实参 "jacen" 会替换模板参数 `{name}` ，依次从前向后替换（忽略模板名 ）。  
 
-也可以把斜杠写到模板变量里面，例如 `{/name}` ，这表示：如果调用时指定了模板实参则保留斜杠，否则去掉斜杆。
+也可以把斜杠写到模板变量里面，例如 `{/name}` ，这表示：如果调用时指定了模板实参则保留斜杠，否则去掉斜杠。
 
 我们也可以在调用时明确指定模板实参的名字，代码如下：
 
@@ -154,7 +157,11 @@ var api = http.api("http://httpbin.org/anything/{...}")
 
 这个  `{...}` 可以省略不写，省略仍然支持不定个数模板参数，多个模板实参会自动用 "/" 分隔。
 
-## 三、HTTP 请求方法
+> 如果在接口 URL 后面增加 `#` 号则在发送请求时忽略 `#` 号之后自动追加的子路径。
+例如 `http://httpbin.org/anything/#`
+
+## 三、HTTP 请求方法 <a id="method" href="#method">&#x23;</a>
+
 
 HTTP 协议常用的请求方法有：GET，POST，PUT，DELETE，PATCH，HEAD。
 
@@ -212,29 +219,33 @@ var result = api.getGet()
 
 类似的还有 postPost(), putPut() …… 等函数。
 
-##  四、web.rest 名字空间
+##  四、web.rest 名字空间 <a id="namespace" href="#namespace">&#x23;</a>
+
 
 web.rest 名字空间的类都继承自 web.rest.client，区别在于请求数据格式或服务器响应数据格式不同。  
+
+所有基于 web.rest.client 的客户端都定义了 `stringifyRequestParameters` 方法用于编码请求参数，并且定义了 `parseResponseResult` 方法用于解码服务器发回的响应数据。
 
 最常用的 web.rest 类如下：  
 
 1、web.rest.client
 
-请求为网页表单编码，响应数据直接返回。
+请求为网页表单编码，响应数据直接返回。HTTP 请求头 `Content-Type` 默认设为 `application/x-www-form-urlencoded` 。
+用于格式化请求参数的 stringifyRequestParameters 方法默认指向 `inet.url.stringifyParameters` 函数。
 
 3、web.rest.jsonClient  
 
-请求与响应数据都是 JSON 。
+请求与响应数据都是 JSON 。HTTP 请求头 `Content-Type` 默认设为 `application/json` , HTTP 请求头 `Accept` 的默认设为  `application/json,text/json,*/*` 。用于格式化请求参数的 stringifyRequestParameters 方法默认指向 `JSON.stringify` 函数（默认启用 UNICODE 转义）。用于解析服务器响应 JSON 的 `parseResponseResult` 方法则支持 JSON/JSONL/NDJSON 等响应格式。如果服务器响应格式为 `application/x-www-form-urlencoded`则先行调用 `inet.url.splitParameters`将响应数据先解析为表对象，并将包含 JSON 的字段值调用 `JSON.tryParse`尝试解析为对象或数组。
 
 3、web.rest.jsonLiteClient
 
-请求为网页表单编码，响应数据为 JSON 。
+请求为网页表单编码，响应数据为 JSON 。HTTP 请求头 `Content-Type` 默认值设为 `application/x-www-form-urlencoded` , HTTP 请求头 `Accept` 的默认设为  `application/json,text/json,*/*` 。用于格式化请求参数的 stringifyRequestParameters 方法默认指向 `inet.url.stringifyParameters` 函数。用于解析服务器响应 JSON 的 `parseResponseResult` 方法则与 web.rest.jsonClient 相同。
 
 下面我们看一下 web.rest.jsonLiteClient 的主要源码：
 
 ```aardio
 
-import web.json;
+import JSON;
 import web.rest.client;
 
 namespace web.rest; 
@@ -258,7 +269,7 @@ class jsonLiteClient{
     //自动转换服务器响应数据
     this.parseResponseResult = function(s){
       //省略其他代码
-      return  ..web.json.parse(s,true);
+      return  ..JSON.parse(s,true);
     }
   }; 
 }
@@ -266,7 +277,7 @@ class jsonLiteClient{
 
 每个不同的 web.rest 类 —— 主要是修改了转换请求参数格式的 this. stringifyRequestParameters 函数，以及修改服务器响应数据格式的 this. parseResponseResult 。
 
-##  五、获取错误信息
+##  五、获取错误信息 <a id="error" href="#error">&#x23;</a>
 
 在调用 HTTP 接口时，成功返回解析后的响应数据，失败则返回 3 个值：null, 错误信息, 错误代码（可选） 。
 
@@ -333,7 +344,8 @@ console.pause();
 
 参考：[操作符 - 直接下标](../../../../language-reference/operator/member-access.md)
 
-## 六、自定义 HTTP 请求头
+## 六、自定义 HTTP 请求头 <a id="header" href="#header">&#x23;</a>
+
 
 可使用 http.addHeaders 自定义 HTTP 请求头，示例：
 
@@ -357,7 +369,11 @@ console.dumpJson(ret);
 console.pause(true);
 ```
 
-如果每次请求都要动态修改 HTTP 请求头，可以在 http.  beforeRequestHeaders 函数内返回需要添加的请求头，例如：
+如果每次请求都要动态修改 HTTP 请求头，可以在 http.beforeRequestHeaders 事件函数内返回需要添加的请求头。
+
+基于 web.rest.client 的所有 HTTP 客户端在准备好其他请求参数以后，发送 HTTP 请求以前的最后一步操作就是准备 HTTP 头，在这个构建 HTTP 头的阶段会自动回调 beforeRequestHeaders 函数，beforeRequestHeaders 的回调参数中可以拿到较多的关于本次 HTTP 请求的各种参数与信息，很适合在 函数，beforeRequestHeaders 构造需要动态修改 HTTP 请求头的需求（ 例如实现签名算法并修改 HTTP 头 ）。
+
+下面是自定义 beforeRequestHeaders 的示例：
 
 ```aardio
 import crypt; 
@@ -366,8 +382,17 @@ import console;
 
 var http = web.rest.jsonLiteClient(); 
 
-//每次请求都要动态修改 HTTP 请求头
-http.beforeRequestHeaders = function(params){
+/*
+beforeRequestHeaders 在发送请求前触发，返回自定义 HTTP 头。
+
+回调参数说明：
+@params 调用接口的表参数（ table 对象）。
+@payload 待发送的 HTTP 请求数据（字符串），根据前面的表参数 @params 生成。
+@url 请求网址（字符串）。
+@httpMethod 请求方法（大写字符串，不需要再转大写）。
+@contentType 请求 MIME 类型（字符串）。
+*/
+http.beforeRequestHeaders = function(params, payload, url, httpMethod, contentType){
 
     var apiKey = "";
     var secretKey = "";
@@ -380,7 +405,7 @@ http.beforeRequestHeaders = function(params){
 
     //通过返回值设置本次请求的 HTTP 头, Content-Type 不需要指定（会自动指定）
     return {
-        ["Authorization"] = crypt.encodeBin(web.json.stringify(authorization))
+        ["Authorization"] = crypt.encodeBin(JSON.stringify(authorization))
     };
 }
 
@@ -394,7 +419,56 @@ console.dumpJson(ret);
 console.pause(true);
 ```
 
-##  七、multipart/form-data 编码上传文件
+通常我们应当与一个新的类库以预定义 beforeRequestHeaders 函数，典型的例如 web.rest.tencentCloud 客户端的源码结构如下：
+
+```aardio
+import web.rest.jsonClient;
+import crypt.hmac;
+
+class web.rest.tencentCloud{
+	ctor(...){
+		this = ..web.rest.jsonClient(...);
+	
+		this.beforeRequestHeaders = function(params,payload,url,httpMethod,contentType){
+			
+			//省略实现签名算法的代码
+
+			//HMAC-SHA256 , 注意 this.config 是类构造传过来的表对象（也可以在创建对象后指定）
+			var secretDate = ..crypt.hmac.sha256("TC3" 
+				++ this.config.secretKey,strDate).getValue();
+				
+			//省略实现签名算法的代码
+			
+			return {
+				["Authorization"] = authorization;   
+				["X-TC-Timestamp"] = timestamp; 
+				["X-TC-Action"] = this.config.action; 
+				["X-TC-Version"] = this.config.version; 
+				["X-TC-Region"] = this.config.region; 
+			} 
+		}
+	}; 
+}
+```
+
+完整源码请到标准库中查看。
+
+附：签名经常用到的 HMAC-SHA256 算法：
+
+```aardio
+import crypt.hmac;
+
+var key = 'key';
+var data =  "Hi There"; 
+
+//HMAC-SHA256
+var hmacData = crypt.hmac.sha256(key,data).getValue()
+var base64 = crypt.encodeBin( hmacData );
+```
+
+
+##  七、multipart/form-data 编码上传文件 <a id="upload-file" href="#upload-file">&#x23;</a>
+
 
 示例：
 
@@ -427,7 +501,8 @@ var result = api.sendMultipartForm( {
 );
 ```
   
-##  八、上传文件 
+##  八、上传文件 <a id="upload" href="#upload">&#x23;</a>
+
 
 直接上传文件示例：
 
@@ -457,7 +532,8 @@ var result = api.sendFile( "/上传文件路径.txt"
 ```
 
   
-##  九、下载文件 
+##  九、下载文件 <a id="download" href="#download">&#x23;</a>
+
 
 下载文件示例：
 
@@ -490,7 +566,8 @@ aardio.receiveFile("/.test.html",function(recvData,recvSize,contentLength){
 ```
 
   
-##  十、自动模式匹配
+##  十、自动模式匹配 <a id="pattern-" href="#pattern-">&#x23;</a>
+
 
 在声明 HTTP 接口对象时，还可以指定模式串 —— 用于自动匹配服务器响应数据，并返回匹配结果。
 
@@ -517,7 +594,8 @@ console.pause(true);
 ```
 
   
-##  十一、普通 HTTP 客户端
+##  十一、普通 HTTP 客户端 <a id="http-client" href="#http-client">&#x23;</a>
+
 
 web.rest 基于 inet.http （ [请参考：玩转 inet.http](../../inet/http.md)，也可以作为增强版的 HTTP 客户端功能，示例：
 
@@ -546,7 +624,8 @@ console.pause();
 
 与 inet.http 不同的是，如果服务端返回数据的编码声明不是 UTF-8，web.rest 会自动转换为 UTF-8 。
 
-##  十二、直接提交原始数据
+##  十二、直接提交原始数据 <a id="raw-string-param" href="#raw-string-param">&#x23;</a>
+
 
 使用 web.rest 调用 HTTP 接口时，如果提交数据是一个字符串，则不作任何处理 —— 直接提交。
 
@@ -572,6 +651,78 @@ var ret = http.post("http://httpbin.org/anything",json)
 console.dumpJson(ret);
 console.pause();
 ```
+
+## 十三、流式输出接口 <a id="stream" href="#stream">&#x23;</a>
+
+基于 web.rest.client 的所有客户端都自动支持以下格式的服务端流式输出：
+- SSE( Server-Sent Events) 事件流， Content-Type(MIME) 必须是 "text/event-stream" 。
+- ndjson 或 jsonl 格式的流， Content-Type(MIME) 必须是 "application/x-ndjson","application/jsonl","application/json-line" 之一。
+
+基于 web.rest.jsonClient, web.rest.jsonLiteClient 的客户端还可以支持标准 JSON 对象数组格式的流。这种格式要求 Content-Type(MIME) 响应头 必须包含 "json" 关键字，服务器输出的第一个字符必须是 `[`，最后一个字符必须是 `]`， 每个块都必须是一个使用 `{}` 包围的 JSON 对象，对象之间必须以 `,` 分隔。
+
+在调用 HTTP 接口时指定回调函数则自动启用流式接口，服务器发送的每个独立块都会调用一次回调函数，并且每次发送的数据都会自动调用当前客户端的 `parseResponseResult` 方法解码。
+
+示例：
+
+```aardio
+import web.rest.jsonLiteClient;
+var http = web.rest.jsonLiteClient();
+
+var eventSource = http.api(url) 
+
+//参数 @2 或 参数@3 指定接收数据回调函数则自动支持 SSE，兼容 ndjson/jsonl/json 流。
+eventSource.get( , function(message){   
+	//注意这里的 message 已经由 JSON 解析为单个对象
+	print("HTTP 服务端推送了事件",type(message))
+	print(message);
+	
+	//返回 false 则停止接收事件
+	// return false;
+} ) 
+```
+
+[SSE 完整范例](../../../../example/Web/REST/sse.html)
+
+## 十三、调用 AI 大模型接口 <a id="aiChat" href="#aiChat">&#x23;</a>
+
+- [web.rest.aiChat 使用指南](aiChat.md)
+- [更多 AI 调用范例](../../../../example/AI/aiChat.html)
+
+web.rest.aiChat 是基于 web.rest.jsonClient 实现的 AI 聊天客户端。
+
+web.rest.aiChat 默认使用 OpenAI 兼容接口协议，在模型名称参数前添加 `@` 字符则使用 Anthropic  聊天接口（例如 `@claude-3-5-sonnet-latest"`）。
+
+示例：
+
+```aardio
+//创建 AI 客户端
+import web.rest.aiChat;
+var ai = web.rest.aiChat(    
+	key = '密钥';
+	url = "https://api.deepseek.com/v1";
+	model = "deepseek-chat";//模型名称 
+	temperature = 0.1;//温度
+	maxTokens = 1024,//最大回复长度
+)
+
+//创建消息队列
+var msg = web.rest.aiChat.message();
+
+//添加系统提示词。
+msg.system("你是桌面智能助手。");
+
+//添加用户提示词
+msg.prompt( "请输入问题:" );
+
+import console; 
+console.showLoading(" Thinking "); 
+
+//发送请求，参数 @2 如果指定 SSE 回调函数则启用流式推送
+ai.messages(msg,console.writeText);//可选用参数 @3 指定一个表包含其他请求参数。
+```
+
+SSE 回调函数如果返回 false 则停止接收数据。
+
 
   
 ##  更多范例

@@ -7,8 +7,8 @@ edit={cls="richedit";left=6;top=6;right=754;bottom=464;db=1;dl=1;dr=1;dt=1;edge=
 )
 /*}}*/
 
-//导入 web.json 库，文本框就能以 JSON 格式输出对象
-import web.json;
+//导入 JSON 库，文本框就能以 JSON 格式输出对象
+import JSON;
 
 //文本框内输出任意对象
 winform.edit.print({

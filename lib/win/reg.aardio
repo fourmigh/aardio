@@ -181,7 +181,7 @@ class reg{
 	setMultiSzValue = function( name,...)  {
 		var v = ( type(...) == type.table ) ? ... : {...};
 		v = ..string.join(v,'\0');
-		if(  ..string.endWith( v,'\0\0') == false) v ++= '\0\0';
+		if(  ..string.endsWith( v,'\0\0') == false) v ++= '\0\0';
 		
 		v = ..string.toUtf16(v);
 		var res =RegSetValueExBinary( this.handle,name,0,0x7/*_REG_MULTI_SZ*/,v,#v );
@@ -331,7 +331,10 @@ class reg{
 		setprivilege('SeRestorePrivilege',true)   
 		ret = RegRestoreKey(this.handle, ..io.fullpath(filepath) ,0x00000008/*_REG_FORCE_RESTORE*/  ) 
 		return !ret;
-	}; 
+	};
+	getValue = this.queryValue;//@Deprecated
+	get = this.queryValue;//@Deprecated
+	set = setValue;//@Deprecated
 }
 
 namespace reg{

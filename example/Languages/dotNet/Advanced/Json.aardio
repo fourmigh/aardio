@@ -1,6 +1,6 @@
 ﻿//aardio 调用 .NET 之 JSON 转换
 import console; 
-import web.json;
+import JSON;
 import dotNet.json;
 import System.Collections;
 
@@ -14,10 +14,10 @@ arrList.Add("字符串");
 var json = dotNet.json.SerializeObject(arrList);
 console.log(json);
 
-//导入 dotNet.json 以后 web.json 会自动支持 .NET对象
-console.log(web.json.stringify(arrList));
+//导入 dotNet.json 以后 JSON 会自动支持 .NET对象
+console.log(JSON.stringify(arrList));
 
-//这个函数内部也是调用 web.json.stringify
+//这个函数内部也是调用 JSON.stringify
 console.dumpJson(arrList);
 
 //JSON 解析为 .NET 对象
@@ -46,7 +46,7 @@ var str = tostring(spaceInvaders);
 console.log(str); 
 
 //.NET 对象转换为纯 aardio 对象
-var obj = web.json.strip(spaceInvaders);
+var obj = JSON.strip(spaceInvaders);
 console.dump(obj);
 
 console.pause();

@@ -58,7 +58,7 @@
     在原生 API 参数中可作为内存指针、字符串、输出字符串使用。  
     在 COM 函数中可作为安全数组使用。  
     
-    通过 web.json 库，buffer 在 JSON 中会转换为`{type="Buffer";data={} }`格式的表对象, 这种表对象可作为raw.buffer的唯一初始值参数还原为buffer对象。  
+    通过 JSON 库，buffer 在 JSON 中会转换为`{type="Buffer";data={} }`格式的表对象, 这种表对象可作为raw.buffer的唯一初始值参数还原为buffer对象。  
     
     与字符串、动态指针一样， buffer 尾部总会保护性地放置 2 个隐藏的字节`'\0\0'`（不计入字符串长度，不包含在字符串中）。与动态指针不同的是，即使你不指定初始值，aardio 仍然会初始化 buffer 中所有字节的值为 0，并且 buffer 的长度是不可变的。  
 

@@ -1,10 +1,11 @@
 //plus 控件 - 自绘背景
+//plus 控件使用指南: doc://library-guide/std/win/ui/ctrl/plus.md
 import fonts.fontAwesome;
 import win.ui;
 /*DSG{{*/
 var winform = win.form(text="plus控件 - 自绘背景演示";right=1131;bottom=614)
 winform.add(
-plus={cls="plus";text='\uF062';left=-82;top=72;right=83;bottom=188;bgcolor=-5197169;font=LOGFONT(h=-32;name='FontAwesome');textPadding={top=35};z=1}
+plus={cls="plus";text='\uF062';left=-82;top=72;right=83;bottom=188;bgcolor=8FB2B0;font=LOGFONT(h=-32;name='FontAwesome');textPadding={top=35};z=1}
 )
 /*}}*/
 

@@ -1,7 +1,8 @@
 //plus 控件 - 旋转动画
+//plus 控件使用指南: doc://library-guide/std/win/ui/ctrl/plus.md
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="鼠标放到图像上显示动画";right=234;bottom=214;bgcolor=16711680)
+var winform = win.form(text="鼠标放到图像上显示动画";right=234;bottom=214;bgcolor=0xFF0000)
 winform.add(
 plus={cls="plus";left=93;top=69;right=143;bottom=119;border={radius=-1};foreRepeat="scale";notify=1;z=1}
 )
@@ -14,8 +15,7 @@ winform.plus.onDrawContent = function(graphics,rc,color){
 	if(owner.animationState) graphics.rotateRect(rc,owner.animationState);
 }
 
-winform.plus.onAnimation = function(state,beginning,change,timestamp){
-    var duration = 900;
+winform.plus.onAnimation = function(state,beginning,change,timestamp,duration){
 	if(timestamp < duration){
 		var x = timestamp/duration;  
 		return beginning+change*(-x*x + 2*x);     	
@@ -23,7 +23,7 @@ winform.plus.onAnimation = function(state,beginning,change,timestamp){
 }
 
 winform.plus.onMouseEnter = function(wParam,lParam){
-	winform.plus.startAnimation(1,0,360) 
+	winform.plus.startAnimation(1,0,360,900) 
 }
 
 winform.plus.onMouseLeave = function(wParam,lParam){

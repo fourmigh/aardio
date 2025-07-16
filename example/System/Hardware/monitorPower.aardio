@@ -2,7 +2,7 @@
 import fonts.fontAwesome;
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="自动关屏";left=-20;top=50;right=319;bottom=99;bgcolor=16777215;border="none";max=false)
+var winform = win.form(text="自动关屏";left=-20;top=50;right=319;bottom=99;bgcolor=0xFFFFFF;border="none";max=false)
 winform.add(
 btnClose={cls="close";text="×";left=297;top=11;right=325;bottom=39;bgcolor=13405076;dr=1;dt=1;font=LOGFONT(h=-21);z=3};
 btnCloseLcd={cls="plus";text="关屏";left=191;top=14;right=240;bottom=33;color=8388608;notify=1;textPadding={left=5};z=5};

@@ -9,7 +9,7 @@ button={cls="button";text="button";left=381;top=347;right=740;bottom=454;z=1}
 )
 /*}}*/
 
-/*
+/************
 在设计器生成的代码中使用 winform.add() 函数添加控件。
 winform.add()的参数是一个表,键为控件名，值为创建控件的参数，
 典型的例子：
@@ -75,44 +75,42 @@ var ctrls = winform.add(
 cls 指定控件的设计时类名，每个cls都对应 win.ui.ctrl名字空间下的控件库名字
 className  这是控件的运行时类名，className 是Windows窗口类名，通常跟cls中指定的名字是不一样的.
 
-left 左坐标 设计时坐标,窗体会记录到 _defClientRect,控件会记录到 _defRect
-top 上坐标 设计时坐标,窗体会记录到 _defClientRect,控件会记录到 _defRect 
-right 右坐标 设计时坐标,窗体会记录到 _defClientRect,控件会记录到 _defRect
-bottom 下坐标 设计时坐标,窗体会记录到 _defClientRect,控件会记录到 _defRect
+left 左坐标 设计时坐标，窗体会记录此字段到 _defClientRect 属性，控件会记录到 _defRect 属性。
+top 上坐标 设计时坐标，窗体会记录此字段到 _defClientRect 属性，控件会记录到 _defRect 属性。 
+right 右坐标 设计时坐标，窗体会记录此字段到 _defClientRect 属性，控件会记录到 _defRect 属性。
+bottom 下坐标 设计时坐标，窗体会记录此字段到 _defClientRect 属性，控件会记录到 _defRect 属性。
 aardio会记录设计时坐标，作为运行时自动缩放控件的依据。
 
 dl 左侧是否固定与父窗口的左边距,如果是一个小数,计算父窗口宽度的百分比得出当前边距
 dt 上侧是否固定与父窗口的上边距,如果是一个小数,计算父窗口高度的百分比得出当前边距
 dr 右侧是否固定与父窗口的右边距,如果是一个小数,计算父窗口宽度的百分比得出当前边距
 db 底侧是否固定与父窗口的底边距,如果是一个小数,计算父窗口高度的百分比得出当前边距
+注意在未指定固定边距属性时，控件默认跟随窗体缩放自动调整位置（边距不会保持不变）。
 
 --------------------------------------------------------------------------
 以上属性由aardio窗体设计器生成的代码中使用，以下属性在窗体设计器之外使用。
 --------------------------------------------------------------------------
 
-width 控件的宽度,会被转换为_defClientRect或_defRect然后清除
-height 控件的高度,会被转换为_defClientRect或_defRect然后清除
+anchors 属性获取或设置固定边距，值为表对象，
+可选包含 left,top,right,bottom 字段，参数必须是数值，可用值与控件初始化属性 dl,dt,dr,db 相同。
+例如 winfom.edit.anchors = {left=1;top=1;right=1;bottom=1} 等价于在控件初始化属性中将 dl,dt,dr,db 都设为 1。
 
-marginLeft 控件的左边距,小数表示计算父窗口宽度的百分比得出当前边距
-marginRight 控件的右边距,小数表示计算计算父窗口宽度的百分比得出当前边距
-marginTop 控件的顶边距,小数表示计算父窗口高度的百分比得出当前边距
-marginBottom 控件的底边距,小数表示计算父窗口高度的百分比得出当前边距
+width 控件的设计时宽度，会被转换为 _defClientRect 或 _defRect 然后清除
+height 控件的设计时高度，会被转换为 _defClientRect 或 _defRect 然后清除
+
+marginLeft 控件的设计时固定左边距，值为像素单位的数值，设为小数表示计算父窗口宽度的百分比得出当前边距
+marginRight 控件的设计时固定右边距，值为像素单位的数值，设为小数表示计算计算父窗口宽度的百分比得出当前边距
+marginTop 控件的设计时固定顶边距，值为像素单位的数值，设为小数表示计算父窗口高度的百分比得出当前边距
+marginBottom 控件的设计时固定底边距，值为像素单位的数值，设为小数表示计算父窗口高度的百分比得出当前边距
 
 所有关于控件位置的参数都是可选的，
-但应当指定合适的参数让aardio可以推算出其他的参数，
-例如指定了marginRight，那么至少应该指定width才能自动推算出正确的left参数,
-
-如果缺少参数,aardio会自动将相应参数设为0，或使用尽可能正确的参数代替。
-如果不能推算出left,top，aardio将marginLeft,marginTop默认设置为0,
-如果不能推算出right,bottom,aardio默认将marginRight,marginRight设为0。
-
-如果创建控件的代码不是由窗口设计器生成，
-建议大家使用marginLeft，marginRight，marginTop，marginBottom控制边距，
-并使用width,height等控制窗体大小。这几个属性更灵活，代码可读性也更好，而且也更加的简洁。
-
-如果在aardio的窗体设计器中使用marginLeft，marginRight，marginTop，marginBottom。
-aardio会自动将这些属性转换为dl,dt,dr,db等属性。
-*/
+如果未明确指定控件某个边的位置，则固定该边距为 0,
+也就是说如果不指定任何位置参数，则控件铺满父窗口的客户区。
+ 
+aardio 的窗体设计器（/*DSG{{*/ /*}}*/ 标签包围的代码）无法识别 
+width,height,marginLeft，marginRight，marginTop，marginBottom
+这些属性。
+************/
 
 var ctrls  = winform.button.addCtrl({ 
 	{cls="button";text="r";font=LOGFONT(name='Marlett';charset=2/*_SYMBOL_CHARSET*/);width=25;height=25;marginTop=0.5/*垂直居中*/;marginRight=25 } 

@@ -15,7 +15,7 @@ namespace web.rpc{
 			this.httpHandler = {
 				["/aardio.js" ] = function(response,request){
 					var ip,port = this.ws.getLocalIp();
-					var js = ..string.replace($"~\lib\electron\app\.build\aardio\index.js"
+					var js = ..string.replace($"~\lib\chrome\.res\aardio\index.js"
 						,"@{{{$rpcServerPort}}}",tostring(port));
 					
 					if(!#this.$aasdl) this.$aasdl = ..string.aasdl(this.external); 
@@ -37,7 +37,7 @@ namespace web.rpc{
 								return this.onError(rpcSocket,err,requestData);
 							}
 							else {
-								errput(err,"electron/http/rpc error");
+								errput(err,"aardio/http/rpc error");
 							} 
 						};
 						jsonServer.rpc.run(rpcSocket);
@@ -107,7 +107,7 @@ namespace web.rpc{
 			var port =  this.getPort();
 			if(!port) this.start();
 			
-			if(..string.startWith(path,"http:") || ..string.startWith(path,"https:") ){
+			if(..string.startsWith(path,"http:") || ..string.startsWith(path,"https:") ){
 				if(!#this.$aasdl) this.$aasdl = ..string.aasdl(this.external); 
 				return ..inet.url.appendExtraInfo(path,"rpcServerPort=" + this.getPort() +"&rpcAasdl=" + ..inet.url.encode(this.$aasdl) );
 			}
@@ -131,7 +131,7 @@ namespace web.rpc{
 			{
 				var ip,port = this.http.getLocalIp();
 				
-				::Kernel32.SetEnvironmentVariable("aarStartEnviron",..web.json.stringify( {
+				::Kernel32.SetEnvironmentVariable("aarStartEnviron",..JSON.stringify( {
 					rpcPort = port;
 					rpchttpServerUrl  = this.http.getUrl("rpc/http"); 
 					rpcServerUrl  = this.ws.getUrl("rpc/ws"); 
@@ -212,7 +212,7 @@ export {};
 
 ```
 rpcServer.accessControlAllowOrigin = {
-	["https://example.com"] = true //域名后不要加斜杆
+	["https://example.com"] = true //域名后不要加斜杠
 }
 ```
 

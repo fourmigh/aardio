@@ -7,10 +7,10 @@ namespace bencoding.magnet;
 
 get = function(strTorrentData){
 	if(#strTorrentData < 0x410/*_MAX_PATH_U8*/ && ..io.exist(strTorrentData) ){
-		if(  ..string.endWith(strTorrentData,".torrent",true) ){
+		if(  ..string.endsWith(strTorrentData,".torrent",true) ){
 			strTorrentData = ..string.load(strTorrentData);
 		}
-		elseif(  ..string.endWith(strTorrentData,".aria2",true) ){
+		elseif(  ..string.endsWith(strTorrentData,".aria2",true) ){
 			var file = ..io.file(strTorrentData,"rb");
 			if(file){ 
 				var header = file.seek("set",2) ? file.read({INT extension;INT infoHashLength})

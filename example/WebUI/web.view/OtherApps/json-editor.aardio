@@ -1,0 +1,223 @@
+import web.npm;
+import wsock.tcp.asynHttpServer;
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="web.view - JSON 编辑器";left=-2;top=-2;right=966;bottom=622)
+winform.add()
+/*}}*/
+
+import web.view;
+var wb = web.view(winform);
+	
+import key;
+import fsys.dlg;
+wb.external = {
+	save = function(json){ 
+		var path = ( !key.getState("CTRL") && wb.currentJsonFilePath )
+			|| fsys.dlg.save("*.json|*.json|*.*|*.*|","保存 JSON 文件");
+		if(path){
+			string.save(path,json);
+			wb.currentJsonFilePath = path;
+			
+			winform.text = "已保存到："+wb.currentJsonFilePath
+			winform.setTimeout( 
+			function(){
+				winform.text = "web.view - JSON 编辑器";
+			},2000);
+		} 
+	};
+	load = function(json){ 
+		var path = fsys.dlg.open("*.json|*.json|*.*|*.*|","打开 JSON 文件（也可以直接拖放文件到 JSON 编辑器页面）");
+		if(path){
+			wb.currentJsonFilePath = path;
+			return string.load(path);
+		} 
+	};
+	copyAsTable = function(json){
+		var tab = JSON.tryParse(json);
+		if(tab){
+			var str = ..table.tostring(tab);
+			import win.clip;
+			win.clip.write(str);
+			
+			winform.text = "已转换为 table 对象并复制为 aardio 代码。"
+				 winform.setTimeout( 
+				 	function(){
+				 		winform.text = "web.view - JSON 编辑器";
+				 	},2000);
+		}
+	};
+	toggleTopmost = function(){
+		var topmost = win.getStyleEx(winform.hwnd,8/*_WS_EX_TOPMOST*/);
+		win.setTopmost(winform.hwnd,!topmost)  
+		return !topmost;
+	};
+}
+
+//启动内嵌 HTTP 服务器
+wb.asynHttpServer = wsock.tcp.asynHttpServer();
+
+//创建虚拟文件表
+wb.asynHttpServer.run( {
+	["/vanilla-jsoneditor.js"] = web.npm.load("/","vanilla-jsoneditor","standalone.js");
+	["/index.html"] = /********
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+    .topmost-active {
+    	background-color: #ff6b6b !important;
+    	color: white !important;
+	}
+	.topmost-active svg {
+    	color: white !important;
+	}
+	</style>
+  </head>
+
+  <body>
+    <div id="app">
+      <json-editor-vue v-model="value"></json-editor-vue>
+    </div>
+ 
+    
+    <script>
+    function handleRenderMenu(items, context){  
+		const separator = {
+			type: 'separator'
+		}
+		
+		const faCodeTable = {
+    		prefix: 'fas',
+    		iconName: 'code-table',
+    		icon: [1024, 1024, [], "",
+    		'M355.398 139.327c-15.858 0-30.395 2.643-43.611 7.929-18.501 10.572-33.699 24.448-45.593 41.628-11.894 17.18-17.841 37.664-17.841 61.451v99.115c0 15.858-1.322 31.717-3.965 47.575-2.643 15.858-6.608 30.395-11.894 43.611-13.215 29.074-31.717 52.861-55.504 71.363 23.788 18.501 42.289 42.289 55.504 71.363 5.286 13.215 9.251 27.752 11.894 43.611 2.643 15.858 3.965 31.717 3.965 47.575v99.115c0 15.858 2.643 30.395 7.929 43.611 5.286 13.215 12.555 25.109 21.805 35.681 9.251 10.572 20.484 18.502 33.699 \
+23.788 13.215 5.286 27.752 7.929 43.611 7.929h7.929V960h-7.929c-23.788-2.643-46.254-7.929-67.398-15.858s-40.307-20.484-57.487-37.664-29.735-36.342-37.664-57.487c-7.929-21.145-13.215-40.968-15.858-59.469v-3.965a254.735 254.735 0 0 1 0-63.434V658.69c0-15.858-2.643-30.395-7.929-43.611-5.286-13.215-13.215-23.788-23.788-31.717v-3.965c-7.929-7.929-18.501-14.537-31.717-19.823v-3.965c-13.215-5.286-27.752-7.929-43.611-7.929H65.98v-71.363h3.965c15.858 0 30.395-2.643 43.611-7.929 26.431-13.215 44.932-33.038 55.504-59.469 \
+5.286-13.215 7.929-27.752 7.929-43.611v-63.434a254.735 254.735 0 0 1 0-63.434c2.643-21.145 7.929-42.289 15.858-63.434 7.929-21.145 19.823-40.307 35.681-57.487s35.021-30.395 57.487-39.646S331.611 64 355.398 64h7.929v75.327h-7.929z m309.239 745.346c15.858 0 30.395-2.643 43.611-7.929 18.501-10.572 33.699-24.448 45.593-41.628s17.841-37.664 17.841-61.451V674.55c0-15.858 1.322-31.717 3.965-47.575 2.643-15.858 6.608-30.395 11.894-43.611 13.215-29.074 31.717-52.861 55.504-71.363-23.788-18.501-42.289-42.289-55.504-71.363-5.286-13.215-9.251-27.752-11.894-43.611-2.643-15.858-3.965-31.717-3.965-47.575v-99.115c0-15.858-2.643-30.395-7.929-43.611-5.286-13.215-12.555-25.109-21.805-35.681-9.251-10.572-20.484-18.501-33.699-23.788s-27.752-7.929-43.611-7.929h-3.965V67.965h3.965c23.788-2.643 46.254 0.661 67.398 9.912s40.307 22.466 57.487 39.646 29.735 36.342 37.664 57.487c7.929 21.145 13.215 40.968 15.858 59.469v3.965a254.735 254.735 0 0 1 0 63.434v63.434c0 15.858 2.643 30.395 7.929 43.611 5.286 13.215 13.215 23.788 23.788 31.717v3.965c7.\
+929 7.929 18.502 14.537 31.717 19.823v3.965c13.215 5.286 27.752 7.929 43.611 7.929h7.929v71.363h-7.929c-15.858 0-30.395 2.643-43.611 7.929-26.431 13.215-44.932 33.038-55.504 59.469-5.286 13.215-7.929 27.752-7.929 43.611v63.434a254.735 254.735 0 0 1 0 63.434c-2.643 23.788-7.929 44.932-15.858 63.434-7.929 21.145-20.484 40.307-37.664 57.487s-36.342 29.734-57.487 37.664-43.611 11.894-67.398 11.894h-3.965v-71.363h3.963z']
+		};
+		 
+		const faFileLoad = {
+    		prefix: 'fas',
+    		iconName: 'file-lines',
+    		icon: [448, 512, [128441, 128462, "file-alt", "file-text"], "f15c", "M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-288-128 0c-17.7 0-32-14.3-32-32L288 0 64 0zM256 0l0 128 128 0L256 0zM112 256l224 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-224 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l160 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-160 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l224 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-224 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"]
+		};
+		
+		const faFileSave = {
+    		prefix: 'fas',
+    		iconName: 'floppy-disk',
+    		icon: [448, 512, [128190, 128426, "save"], "f0c7", "M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-242.7c0-17-6.7-33.3-18.7-45.3L352 50.7C340 38.7 323.7 32 306.7 32L64 32zm0 96c0-17.7 14.3-32 32-32l192 0c17.7 0 32 14.3 32 32l0 64c0 17.7-14.3 32-32 32L96 224c-17.7 0-32-14.3-32-32l0-64zM224 288a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"]
+		}; 
+		
+		const faThumbtack = {
+  			prefix: 'fas',
+  			iconName: 'thumbtack',
+  			icon: [
+    			1024, 1024, [],'',
+    			'M828.54625639 472.4622255l43.19867956-43.19867955-275.54411986-275.30005955-42.95461924 43.19867957 35.63280913 35.63280912L338.22904045 450.98491587l-56.62199807-56.62199804-43.19867955 43.19867955 53.69327402 53.69327402 242.3519141 242.35191411 53.93733436 53.93733434 43.19867955-43.19867954-56.62199804-56.62199806 219.89836313-248.69748285 33.68032644 33.4362661z m-296.77736914 172.0625372l-150.34116724-150.34116724 250.64996553-218.18994081 119.58956485 119.58956486-219.89836314 248.94154319zM152.98724507 870.0365136l-2.44060336 2.19654302L421.69767551 656.72777951l-53.20515334-53.44921366z'
+  			]
+		};
+		
+		const copyAsTableButton = {
+			type: 'button',
+			icon: faCodeTable, 
+			title: 'Copy as aardio table',
+			className: 'custom-menu-button',
+			onClick: () =>{
+				const content = editor.get()
+				aardio.copyAsTable( content.text  ); 
+			},
+		};
+			
+
+		const loadFileButton = {
+			type: 'button',
+			icon: faFileLoad, 
+			title: 'Load File',
+			className: 'custom-menu-button',
+			onClick: () =>{
+				 aardio.load().then( v=> { if(v)editor.set({text:v}) } ) 
+			},
+		};
+				
+		const saveFileButton = {
+			type: 'button',
+			icon: faFileSave, 
+			title: 'Save Faile',
+			className: 'custom-menu-button',
+			onClick: () =>{
+				 const content = editor.get()
+				 aardio.save( content.text  );
+			},
+		};
+		
+		const toggleTopmostButton = {
+			type: 'button',
+			icon: faThumbtack,
+			title: 'Toggle Window Topmost',
+			className: 'custom-menu-button topmost-window',
+			onClick: () =>{
+			 	aardio.toggleTopmost().then( isTopmost => {  
+            		const button = document.querySelector('.topmost-window');
+            		if (button) { 
+                		button.classList.toggle('topmost-active', isTopmost);
+               			button.title = isTopmost ? 'Unpin Window' : 'Pin Window on Top';
+            		} 
+			 	});
+			},
+		};
+	
+    	const head = items.slice(0, items.length - 1)
+    	const tail = items.slice(items.length - 1) // the tail contains space
+	
+    	return head.concat(separator,loadFileButton, saveFileButton,copyAsTableButton,separator, toggleTopmostButton , tail)
+  	}
+    </script>
+    
+    <div id="jsoneditor" ></div>
+
+    <script type="module"> 
+      import { createJSONEditor } from '/vanilla-jsoneditor.js'
+
+      // create the editor
+      window.editor = createJSONEditor({
+        target: document.getElementById('jsoneditor'),
+        props: {
+        	onRenderMenu: handleRenderMenu
+        }
+      })
+      
+ 
+    </script>
+    
+</html>
+********/
+});
+
+
+//打开首页
+wb.go("/index.html");
+
+//弹出新窗口触发
+wb.onNewWindow = function(url){ 
+	return function(){ 
+		//如果打开的是 file: 前缀网址，例如拖放文件到网页上。
+ 		var filePath = inet.url.getFilePath(url)
+ 		if(filePath){
+ 			wb.currentJsonFilePath = filePath;
+ 			wb.invoke("editor.set",{text=string.load(filePath)})
+ 		}
+ 		else { 
+ 			
+ 		} 
+ 	}
+}
+
+if(_JSON_EDITOR_TEXT){
+	wb.waitDoc();
+	wb.invoke("editor.set",{text=_JSON_EDITOR_TEXT})
+}
+
+winform.show(3/*_SW_MAXIMIZE*/);
+win.loopMessage();

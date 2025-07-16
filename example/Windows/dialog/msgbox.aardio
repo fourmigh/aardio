@@ -1,0 +1,44 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="消息框";right=759;bottom=469)
+winform.add(
+btnAsk={cls="button";text="确认消息框";left=147;top=222;right=324;bottom=276;z=3};
+btnErr={cls="button";text="错误消息框";left=147;top=134;right=324;bottom=188;z=2};
+btnMsg={cls="button";text="消息框";left=147;top=46;right=324;bottom=100;z=1};
+btnStyle={cls="button";text="自定义消息框";left=147;top=311;right=324;bottom=365;z=4}
+)
+/*}}*/
+
+winform.btnMsg.oncommand = function(id,event){
+	//所有窗体与控件对象都有 msgbox,msgboxErr,msgboxTest 这三个方法
+	winform.msgbox("消息","可选的标题参数");
+}
+
+winform.btnErr.oncommand = function(id,event){
+	winform.msgboxErr("错误消息","可选的标题参数");
+}
+
+winform.btnAsk.oncommand = function(id,event){
+	if(winform.msgboxTest("你确定要如何如何操作？","可选的标题参数")){
+		//用户按了确定
+	}
+}
+
+winform.btnStyle.oncommand = function(id,event){
+	
+	//显示询问图标与「是」、「否」、「取消」等三个按钮。
+	var ret = winform.msgbox("消息","可选的标题参数","question",3000);
+	
+	if(ret==6/*_IDYES*/){
+		print("用户点了是");
+	}
+	elseif(ret==7/*_IDNO*/){
+		print("用户点了否");
+	}
+	elseif(ret==2/*_IDCANCEL*/){
+		print("用户取消操作");
+	}
+}
+
+winform.show();
+win.loopMessage();

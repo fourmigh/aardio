@@ -56,6 +56,9 @@ class driver{
 		this.driverPath = driverPath;
 		this.client = ..web.rest.jsonClient();
 		this.client._chromeDriver = this;
+		
+		//https://github.com/MicrosoftEdge/EdgeWebDriver/issues/189
+		this.chromeArguments = ["--edge-skip-compat-layer-relaunch"]
 	};
 	startServer = function(port,...){
 		if( this.server ) return this.server;
@@ -78,7 +81,7 @@ class driver{
 		return this.server;
 	};
 	addArguments = function(...){
-		if( !this.chromeArguments )this.chromeArguments ={};
+		if( !this.chromeArguments )this.chromeArguments = [];
 		if( type(...) == type.table ) ..table.append(this.chromeArguments,...)
 		else ..table.push( this.chromeArguments,... );
 	};
@@ -124,7 +127,7 @@ class driver{
 		
 		if(cap.chromeOptions.excludeSwitches){
 			cap.chromeOptions.excludeSwitches = ..table.map(cap.chromeOptions.excludeSwitches,function(v,k,result){
-				if( ..string.startWith(v,"--" ) ) return ..string.right(v,-3);
+				if( ..string.startsWith(v,"--" ) ) return ..string.right(v,-3);
 				return v;
 			})	
 		}
@@ -226,7 +229,7 @@ class driver{
 		}
 		
 		var ses;
-		if( ..string.startWith(app.indexUrl,"http:",true) || ..string.startWith(app.indexUrl,"https:",true) ){
+		if( ..string.startsWith(app.indexUrl,"http:",true) || ..string.startsWith(app.indexUrl,"https:",true) ){
 			ses = this.startBrowser(desiredCap,requiredCap);
 		}
 		else {
@@ -306,12 +309,12 @@ namespace driver{
 		};
 		querySelector = function(css){
 			return owner.query(
-				["css selector"] = css;
+				"css selector" = css;
 			)
 		}; 
 		querySelectorAll = function(css){
 			return owner.queryAll(
-				["css selector"] = css;
+				"css selector" = css;
 			)
 		};
 		cdp = function(cmd, cmd_args){
@@ -323,7 +326,7 @@ namespace driver{
 		doScript = function(script,...){
 			var ret =  owner.execute/*.sync*/(
 				script = script;
-				args = {@{_type="array"};...}
+				args = [...];
 			)
 			
 			if( ret[["status"]] === 0 ){
@@ -384,6 +387,12 @@ namespace driver{
 			var result = this.title.get();
 			if( result[["status"]] == 0 )  return result.value;
 		};
+		getSource = function(){
+			var r,e = this.source.get();
+			if( r[["status"]] === 0 ){
+				return r.value
+			}
+		};
 		getCurrentWindow = function(){
 			var result = this.window_handle.get();
 			if( result[["status"]] == 0 )  return result.value;
@@ -416,7 +425,7 @@ namespace driver{
 		};
 		waitEle = function(css,...){ 
 			var this = owner;
-			return ..win.wait( lambda() this.query(["css selector"]=css),owner.hwndChrome,...);
+			return ..win.wait( lambda() this.query("css selector"=css),owner.hwndChrome,...);
 		};
 		waitTitle = function(str,...){
 			return ..win.wait( lambda() this.findTitle(str),owner.hwndChrome,... ) 
@@ -496,7 +505,7 @@ namespace driver{
 					return r.value
 				}
 			};
-			getProperty = function(){
+			getProperty = function(name){
 				var r,e = this.property[name].get();
 				if( r[["status"]] === 0 ){
 					return r.value
@@ -517,9 +526,7 @@ namespace driver{
 			getRect = function(){
 				var r,e = this.rect.get();
 				if( r[["status"]] === 0 ){
-					var rc = ::RECT();
-					rc.float(r.value); 
-					return rc; 
+					return ::RECT(r.value);
 				}
 			};
 			getSize = function(){
@@ -656,7 +663,7 @@ namespace driver{
 	}
 	
 	versionConvert = {
-		["Electron"] = function(v){
+		["Electron"] = function(v){ //@Deprecated
 			var electron2Chrome = {["0.20"]="39";["0.21"]="41";["0.25"]="42";["0.27"]="43";["0.30"]="44";["0.31"]="45";["0.36"]="47";["0.37"]="49";["1.1"]="50";["1.2"]="51";["1.3"]="52";["1.4"]="54";["1.6"]="56";["1.7"]="58";["1.8"]="59";["2.0"]="61";["3.0"]="66";["4.0"]="69";["5.0"]="72";["6.0"]="76";["7.0"]="78";["8.0"]="80";["9.0"]="83";["9.0"]="83";["10.0"]="85";["11.0"]="87"}
 				var ret = matchPredatesChromeDriverVersion(v,electron2Chrome,true);
 				return ret;
@@ -805,12 +812,12 @@ close() = 关闭当前会话的当前活动浏览器窗口（输入焦点所在�
 closeAll() = 关闭会话创建的所有浏览器窗口
 go("__") = 打开指定网址\nHTTP接口：GET /session/{session id}/url
 url.get() = 获取当前URL\nHTTP接口：GET	/session/{session id}/url
-query(查询参数) = @.query(["partial link text"]="链接文本"__/*使用指定键值对查询网页元素,不指定参数获取当前活动元素*/)
+query(查询参数) = @.query("partial link text"="链接文本"__/*使用指定键值对查询网页元素,不指定参数获取当前活动元素*/)
 waitEle("__") = 等待并返回指定 CSS 选择器匹配的节点对象。\n可选用参数 @2 指定超时（毫秒），可选用参数 @3 指定检测间隔（毫秒）。\nHTTP接口：POST /session/{session id}/element
 querySelector("__") = 指定CSS选择器并返回节点对象\nHTTP接口：POST /session/{session id}/element
 querySelector() = !chromeDriverEle.
 query() = !chromeDriverEle.
-queryAll(查询参数) = @.query(["partial link text"]="链接文本"__/*使用指定键值对查询并返回网页元素数组*/)
+queryAll(查询参数) = @.query("partial link text"="链接文本"__/*使用指定键值对查询并返回网页元素数组*/)
 querySelectorAll("__") = 指定CSS选择器并返回节点对象数组\nHTTP接口：POST /session/{session id}/elements
 querySelectorAll() = !chromeDriverEle.
 queryAll() = !chromeDriverEle.
@@ -832,7 +839,6 @@ window.rect.get() = 获取窗口位置\nHTTP接口：GET /session/{session id}/w
 window.rect(__) = 前进\POST	/session/{session id}/window/rect
 window.maximize() = 最大化\nHTTP接口：POST /session/{session id}/window/maximize
 window.minimize() = 最小化\nHTTP接口：POST /session/{session id}/window/minimize
-source.get() = 获取页面源码\nHTTP接口：GET /session/{session id}/source
 cdp( = 执行 CDP 命令。 \n调用成功则第一个返回值为 CDP 返回的表对象。\n调用失败则第二个返回值为错误信息。 \n注意 CDP 调用成功不等于命令执行成功，\n即使调用成功且第一个返回值为表对象， \n该返回值仍解码器能包含错误状态码与错误信息。\n返回表对象的字段含义请参考 CDP 文档。\n\nHTTP接口：POST /session/{session id}/goog|ms/cdp/execute
 doScript( = 执行脚本\nHTTP接口：POST /session/{session id}/execute/sync
 doScript(.("JS脚本",其他调用参数) = JS脚本会被放到一个匿名函数中执行,\n可添加任意个调用参数,节点对象可作为参数\n成功返回该匿名函数的返回值,\n失败返回null,以及REST API返回的响应对象
@@ -841,7 +847,7 @@ loadScript("__") = 加载JS脚本文件\n参数指定JS文件网址\n\n此函数
 cookie.get() = 获取cookie,也可以写为cookie.name.get \nHTTP接口：GET /session/{session id}/cookie
 cookie(__) = 修改cookie\nHTTP接口：POST /session/{session id}/cookie
 cookie.delete() = 删除cookie,\n也可以写为cookie.name.delete删除指定名字cookie\nDELETE	/session/{session id}/cookie/{name}
-source.get() = 获取页面源码\nHTTP接口：GET /session/{session id}/source
+getSource() = 获取网页 HTML 源码。
 actions(__) = 执行动作\nHTTP接口：POST /session/{session id}/actions
 actions.delete() = 删除动作\nDELETE	/session/{session id}/actions
 alert.dismiss() = 取消alert\nHTTP接口：POST /session/{session id}/alert/dismiss
@@ -877,12 +883,12 @@ post = POST方法提交请求,新增或修改资源\n调用时可以写 post() �
 delete = DELETE方法提交请求,删除资源\n调用时可以写 delete() 或 delete.其他资源名()\n请求参数可以指定表或字符串,如果是表请求前会转换为字符串\n!web_rest_api.
 put = PUT方法提交请求,替换或更新资源\n调用时可以写 put() 或 put.其他资源名()\n请求参数可以指定表或字符串,如果是表请求前会转换为字符串\n!web_rest_api.
 patch = PATCH方法提交请求,更新资源\n调用时可以写 patch() 或 patch.其他资源名()\n请求参数可以指定表或字符串,如果是表请求前会转换为字符串\n!web_rest_api.
-query(查询参数) = @.query(["partial link text"]="链接文本"__/*使用指定键值对查询网页元素,不指定参数获取当前活动元素*/)
+query(查询参数) = @.query("partial link text"="链接文本"__/*使用指定键值对查询网页元素,不指定参数获取当前活动元素*/)
 waitEle("__") = 等待并返回指定 CSS 选择器匹配的节点对象。\n可选用参数 @2 指定超时（毫秒），可选用参数 @3 指定检测间隔（毫秒）。\nHTTP接口：POST /session/{session id}/element
 querySelector("__") = 指定CSS选择器并返回节点对象\nHTTP接口：POST /session/{session id}/element/{element id}/element
 querySelector() = !chromeDriverEle.
 query() = !chromeDriverEle.
-queryAll(查询参数) = @.query(["partial link text"]="链接文本"__/*使用指定键值对查询并返回网页元素数组*/)
+queryAll(查询参数) = @.query("partial link text"="链接文本"__/*使用指定键值对查询并返回网页元素数组*/)
 querySelectorAll("__") = 指定CSS选择器并返回节点对象数组\nHTTP接口：POST /session/{session id}/element/{element id}/elements
 querySelectorAll() = !chromeDriverEle.
 queryAll() = !chromeDriverEle.
@@ -896,8 +902,8 @@ sendKeys(__) = 在该节点发送按键。\n参数可指定一个或多个键名
 setValue(__) = 使用一个或多个字符串参数指定要发送的文本。\n如果要发送 chrome.driver.KEYS 定义的按键，必须指定对应键名的键值。\n改用 sendKeys 函数可在参数中指定键名
 getValue() = 返回文本值
 innerText() = 获取节点文本
-getAttribute() = 返回 HTML 标签属性值，成功返回字符串值，否则为 null 值
-getProperty() = 返回节点属性值
+getAttribute(__) = 返回 HTML 标签属性值，参数 @1 指定属性名。\n成功返回字符串值，失返返回 null 值
+getProperty(__) = 返回节点对象属性值，参数 @1 指定属性名。\n成功返回字符串值，失返返回 null 值
 getStyle(__) = 返回 CSS 样式指定属性值，参数 @1 指定属性名 
 getName(__) = 返回 name 属性值
 getRect(__) = 返回一个表示节点区块位置的 ::RECT 结构体

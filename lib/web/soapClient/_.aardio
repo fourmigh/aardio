@@ -78,7 +78,7 @@ class soapClient{
 		
 		
 		var soapaction = this.soapTargetNamespace;
-		if( soapaction ? (  ! ..string.endWith(soapaction,"/") ) ) soapaction += "/";
+		if( soapaction ? (  ! ..string.endsWith(soapaction,"/") ) ) soapaction += "/";
 		soapaction += method;
 		
 		if(this.soapOperations){

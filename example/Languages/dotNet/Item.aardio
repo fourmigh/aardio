@@ -1,4 +1,7 @@
-﻿//在 aardio 中访问 .NET 下标 Item[]
+﻿//在 aardio 中使用 .NET 的 `Item[]` 属性
+//.NET 数组: doc://example/Languages/dotNet/Array.html
+//.NET 多项索引: doc://example/Languages/dotNet/Multidimensional-Array.html
+
 import console;  
 import dotNet;  
 var compiler = dotNet.createCompiler("C#");
@@ -43,9 +46,14 @@ netObj.setItem(5,123);
 //如果省略属性名 Item，则起始下标为 1。
 var item = netObj[6];//等价于 netObj.Item[6-1]。
 netObj[6] = 123; 
-
 /*
 极罕见的 C# 对象也有可能自定义起始下标为 1，
 如果写 netObj[2] 会很奇怪，可以改为 netObj.Item[1] 。 
+*/
+
+/*
+.NET 多项索引: doc://example/Languages/dotNet/Multidimensional-Array.html
+aardio 也支持使用逗号分隔的多项索引访问 .NET 多维数组。
+但多项数值索引自 0 开始，aardio 不会自动减 1。
 */
 console.pause();

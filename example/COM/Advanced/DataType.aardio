@@ -50,7 +50,7 @@ SAFEARRAY 可以是各种类型的数据组成，例如数值数组，字符串�
 但仍然会出现一些例外，例如我们用 com.CreateObject("ScriptControl") 创建 VBScript 的脚本解释器，
 在 VBScript 里就只能识别 Variant 类型的对象，数组也只能为 Variant 类型数组。
 
-当然，我们可以直接调用 com.Variant({1,2,3}) 这种方式创建 Variant 类型的数组，
+当然，我们可以直接调用 com.Variant([1,2,3]) 这种方式创建 Variant 类型的数组，
 但这样显然很麻烦，对于这样的 COM 对象，我们要使用 com.SetPreferredArrayType(comObject,0xC/*_VT_VARIANT*/) 
 将其设置为始终使用 Variant 类型转换参数，可查看封装了 ScriptControl 的标准库 web.script 就是这样做的。
 
@@ -99,26 +99,28 @@ import com;
 var v = com.word(32)
 
 //创建用于 COM 函数的 16位数组
-var v = com.word({1,2,3})
+var v = com.word([1,2,3])
 
 //创建用于 COM 函数的 Variant 类型变体数组（注意有的参数不允许字符串数组，要求传变体数组）
 var v = com.Variant({"test","test2"});
 
-//下面这样写与 com.word({1,2,3}) 的作用是一样的。
-var v = com.Variant({1,2,3},2/*_VT_I2*/);
- 
-//创建用于 COM 函数的 Variant 类型变体数组,
-var v = com.SafeArrayV({1,2,3}); //这个函数返回的不是 Variant 也不是 SAFEARRAY,只是包装对象
-
-//下面这样写与 com.word({1,2,3}) 的作用是一样的，但返回的不是 Variant 对象而是包装对象 
-var v = com.SafeArrayV({1,2,3},2/*_VT_I2*/); 
+//下面这样写与 com.word([1,2,3]) 的作用是一样的。
+var v = com.Variant([1,2,3],2/*_VT_I2*/);
 
 //下面这样是创建 SAFEARRAY 数组，可以作为普通 aardio 数组使用，也可以作为 COM 参数用
 var v  = com.SafeArray(); //COM 对象返回的所有 SAFEARRAY 数组也是这种格式
 table.push(v,1,2,3); //实际上 SAFEARRAY 也是普通数组
 
-//也可以在参数中指明类型，下面代码作用类似 com.word({1,2,3})，但返回的是  SAFEARRAY 而非 Variant 对象。
+//也可以在参数中指明类型，下面代码作用类似 com.word([1,2,3])，但返回的是  SAFEARRAY 而非 Variant 对象。
 var v  = com.SafeArray(_VT_I2,1,2,3); 
+
+/*
+如果参数 @1 传入 buffer 或 com.SafeArray 格式的数组则直接返回（忽略参数 @2）,
+参数 @1 指定其他表对象或字符串则返回声明为 COM 安全数组的包装对象，可选用参数 @2 声明数组元素的 COM 变体类型。
+参数 @1 如果不指定或为 null 值则默认创建一个空数组作为参数。
+此函数的返回值只能用于 COM 函数，主要作用是告知 COM 函数安全数组类型，并避免创建新数组或改变原来的数组。
+*/
+var v = com.toSafeArray([1,2,3],2/*_VT_I2*/); 
 
 /*
 COM 函数也可以兼容 raw 库以下函数创建的类型化数值：

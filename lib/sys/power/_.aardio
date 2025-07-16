@@ -15,6 +15,7 @@ status = function(){
 	
 	if( ::Kernel32.GetSystemPowerStatus(status)	) return status;
 }
+getStatus = status;
 
 isAcOnline = lambda() status()[["acLineStatus"]] == 1;
 

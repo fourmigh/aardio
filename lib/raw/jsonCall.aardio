@@ -1,12 +1,12 @@
 ﻿//jsonCall 函数指针
-import web.json;
+import JSON;
 
 class raw.jsonCall{
 	ctor( callback  ){
  		return ..raw.tostdcall(
 			function(json,size){
 				json = ..raw.tostring(json,1,size);
-				var args = ..web.json.parse(json);
+				var args = ..JSON.parse(json);
 				return callback(..table.unpackArgs(args)); 
 			},"int(ptr json,INT size)");
 		)

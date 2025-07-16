@@ -101,7 +101,7 @@ getUnicodeString = function(fontName,first=0,last=0xFFFF){
     	if(glyph>=first && glyph<=last) ..table.push(glyphs,glyph);
     }
     
-   return .. ustring.fromCharCode(glyphs);	
+   return ..ustring.fromCharCode(glyphs);	
 }
 
 /**intellisense()

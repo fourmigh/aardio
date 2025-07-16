@@ -1,5 +1,5 @@
 ﻿//json 解析器
-import web.json;
+import JSON;
 import web.script;
 
 namespace web.script.json{};
@@ -41,10 +41,10 @@ language = {
 init = function(msc){
 	msc.AddObject("JSON",{ 
 		parse = function(...){ 
-			return ..web.json.parse(...);
+			return ..JSON.parse(...);
 		};
 		stringify = function(...){ 
-			return  ..web.json.stringify(...)
+			return  ..JSON.stringify(...)
 		}; 	
 	})
 }

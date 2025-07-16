@@ -215,8 +215,8 @@ class http{
 		}
 		this.contentLength = tonumber(this.readHeader("Content-Length:"):null); 
 		this.responseContentType = this.readHeader("Content-Type:");
-		this.eventStream = ..string.startWith(this.responseContentType:"","text/event-stream",true);
-		this.ndjsonStream = ..string.startWith(this.responseContentType:"","application/x-ndjson",true);
+		this.eventStream = ..string.startsWith(this.responseContentType:"","text/event-stream",true);
+		this.ndjsonStream = ..string.find(this.responseContentType:"","application/<json\-?l>|<x\-ndjson>");
 			
 		this.responseContentEncoding = this.readHeader("Content-Encoding:");
 		if( this.afterSend) {
@@ -328,7 +328,7 @@ class http{
 		var list,kv,k = {};
 		for line in ..string.lines( ( this.readHeader() ) ) { 
 		
-			if( name && ! ..string.startWith(line,name,true) ) continue;
+			if( name && ! ..string.startsWith(line,name,true) ) continue;
 			kv = ..string.splitEx(line,"\s*\:\s*",2);  
 			if(#kv<2) continue;
 			
@@ -542,20 +542,20 @@ class http{
     			 
     	var ret;
     	if( this.onReceive ){
+    	    ret = true;
     	     
     	    for(str,size in this.eachRead() ){
-    			if( this.onReceive( str,size,total ) === false )
+    			if( this.onReceive( str,size,total ) === false ){
     				break;
-    		} 
-    	    
-    		ret = true;
+    			}
+    		}
     	}
     	else{
     		ret =  this.readAll();
 		}
-		this.endRequest();  
+		
+		this.endRequest();
 		return ret;
-	 
 	};
 	read = function(bufferSize){
 		var str,size,errCode = readFile(this.request,bufferSize);  
@@ -582,6 +582,41 @@ class http{
 	eachRead = function(bufferSize){
 		this.lastReadErrCode = null;
 		if(! (this.eventStream || this.ndjsonStream ) ){
+			
+			if( this.tryParseJsonStreamData 
+				&& !this.onReceiveBegin
+				&& ( ..string.match( this.responseContentType,"[\w\/]*<@@json@>![\W]"  ) ) 
+				){
+				var r = this.read;
+				var block =  r(1)
+				if( block !='[' ){ 
+        			return function(){} 
+        		}
+        		
+        		return function(){   
+					var block = r(1); 
+			 		
+					if(block==']' || !block){  
+						return;
+					}
+			 		
+					while( block!='{'){
+				 		block = r(1); 
+				 		if(!block) return;
+					}
+			 		
+					
+					while( var char = r(1) ) {  
+						block = block ++ char; 
+						
+						if( char == '}' ){  
+							var data = this.tryParseJsonStreamData(block);
+							if(data) return data; 
+						}  
+					} 
+				}   
+			}
+		
 			return function(){
 				var str,size,errCode = readFile(this.request,bufferSize) ; 
 				if(!str){
@@ -772,6 +807,15 @@ namespace http{
 		)
 	}
 	
+	post = function(...){
+		return ..thread.invokeAndWait(
+			function(...){
+				import inet.http;
+				return inet.http().post(...);
+			},... 
+		)
+	}
+	
 	status = function(url,nr,method){
 		var http = ..inet.http();  
 		http.setTimeouts(1000,1000,1000);
@@ -801,14 +845,15 @@ inet.http( = 创建HTTP会话对象,所有参数可选，\n注意提前导入zli
 inet.http(.("UserAgent","代理服务器","绕过代理的主机",连接选项) = 创建 HTTP 客户端，所有参数可选。\nUserAgent 用于自定义 User-Agent 请求标头，用于服务器识别请求程序特征。\n代理服务器指定为""或"IE"使用系统代理设置（默认值）。\nHTTP 代理服务器请指定为 "代理服务器地址:端口" 格式，\n\nSOCKS 代理服务器请指定为 "socks=代理服务器地址:端口" 格式 \n└──  [代理格式说明](doc://library-guide/std/inet/proxy.md)\n\n"绕过代理的主机" 用法参考 inet.setProxy 源码的示例，一般不需要指定。\n连接选项可用一个数值参数指定打开会话的选项，一般不需要指定。
 inet.http(.("UserAgent",false) =  禁用代理，UserAgent 为可选参数
 inet.http.isAlive(.("UserAgent","代理服务器","绕过代理的主机",连接选项) = 当前是否能正常访问互联网,所有参数可选
-inet.http.get(.(url,headers,referer) = 用于界面线程创建线程并获取 @url 指定网址的数据,\n此函数等待下载完成但不会阻塞界面消息循环,\n可选用 @headers 指定 HTTP 头,\n可选用 @referer 指定引用网址,\n所有参数用法与 格式请参考 inet.http 对象的 get 函数相同
+inet.http.get(.(url,headers,referer) = 用于界面线程创建工作线程并获取 @url 指定网址的数据,\n此函数等待下载完成但不会阻塞界面消息循环,\n可选用 @headers 指定 HTTP 头,\n可选用 @referer 指定引用网址,\n所有参数用法与 格式请参考 inet.http 对象的 get 函数相同
+inet.http.post(.(url,post数据,http头,引用网址,MIME) =  用于界面线程创建工作线程向服务器发送 POST 请求并下载服务器返回的数据,\n如果 post 数据是一个表，则自动调用 inet.url.stringifyParameters 转换为字符串,\n此函数会顺序调用 beginRequest(), send()，\n如果指定了 onReceive 回调函数,则调用该函数接收数据(成功返回true)\n否则，调用readAll()等函数并返回下载数据，\n\n除URL与post数据以外,其他为可选参数\nhttp头可以是web.joinHeaders支持的字符串、键值对、数组等格式\n默认使用上一次访问的网址作为下一次的引用网址\n本地内部错误返回值为:null,错误信息,错误代码\n服务端返回HTTP错误时返回值为:false,错误信息,HTTP错误代码\n成功返回字符串对象
 inet.http.status(.(url,noAutoRedirect,httpMethod) = 对 @url 指定网址发送请求并返回 HTTP 状态码。\n如果未成功发送请求则返回 null。\n可选参数 @noAutoRedirect 为 true 则禁止自动重定向，默认为 false。\n可选用 @httpMethod 参数指定 HTTP 请求方法，默认为 "HEAD"。\n\n大部分网址请求成功会返回 200 状态码。\n部分网址会返回 2xx 状态码，重定向返回 3xx 状态码。\n可用状态码请参考 inet.httpStatusCode 库
 inet.http.userAgent =  创建 inet.http 对象且未明确指定 user agent 参数时使用的默认值 。\n适用于 inet.http 以及所有基于 inet.http 创建的对象，例如：\n inet.httpFile, inet.downBox, web.rest, inet.installer 等
 inet.http() = !inet_http.
 !inet_http.setSessionOption( _INTERNET_OPTION__, ) = 设置会话选项,\n参数可以是数值或结构体\n用法参数MSDN
 !inet_http.setRequestOption( _INTERNET_OPTION__, ) = 设置会话选项,\n参数可以是数值或结构体\n用法参数MSDN
 !inet_http.lastRequestUrl = 最后一次请求成功的URL
-!inet_http.setTimeouts(.(连接超时,请求超时,接收超时) = 设置超时,以亳秒为单位(1秒为1000毫秒)
+!inet_http.setTimeouts(.(连接超时,请求超时,接收超时) = 设置超时,以亳秒为单位（1秒为1000毫秒）。
 !inet_http.connectFlags = 指定打开服务端连接的默认选项\n此选项一般用户不需要了解，如果需要请参考beginRequest函数的源码以及相关API文档
 !inet_http.flags = @.flags = _INTERNET_FLAG___/*\n指定打开网址请求的默认选项\n禁用自动cookie管理请指定_INTERNET_FLAG_NO_COOKIE\n\n此选项一般用户不需要了解，\n请参考beginRequest函数的源码以及相关API文档\n*/ 
 !inet_http.accept = 指定可选择的文件类型,多个类型使用逗号分隔\n默认无需指定,也可以在参数中指定
@@ -840,9 +885,10 @@ inet.http() = !inet_http.
 	__ 
 }
 !inet_http.parseStreamData = @.parseStreamData = function(data){
-	__/*如果 ContentType 响应类型为 text/event-stream，\n则 eachRead 与 onReceive 回调会自动调用 parseStreamData 提前转换数据。\n如果 ContentType 响应类型为 application/x-ndjson，\n则 onReceive 回调会自动调用 parseStreamData 提前转换数据\nweb.rest.client 会自动设定此回调*/
+	__/*如果 ContentType 响应类型为 text/event-stream，\n则 eachRead 迭代器 与 onReceive 回调会自动调用 parseStreamData 提前转换数据。\n如果 ContentType 响应类型为 application/x-ndjson，\n则 onReceive 回调会自动调用 parseStreamData 提前转换数据\nweb.rest.client 会自动设定此回调*/
 	return data;
 } 
+!inet_http.tryParseJsonStreamData = 如果将此属性指定为 JSON.tryParse \n则 eachRead 迭代器 与 onReceive 回调会自动自动解析标准 JSON 对象数组格式的流式输出，\n\n规则为：- Content-Type 响应头必须指定了 JSON 格式，例如 `application/json`。- 服务器响应的完整输出必须是一个对象数组，第一个字符必须是 `[`，最后一个字符必须是 `]`。- 每个块必须是一个使用 `{}` 包围的 JSON 对象，对象之间必须以 `,` 分隔。\n\n如果定义了 onReceiveBegin 事件则忽略此属性。\nweb.rest.jsonClient, web.rest.jsonLiteClient 默认启用此功能。
 !inet_http.lastReadErrCode = 最后一次读取数据是否遇到错误,例如网络断开连接等等
 !inet_http.read(.(读取长度) = 长度参数可选\n返回读取字符串,以及长度\n失败返回false,错误信息\n该函数必须在send请求以后调用
 !inet_http.readAll() = 读取所有返回数据\n该函数必须在send请求以后调用
@@ -875,7 +921,7 @@ inet.http() = !inet_http.
 !inet_http.disableCache() = 强制刷新\n可在参数中指定是否禁用缓存
 !inet_http.disableCookies() = 禁止自动添加、管理cookie的功能,\n需要自行在HTTP请求头、响应头中分析处理cookie\n可在参数中指定是否禁用cookies
 !inet_http.onReceive = @.onReceive = function(str,size,contentLength){
-	__/*定义了此函数循环接收数据,则 get,post 等函数返回布尔值*/
+	__/*定义了此函数循环接收数据,则 get,post 等函数返回布尔值。\n此回调函数返回 false 停止接收数据。*/
 }
 
 !inet_http.onReceiveBegin = @.onReceiveBegin = function(statusCode,contentLength){
@@ -887,8 +933,8 @@ inet.http() = !inet_http.
 !inet_http.headEx(.(url,请求方法,提交数据,http头,引用网址,MIME) = 使用指定的请求方法模拟HEAD方法,用于拒绝HEAD请求的网址\n除网址以外所有参数可以省略,默认为使用GET方法
 !inet_http.head( = 发送 HEAD 请求获取 HTTP 头\n此函数不会直接返回 HTTP 头，\n但函数返回后可使用 readHeader 函数读取 HTTP 响应头
 !inet_http.head(.(url,http头,引用网址,MIME) = 发送 HEAD 请求获取 HTTP 头\n此函数不会直接返回 HTTP 头，\n但函数返回后可使用 readHeader 函数读取 HTTP 响应头\n\n除URL外,其他为可选参数\n默认使用上一次访问的网址作为下一次的引用网址\n本地内部错误返回值为:null,错误信息,错误代码,\n服务端返回 HTTP 错误代码时返回值为:false，\n成功返回 true
-!inet_http.get(.(url,http头,引用网址,MIME) =  向服务器发送GET请求并下载服务器返回的数据,\n此函数会顺序调用 beginRequest(), send()，\n如果指定了onReceive回调函数,则调用该函数接收数据(成功返回true)\n否则，调用readAll()等函数并返回下载数据，\n\n除URL外,其他为可选参数\nhttp头可以是web.joinHeaders支持的字符串、键值对、数组等格式\n默认使用上一次访问的网址作为下一次的引用网址\n本地内部错误返回值为:null,错误信息,错误代码\n服务端返回HTTP错误时返回值为:false,错误信息,HTTP错误代码\n成功返回字符串对象
-!inet_http.post(.(url,post数据,http头,引用网址,MIME) =  向服务器发送POST请求并下载服务器返回的数据,\n如果post数据是一个表，则自动调用 inet.url.stringifyParameters 转换为字符串,\n此函数会顺序调用 beginRequest(), send()，\n如果指定了onReceive回调函数,则调用该函数接收数据(成功返回true)\n否则，调用readAll()等函数并返回下载数据，\n\n除URL与post数据以外,其他为可选参数\nhttp头可以是web.joinHeaders支持的字符串、键值对、数组等格式\n默认使用上一次访问的网址作为下一次的引用网址\n本地内部错误返回值为:null,错误信息,错误代码\n服务端返回HTTP错误时返回值为:false,错误信息,HTTP错误代码\n成功返回字符串对象
+!inet_http.get(.(url,http头,引用网址,MIME) =  向服务器发送GET请求并下载服务器返回的数据,\n此函数会顺序调用 beginRequest(), send()，\n如果指定了 onReceive 回调函数,则调用该函数接收数据(成功返回true)\n否则，调用readAll()等函数并返回下载数据，\n\n除URL外,其他为可选参数\nhttp头可以是web.joinHeaders支持的字符串、键值对、数组等格式\n默认使用上一次访问的网址作为下一次的引用网址\n本地内部错误返回值为:null,错误信息,错误代码\n服务端返回HTTP错误时返回值为:false,错误信息,HTTP错误代码\n成功返回字符串对象
+!inet_http.post(.(url,post数据,http头,引用网址,MIME) =  向服务器发送 POST 请求并下载服务器返回的数据,\n如果 post 数据是一个表，则自动调用 inet.url.stringifyParameters 转换为字符串,\n此函数会顺序调用 beginRequest(), send()，\n如果指定了 onReceive 回调函数,则调用该函数接收数据(成功返回true)\n否则，调用readAll()等函数并返回下载数据，\n\n除URL与post数据以外,其他为可选参数\nhttp头可以是web.joinHeaders支持的字符串、键值对、数组等格式\n默认使用上一次访问的网址作为下一次的引用网址\n本地内部错误返回值为:null,错误信息,错误代码\n服务端返回HTTP错误时返回值为:false,错误信息,HTTP错误代码\n成功返回字符串对象
 !inet_http.codepage = 设置post函数上传参数为表并转换为字符串时UrlEncode的输出代码页
 !inet_http.down(.(url,postdata,headers,referer,accept,method,flags,connectFlags,noReceiveData) = 发送请求并下载数据,get,post等调用此函数\n不建议直接调用此函数，参数:\n\nurl:网址,除这个参数必须指定以外，后面其他参数都是可选参数\npostdata:提交数据\nheaders:http头,可以是web.joinHeaders支持的字符串、键值对、数组等格式\nreferer:http引用网址,默认使用上一次访问的网址作为下一次的引用网址\naccept: 此参数用于HTTP请求头accept字段，用于指定可识别的内容类型列表\nflags: 用于设置请求选项,参考beginRequest函数说明\nconnectFlags:用于打开连接选项,参考beginRequest函数说明\nnoReceiveData: 指定为真则不下载服务器回应数据\n\n本地内部错误返回值为:null,错误信息,错误代码\n服务端返回HTTP错误时返回值为:false,错误信息,HTTP错误代码\n成功返回字符串对象
 !inet_http.lastResponse() = 获取最后一次服务器返回的原始数据,\n仅在调用了readAll函数、或在get,post函数中间接调用readAll函数时设置该值

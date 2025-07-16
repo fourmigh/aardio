@@ -104,6 +104,20 @@ class console.progress{
 		this.running = false;
 		this.done = false;
 	}
+	clear = function(){
+		
+		if(this.running || this.done ){
+			var x,y = ..console.getPos(); 
+			if(this.message){
+				..console.clearScreen(0,y-2);
+			}	
+			else{
+				..console.clearScreen(0,y-2);
+			}	
+		}
+		
+		this.reset();
+	}
 }
 
 console.progress.singleLine = function(width,backText,foreText){
@@ -125,6 +139,7 @@ console.progress() = !stdConsoleProgress.
 end intellisense**/
 
 /**intellisense(!stdConsoleProgress)
+clear() = 清除在屏幕上显示的进度
 reset() = 重置进度条\n如果上次进度没有完成,\n要显示新的进度条前必须调用此函数
 addProgress( = 增加进度
 addProgress(.(百分比,状态文本) = 百分比为0到100的数值，状态文本为可选参数

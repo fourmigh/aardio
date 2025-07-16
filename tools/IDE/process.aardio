@@ -27,7 +27,7 @@ winform.listview.insertColumn("源文件",-1 )
 winform.listview.adjust = function(cx,cy){
     winform.listview.fillParent(4);
 } 
-winform.transparent(210) 
+winform.opacity = 210
 
 winform.listview.updateProcess = function(items){
 	var selIndex = winform.listview.selIndex;
@@ -60,8 +60,8 @@ thread.invoke(
 			
 			var procsList = {}
 			for(id,pathCode in plst ){
-				if( ..string.endWith(pathCode,".plugin") ) continue;
-				if( ..string.endWith(pathCode,"\tools\开发环境\statusBar.aardio") ) continue;
+				if( ..string.endsWith(pathCode,".plugin") ) continue;
+				if( ..string.endsWith(pathCode,"\tools\开发环境\statusBar.aardio") ) continue;
 				if(!usageList[id]){
 					usageList[id]= process.usage(id);
 				} 

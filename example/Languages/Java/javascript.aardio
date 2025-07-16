@@ -1,0 +1,37 @@
+//aardio + Java + JS 开发指南: doc://library-guide/std/java/_.md#js
+import console.init;
+import java;
+
+var jvm = java();
+ScriptEngineManager = jvm.import("javax.script.ScriptEngineManager")
+
+var script = ScriptEngineManager();
+var engine = script.getEngineByName("javascript");
+
+var jsCode = /******
+
+//在 JavaScript 里调用 Java 
+var javaObject = new java.lang.Object(); 
+print(javaObject.toString());
+
+//创建 JS 对象
+var jsObject = { 
+	getGreeting : function(name) { return 'Hello, ' + name; } 
+}; 
+******/;  
+
+//执行 JavaScript 代码
+engine.eval(jsCode);
+
+//将参数（可指定 JS 对象或者表达式）转换为可调用对象。
+var jsObject = engine.invocable("jsObject");
+
+//调用对象的方法 
+var result = jsObject.getGreeting("Jacen");
+print(result);
+
+//不指定参数则返回当前作用域对象
+var jsScope = engine.invocable();
+ 
+//直接调用 JS 函数
+jsScope.print("你好");

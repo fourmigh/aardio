@@ -5,6 +5,7 @@ namespace fsys
 
 class streamInfo{
 	ctor(...){
+		this = []
  		var file,err = ..fsys.file(...);
  		if(!file) return null,::GetLastError();
  			
@@ -36,7 +37,6 @@ class streamInfo{
 		
 		file.close();
 	}; 
-	@{_type="array"}
 }
 
 /**intellisense()

@@ -26,7 +26,11 @@ namespace mshtml{
 				if(!owner.http){
 					owner.http = ..web.rest.client();
 				}
-				str = owner.http.get(url,headers,owner[["location"]]);
+				
+				owner.http.addHeaders = headers;
+				owner.http.referer = owner[["location"]];
+				str = owner.http.get(url);
+				owner.http.addHeaders = null;
 			}
 			
 			if(str){

@@ -16,10 +16,15 @@ color = class {
 		},param)
 		
 		if( this.rgbResult ){
-			this.flags = this.flags | 0x1/*_CC_RGBINIT*/;
+			this.flags = this.flags | 1/*_CC_RGBINIT*/;
 		}
 	} 
-	choose = function(){
+	choose = function(clr){
+		if(clr){
+			this.rgbResult = clr;
+			this.flags = (this.flags||0) | 1/*_CC_RGBINIT*/;
+		}
+		
 		if(  ::Comdlg32.ChooseColor(this) )
 			return this.rgbResult; 
 	} 
@@ -29,7 +34,8 @@ color = class {
  
 
 /**intellisense()
-win.dlg.color = 通用颜色对话框
-win.dlg.color(winform__/*父窗体*/) = 创建通用颜色对话框
-win.dlg.color().choose() = 弹出选择颜色对话框
+win.dlg.color = 基础颜色对话框（简化版），使用 GDI 颜色格式（用 0xBBGGRR 格式数值表示颜色）。
+win.dlg.color(.(parentForm,param) = 创建通用颜色对话框。\n参数 @parentForm 指定父窗口对象或父窗口句柄。\n可选参数 @param 可选用一个表对象指定 CHOOSECOLOR 结构体的初始化字段。\n如果指定参数 @param，则该表中包含的名值对被赋值到返回对象的同名字段作为初始值。\n\n此构造函数返回一个 CHOOSECOLOR 结构体对象，\n返回对象提供 choose 方法可用于打开选色对话框。
+win.dlg.color() = !stdWinDlgColor.
+!stdWinDlgColor.choose(__) = 弹出选择颜色对话框。\n可选使用参数 @1 指定最初选定的颜色。
 end intellisense**/

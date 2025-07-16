@@ -30,7 +30,7 @@ aardio 已默认加载以下 DLL 模块
 ::User32, ::Kernel32, ::Ntdll, ::Shell32
 ```
 
-使用 aardio『工具 / 转换工具 / API 转换』工具可自动转换 C/C++ 的 API 函数声明为　aardio 格式，并自动识别 `::User32, ::Kernel32, ::Ntdll, ::Shell32` 这些 DLL 模块提供的函数。
+使用 aardio『工具 » 转换工具 » API 转换』工具可自动转换 C/C++ 的 API 函数声明为　aardio 格式，并自动识别 `::User32, ::Kernel32, ::Ntdll, ::Shell32` 这些 DLL 模块提供的函数。
 
 注意: <a id="arch" href="#arch">&#x23;</a>
 

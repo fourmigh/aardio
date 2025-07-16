@@ -1,7 +1,7 @@
-//列表视图（listview）控件 - 简单数据视图 
+//列表视图（listview）控件 - 可编辑列表视图 
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="简单数据视图 - 双击编辑单元格(可指定只读列)";right=1031;bottom=712)
+var winform = win.form(text="可编辑列表视图 - 双击编辑单元格(可指定只读列)";right=1031;bottom=712)
 winform.add(
 edit={cls="edit";left=25;top=584;right=997;bottom=693;edge=1;multiline=1;z=2};
 listview={cls="listview";left=24;top=27;right=996;bottom=555;edge=1;z=1}
@@ -9,9 +9,15 @@ listview={cls="listview";left=24;top=27;right=996;bottom=555;edge=1;z=1}
 /*}}*/
 
 import win.ui.grid;
-var grid = win.ui.grid(winform.listview);//创建数据视图
+var grid = win.ui.grid(winform.listview);//创建可编辑的 listview 控件，鼠标左键双击可以编辑任意项文本
 grid.setReadonlyColumns(1);//可选设置禁止编辑的列，设为 -1 禁止编辑所有列
-grid.setColumns({"ID";"日期";"标题"}) //可选自定义显示列名
+
+//添加标题列，可选自定义显示列名
+winform.listview.columns = [
+	["ID",100/*列宽*/],
+	["日期",100],
+	["标题",-1/*自适应宽度*/],
+]
 
 import sqlite;
 var db = sqlite("/testParameters.db");

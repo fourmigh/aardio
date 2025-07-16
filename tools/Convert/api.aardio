@@ -2,7 +2,7 @@
 import win.ui;
 import fonts.fontAwesome;
 /*DSG{{*/
-var winform = win.form(cls="AFORM";text="API 转换工具 ";left=0;top=0;right=845;bottom=513;bgcolor=16777215;parent=...;style=0)
+var winform = win.form(cls="AFORM";text="API 转换工具 ";left=0;top=0;right=845;bottom=513;bgcolor=0xFFFFFF;parent=...;style=0)
 winform.add(
 btnStruct2aardio={cls="button";text='\uF1C9  C/C++ 函数声明/结构体/类型名转换为 aardio 格式';left=14;top=2;right=375;bottom=34;dl=1;dt=1;font=LOGFONT(h=14;name='FontAwesome');z=1};
 lbTip={cls="static";left=584;top=8;right=832;bottom=500;db=1;dr=1;dt=1;transparent=1;z=3};
@@ -101,7 +101,6 @@ ULONG_PTR=ADDR
 DWORD32=INT
 DWORD64=long
 DWORD_PTR=INT
-PDWORD=INT
 FLOAT=float
 GLOBALHANDLE=pointer
 HDC=ptr
@@ -239,6 +238,7 @@ HANDLE=pointer
 PHANDLE=ptr
 SPHANDLE=pointer
 LPHANDLE=ptr
+PDWORD=INT
 PLONG=LONG
 LPLONG=long
 PULONG=INT

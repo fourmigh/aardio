@@ -5,6 +5,7 @@ var winform = win.form(text="aardio form";right=759;bottom=469)
 winform.add()
 /*}}*/
 
+//HTTP 服务端开发指南: doc://guide/quickstart/web-server.md
 import wsock.tcp.asynHttpServer;
 var httpServer = wsock.tcp.asynHttpServer();
 

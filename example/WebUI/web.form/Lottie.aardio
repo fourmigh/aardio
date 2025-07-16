@@ -5,7 +5,7 @@ import win.ui;
 var winform = win.form(text="Lottie 动画演示";right=759;bottom=469;bgcolor=16777215)
 winform.add(
 bnPause={cls="plus";text="播放";left=480;top=384;right=609;bottom=434;align="left";font=LOGFONT(h=-24);iconStyle={align="left";font=LOGFONT(h=-21;name='FontAwesome');padding={top=5}};iconText='\uF04B ';notify=1;textPadding={left=27};z=2};
-static={cls="static";left=42;top=41;right=451;bottom=272;bgcolor=16777215;z=1}
+static={cls="static";left=42;top=41;right=451;bottom=272;bgcolor=0xFFFFFF;z=1}
 )
 /*}}*/
 

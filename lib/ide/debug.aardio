@@ -1,10 +1,16 @@
 //debug 调试
 namespace ide.debug;
 
-onError = function(err,over){  
+onError = function(err,over){ 
 	if(type(err) != type.string ) return; 
 	err = ..string.replace(err,'@\n{Error}:\n','\n');
 	err = ..string.replace(err,"\n----------------------\s*\n\s*",'\n'); 
+	
+	var errInfo = {}
+	for k,v in ..string.gmatch('\n'+err,"\n\{?([\a\s]*?)\}?\:(\N+)") { 
+    	if(k && v) errInfo[k] = ..string.trim(v);
+	}  
+
 	err = ..string.replace('\n'+err,"\n\{?([\a\s]*?)\}?\:", {
 		["Near"] = '\n靠近:';
 		["Byte"] = '\n字节码:';
@@ -35,6 +41,18 @@ onError = function(err,over){
 		["name"] = "<标识符>";
 	} );
 	err = ..string.trim(err);
+	
+	if(errInfo["Attempt to"]=="_get table" 
+		&& (errInfo["Kind"]=="self(namespace)" || errInfo["Kind"]=="global(namespace)" ) ){
+		var name = errInfo["Name"] 
+		if(name){
+			name = ..string.trim(name,"'");
+			if(..io.libpath(name)){
+				if(name=="json") name = "JSON";
+				err = err + '\n---------------------------------------------------\nℹ️ 请先用代码 import '+name+'; 导入 '+name+' 库。'
+			}
+		}
+	}
 
 	import debug;
 	if(!over){
@@ -57,5 +75,29 @@ onError = function(err,over){
 		}
 	}	
 	
+
+	errInfo["Message"] = err;
+	errInfo["Time"] = tostring( ..time.iso8601() ); 
+	
+
+	..string.save( "~\extensions\trigger\config\debug.bin",..table.tostring(errInfo,true) );
+	//::Kernel32.MoveFileExB( ..io.fullpath("~\extensions\trigger\config\debug.bin",),null,4/*_MOVEFILE_DELAY_UNTIL_REBOOT*/);
+
+	err = err + '\n\n✅ 返回代码编辑器按 F1 键 AI 纠错';	
+	return err;
+}
+
+onSyntaxError = function(err){
+	var errInfo = {}
+	for k,v in ..string.gmatch('\n'+err,"\n\{?([\a\s]*?)\}?\:(\N+)") { 
+    	if(k && v) errInfo[k] = ..string.trim(v);
+	}  	
+	
+	errInfo["Message"] = ..string.replace(err,"\n\{Error\}\:",'\n{Syntax Error}: ');
+	errInfo["Time"] = tostring( ..time.iso8601() ); 
+	
+	..string.save( "~\extensions\trigger\config\debug.bin",..table.tostring(errInfo,true) );
+	
+	err = err + '\n\n✅ 返回代码编辑器按 F1 键 AI 纠错';	
 	return err;
 }

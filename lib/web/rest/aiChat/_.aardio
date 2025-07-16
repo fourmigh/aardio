@@ -6,25 +6,84 @@ namespace web.rest;
 var __aiChatTable__ = aiChat;
 
 class aiChat{
-	ctor(cfg){
-		if(cfg.model===null) error("参数表必须指定 model 字段。");  
-		if(cfg.url===null) error("参数表必须指定 url 字段。"); 
-		if(cfg.key===null) error("参数表必须指定 key 字段。"); 
+	ctor(cfg){{
+		cfg = ..table.assign({},cfg);
 		
-		this = ..web.rest.jsonClient(cfg.userAgent,cfg.proxy,cfg.proxyBypass,cfg.httpFlags);
-		this.bot = this.api(cfg.url);
+		if(cfg.model===null) error("参数表必须指定 model 字段。");  
+		if(cfg.url===null) error("参数表必须指定 url 字段。");  
+		
+		if(cfg.url && ..string.match(cfg.url,"^<@@http@>[sS]?\://[\w\.\:]+/?$")){
+			cfg.url = ..inet.url.append(cfg.url,"v1"); 
+		}
+		
+		this = ..web.rest.jsonClient(cfg.userAgent,cfg.proxy,cfg.proxyBypass,cfg.httpFlags); 
 		this.config = cfg;
 		this.paramMaxTokens = "max_tokens"; 
 		
-		cfg.key = ..string.escape2(cfg.key);
+		var apiUrlInfo = ..inet.url.split(cfg.url);
+		this._protocol = cfg.protocol;
 		
-		/*
-		一些中转接口可能会支持用 OpenAI 兼容接口调用 Anthropic 模型，
-		否则请在模型名前加 @ 字符则走 Anthropic 接口。
-		*/
-		if(cfg.model[1]== '@'#){  
-			this.anthropic = true;
-			cfg.model = ..string.right(cfg.model,-2),//移除 @ 字符。
+		if(this._protocol===null){
+			if(cfg.model[1]== '@'# ){
+				this._protocol = "anthropic";
+				cfg.model = ..string.right(cfg.model,-2)//移除 @ 字符。
+			}
+			elseif(apiUrlInfo.host=="api.anthropic.com"){
+				this._protocol = "anthropic";
+			}
+		}
+		
+		if(apiUrlInfo.host=="api.openai.com" )  {
+			this.paramMaxTokens = "max_completion_tokens";
+		}
+		if(apiUrlInfo.host=="generativelanguage.googleapis.com") {
+			this.paramMaxTokens = "max_completion_tokens";
+			
+			if(this._protocol === null ) {
+				if(!..string.indexOf(cfg.url,"/openai")){
+					this._protocol = "google"; 
+				}	
+			}
+		}
+		
+		if(cfg.key) cfg.key = ..string.escape2(cfg.key);
+		if(cfg.key && cfg.key[1]=='{'# || cfg.key[["token_uri"]]){
+			import web.rest.gcp.jwtBearerToken;
+			
+			var exp,keyData;
+			cfg.key,exp,keyData = web.rest.gcp.jwtBearerToken(cfg.key); 
+			
+			if(keyData){
+				if( (this._protocol == "vertex") || ..string.endsWith(apiUrlInfo.host,"aiplatform.googleapis.com")){
+
+					if(keyData[["project_id"]]){
+						if(!..string.indexOf(cfg.url,keyData[["project_id"]] ) ){
+						
+							if( (this._protocol == "vertex" ) || ..string.indexOf(cfg.url,"/publishers/") ){
+								if(this._protocol === null) this._protocol = "vertex"; 
+								
+								cfg.url =  "https://aiplatform.googleapis.com/v1/projects/"
+									+ keyData[["project_id"]] + "/locations/"+ (keyData[["region"]] ||"global") + "/publishers/google/";	
+							}
+							else{
+								cfg.url =  "https://aiplatform.googleapis.com/v1beta1/projects/"
+									+ keyData[["project_id"]] + "/locations/"+ (keyData[["region"]] ||"global") + "/endpoints/openapi/"
+ 		
+							}
+						}	
+					}
+				}
+			}
+			
+			if(cfg.key){
+				this.setAuthToken(cfg.key);
+			}
+			
+			this.paramMaxTokens = "max_completion_tokens";
+		}
+		
+		
+		if( this._protocol == "anthropic" ){   
 			
 			//调用 Claude 接口 
 			this.setHeaders({
@@ -35,15 +94,160 @@ class aiChat{
 			if( cfg.maxTokens === null ){
 				cfg.maxTokens = 1024;
 			} 
+			
+			if(cfg.reasoning){
+				
+				if(cfg.reasoning.maxTokens){
+					if( cfg.maxTokens > 64000 ){
+						this.setHeaders({
+							"anthropic-beta":"output-128k-2025-02-19";
+							"x-api-key":cfg.key
+						});
+					}
+				
+					cfg.thinking = {
+						"type": "enabled",
+						"budget_tokens": cfg.reasoning.maxTokens;
+					}
+					cfg.temperature = 1;	
+				} 
+			}
+		}
+		elseif( (apiUrlInfo.host=="localhost" ) && (apiUrlInfo.port == 11434)){
+			cfg.url = "http://localhost:11434/v1/"
+		}
+		elseif( this._protocol == "google" ){
+			if(cfg.key) {
+				this.setHeaders({"x-goog-api-key":cfg.key}); 
+			}
+		}
+		elseif( this._protocol == "vertex" ){
+			cfg.model = ..string.replace(cfg.model,"^[^/]+/","");
+			
+			//这里先不要转换 cfg.reasoning
+		}
+		elseif( apiUrlInfo.host=="dashscope.aliyuncs.com" ){
+			 
+			if(cfg.key)this.setAuthToken( cfg.key );
+			
+			if(cfg.workspace){
+				this.setHeaders({
+					"X-DashScope-WorkSpace": cfg.workspace;
+				});	
+			}
+			
+			if(!..string.find(cfg.url,"/v1/apps")){ 
+				if(#cfg.model>=32  ){
+					this._protocol = "aliyun"
+					cfg.url = "https://dashscope.aliyuncs.com/api/v1/apps/"+cfg.model+"/completion"
+				}
+				else { 
+					cfg.url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+				}
+			}
+			else {
+				this._protocol = "aliyun"
+			} 
+			
+			if(cfg.reasoning){ 
+				
+				var extraParameters = { enable_thinking = true;thinking_budget = cfg.reasoning[["maxTokens"]] } 
+				
+				if(extraParameters.thinking_budget===null){
+					var effort = cfg.reasoning[["effort"]]
+					if(effort){
+						maxTokens = cfg.maxTokens || 8192;
+						if(effort=="high"){
+							extraParameters.thinking_budget = ..math.ceil(maxTokens * 0.8);
+						}
+						elseif(effort=="medium"){
+							extraParameters.thinking_budget = ..math.ceil(maxTokens * 0.5);	
+						}
+						elseif(effort=="low"){
+							extraParameters.thinking_budget = ..math.ceil(maxTokens * 0.2);	
+						}
+					}
+				}
+				
+				if(extraParameters.thinking_budget===0){
+					extraParameters.enable_thinking = false;
+				}
+				
+				this.extraParameters = extraParameters;
+				cfg.reasoning = null;
+			}
 		}
 		else {
-			this.setAuthToken( cfg.key );
-			 
-			if(
-				..string.startWith(cfg.url,"https://generativelanguage.googleapis.com",true)
-				|| ..string.startWith(cfg.url,"https://api.openai.com/v1",true)	
-			){
-				this.paramMaxTokens = "max_completion_tokens";
+			if(cfg.key) this.setAuthToken( cfg.key );
+			
+			if( apiUrlInfo.host=="openrouter.ai" ){
+				if(!cfg.reasoning) cfg.reasoning = {};
+				else cfg.reasoning = {
+					max_tokens  = cfg.reasoning.maxTokens;
+					effort  = cfg.reasoning.effort;
+					exclude  = cfg.reasoning.exclude;
+				}
+			}
+			else{
+				
+				if(cfg.reasoning){
+					if( ..string.endsWith(apiUrlInfo.host,".googleapis.com",true) ) {
+						cfg.extraBody = ..table.mix(extraBody,{
+							'google': {
+              					'thinking_config': {
+                  					'thinking_budget': cfg.reasoning.maxTokens,
+                  					'include_thoughts': !cfg.reasoning.exclude
+              					}
+          					}
+						});
+					}
+					elseif(..string.startsWith(cfg.model,"claude",true)){
+						var effort = cfg.reasoning[["effort"]]
+						
+						if(cfg.reasoning.maxTokens){
+							cfg.thinking = {
+        						"type": "enabled",
+        						"budget_tokens": cfg.reasoning.maxTokens;
+    						}
+    						cfg.temperature = 1;	
+						}
+						elseif(effort){
+							maxTokens = cfg.maxTokens || 8192;
+							if(effort=="high"){
+								cfg.thinking_budget = ..math.ceil(maxTokens * 0.8);
+							}
+							elseif(effort=="medium"){
+								cfg.thinking_budget = ..math.ceil(maxTokens * 0.5);	
+							}
+							elseif(effort=="low"){
+								cfg.thinking_budget = ..math.ceil(maxTokens * 0.2);	
+							} 
+						}
+					}
+					elseif(cfg.reasoning){
+						var reasoning = cfg.reasoning;
+						var effort = reasoning[["effort"]];
+						var maxResoningTokens = reasoning[["maxTokens"]];
+						
+						cfg.reasoningEffort = effort; 
+						if(maxResoningTokens && !effort){
+							
+							var maxTokens = cfg.maxTokens || 8192;
+							
+							if(maxResoningTokens >= maxTokens * 0.8){
+								cfg.reasoningEffort = "high";
+							}
+							elseif(maxResoningTokens >= maxTokens * 0.5){
+								cfg.reasoningEffort = "medium";
+							}
+							else {
+								cfg.reasoningEffort = "low";
+							} 
+						}
+					}
+					
+					cfg.reasoning = null;	
+				} 
 			}
 		}
 		
@@ -57,12 +261,314 @@ class aiChat{
 				this.sendToolCall = false;
 			}
 		}
-	};
-	messages = function(chatMessage,writeDelta,newParams){ 
-		var ok,err;
-		var cfg = this.config; 
+	
+		this.bot = this.api(cfg.url);
 		
-		if(this.anthropic){  
+		if(!this._protocol) this._protocol = "openai";
+	}};
+	messages = function(chatMessage,writeDelta,newParams,sendback){
+		var ok,err;
+		var cfg = this.config;  
+		this.lastResponseDataObject = null;
+		
+		if(this._protocol == "openai") {  
+			cfg = {  
+				model = cfg.model,
+				temperature = cfg.temperature,//温度 
+				messages = chatMessage,
+				[this.paramMaxTokens] = cfg.maxTokens,
+				top_p = cfg.topP, 
+				tools = cfg.tools; 
+				reasoning = cfg.reasoning; 
+				reasoning_effort = cfg.reasoningEffort; 
+				stop = cfg.stop;
+				thinking = cfg.thinking;
+				tool_choice = (sendback===null) ? cfg.toolChoice : null;
+				stream_options = cfg.includeUsage ? {include_usage=cfg.includeUsage} : null;
+				extra_body = cfg.extraBody;
+			}; 
+			
+			var params = ..table.assign(cfg,newParams);
+
+			var receiveCallback;
+			if(writeDelta){
+				params.stream = true //启用 SSE 事件流（ text/event-stream ）
+				
+				receiveCallback = function(eventStream){
+				 
+					var data = eventStream[["data"]];  
+					var choice = data[["choices"]][[1]];   
+				 
+					if(choice){  
+					
+						var finishReason = choice.finish_reason;
+						var delta = choice[["delta"]];
+						var toolCall = delta[["tool_calls"]][[1]];
+						
+						if(toolCall){  
+							if(this.onDeltaToolCalling){
+								this.onDeltaToolCalling(delta[["tool_calls"]],finishReason)
+							}
+							else{
+								var toolCalling = this.toolCalling || {} 
+								var func  = toolCall.function;
+								
+      							if( func[["name"]] ) toolCalling.name = func.name;
+      							if( toolCall[["id"]] ) toolCalling.id = toolCall.id;
+      						  	
+      							if( #func[["arguments"]] ){
+      						    	if(toolCalling.arguments){
+      						    		toolCalling.arguments = toolCalling.arguments ++ func.arguments
+      						    	}
+          							else {
+          								toolCalling.arguments = func.arguments;
+          							} 
+          			 			} 
+          			 			
+          			 			this.toolCalling = toolCalling;  
+          			 		}
+						}
+						
+						if(finishReason=="tool_calls"
+							|| finishReason=="tool_use"){
+							if(this.onDeltaToolCalling){
+								this.onDeltaToolCalling(null,finishReason)
+							}
+							
+							return;
+						}
+					 
+						var content = delta[["content"]];
+						if(#content){ 
+							return writeDelta(content); 
+						}
+						else {
+							var r = delta[["reasoning_content"]] || delta[["reasoning"]]
+							if(#r){
+								return writeDelta("",r)
+							}
+							elseif(data[["usage"]]){
+								this.lastResponseDataObject = data;
+							} 
+						}
+						
+						if(#choice.finish_reason){
+							this.lastResponseDataObject = data;
+							return writeDelta(null);
+						} 
+					}
+					elseif(data[[1]]=="DONE") {
+						return writeDelta(null);
+					} 
+					else {
+						
+						//非 SSE 响应，回调函数接收的是原始数据（通常是错误信息）
+						if(type(eventStream)==="string")  {
+							data = ..JSON.tryParse(eventStream);  
+							this.lastResponseErrorData = eventStream; 
+						} 
+						
+						if(data[["error"]]){
+							this.lastResponseDataObject = data;
+							this.lastResponseErrorData = ..JSON.stringify(data[["error"]],true,false); 
+							return writeDelta(null);
+						}
+						elseif(data[["usage"]]){
+							this.lastResponseDataObject = data;
+						}
+					}	
+				} 
+			} 
+			 
+			//调用 OpenAI 兼容接口
+			ok,err = this.bot.chat.completions(params,receiveCallback);
+			 
+			if(this.toolCalling){  
+				if(ok){
+					if( this.__endToolCalling__(chatMessage) ){  
+						return this.messages(chatMessage,writeDelta,newParams,true);
+					}
+				}
+				
+				this.toolCalling = null; 
+			} 
+			else {
+				if(writeDelta) writeDelta(null);
+				if(this.lastResponseErrorData && err===null){ ok = false ; err = this.lastResponseErrorData} 
+			} 
+		}
+		elseif( (this._protocol == "google") || (this._protocol == "vertex") ){
+			var generationConfig = {  
+				temperature = cfg.temperature,
+				maxOutputTokens = cfg.maxTokens,
+				topP = cfg.topP, 
+				stopSequences = type.isString(cfg.stop)?[cfg.stop]:cfg.stop;
+			}; 
+			
+			
+			if(cfg.reasoning){ 
+				
+				generationConfig.thinkingConfig = {
+					thinkingBudget = cfg.reasoning.maxTokens;
+					includeThoughts = !cfg.reasoning.exclude;
+				}
+			}
+
+			var tools;
+			if(this.config.tools && sendback===null ){
+				tools = []
+				
+				for(k,tool in this.config.tools){
+					if(tool.type=="function") {
+						..table.push(tools,{
+							functionDeclarations =  [
+								..table.mapDeep(tool.function,function(v,k,result){
+									if(k=="type") return ..string.upper(v); 
+									return v;
+								})
+							]
+						});
+					}
+				}
+			}
+			
+			var toolConfig;
+			if(cfg.toolChoice && sendback===null ){
+				toolConfig = {
+					functionCallingConfig = { mode = ..string.upper(cfg.toolChoice) };
+				} 
+				
+				if(cfg.toolChoice == "required"){
+					toolConfig.functionCallingConfig.mode = "ANY";
+				}
+			}
+			
+			var params = ..table.assign(generationConfig,newParams);
+			 
+        	var contents = [];
+        	var systemInstruction;
+	
+        	for(i=1; #chatMessage; 1){
+            	var msg = chatMessage[i];
+            	if(msg.role == "system"){ 
+            	    if(!systemInstruction) systemInstruction = { parts = [] }
+            	    
+            	    ..table.push(systemInstruction.parts,{ text = msg.content });
+            	}
+            	elseif(msg.role == "assistant"){ 
+            	    if(msg.tool_calls){
+            	        for(i,tc in msg.tool_calls){
+            	        	if(tc.type=="function"){
+            	        		..table.push(contents, {
+                    				role = "model";
+                    				parts = [ { functionCall = {
+                    					name = tc.function.name;
+                    					args = tc.function.arguments;
+                    				}} ]
+                				});		
+            	        	} 
+            	        } 
+            	    } 
+            	    else{
+            	   		..table.push(contents, {
+                    		role = "model";
+                    		parts = [ { text = msg.content } ]
+                		}); 
+            	    }
+            	}
+            	elseif(msg.role == "tool"){ 
+            	  ..table.push(contents, {
+                    	role = "function";
+                    	parts = [ 
+                    		{ 
+                    			functionResponse = {
+                    				name = msg.tool_call_id;
+                    				response = {
+                    					result = msg.content;
+                    				}
+                    			} 
+                    		} 
+                    	]
+                	});  
+            	}
+            	else {
+                 	..table.push(contents, {
+                    	role = msg.role;
+                    	parts = [ { text = msg.content } ]
+                	});
+            	}
+        	}
+        	
+        	var requestBody = {
+            	contents = contents;
+            	generationConfig = generationConfig;
+            	systemInstruction = systemInstruction;
+            	tools = tools;
+            	toolConfig = toolConfig;
+        	}
+        	
+        	if(writeDelta){
+        	     var streamCallback = function(eventStream){  
+        	          
+        	        var content,reasoning;
+        	        var choice = eventStream[["candidates"]][[1]];
+        	        var parts = choice[["content"]][["parts"]];
+        	       
+        	       	if(choice) this.lastResponseDataObject = eventStream;
+        	       	
+        	        for(i=1;#parts;1){
+        	        	if(parts[i].text){ 
+        	        	    if(!parts[i].thought){ 
+        	        	        content = content ? content ++ parts[i].text : parts[i].text;
+        	        	    }
+        	        		else{
+        	        			reasoning = reasoning ? reasoning ++ parts[i].text : parts[i].text;
+        	        		} 
+        	        	} 
+        	        	elseif(parts[i].functionCall){
+        	        	    var toolCalling = parts[i].functionCall;
+        	        	    toolCalling.arguments = toolCalling.args;
+        	        	    toolCalling.id = toolCalling.name;
+        	        	    
+        	        		if(this.onDeltaToolCalling){
+								this.onDeltaToolCalling(toolCalling)
+							}
+							else{
+          			 			this.toolCalling = toolCalling;  
+          			 		}
+        	        	}
+        	        }
+        	         
+            		if(!#reasoning) writeDelta(content); 
+            		else writeDelta(content||"",reasoning); 
+        		}
+        
+        		ok,err = this.bot.models[this.config.model+":streamGenerateContent"](
+            		requestBody,, streamCallback
+        		); 
+        	}
+        	else{
+        		ok,err = this.bot.models[this.config.model+":generateContent"](
+            		requestBody,, streamCallback
+        		); 	
+        	}
+        	
+        	if(this.toolCalling){  
+				if(ok){
+					if( this.__endToolCalling__(chatMessage) ){  
+						return this.messages(chatMessage,writeDelta,newParams,true);
+					}
+				}
+				
+				this.toolCalling = null; 
+			} 
+			else {
+				if(writeDelta) writeDelta(null);
+				if(this.lastResponseErrorData && err===null){ ok = false ; err = this.lastResponseErrorData} 
+			} 
+        	
+		}
+		elseif(this._protocol == "anthropic" ){  
 
 			//系统提示词要单独传参数
 			var system = ""; 
@@ -80,9 +586,12 @@ class aiChat{
 				system = system,
 				messages = chatMessage,
 				[this.paramMaxTokens] = cfg.maxTokens,
-				tools = cfg.tools
+				top_p = cfg.topP, 
+				tools = cfg.tools,
+				thinking = cfg.thinking;
+				stop_sequences = type.isString(cfg.stop)?{cfg.stop}:cfg.stop;
 			};
-			
+			 
 			var params = ..table.assign(cfg,newParams);
 
 			var receiveCallback;
@@ -90,144 +599,184 @@ class aiChat{
 				params.stream = true //启用 SSE 事件流（ text/event-stream ）
 				
 				receiveCallback = function(eventStream){
-					var data = eventStream.data;  
-					
-					if(data.type == "content_block_delta"){
-						writeDelta(data.delta.text)
-					}
-					elseif(data.type == "message_stop"){
-						writeDelta(null)
-					} 	 
+					var data = eventStream.data; 
+					if(data){
+						if(data.type == "content_block_delta"){
+							var delta = data.delta;
+							var dType = delta[["type"]];
+							if(dType=="thinking_delta"){
+								return writeDelta("",delta.thinking)
+							}
+							
+							return writeDelta(delta.text)
+						}
+						elseif(data.type == "message_stop"){
+							this.lastResponseDataObject = data; 
+							return writeDelta(null)
+						} 						
+					} 
 				} 
 			}
 			
 			ok,err = this.bot.messages(params,receiveCallback); 
 		}
-		else {  
-			cfg = {  
-				model = cfg.model,
-				temperature = cfg.temperature,//温度 
-				messages = chatMessage,
-				[this.paramMaxTokens] = cfg.maxTokens,
-				tools = cfg.tools;
-			}; 
+		elseif(this._protocol == "aliyun" ){ 
+		 	 
+			var params = {  
+				input = {
+					messages = chatMessage,
+					biz_params  = newParams,
+					memory_id = cfg.memoryId,
+				};
+				parameters = {
+					incremental_output = true; 
+				} 
+			};
 			
-			//..web.json.save("~/aichat.json",cfg,true,false);
-			
-			var params = ..table.assign(cfg,newParams);
-
+			if(cfg.maxTokens){
+				chatMessage[#chatMessage].content = chatMessage[#chatMessage].content + '\r\n\r\n## 你的回复不能超过' + cfg.maxTokens * 2 + "个字符";
+			}
+		
+			this.setHeaders({ 
+				"X-DashScope-SSE": writeDelta ? "enable" : "disable";
+			});
+			 
 			var receiveCallback;
 			if(writeDelta){
-				params.stream = true //启用 SSE 事件流（ text/event-stream ）
-				
+				 
 				receiveCallback = function(eventStream){
-					var choice = eventStream.data[["choices"]][[1]]; 
-					 
-					if(choice){
-						 
-						var finishReason = choice.finish_reason;
-						var delta = choice[["delta"]];
-						var toolCall = delta[["tool_calls"]][[1]];
+					var data = eventStream.data[["output"]]; 
+					if(data){
 						
-						if(toolCall){  
-							
-							var toolCalling = this.toolCalling || {} 
-							var func  = toolCall.function;
-							
-      						if( #func.name ) toolCalling.name = func.name;
-      						if( #toolCall.id ) toolCalling.id = toolCall.id;
-      						  
-      						if( #func.arguments ){
-      						    if(toolCalling.arguments){
-      						    	toolCalling.arguments = toolCalling.arguments ++ func.arguments
-      						    }
-          						else {
-          							toolCalling.arguments = func.arguments;
-          						} 
-          			 		} 
-          			 		
-          			 		this.toolCalling = toolCalling;  
+						if(data.text){
+							writeDelta(data.text)
 						}
 						
-						if(finishReason=="tool_calls"
-							|| finishReason=="tool_use"){ 
-							 
-          					var func = this.external ? this.external[this.toolCalling.name]; 
-          					if(func){
-          						var args = ..web.json.parse(this.toolCalling.arguments);
-          						var ret = func(args); 
-          						 
-          					 	if(this.sendToolCall){
-          					 		..table.push(chatMessage,{
-          						    	"role": "assistant",
-          						    	"tool_calls": {{
-          						        	"id": this.toolCalling.id, 
-                      						"type": "function",
-                      						"function": {
-                          						"arguments": this.toolCalling.arguments,
-                          						"name": this.toolCalling.name
-                      						}
-          						     	}}
-          						 	})	
-          					 	}
-          						 
-          						..table.push(chatMessage,{
-          							"role": "tool",
-          							"tool_call_id": this.toolCalling.id,
-          							content: ret
-          						});  
-          						
-          						return;
-          					}
-						}
-					 
-						var content = delta[["content"]];
-						if(#content){ 
-							writeDelta(content); 
-						}
 						
-						if(#choice.finish_reason){
-							writeDelta(null);
-						} 
-					}
-					elseif(eventStream.data[[1]]=="DONE") {
-						writeDelta(null);
-					} 	
+						if(#data.finish_reason){
+							this.lastResponseDataObject = eventStream.data; 
+							return writeDelta(null)
+						} 						
+					} 
 				} 
+				
+				ok,err = this.bot.post(params,receiveCallback); 
 			}
-			 
-			//调用 OpenAI 兼容接口
-			ok,err = this.bot.chat.completions(params,receiveCallback);
-			
-			if(this.toolCalling){  
-				this.toolCalling = null;  
-				if(ok)return this.messages(chatMessage,writeDelta,newParams);
-			} 
+			else {
+				ok,err = this.bot.post(params); 
+				if(ok[["output"]]){
+					ok.output.content = ok.output.text;
+					ok.choices = { ok.output }
+					ok.output = null; 
+				}
+			}  
+		} 
+		
+		if(..winex[["loading"]][["close"]]){
+			..winex.loading.close();
 		}
 		
 		return ok,err;
-	}  	
+	};
+	listModels = function(){
+	
+		var url = this.config.url;
+		if(!#url) return;
+		
+		var apiUrlInfo = ..inet.url.split(url);
+		if(!apiUrlInfo) return;
+		
+		if( (this._protocol =="google") || (this._protocol == "vertex") ){
+			var models = this.bot.models.get()[["models"]]
+			if(#models){
+				models = ..table.map(models,lambda(v){"id":..string.match(v.name,"models/(\S+)"),object: "model"})
+			} 
+			
+			return models;
+		}
+		elseif( apiUrlInfo.host=="generativelanguage.googleapis.com" ){
+		 
+			var http = ..web.rest.jsonClient(,this.config.proxy);
+			http._http.setTimeouts(500,500,500);
+			
+			http.setHeaders({"x-goog-api-key":this.config.key});
+			var resp,err =  http.get("https://generativelanguage.googleapis.com/v1beta/models")
+			
+			var models = resp[["models"]];
+			if(#models){
+				models = ..table.map(resp[["models"]],lambda(v){"id":..string.match(v.name,"models/(\S+)"),object: "model"})
+			} 
+			
+			return models;
+		} 
+				
+		return this.bot.models.get()[["data"]]);
+	};
+	__endToolCalling__ = function(chatMessage){
+		var toolCalling = this.toolCalling;
+		this.toolCalling = null;
+		
+		if(toolCalling){ 
+			
+			var func = this.external ? this.external[toolCalling.name]; 
+          	if(func){
+				var args = toolCalling.args || ..JSON.parse(toolCalling.arguments);
+          		var ret = func(args); 
+          		if(type(ret)!=="string"){
+          			ret = ..JSON.stringify(ret);
+          		}
+          		
+          		if(this.sendToolCall){ 
+          			..table.push(chatMessage,{
+          				"role": "assistant",
+          				"tool_calls": {{
+          					"id": toolCalling.id, 
+                      		"type": "function",
+                      		"function": {
+                          		"arguments": toolCalling.arguments,
+                          		"name": toolCalling.name
+                      		}
+          				}}
+          			})	 
+          		}
+          		
+          		..table.push(chatMessage,{
+          			"role": "tool",
+          			"tool_call_id": toolCalling.id,
+          			content: ret
+          		});  
+          		 
+          		return true;	
+          	}
+		}
+	};
 }
 
 if( __aiChatTable__ ) ..table.mix( aiChat/*class*/,__aiChatTable__/*table*/);
 import web.rest.aiChat.message;
 
-//@guide [使用范例](doc://example/AI/aiChat.aardio)
+//@guide [调用 AI 大模型指南](doc://library-guide/std/web/rest/aiChat.md) [入门范例](doc://example/AI/aiChat.aardio) [temperature 参数](doc://guide/ide/ai.md#temperature)
 
 /*****intellisense()
 web.rest.aiChat = 用于调用 Anthropic 或 OpenAI 兼容 AI 聊天接口。\n[范例](doc://example/Web/REST/aiChatCon.aardio)。\n如果需要 Web 聊天界面可参考 web.form.chat 库源码。
-web.rest.aiChat(config) = @.aiChat(\n	proxy = proxy,\n	model = "@claude-3-5-sonnet-latest",\n	temperature = 0.1,\n	maxTokens = 1024,\n	url = ""\n)__/*创建 AI 聊天客户端。参数说明：\nurl 指定 Anthropic 或 OpenAI 兼容接口网址。\nmodel 指定模型名称，首字符为 @ 则使用 Anthropic 接口。\n可选用 proxy 指定代理服务器，代理格式: doc://library-guide/std/inet/proxy.md \ntemperature 指定温度。\nmaxTokens 限定最大回复长度。\n可指定 tools 参数以支持 function call 。*/
+web.rest.aiChat(config) = @.aiChat(\n	proxy = proxy,\n	model = "@claude-3-5-sonnet-latest",\n	temperature = 0.1,\n	maxTokens = 1024,\n	url = ""\n)__/*创建 AI 聊天客户端。参数说明：\nurl 指定 OpenAI,Anthropic,Gemini 等兼容接口网址，如果网址只有域名没有路径则自动追加"/v1"后缀。\n└── 接口网址兼容 Ollama，兼容豆包或通义智能体接口。\nmodel 指定模型名称。\n可选用 proxy 指定代理服务器，代理格式: doc://library-guide/std/inet/proxy.md \n关于 temperature 参数请参考: doc://guide/ide/ai.md#temperature，\n可选指定 topP，但一般建议调整 temperature 而不是 topP，topP 不指定保持默认值即可。\n可选用 maxTokens 限定最大回复长度。\n可选指定 tools 字段以支持 function call 。\n可选用 toolChoice 字段指定工具调用规则，默认值为 "auto"。 \n可选用字段 stop 指定停止输出的 token 或 token 数组。\n可选使用 reasoning.effort / reasoning.maxTokens 字段控制推理强度。*/
 web.rest.aiChat() = !webRestAiChat.
 end intellisense*****/
 
 /*****intellisense(!webRestAiChat)
+setTimeouts(.(连接超时,请求超时,接收超时) = 设置超时,以亳秒为单位（1秒为1000毫秒）。
+extraParameters = 指定附加到所有请求参数中的默认参数\n该值应当是一个表,请求参数指定表对象时或为null才会附加extraParameters
+extraUrlParameters  = 指定附加到所有请求 URL 的默认参数。\n该值可以是一个表或字符串。\n表参数使用 inet.url.stringifyParameters 转换为字符串。\n表中的值如果是函数则每次请求都调用该函数取值
 messages( = 调用聊天会话接口。
-messages(.(msg,writeDelta,params) = 调用聊天会话接口。\nmsg 参数指定 web.rest.aiChat.message 对象。\n可选用 writeDelta 指定 AI 以流式回复时接收文本的回调函数。\n└── 回调参数为文本时则应输出增量回复，回调参数为 null 时完成输出。\n└── 不指定 writeDelta 参数则禁用流式回复，函数直接返回表对象。\n参数 params 可选用一个表指定要发送的其他请求参数。
-lastResponse() = 获取最后一次服务器返回的数据,\n如果控制台已打开或在开发环境中导入 console 库则在控制台输出数据\n下载文件时该值为空
-lastResponseString() =  获取最后一次服务器返回的原始数据，\n请求失败，或者下载文件时此属性值为空
+messages(.(msg,writeDelta,extraParams) = 调用聊天会话接口。\n- 可选用参数 @msg 指定 web.rest.aiChat.message 对象（这也是一个包含对话上下文的数组）。\n- 可选用参数 @writeDelta 指定 AI 以流式回复时接收文本的回调函数。\n	* @writeDelta 函数的回调参数 1 为文本时则应输出增量回复，回调参数为 null 时完成输出。\n	* @writeDelta 函数返回 false 停止接收回复。\n	* 如果不指定 @writeDelta 则函数直接返回最终结果（解析服务器回复 JSON 并返回表对象）。\n- 可选用参数 @extraParams 一个表指定要发送的其他请求参数。
+messages(.(msg) = 仅指用参数 @msg 指定聊天消息上下文（web.rest.aiChat.message 对象），\n省略其他参数时则直接返回服务器响应的最终数据，\n返回值是解析 JSON 响应数据得到的表对象。\n失败返回 null, 错误信息。
+lastResponseObject() = 获取最后一次服务器返回的对象（已将响应文本解析为对象），\n如果是 SSE 流式调用，返回最后一次接受的包含 token 计数的对象\n请求失败，或者下载文件时此属性值为空。
+lastResponse() = 获取最后一次服务器返回的数据，流式调用时此函数返回值无意义。\n如果控制台已打开或在开发环境中导入 console 库则在控制台输出数据\n下载文件时该值为空
+lastResponseString() =  获取最后一次服务器返回的原始数据，流式调用时此函数返回值无意义。\n请求失败，或者下载文件时此属性值为空
 lastResponseError() =  返回服务器最后一次返回的错误响应，并转换为错误对象。\n与调用 API 时转换响应数据一样，支持相同的服务器响应格式 。\n如果错误来自本地（lastStatusCode 属性为 null）则此函数返回 null 。\n如果最后一次发生请求成功，则此函数返回 null 。\n\n如果在参数 @1 中指定返回字段，且错误对象包含该字段则使用直接下标获取并返回字段值。\n获取字段失败返回 null 而非抛出异常
 lastStatusCode = 获取最近一次请求返回的HTTP状态码\n100 ~ 101 为信息提示\n200 ~ 206 表示请求成功\n300 ~ 305 表示重定向\n400 ~ 415 表求客户端请求出错\n500 ~ 505 表示服务端错误
 lastStatusMessage() = 获取最近返回的HTTP状态码文本描述\n第二个返回值为状态码
+referer = 引用页地址。\n如果此属性指定了一个值，则每次请求都会使用该引用页。\n如果不指定，每次请求都会自动设置上次请求的网址为引用页。\n这个属性不像 inet.http 对象的 referer 属性那样每次请求结束都会清空。
 ok() = 最后一次请求是否成功\n服务器应答并且状态码为2XX该函数返回真
 setHeaders( = 设置所有请求默认添加的HTTP头
 setHeaders(.(headers) = 参数 @headers 必须指定一个表中,\n用该表中的键值对更新 addHeaders 属性中的键值\n如果addHeaders的原属性值不是一个表,则先清空该属性
@@ -236,10 +785,16 @@ get(.(网址,参数表) = 使用该GET方法提交请求,获取资源\n请求参
 post(.(网址,参数表) = 使用该POST方法提交请求,新增或修改资源\n请求参数可以指定表或字符串,如果是表请求前会转换为字符串\n成功返回数据,失败返回空值,错误信息,错误代码
 close() = 关闭对象释放资源
 config = 自定义的 API 配置表。\n默认指向创建对象时指定的表参数。
+config.reasoning = 推理配置表。\n如果仅指定空表  `{}` 则启用推理模式。\n默认启用推理的模型可用 `{maxTokens=0}` 禁用推理。\n\n指定 maxTokens 字段可限制推理消耗的最大 tokens 。\n\n也可以通过 effort 字段指定   "high", "medium", 或 "low" 之一的值设置推理强度。\n这两个字段可以自动转换以兼容不同接口。\n\n注意不是所有大模型都支持此设置。
 _http = inet.http客户端，用于执行 http 请求\n!inet_http.
 external = @.external = {
 	getWeather = function(){
 		return "24℃";
 	};__/*external 表用于定义的 AI 可以调用的函数。\n用于支持 OpenAI 兼容接口的 function calling 功能。\n创建 web.rest.aiChat 对象时，参数表必须通过 tools 字段声明允许被调用的函数。*/
 }
+_protocol  = 会自动设置为 "openai","anthropic","google","vertex" 等值。\n可选在创建对象的构造参数中指定 protocol 的值（默认自动选择），\n但在创建对象以后不能再手动修改 protocol 属性。
+onDeltaToolCalling = @.onDeltaToolCalling = function(toolCalls,finishReason){
+	__/*自定义流式回复中的 tool_calls 处理方法。\n一般不建议定义或使用此回调函数，用法请参考库源码 */
+}
+listModels() = 返回接口支持的模型信息列表。\n有些服务端不支持这个接口。
 end intellisense*****/

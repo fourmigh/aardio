@@ -472,11 +472,12 @@ getFocus = function(hwnd,real){
 	if(!leaf || leaf == hwnd ){ return hwnd;}
 }
 
-getCaret = function(hwnd){
+getCaret = function(hwnd){ 
 	var info = getUiInfo(hwnd); 
+ 
 	if(info[["hwndCaret"]] && ( info.flags & 1/*_GUI_CARETBLINKING*/ ) ){
 		info.rcCaret.hwnd = info[["hwndCaret"]];
-		return ..win.toScreenRect(info[["hwndCaret"]],info.rcCaret)
+		return ..win.toScreenRect(info[["hwndCaret"]],info.rcCaret),(info.hwndFocus||hwnd);
 	} 
 }
 
@@ -650,6 +651,8 @@ orphanWindow = function(ctrl,hwnd){
 msgbox = function(str,title,style,hwndOwner,timeout){ 
    title = title || self.title || "信息提示";
    if(style===null) style = 0x40 //_MB_OK|_MB_ICONINFORMATION;
+   else style = ({"error":0x10,stop:0x10,hand:0x10,question:0x23,confirm:0x21,test:0x21,warn:0x30,info:0x40})[style]||tonumber(style)||0;
+   
    style = style | 0x1000/*_MB_SYSTEMMODAL*/ | 0x10000/*_MB_SETFOREGROUND*/
    return ..win.msgbox(str,title,style,hwndOwner,timeout);
 } 
@@ -707,7 +710,7 @@ attach(.(hwndAttach,proc) = 执行参数@proc指定的回调函数,\n@hwndAttach
 attachThread(__/*外部线程ID*/) = 绑定当前线程到外部线程并共享输入处理机制。\n返回值为是否成功附加。\n注意此函数会重置键盘状态。\n\n附加输入线程后立即调用 win.setFocus 可能偶尔会无效，可延时至少几十毫秒
 attachThread(__/*外部线程ID*/,false) = 解除附加\n返回值为是否成功解除
 getFocus(__/*可选指定父窗口句柄*/)=获取输指定参数@1指定句柄的窗口输入焦点所在的控件句柄，\n不指定参数@1获取前台窗口、输入焦点所在的控件句柄。\n\n如果参数@2为 true 则取不到输入焦点时返回 null，\n否则返回叶级窗口或自身
-getCaret(__/*可选指定窗口句柄*/)=获取指定参数@1指定句柄的窗口光标区块位置，\n不指定参数获取前台窗口光标区块位置。\n成功返回 ::RECT 结构体，该结构体增加 hwnd 属性存放光标所在窗口句柄。\n失败返回 null\n\n不是所有窗口都支持，\nwinex.caret.get 函数会尝试以更多的方法获取输入光标
+getCaret(__/*可选指定窗口句柄*/)=获取指定参数@1指定句柄的窗口光标区块位置，\n不指定参数获取前台窗口光标区块位置。\n成功返回 ::RECT 结构体，该结构体增加 hwnd 属性存放光标所在窗口句柄。\n失败返回 null\n\n不是所有窗口都支持，\nwinex.caret.get 函数会尝试以更多的方法获取输入光标。\n第二个返回值返回焦点窗口句柄。
 getCaret()=!rect.
 findMenu(.(窗口句柄,"菜单标题",->->->) = 参数@2开始可以指定1个或任意个菜单匹配参数,\n菜单匹配参数可以是菜单项标题,也可以是菜单项序号,\n第一个菜单项序号为1\n找到子菜单则返回子菜单,\n否则返回当前菜单句柄与菜单项命令ID
 findSubMenu(.(菜单句柄,"菜单标题",->->->) = 参数@2开始可以指定1个或任意个菜单匹配参数,\n菜单匹配参数可以是菜单项标题,也可以是菜单项序号,\n第一个菜单项序号为1\n找到子菜单则返回子菜单,\n否则返回当前菜单句柄与菜单项命令ID
@@ -728,7 +731,7 @@ closeAndWait(__/*输入窗口句柄*/) = 关闭窗口,发送 _WM_CLOSE 消息\n�
 removeBorder(__) = 移除窗体边框样式,\n参数 @1 指定目标窗口句柄。\n如果参数 @2 为 false 则恢复窗口边框
 orphanWindow(.(ctrl,hwnd) = 使用 @hwnd 指定句柄的外部窗口作为参数,\n调用 aardio 控件对象的 orphanWindow 函数。\n使外部窗口附加为控件的悬浮影子窗口,\n悬浮影子窗口可将外部进程窗口附加到 @ctrl 并如影随形的自适应缩放调整位置\n此函数同时移除外窗口边框，并附加输入线程
 msgbox( = 弹出系统级别模式消息框，消息框具有 WS_EX_TOPMOST 样式。\n显示应用程序级别消息框请改用 win.msgbox 函数。
-msgbox(.("文本","标题",样式,所有者窗口句柄,显示时间) = 弹出系统级别模式消息框。\n除 参数@1 以外,所有参数可选\n如果 参数@1 是表对象,自动调用 table.tostring 序列化为文本\n其他类型调用 tostring 转为字符串。\n可选用参数@5限定显示时间，以毫秒为单位，超时自动关闭。\n\n一般不必指定消息框样式，不必了解该参数用法
+msgbox(.("文本","标题",图标样式,所有者窗口句柄,显示时间) = 弹出系统级别模式消息框。\n除 参数@1 以外,所有参数可选\n如果 参数@1 是表对象,自动调用 table.tostring 序列化为文本\n其他类型调用 tostring 转为字符串。\n可选用参数@5限定显示时间，以毫秒为单位，超时自动关闭。\n\n可选参数 @3 可用字符串或数值指定图标样式（参考 _MB_ 前缀常量值，设为 0 去掉图标与提示音），可选字符串值：\n- "error","stop","hand" 错误图标\n- "question" 询问图标，显示是、否、取消按钮，返回值为 `6/*_IDYES*/,7/*_IDNO*/, 2/*_IDCANCEL*/` 之一。\n- "confirm","test" 询问图标，显示确定与取消按钮，返回值为 `1/*_IDOK*/,2/*_IDCANCEL*/` 之一。\n- "warn" 警告图标\n- "info" 信息图标。
 end intellisense**/
 
 /**intellisense(!guithreadinfo)

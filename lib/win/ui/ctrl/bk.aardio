@@ -21,6 +21,8 @@ class bk{
 		this.valign = tParam.valign : "center";
 	};
 	onDirectDrawBackground = function(hdc){
+		if(owner.$hidden) return ; 
+		
 		var rc = this.rect;
 		
 		if( (this.bgcolor!==null) && (this.linearGradient== null) ){
@@ -85,10 +87,10 @@ class bk{
 		}
 	};
 	setPos = function(x,y,cx,cy){
-		this.rect.ltrb(x,y,cx,cy);
+		this.rect.setPos(x,y,cx,cy);
 	};
 	getPos = function(){
-		return this.rect.xywh();
+		return this.rect.getPos();
 	};
 	redraw = function(){
 		owner[["_parentForm"]].redrawBackground(owner.rect);
@@ -161,7 +163,13 @@ bk._metaProperty = ..util.metaProperty(
 				::DeleteObject(owner[["(background)"]]);
 				owner[["(background)"]] = null;
 			}
-			owner[["(background)"]] = ..com.picture.loadBitmap(v)
+			
+			if(type(v)==="number"){
+				owner.bgcolor = v;
+			}
+			else{
+				owner[["(background)"]] = ..com.picture.loadBitmap(v)
+			}
 		}
 	};
 	foreground = {
@@ -172,6 +180,26 @@ bk._metaProperty = ..util.metaProperty(
 			owner.forecolor = v;
 		}
 	}; 
+	show = function(v){
+		owner.$hidden = (v===null || !v);
+		owner.redraw();
+	};
+	hide = {
+		_get = function(ownerCall){ 
+			if(ownerCall) return function() {owner.$hidden = true;owner.redraw();};
+			
+			return owner.$hidden;
+		}
+		_set = function(v){ 
+			owner.$hidden = v;
+			owner.redraw();
+		}
+	};
+	close = function(){
+		owner[["_parentForm"]].remove(owner);
+		owner._onDestroy();
+		owner.redraw();
+	};
 )
 /**intellisense()
 win.ui.ctrl.bk() = 无窗口控件,仅用于背景贴图,不建议用于频繁刷新绘图\n!winuictrlbk.
@@ -180,12 +208,16 @@ end intellisense**/
 /**intellisense(!winuictrlbk)
 redraw() = 刷新,会导致背景窗口重建背景图缓存\n不建议频繁调用
 setBitmap(__) = 参数指定位图句柄,重设背景位图\n控件负责销毁位图句柄
-background  = 参数指定图像路径，重设背景图像,\n仅支持gif,jpg等，不支持png,\npng贴图请改用bkplus控件
-forecolor = 前景色,RGB格式数值
-bgcolor = 背景色,RGB格式数值
+background  = 参数指定图像路径，重设背景图像,\n仅支持 gif,jpg 等，不支持png,\npng 贴图请改用 bkplus 控件
+forecolor = 前景色,RGB 格式数值
+bgcolor = 背景色,RGB 格式数值
 linearGradient = 线程渐变方向,0为水平方向，其他数值为垂直方向渐变
-getPos（） = 返回x,y,cx,cy,\nx,y为控件坐标,cx,cy为控件宽、高
+getPos() = 返回 `x,y,cx,cy` 等 4 个值。\n`x,y`为控件坐标，`cx,cy` 为控件宽、高。
+setPos(.(x,y,cx,cw) = 修改控件的 x，y 坐标与宽（cx），高（cw）。\n所有参数可选，不指定的参数则保持原值。\n对于 bk,bkplus 控件此函数不负责重绘。
 onDrawBackground = @.onDrawBackground(hdc,rc){
 	/*背景绘图以后触发此回调,\nhdc为当前绘图设备句柄,rc为控件位置*/
 }
+show() = 显示窗口。\n参数 @1 为 false 时隐藏窗口。
+hide = 当前控件是否隐藏\n\n以 `.` 前导的 `.hide()` 作为成员函数被调用时，\n作用等价于将 hide 属性设为 null 。
+close() = 移除控件。
 end intellisense**/

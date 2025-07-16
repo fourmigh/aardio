@@ -5,7 +5,7 @@ inet.http 与 inet.whttp 用法与接口基本相同，一般可相互替代。
 基于 inet.http 而封装的 web.rest.client 可能在很多应用中都是更好的选择。
 
 inet.http 入门教程：
-https://mp.weixin.qq.com/s/3Xp4c1LxsOQJsux5o8bhvA
+doc://library-guide/std/inet/http.md
 */
 import console; 
 console.showLoading(" 正在发送请求");

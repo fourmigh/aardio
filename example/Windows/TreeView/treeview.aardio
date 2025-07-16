@@ -1,9 +1,9 @@
 //树视图（treeview）控件 - 入门示例
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="aardio form";right=349;bottom=249;)
+var winform = win.form(text="aardio form";right=349;bottom=249)
 winform.add(
-treeview={cls="treeview";left=22;top=17;right=326;bottom=230;asel=false;bgcolor=15793151;db=1;dl=1;dt=1;edge=1;hscroll=1;infoTip=1;vscroll=1;z=1}
+treeview={cls="treeview";left=22;top=17;right=326;bottom=230;asel=false;bgcolor=0xF0FBFF;db=1;dl=1;dt=1;edge=1;hscroll=1;infoTip=1;vscroll=1;z=1}
 )
 /*}}*/
 
@@ -59,9 +59,21 @@ winform.treeview.onnotify = function(id,code,ptr){
 	}
 }
 
+winform.treeview.insertItem( "插入文本" )
+
+//传入数组则循环插入多个节点，数组元素 winform.treeview.insertItem 参数 @1 支持的任何类型对象。
+winform.treeview.insertItem( ["数组元素","数组元素2" ])
+
+////插入普通表对象表示的节点，至少要用 text 或者 tagName 字段指定一个字符串
 var hitem = winform.treeview.insertItem( text="程序目录" );
+
+//插入到参数 @2 指定的节点。
 var hSubItem = winform.treeview.insertItem( { text="子目录" },hitem/*父节点*/); 
 
+/*
+如果单个节点对象包含数组成员或 children 字段指向数组，
+则递归调用 winform.treeview.insertItem 继续插入到新节点的子节点。
+*/
 var hitem = winform.treeview.insertItem( { 
     text = "下面用一个数组指定子节点"; { 
         {  text = "子节点1"  };
@@ -88,15 +100,15 @@ xmlstr =  /*
 xmlDoc = string.xml( xmlstr )
 winform.treeview.insertItem( xmlDoc ) //直接把XML加载到树形控件中, winform.treeview.getItemData(hItem) 获取节点对应的XML数据
 /*
-winform.treeview.insertItem 的参数@1可以使用使用string.xml对象,
-或者使用相同结构的普通数据表对象,每个节点对象必须指定tagName或text属性,
+winform.treeview.insertItem 的参数 @1 可以使用使用 string.xml 对象,
+或者使用相同结构的普通数据表对象,每个节点对象必须指定 tagName 或 text 属性,
 treeview按text,label,title,name,tagName的顺序确定显示标题.
 
 每个节点可以用数组包含子节点(但节点本身必须指定tagName或text属性)
-也可以使用children成员指向一个数组表示多个子节点
+也可以使用 children 成员指向一个数组表示多个子节点
 
-可以参考 fsys.asar.reader 提供的treeData函数返回的数据表,
-就可以直接在treeview中加载并显示。
+可以参考 fsys.asar.reader 提供的 treeData 函数返回的数据表,
+就可以直接在 treeview 中加载并显示。
 */
 
 winform.show() 

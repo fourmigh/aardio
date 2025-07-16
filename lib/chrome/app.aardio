@@ -70,7 +70,7 @@ class app {
 		this.httpHandler = {
 			["/aardio.js" ] = function(response,request){
 				var ip,port = this.ws.getLocalIp();
-				var js = ..string.replace($"~\lib\electron\app\.build\aardio\index.js"
+				var js = ..string.replace($"~\lib\chrome\.res\aardio\index.js"
     				,"@{{{$rpcServerPort}}}",tostring(port));
     			js = ..string.replace(js,"@{{{$rpcAasdl}}}",this.$aasdl);
     			

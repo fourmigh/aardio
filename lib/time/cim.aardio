@@ -1,0 +1,30 @@
+﻿//cim CIM_DATETIME
+
+namespace time;
+
+class cim{
+	ctor(t){
+		this=  ..time.gmt(t,"!%Y%m%d%H%M%S.000000+000")
+		var e = this[["endstr"]];
+		if( e && (type(t)==="string") ){
+			if(#t < 25 ) return null;
+			var m = ..string.match(e,"([+-]<\d\d\d>?)!\D");
+			if(#m){ 
+				this.addminute(-tonumber(m,10));
+				this.endstr = null
+			}
+			else{
+				return null;
+			}
+			
+		} 
+	}; 
+}
+
+//@guide [使用范例](doc://example/COM/WMI/CIM_DATETIME.html)
+
+/*****intellisense()
+time.cim = CIM（Common Information Mode）格式时间，用于 WMI 时间以及 com.wmi 库。\n这个库需要导入才能使用，com.wmi 已经自动导入了 com.cim 库。
+time.cim(__/*字符串或时间戳*/) = 创建并返回 time.cim 时间对象。\ntime.cim 对象也是标准的 time 对象，\n但时间格式串（format 属性）预设为 "!%Y%m%d%H%M%S.000000+000"。\n并存储为 UTC 时间。\n\n参数 @1 可用字符串参数指定 CIM 格式日期时间，\n如果传入的字符串指定了时区，则自动转换为 UTC 时区。\n如果解析字符串失败则返回 null 值。\n如果要严格校验格式，调用者必须先行校验字符串参数的长度是否为 25 。\n小于 CIM 规定的 25 个字节并且符合 ISO8601 规则，\n解析完成后未在字符串尾部发现多余字符串时，\ntime.cim 仍会成功返回时间对象。\n\n参数 @1 也可以直接用数值参数指定时间戳。
+time.cim() = !time.
+end intellisense*****/

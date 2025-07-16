@@ -1,5 +1,7 @@
 # 使用拆分控件( splitter )
 
+> [控件参考](../../../../../library-reference/win/ui/ctrl/splitter.html) [使用范例](../../../../../example/Windows/Controls/splitter.html)
+
 ## 使用拆分条控件的要点
 
 1. 使用控件的 split 函数拆分多个控件。
@@ -55,7 +57,7 @@ winform.splitter1.split( winform.edit1,{winform.edit2,winform.edit22,winform.edi
 这样在窗体放大时可以保持宽度。  
   
 edit1 控件就不用管了，我们不希望他的宽度会变化。  
-然后 edit2控件，我们设置他的『自适应大小 / 高度』属性是可变的（设属性值为 true ）。   
+然后 edit2控件，我们设置他的『自适应大小 » 高度』属性是可变的（设属性值为 true ）。   
   
 至于 edit3 控件，我们直接设置他的控件属性『固定底边距』为 true。
   

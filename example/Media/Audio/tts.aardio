@@ -32,7 +32,7 @@ winform.plusAudioLevel.progressPos = audioLevel;
 //随着朗读的进度，自动选中正在朗读的词,
 voice.event.Word =  function(streamNumber,streamPosition,characterPosition,length ){ 
     characterPosition++;
-    winform.edit.setsel(characterPosition,characterPosition + length-1);
+    winform.edit.setSel(characterPosition,characterPosition + length-1);
     //注意richedit会自动将\r\n转换为\n显示,所以改用edit控件这里的字符位置就是完全一致的
 }
 

@@ -20,7 +20,7 @@ class mask{
 		
 		this.modifyStyle(,0x8000000/*_WS_DISABLED*/);
 		if(!disabled)this.modifyStyleEx(,0x20/*_WS_EX_TRANSPARENT*/);
-		this.transparent(80);
+		this.opacity = 80;
 	};
 	show = function(flag){
 		if(flag=== null) {

@@ -5,7 +5,7 @@ import win.ui;
 var winform = win.form(text="播放声音";right=506;bottom=186;border="dialog frame";max=false;min=false)
 winform.add(
 btnActiveMovie={cls="button";text="ActiveMovie 播放声音";left=273;top=74;right=482;bottom=106;z=5};
-btnMessageBeep={cls="button";text="系统警报声";left=29;top=130;right=171;bottom=162;z=2};
+btnMessageBeep={cls="button";text="系统警报声";left=29;top=132;right=171;bottom=164;z=2};
 btnMp3={cls="button";text="播放 MP3";left=29;top=19;right=171;bottom=51;z=4};
 btnWav={cls="button";text="播放 WAV 文件";left=188;top=19;right=330;bottom=51;z=3};
 btnWmpOcx={cls="button";text="WMPlayer.OCX 播放网络 MP3";left=29;top=74;right=260;bottom=106;z=1}
@@ -61,8 +61,15 @@ winform.btnActiveMovie.oncommand = function(id,event){
 }
 
 winform.btnMessageBeep.oncommand = function(id,event){
-	::User32.MessageBeep(0x10/*_MB_ICONHAND*/);//播放系统警报声,不是所有电脑都支持
-	::Kernel32.Beep(550,500);//主板发声,不是所有电脑都支持
+	
+	//播放系统警报声
+	//声音排队后，MessageBeep 函数将控制权返回给调用函数，并异步播放声音。
+	//Win7 以及之后系统使用默认声音设备（通常是声卡）
+	::User32.MessageBeep(0x10/*_MB_ICONHAND*/);
+	
+	//峰鸣器奏乐: file://~/example/Media/Audio/Beep.aardio
+	//峰鸣声，Win7 以及之后系统使用默认声音设备（通常是声卡），早期系统使用主板峰鸣器。
+	::Kernel32.Beep(550,500);
 }
 
 winform.show() 

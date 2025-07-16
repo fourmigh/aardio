@@ -25,7 +25,7 @@ aardio 本身是动态语言，aardio 语言本身的数据类型( datatype ) �
 - 数值类型小写表示允许负数，大写表示无符号数据类型(没有负数，仅有正整数)。   
 - 对于支持指针的类型(string,pointer)，小写表示允许 null 值并允许自动转换（例如字符串转换为指针），大写表示不接受 null 实参。  
 
-> 使用 aardio『工具 / 转换工具 / API 转换』工具可自动转换 C/C++ 的 API 类型、结构体、函数声明为　aardio 格式。  
+> 使用 aardio『工具 » 转换工具 » API 转换』工具可自动转换 C/C++ 的 API 类型、结构体、函数声明为　aardio 格式。  
   
 注意 C/C++/WinAPI 的数据类型名有一些复杂，同一个类型有无数的不同名字，而同一个类型名字可以处理为不同的类型。
 
@@ -41,8 +41,8 @@ aardio 对原生类型做了简化，只要掌握几个基础类型就可以了�
 | 短整型 | word | 16位 | 数值，例：<br>` { word n = -2 } `| short |  |
 | 无符号整型 | INT | 32位 | 数值，例：<br> `{ INT n = 123 }` | unsigned int,unsigned long | DWORD | WinAPI中H前缀通常表示32位数。 |
 | 整型 | int | 32位 | 数值，例：<br> `{ int n = -2 }` | int,long | LRESULT,<br>LPARAM,<br>WPARAM |
-| 无符号长整型 | LONG64 | 64位 | math.size64 长整数，或普通数值，例：<br> `{ LONG a = 123; LONG b = math.size64(456) } `| `unsigned long long ,unsigned __int64` |  | 可缩写为LONG,<br>1. API函数返回值中LONG类型返回为math.size64对象<br>2. 在API回调函数中，LONG类型回调参数为math.size64对象<br>3. 在结构体中LONG类型字段值为math.size64对象时,aardio始终<br>保持该对象的类型以及地址不变，反之则处理为64位浮点数值<br> |
-| 长整型 | long64 | 64位 | 数值，例：<br> `{ long a = -2;  } `| `long long,__int64` |  | 可缩写为 long |
+| 无符号长整型 | LONG | 64位 | math.size64 长整数，或普通数值，例：<br> `{ LONG a = 123; LONG b = math.size64(456) } `| `unsigned long long ,unsigned __int64` |  | 可缩写为LONG,<br>1. API函数返回值中LONG类型返回为math.size64对象<br>2. 在API回调函数中，LONG类型回调参数为math.size64对象<br>3. 在结构体中LONG类型字段值为math.size64对象时,aardio始终<br>保持该对象的类型以及地址不变，反之则处理为64位浮点数值<br> |
+| 长整型 | long | 64位 | 数值，例：<br> `{ long a = -2;  } `| `long long,__int64` |  | 可缩写为 long |
 | 内存地址 | ADDR | 32位/64位 | 无符号数值，例：<br> `{ ADDR n = 123 }` | void\* | UINT_PTR,<br>ULONG_PTR<br>,DWORD_PTR,<br>HWND | 注意使用数值表示地址时,为保持更好的兼容性,请使用此类型,而不要使用固定位长的int,INT,long,LONG等类型替代,<br> |
 | 内存地址 | addr | 32位/64位 | 有符号数值，例：<br> `{ ADDR n = 123 }` | void\* | INT_PTR,<br>LONG_PTR,<br>HWND |
 | 浮点数 | float | 32位 | 数值，例：<br> `{ float n = 123 } `| float | FLOAT |  |
@@ -61,8 +61,27 @@ aardio 对原生类型做了简化，只要掌握几个基础类型就可以了�
 | 空类型 | void |  |  | void |  | 标识函数返回值为空 |
 |  |   |  |  |   |  | <div style="width:590px"></div>  |
 
+要点：
 
-声明的数据类型必须保持绝对正确，使用错误的类型会导致内存读写错误并导致程序崩溃。调用原生 API 函数大部分导致崩溃的错误原因基本都是因为定义了错误的原生数据类型。
+- 大写的整型表示无符号数，整型加 u 或 U 前缀也表示无符号数。例如 `INT`,`UINT`,`uint` 都表示 32 位无符号数。
+- int / INT 为 32 位，long / LONG 为 64 位。
+- 大写 `POINTER`，`STRING`，`USTRING` 的类型不支持 `null` 值，小写这些类型则支持 `null` 值。
+- `ustring` 适用宽字符串类型，在调用原生接口时自动将字符串转为 UTF-16 编码。
+- 单个类型名必须完全小写或完全大写所有字符。
+
+非标准的兼容写法：
+
+- int / INT 可添加 ８,16,32,64 后缀以指定位长，例如 `int8`,`int16`,`int32`,`int64`,`uint8`,`uint16`,`uint32`,`uint64`。
+- longlong,long64 等价于 long， LONGLONG,LONG64,ULONGLONG,ULONG64 等价于 ULONG 。
+- 大写 `DOWRD` 会被转换为 `UINT` 。
+- `float` 可以添加 32,64 后缀，`float64` 等价于 `double` 类型。
+- 大写 `float`,`double` 时自动转为小写。
+
+非标准写法仅用于翻译其他语言代码时减少替换工作，除此之外不建议使用非标准写法以避免代码风格不一致。
+
+注意：
+
+原生数据类型一定要写正确，写错类型会导致内存读写错误并导致程序崩溃。调用原生 API 函数大部分导致崩溃错误的原因基本都是写错了原生数据类型，请务必仔细核对与检查。
 
 ## 原生数组(raw array)  <a id="raw-array" href="#raw-array">&#x23;</a>
 
@@ -111,8 +130,8 @@ bytes.buffer={ length=20 }
 | 短整型 | `word []` | | 数组元素支持数值或 null 值，不支持 buffer 对象。如果将字段指定为 null 或字符串，处理规则就与 `WORD[]` 相同 |
 | 无符号整型 | `INT []` | `array = { INT arr[2] = {} }` | 数组元素支持数值或 null 值 |
 | 整型 | `int []` | | 数组元素支持数值或 null 值 |
-| 无符号长整型 | `LONG64 []` | `array = { LONG arr[2] = {}  }` | 数组元素支持数值、math.size64 对象或 null 值 |
-| 长整型 | `long64 []` | `array = { long arr[2] = {} }` | 数组元素支持数值、 null 值 |
+| 无符号长整型 | `LONG []` | `array = { LONG arr[2] = {}  }` | 数组元素支持数值、math.size64 对象或 null 值 |
+| 长整型 | `long []` | `array = { long arr[2] = {} }` | 数组元素支持数值、 null 值 |
 | 无符号指针地址 | `ADDR []`| `array = { ADDR arr[2] = {} }` | 数组元素支持数值、 null 值 |  
 | 指针地址 | `addr []` | `array = { addr arr[2] = {} }` | 数组元素支持数值、 null 值 | 
 | 浮点数 | `float []` | `array = { float arr[2] = {} }` | 数组元素支持数值、 null 值 |
@@ -160,8 +179,8 @@ var ret,caption = apiFunc(hwnd,text,caption,uType);
 | 短整型 | `word &` | `short *` |
 | 无符号整型 | `INT &` | `unsigned int *` |  |
 | 整型 | `int &` | `int * `|
-| 无符号长整型 | `LONG64 &` | `unsigned long long *` | 该参数支持普通数值，以及math.size64()创建的长整数 |
-| 长整型 | `long64 &` | `long long *` |
+| 无符号长整型 | `LONG &` | `unsigned long long *` | 该参数支持普通数值，以及math.size64()创建的长整数 |
+| 长整型 | `long &` | `long long *` |
 | 无符号指针地址 | `ADDR &` | `void** `|  |
 | 指针地址 | `addr &` | `void **` |  |
 | 浮点数 | `float &` | `float *` |  |

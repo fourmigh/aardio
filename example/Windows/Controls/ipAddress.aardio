@@ -3,7 +3,7 @@ import win.ui;
 /*DSG{{*/
 var winform = win.form(text="IP地址控件演示";right=599;bottom=399)
 winform.add(
-ipAddress={cls="ipaddress";text="IP 地址";left=152;top=84;right=408;bottom=105;bgcolor=16777215;edge=1;z=1}
+ipAddress={cls="ipaddress";text="IP 地址";left=152;top=84;right=408;bottom=105;bgcolor=0xFFFFFF;edge=1;z=1}
 )
 /*}}*/
 

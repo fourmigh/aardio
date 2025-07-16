@@ -10,14 +10,14 @@ class string.eventStream{
 					var is;
 					v,is = invoke(v@[["_json"]],v ); 
 					if(! (is && type(v)==="string") ){
-						v = ..web.json.stringify(v);
+						v = ..JSON.stringify(v);
 					}
 				} 
 				elseif( ..time.istime(v)){
 					v = tostring(v.utc(true),`"%Y-%m-%dT%H:%M:%SZ"`);
 				}
 				else{
-					v = ..web.json.stringify(v);
+					v = ..JSON.stringify(v);
 				}	
 			}
 			else{

@@ -18,7 +18,7 @@ var circle = cad.ActiveDocument.ModelSpace.AddCircle(centerPoint, radius);
 
 /*
 如果数组成员为普通 COM 对象（IDispatch 对象），在 COM 接口中自动转换为 VT_DISPATCH 类型 SafeArray。
-细节请参考「aardio 范例 / COM 组件 / 进阶提示 / 类型转换规则」
+细节请参考「aardio 范例 » COM 组件 » 进阶提示 » 类型转换规则」
 */
 var outerLoop = { circle };
 

@@ -1,7 +1,7 @@
 //web.view( WebView2 浏览器控件) - 创建无边框窗口
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="Edge 浏览器控件 - web.view";right=759;bottom=469;bgcolor=16777215;border="none")
+var winform = win.form(text="Edge 浏览器控件 - web.view";right=759;bottom=469;bgcolor=0xFFFFFF;border="none")
 winform.add()
 /*}}*/
 
@@ -125,6 +125,9 @@ winform.adjust = function( cx,cy,wParam ) {
 		wb.doScript(`document.getElementById("max-btn").innerText="1";`)
 	} 
 };
+
+//拖动时显示窗口内容，设为 true 则显示线框而非窗口内容。
+//winform.disableDragFullWindow = false; 
 			
 winform.show();
 win.loopMessage();

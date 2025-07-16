@@ -5,7 +5,7 @@ namespace inet.util;
 
 getWebServer = function(url){
  	var whttp = ..inet.http();
- 	if( !..string.startWith(url,"http://",true) )
+ 	if( !..string.startsWith(url,"http://",true) )
  		url = "http://" + url;
  		
 	if(! whttp.beginRequest( url ) ) return;

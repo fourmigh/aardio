@@ -18,7 +18,7 @@
     
     参数 @eventTable 指定事件表。  
 
-    事件表是一个普通的 table 对象，com.Connect 查找 COM 对象的默认事件接口并进行挂接。挂接成功以后创建事件接收器(event sink)并返回,事件接收器是一个 COM 对象,用于响应事件,并触发事件表中的事件函数。
+    事件表必须是一个普通的 table 对象，com.Connect 查找 COM 对象的默认事件接口并进行挂接。挂接成功以后创建事件接收器(event sink)并返回,事件接收器是一个 COM 对象,用于响应事件,并触发事件表中的事件函数。
       
     返回的 sink 为事件接收器。
     返回的 cookie 是一个数字值，用来记录连接点。
@@ -58,7 +58,7 @@
     win.loopMessage();
     ```  
 
-## com.AddConnection
+## com.AddConnection 添加事件接收器
 
 1. 函数原型：   
  
@@ -71,12 +71,13 @@
     参数 @comObject 指定 COM 对象。 
     要特别注意 @comObject 不能指定临时变量。
     
-    参数 @eventSink 指定事件接口对象。  
-    请使用 [com.ImplInterface](ImplInterface.md#ImplInterface) 创建事件接口。 
+    参数 @eventSink 指定事件接收器，支持以下两种事件接口创建的对象。  
+    - 使用 [com.ImplInterface](ImplInterface.md#ImplInterface) 创建的动态事件接口。 
+    - 使用 [com.interface](../../../library-reference/preg/_.md) 创建的原生静态类型事件接口。
   
     返回的 cookie 是一个数字值，用来记录连接点。可以使用 cookie 作为参数调用 com.ReleaseConnection 以释放事件接收器，并取消挂接。
   
-3. 调用示例：   
+3. 示例，监听动态事件接口：   
 
     ```aardio
     import win.ui;
@@ -109,22 +110,68 @@
 
     winform.show();
     win.loopMessage();
-    ```  
+    ```
 
-## com.ReleaseConnection
+4. 示例，监听原生事件接口：  
+
+    ```aardio
+    import com;
+    import com.interface.IWinHttpRequestEvents;
+    import win.ui;
+    /*DSG{{*/
+    var winform = win.form(text="com.interface 原生事件接口")
+    winform.add(
+    edit={cls="edit";left=16;top=10;right=748;bottom=458;edge=1;multiline=1;z=1}
+    )
+    /*}}*/
+
+    //创建COM对象
+    var winHttp = com.CreateObject("WinHttp.WinHttpRequest.5.1");
+
+    //使用原生静态类型接口创建事件接收器
+    var eventSink = com.interface({
+
+      OnResponseDataAvailable = function(pSafeArrayData){
+        
+        //将 SAFEARRAY 指针转换为 COM 数组，_VT_UI1 类型数组会转换为 buffer 。
+        var bytes = com.SafeArray(pSafeArrayData);
+        
+        winform.edit.print(bytes);
+      };
+      
+    },"IWinHttpRequestEvents")
+    
+    //挂接事件接收器
+    var cookie = com.AddConnection( winHttp,eventSink );
+    
+    //创建请求
+    winHttp.Open("GET", "https://www.example.com", true/*启用异步*/ ) ;
+    winHttp.Send();
+
+    winform.show();
+    win.loopMessage();
+
+    ```
+
+## com.ReleaseConnection 释放事件接收器
 
 1. 函数原型：   
 
   
     ```aardio
-    com.ReleaseConnection( com对象 ) //释放挂接到默事件接口的接收器
-    com.ReleaseConnection( com对象, 事件对象,cookie ) //释放挂接到指定接口的接收器
+    com.ReleaseConnection( comObject ) //释放挂接到默事件接口的接收器
+    com.ReleaseConnection( comObject, eventSink,cookie ) //释放挂接到指定接口的接收器
     ```  
       
 2. 函数说明：   
   
-    此函数与注销使用 com.Connect、com.AddConnection 创建的事件连接点。  
+    此函数与注销comObject 对象使用 com.Connect、com.AddConnection 创建的事件连接点。  
     调用这个函数并不是必须的，不再使用的 COM 对象会被 aardio 的内存回收器自动销毁，COM 对象销毁以前会自动释放所有的事件连接。
+
+    参数 @eventSink 指定事件接收器，支持以下两种事件接口创建的对象。 
+
+    - 调用 [com.ImplInterface](ImplInterface.md#ImplInterface) 或 comcom.Connect 函数返回的动态事件接口。 
+    - 调用 [com.interface](../../../library-reference/preg/_.md) 创建的原生静态类型事件接口。
   
 3. 调用示例：   
 

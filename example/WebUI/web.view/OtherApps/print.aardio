@@ -1,0 +1,95 @@
+import web.view;
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="WebView2 打印网页，自动修改打印设置";right=966;bottom=622)
+/*}}*/
+
+/*
+import com.wmi;
+var printer = com.wmi.get("Select * From Win32_Printer WHERE Name=@name",{
+	name = "EPSON L360 Series" //查找指定打印机
+})
+if(printer){
+	printer.SetDefaultPrinter() //设为默认打印机
+}
+//查找打印机: file://~/example/System/Printer/Win32_Printer.aardio
+*/
+
+//WebView2 用户数据目录：这是 web.view 的默认设置。
+var userDataDir = io.appData("/aardio/webview2/user-data/" + io._exefile);
+
+//获取浏览器配置文件
+var pathPreferences = io.joinpath(userDataDir,"EBWebView\Default\Preferences");
+if(!io.exist(pathPreferences)){
+	//创建 WebView2 生成默认配置文件 
+	var wbTest = web.view(,{userDataDir=userDataDir})
+	
+	wbTest._form.close();//关闭 WebView2 控件
+	thread.delay(500);//这里一定要略等待一下	
+}
+
+import JSON;
+var wbPreferences = JSON.load(pathPreferences);
+if(wbPreferences){
+    wbPreferences.printing = wbPreferences.printing || {};
+    wbPreferences.printing.print_preview_sticky_settings = wbPreferences.printing.print_preview_sticky_settings || {};
+    wbPreferences.printing.print_preview_sticky_settings.appState = wbPreferences.printing.print_preview_sticky_settings.appState || "{}";
+
+	//获取默认打印设置
+	var printAppState = JSON.parse( wbPreferences.printing.print_preview_sticky_settings.appState );
+	printAppState.isHeaderFooterEnabled = false //不打节页眉页脚
+	printAppState.mediaSize.height_microns = 297000 // 纸张高度 (微米)
+	printAppState.mediaSize.width_microns = 210000  // 纸张宽度 (微米) - 这是A4尺寸
+	wbPreferences.printing.print_preview_sticky_settings.appState = JSON.stringify(printAppState);
+	JSON.save(pathPreferences,wbPreferences,false);//保存，不需要格式化
+}
+
+//创建浏览器控件，参数 @1 指定窗口或 custom 控件对象。
+var wb = web.view(winform,{
+	//--kiosk-printing 允许直接打钱，--use-system-default-printer 参数使用系统默认打印机
+	startArguments =  ["--kiosk-printing","--use-system-default-printer"];
+	userDataDir = userDataDir;
+})
+
+//演示网页，调用 Print.js 可以更方便的控制打印
+wb.html = /********
+<!doctype html>
+<html><head>
+	<meta charset="utf-8">
+	<style type="text/css">html,body{ height:100%; margin:0; } </style>
+	<link rel="stylesheet" type="text/css"  href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/print-js/1.6.0/print.min.css">
+	<script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/print-js/1.6.0/print.min.js"></script>
+	<script> 
+	
+function printHtml() {
+  printJS({
+    printable: 'printableArea', // 传入要打印的元素的ID
+    type: 'html',
+    header: '我的报告标题', // 在打印页面的顶部添加页眉
+    targetStyles: ['*'] // 继承页面中的所有样式
+  });
+}
+	</script>
+</head>
+<body>
+<div id="printableArea">
+    <h1>用户报告</h1>
+    <p>这是一份从页面特定区域打印的报告。</p>
+    <table border="1" style="width:100%">
+        <tr>
+            <th>姓名</th>
+            <th>邮箱</th>
+        </tr>
+        <tr>
+            <td>张三</td>
+            <td>zhangsan@example.com</td>
+        </tr>
+    </table>
+</div>
+
+<button onclick="printHtml()">直接打印报告（不需要确认）</button>
+</body></html>
+********/
+
+winform.show();
+win.loopMessage();

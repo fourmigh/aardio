@@ -1,7 +1,7 @@
 import fonts.fontAwesome;
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="WinAsar - packer";right=1075;bottom=734;acceptfiles=1;bgcolor=16777215;)
+var winform = win.form(text="WinAsar - packer";right=1075;bottom=734;acceptfiles=1;bgcolor=0xFFFFFF;)
 winform.add(
 btnBuild={cls="plus";text="生成asar文件";left=805;top=664;right=967;bottom=701;align="left";db=1;dr=1;font=LOGFONT(h=-15);iconStyle={align="left";font=LOGFONT(name='FontAwesome');padding={left=15}};iconText='\uF090';notify=1;textPadding={left=35};z=3};
 btnClear={cls="plus";text="清空";left=272;top=8;right=355;bottom=43;align="left";dl=1;dt=1;font=LOGFONT(h=-15);iconStyle={align="left";font=LOGFONT(name='FontAwesome');padding={left=15}};iconText='\uF1F8';textPadding={left=35};z=8};
@@ -13,7 +13,7 @@ lbTip={cls="plus";text="可直接拖放要添加的文件到当前窗体";left=3
 plusWebSite={cls="plus";text="Star";left=975;top=698;right=1052;bottom=729;align="left";color=-1;db=1;dr=1;font=LOGFONT(h=-15);iconStyle={align="left";font=LOGFONT(h=-19;name='FontAwesome');padding={left=15;top=1}};iconText='\uF09B';notify=1;textPadding={left=35;bottom=1};z=10};
 progress={cls="plus";left=21;top=710;right=1058;bottom=723;bgcolor=6447459;db=1;dl=1;dr=1;forecolor=9959653;hide=1;max=100;min=0;z=4};
 static={cls="static";text="输出文件:";left=42;top=672;right=128;bottom=696;align="right";db=1;dl=1;font=LOGFONT(h=-15);transparent=1;z=7};
-treeview={cls="treeview";left=18;top=51;right=364;bottom=658;bgcolor=16777215;db=1;dl=1;dt=1;edge=1;vscroll=1;z=1}
+treeview={cls="treeview";left=18;top=51;right=364;bottom=658;bgcolor=0xFFFFFF;db=1;dl=1;dt=1;edge=1;vscroll=1;z=1}
 )
 /*}}*/
 
@@ -28,7 +28,7 @@ var showAsarInfo = function(){
 	}
 	winform.treeview.clear();
 	winform.treeview.insertItem(asarFile.treeData()); 
-	winform.editInfo.text = web.json.stringify(asarFile.info,true); 
+	winform.editInfo.text = JSON.stringify(asarFile.info,true); 
 	
 	if( ( !# ( ..string.trim( winform.editOutPath.text )) )
 		|| (winform.editOutPath.autoPath = winform.editOutPath.text ) ){
@@ -82,7 +82,7 @@ winform.treeview.onnotify = function(id,code,ptr){
 			}
 			if( data[["size"]] ) data.size =..math.size64(data.size).format(); 
 			
-            winform.editInfo.text = web.json.stringify(data,true)  
+            winform.editInfo.text = JSON.stringify(data,true)  
 		}
 		else {
 			winform.btnRemove.disabled = true;
@@ -99,7 +99,7 @@ winform.btnBuild.oncommand = function(id,event){
 	} 
 	
 	if(!#outpath) return;
-	if(!..string.endWith(outpath,".asar",true)){
+	if(!..string.endsWith(outpath,".asar",true)){
 		winform.msgboxErr("输出文件必须以.asar作为文件名后缀");
 		winform.editOutPath.setFocus();
 		return;

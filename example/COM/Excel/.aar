@@ -1,4 +1,6 @@
 ﻿基础操作=Excel.aardio
+多线程操作=thread.aardio
 Excel 图表=ExcelCharts.aardio
 property=property.aardio
 VBA=~\example\Languages\VBA JSA\Excel.aardio
+DsoFramer=~/example/COM/Others/DsoFramer.aardio

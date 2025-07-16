@@ -1,6 +1,4 @@
 //模式匹配
-import console;
-
 /*
 《模匹匹配快速入门》
 doc://guide/language/pattern-matching.html
@@ -11,30 +9,66 @@ doc://library-guide/builtin/string/patterns.md
 
 //查找字符串位置
 var i,j = string.find("abc456d" ,"c\d+");
-
 if( i ) {
-   console.log("在 'abc456d' 中找到 c\d+" ,"从" + i + "到" + j);
+   print("在 'abc456d' 中找到 c\d+" ,"从" + i + "到" + j);
 }
 
-//匹配字符串：圆括号添加匹配分组 —— 并增加返回值
+//--------------------------------------------------
+
+//匹配字符串：用圆括号添加捕获组（每个捕获组都增加一个返回值）
 var a,b = string.match("abc456d" ,"(c(\d+))");
-console.log(a,b);
+print(a,b);
+
+//连续匹配，用上一个模式匹配参数匹配的结果应用下一个模式匹配
+var str = string.reduce("abcd(a,a2),a3()","%()","\a+\d+"); //返回括号内的字符串 "a2"
+print(str);
+
+//--------------------------------------------------
 
 //替换字符串：在模式匹配中 .圆点标记匹配任意字符
-str = string.replace("abcd",".","k");
-console.log(str); //输出kkkk
+var str = string.replace("abcd",".","k");
+print(str); //输出kkkk
 
-str = string.replace("abcd",".","k",1);
-console.log(str); //输出kbcd 
+str = string.replace("abcd",".","k",1); //限定替换次数
+print(str); //输出kbcd 
 
-var url = console.getText( "请输入网址:" )
+//连续替换，用上一个模式匹配参数匹配的结果应用下一个模式匹配，并且最后一个参数指定的替换对象替换最终匹配的部分
+str = string.reduceReplace("abcd(a)","%()","\a+","\02");
+print(str)
+
+//--------------------------------------------------
 
 import inet.url;
-console.log("直接用标准库函数检测字符串是否网址",inet.url.is(url) );  
-console.log("简单检测是否以http开始（忽略大小写）",string.startWith(url,"http",true) );
+var url = "http://www.example.com"
 
-console.log("使用模式匹配检测字符串是否以https:或http:开始（忽略大小写）"
+print("直接用标准库函数检测字符串是否网址",inet.url.is(url) );  
+print("简单检测是否以 http 开始（忽略大小写）",string.startsWith(url,"http",true) );
+
+print("使用模式匹配检测字符串是否以 https: 或 http: 开始（忽略大小写）"
 	,string.match(url,"^<@@https@>|<@@http@>\:") 
 )	
 
-console.pause();
+//--------------------------------------------------
+
+// 检查字符串是否有效的 IPv4 格式
+var isValidIP = function(ip){
+	if(!string.match(ip, "^\d+\.\d+\.\d+\.\d+$")) return false;
+	
+	/*
+	使用模式匹配语法查找字符串。
+	可选参数 @2 可指定模式串或者模式串数组，默认值为 "[-\d]+"。
+	可选参数 @3 的默认值为 tonumber 。
+	
+	将参数 @2 指定的模式串匹配的每个结果都调用参数 @3 指定的函数进行转换，
+	然后返回包含所有匹配与转换结果的数组。
+	
+	*/
+	var parts = string.map(ip,"\d+",tonumber);
+ 
+    return !table.some(parts,lambda (v)v < 0 || v > 255);
+} 
+
+// 测试用例
+print("192.168.1.1", isValidIP("192.168.1.1")); // 应返回 true
+print("256.168.1.1", isValidIP("256.168.1.1")); // 应返回 false
+print("192.168.1", isValidIP("192.168.1")); // 应返回 false

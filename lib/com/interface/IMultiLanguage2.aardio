@@ -262,10 +262,10 @@ uiFamilyCodePage = 共享代码页
 description = 描述
 webCharset = 浏览器默认字符集
 headerCharset =  邮件头默认字符集
-bodyCharset = 默认字符集
+bodyCharset = 默认字符集（字符串值）。\n使用 bGDICharset 属性可获取字符集代码（数值）。
 fixedWidthFont = 默认等宽字体
 proportionalFont = 默认字体
-bGDICharset = GDI 字符集代码\n参考标准库 gdi 中 _CHARSET 后缀的常量
+bGDICharset = GDI 字符集代码（数值）\n参考标准库 gdi 中 _CHARSET 后缀的常量
 end intellisense**/
 
  /**intellisense()

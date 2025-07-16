@@ -22,11 +22,7 @@ winform.custom.orphanWindow(,hwndBuddy)
 
 winform.custom.orphanWindow(,hwndBuddy)
 将外部进程窗口转化为 aardio 中独有的 orphanWindow，成为吸附在 aardio 窗口上的伪子窗口。
-
-这可以用来解决一些比较复杂的问题，实现一些难以实现的效果。
-例如 Electron 创建的窗口嵌入为子窗口时会出现一些诡异的问题（不是每个版本都有，并且只在部分系统出现）。
-但如果使用 orphanWindow 的功能将 Electron 窗口托管给悬浮窗口，就可以解决这些问题。
-具体请参考标准库中 electron.app 的源代码。
+某些独立窗口转换为子窗口存在问题时，可以使用此方法实现伪子窗口效果。
 */
 
 //orphanWindow 可以轻松的实现原来很复杂的功能，例如下面演示的智能提示列表

@@ -1,4 +1,5 @@
-﻿回调 aardio=dotNet.ps.aardio
+﻿命令=command.aardio
+回调 aardio=dotNet.ps.aardio
 InvokeMember=InvokeMember.aardio
 进度条=onWriteProgress.aardio
 JSON =dotNet.json.aardio

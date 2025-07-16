@@ -11,10 +11,9 @@ assert(err,"输入焦点窗口没有找到 UIA 节点");
 
 //也可改调用更方便的 winex.editor.getText() 函数获取文本。
 if(ele.Current.ControlType == Automation.ControlType.Edit){
-	var textPattern;
 	try {
 		//获取 Pattern 失败会抛出异常
-		textPattern = editBox.GetCurrentPattern(Automation.TextPattern.Pattern);
+		var textPattern = editBox.GetCurrentPattern(Automation.TextPattern.Pattern);
 		
 		//获取全部文本
 		var text = textPattern.DocumentRange.GetText(-1);

@@ -14,8 +14,7 @@ global.onError = function( err,over ){
 }
 
 if( !_STUDIO_INVOKED ){
-
-
+ 
 	import service.simpleTool;
 	if( service.simpleTool.run(,"Test Aardio Service","这是一个测试服务") ){
 		//不是服务进程,可以直接双击运行生成的EXE文件,aardio会自动启动简易版服务管理工具。
@@ -23,7 +22,7 @@ if( !_STUDIO_INVOKED ){
 	}
 	
 	//这个函数用于在进程主线程中启动服务，并且会等待所有服务线程执行结束后才会返回
-	service.startDispatchThread(
+	service.startDispatchThread({
 	
     	//可以增加多个服务名与服务线程回调函数的键值对
     	[service.serviceName] = function(serviceName,argv){ //注意此服务回调函数运行于独立线程
@@ -49,7 +48,7 @@ if( !_STUDIO_INVOKED ){
         	srvStatus.currentState = 0x1/*_SERVICE_STOPPED*/
         	service.updateStatus(srvStatus,serviceName)
     	}
-	)
+	})
 }
 else {
 	/*

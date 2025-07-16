@@ -14,10 +14,10 @@ winform.onActivateApp = function(activated,threadId){
 	if(activated){ 
 		var str = win.clip.read();
 		
-		var out = {"dotNet.reference("}
+		var out = {"dotNet.reference({"}
 		for path in string.lines(str)	{ 
 			path = string.trim(path,'"');
-			if(io.exist(path) && string.endWith(path,".dll",true)){
+			if(io.exist(path) && string.endsWith(path,".dll",true)){
 				path = fsys.path.relative(path,io._exedir,true);
 				path = "~" + path;
 				
@@ -26,7 +26,7 @@ winform.onActivateApp = function(activated,threadId){
 			}
 		}
 		
-		table.push(out,	`)`);
+		table.push(out,	`})`);
 		
 		if(#out>2){
 			winform.edit.text = ..string.join(out,'\r\n');

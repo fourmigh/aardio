@@ -1,0 +1,38 @@
+﻿//replaceUntilStable 循环替换
+namespace string;
+
+class replaceUntilStable{
+	ctor(str,pattern,repl){
+		while(
+			var str2;
+			str2 = ..string.replace(str,pattern,repl);
+			str != str2
+		){
+			str = str2; 
+		}
+
+		return str;
+	};
+}
+
+/**details(范例)
+
+```aardio 
+import string.replaceUntilStable;
+
+print( 
+	//重复替换直到字符串直到替换后的字符串与替换前的字符串相同。
+	string.replaceUntilStable(
+		"(((x)))", //源字符串
+		"%()", //模式串
+		lambda (s)string.slice(s,2,-2) //替换函数，去除首尾字符
+	)  
+);
+```
+
+end details**/
+
+/*****intellisense()
+string.replaceUntilStable( = 使用模式匹配反复替换字符串，必须先导入才能使用。
+string.replaceUntilStable(.(str,pattern,repl) = 使用模式匹配反复替换字符串，\n直到替换后的字符串与替换前的字符串相同则返回替换结果。\n\n参数 @str 指定要替换的字符串\n参数 @pattern 指定模式串\n参数 @repl 指定替换内容（可以是字符串或函数）。\n\n所有参数用法以及模式语法与 string.replace 相同。
+end intellisense*****/

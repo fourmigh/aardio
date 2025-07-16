@@ -49,6 +49,8 @@ class interface{
 			} );
 			
 			this  = ..raw.interface( implTable, declInterface ); 
+			
+			this[["_(AARDIO/COM.INTERFACE/RAW/IID)_"]] = declInterface.IID;
 		}
 		//导入 COM 原生接口
 		else{
@@ -71,7 +73,7 @@ class interface{
 					return null,..lasterr(hr);
 				}
 			}
-		}
+		} 
 	} 
 }
 

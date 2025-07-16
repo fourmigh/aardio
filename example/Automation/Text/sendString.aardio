@@ -4,6 +4,7 @@
 //doc://example/Languages/Python/Python%203.x/QuickStart.md
 import winex; 
 import process;
+import winex.editor;
 import key;
  
 //运行程序，并等待主窗口
@@ -23,3 +24,6 @@ key.sendString( "这样就可以实现打字效果了。",200);
  
 //仅支持 EM_REPLACESEL 消息的经典编辑框效果最好，回车与制表符都以纯文本方式发送。 
 winex.sendString("发送字符串，替换当前选区。")  
+
+//自动选择合适的发送方式 
+winex.editor.sendString("发送字符串，替换当前选区。")  

@@ -1,6 +1,6 @@
 ﻿//jsonClient RPC客户端
 import wsock.tcp.client;
-import web.json;
+import JSON;
 
 namespace wsock.tcp;
 
@@ -17,7 +17,7 @@ class jsonClient{
 				owner.lastResponseData = null;
 				owner.lastStatusCode = null;
 				
-				var jsonData = ..web.json.stringify(reqData); 
+				var jsonData = ..JSON.stringify(reqData); 
 				if(!owner.client.write( jsonData,'\n')){
 					return null,"服务端已断开";
 				};
@@ -61,7 +61,7 @@ class jsonClient{
 						owner.client.read(#c);
 						json = json ++ c;
 						
-						repData = ..web.json.tryParse(json,,inputCodepage);  
+						repData = ..JSON.tryParse(json,,inputCodepage);  
 						if( (repData[["id"]] == reqData.id)
 	    					|| ( isTransaction && type(repData)=="table" && repData[1][["id"]]) 
 	    					|| repData[["error"]] ){
@@ -91,7 +91,7 @@ class jsonClient{
 					} 
 					
 					if(repData[["error"]]){
-						return repData,..web.json.stringify(repData[["error"]],true);
+						return repData,..JSON.stringify(repData[["error"]],true);
 					}
 					return repData;
 				}

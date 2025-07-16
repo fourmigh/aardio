@@ -5,21 +5,17 @@ var winform = win.form(text="web.form 入门";right=892;bottom=566;scroll=1)
 winform.add()
 /*}}*/
 
-/*
-只要简洁，不求完美！
-Win7 在市场上已经接近消失，现在开发软件再处处考虑 Win7 兼容是不必要的。
-注意 Win10/11 自带 IE11，不自带 IE11 的旧系统已经很罕见一般没必要再考虑。
-即使系统删除 IE 浏览器，IE 内核浏览器的控件仍作为操作系统组件被保留。
+/*。
+web.form 基于任何 Windows 系统都自带的内核，生成的 EXE 体积很小。
+即使现在的新系统删除 IE 浏览器，IE 内核浏览器的控件仍作为操作系统组件被保留
+（这是因为 IE 内核网页控件因其接口简洁，曾像 static 控件一样普及并被广泛用于桌面程序）。
+Win10/11 自带 IE11，不自带 IE11 的旧系统已经很罕见。
 
-web.form 使用系统自带的 IE 内核，生成的 EXE 体积很小。
 改用 web.view 库可支持系统自带的 Edge Chromium 内核。
-
-不要拿 web.form 去跟 web.view 比，
-请拿 web.form 跟 static 控件比。
-
-凡事多看优点，扬其长避其短：
-static 都有用，web.form 当然更有用。 
-其实 web.form 轻量，接口简洁并易于使用，还是非常好的。
+相比 web.form ，web.view 更强大、更现代化、速度更快、内核更新。
+但 web.form 属于进程内控件，COM 接口交互更为简单直接，
+例如 JS 与 aardio 可以更直接方便的互调。
+但 web.view 则只能以异步的方式实现跨进程调用。
 */
 import web.form;
 var wb = web.form( winform );//参数 @1 指定嵌入窗口（可以是 winform 或 static,custom 等控件对象）。
@@ -88,25 +84,21 @@ wb.html = /**
     }
     </style> 
 </head>
-<body style="margin:50px">
+<body style="margin:20px;font-size:14px">
 	<button id="myId">  
 		点这里试一试
 	</button>
-<br><br>	
-只要简洁，不求完美！<br>
-Win7 在市场上已经接近消失，现在开发软件再处处考虑 Win7 兼容是不必要的。<br>
-注意 Win10/11 自带 IE11，不自带 IE11 的旧系统已经很罕见一般没必要再考虑。<br>
-即使系统删除 IE 浏览器，IE 内核浏览器的控件仍作为操作系统组件被保留。<br> 
-<br>
-web.form 使用系统自带的 IE 内核，生成的 EXE 体积很小。<br> 
-改用 web.view 库可支持系统自带的 Edge Chromium 内核。<br>
-<br>
-不要拿 web.form 去跟 web.view 比，<br>
-请拿 web.form 跟 static 控件比。<br>
-<br>
-凡事多看优点，扬其长避其短：<br>
-static 都有用，web.form 当然更有用。 <br>
-其实 web.form 轻量，接口简洁并易于使用，还是非常好的。<br>
+<br><br>
+web.form 基于任何 Windows 系统都自带的内核，生成的 EXE 体积很小。
+即使现在的新系统删除 IE 浏览器，IE 内核浏览器的控件仍作为操作系统组件被保留
+（这是因为 IE 内核网页控件因其接口简洁，曾像 static 控件一样普及并被广泛用于桌面程序）。
+Win10/11 自带 IE11，不自带 IE11 的旧系统已经很罕见。
+<br><br>
+改用 web.view 库可支持系统自带的 Edge Chromium 内核。
+相比 web.form ，web.view 更强大、更现代化、速度更快、内核更新。
+但 web.form 属于进程内控件，COM 接口交互更为简单直接，
+例如 JS 与 aardio 可以更直接方便的互调。
+但 web.view 则只能以异步的方式实现跨进程调用。
 </body>
 </html>
 **/

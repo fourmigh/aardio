@@ -65,9 +65,8 @@ namespace atlax {
 !atlAxWin.hwnd = 控件句柄
 !atlAxWin.id = 控件ID
 !atlAxWin.text = 控件文本。\n在创建控件的构造参数中使用 text 段指定要创建的 COM 对象类名。
-!atlAxWin.getForm() = 如果是窗体返回自身\n如果是控件则返回_parentForm\n!winform.
-!atlAxWin.isForm = 窗体返回true,控件返回false
-!atlAxWin._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!atlAxWin.isForm = 标准库 win.ui 创建的所有窗体与控件对象都拥有此属性。\nwin.form 创建的窗体对象返回 true,其他控件对象返回 false 。
+!atlAxWin._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !atlAxWin.getParent() = 返回父窗口\n!atlAxWin.
 !atlAxWin.setParent(__/*控件对象*/) = 改变父窗口 
 !atlAxWin.addCtrl = @.addCtrl(\n	button={ cls="button";text="button";left=33;top=32;right=126;bottom=81;autoResize=false }  \n)

@@ -2,9 +2,9 @@
 import win.ui;
 import win.ui.menu;
 /*DSG{{*/
-var winform = win.form(text="aardio form";right=507;bottom=422;)
+var winform = win.form(text="aardio form";right=507;bottom=422)
 winform.add(
-listview={cls="listview";left=16;top=38;right=476;bottom=319;acceptfiles=1;asel=false;bgcolor=16777215;dl=1;dr=1;edge=1;font=LOGFONT(name='SimSun');fullRow=1;gridLines=1;msel=false;z=1};
+listview={cls="listview";left=16;top=38;right=476;bottom=319;acceptfiles=1;asel=false;bgcolor=0xFFFFFF;dl=1;dr=1;edge=1;font=LOGFONT(name='SimSun');fullRow=1;gridLines=1;msel=false;z=1};
 static={cls="static";text="请使用鼠标左键、鼠标右键点击列表项";left=17;top=9;right=290;bottom=27;transparent=1;z=2}
 )
 /*}}*/
@@ -37,13 +37,19 @@ winform.listview.wndproc = function(hwnd,message,wParam,lParam){
     }
 }
 
-//自适应列宽度 
+
+winform.listview.columns = [
+	["列标题1",100/*列宽*/,0/*_LVCFMT_LEFT*/],
+	["列标题2",100,2/*_LVCFMT_CENTER*/],//第二列开始可以使用_LVCFMT_CENTER居中
+	["标题",-1/*自适应宽度*/],//自适应列宽度更简单的方法是将列宽度指定为 -1 就可以了
+]
+
+/**
+//调整自适应列，如果列宽度已经指定为 -1 就不必要了
 winform.listview.adjust = function(cx,cy){
     winform.listview.fillParent(/*列序号*/);
 } 
- 
-winform.listview.insertColumn("列标题2",100,,0/*_LVCFMT_LEFT*/) 
-winform.listview.insertColumn("列标题1",100,,0/*_LVCFMT_LEFT*/) //第二列开始可以使用_LVCFMT_CENTER居中
+**/
 
 winform.listview.addItem( { 
 	text={"第一行内容";"yes"} 

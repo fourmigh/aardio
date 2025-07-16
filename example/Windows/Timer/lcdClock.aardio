@@ -1,0 +1,21 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="液晶时钟 - 倒计时效果";right=759;bottom=469)
+winform.add(
+plusCtrl={cls="plus";left=57;top=39;right=283;bottom=180;z=1}
+)
+/*}}*/
+
+import win;
+import win.ui.lcdClock;
+var lcdClock = win.ui.lcdClock(winform.plusCtrl);
+
+// 启动 5000 毫秒（5 秒）倒计时
+lcdClock.startCountDownTimer(5000,function(){
+	//倒计时结束
+	winform.plusCtrl.close();
+})
+//win.ui.lcdClock 库参考: https://www.aardio.com/zh-cn/doc/library-reference/win/ui/lcdClock/_.html?q=win.ui.html#:~:text=win.ui.lcdClock
+
+winform.show();
+win.loopMessage();

@@ -1,5 +1,5 @@
 ﻿//jsonServer RPC服务端
-import web.json;
+import JSON;
 import web.socket.server;
 import string.aasdl;
 
@@ -23,7 +23,7 @@ class jsonServer{
 						if(!msg.data) return true;
 					}
 					
-					var req,err = ..web.json.tryParse(msg.data);
+					var req,err = ..JSON.tryParse(msg.data);
 					if( type(req) != "table") req = null; 
 					
 					if( ! req  ){
@@ -83,7 +83,7 @@ class jsonServer{
 	send = function(hSocket,rep){
 		rep.jsonrpc = this.version;
 		
-		var jsonData = ..web.json.stringify(rep);
+		var jsonData = ..JSON.stringify(rep);
 		if( this.afterJsonStringify ) {
 			jsonData = this.afterJsonStringify(jsonData);
 			if(!jsonData) return true;
@@ -94,7 +94,7 @@ class jsonServer{
 		var rep = { 
 			jsonrpc = this.version;
 			method = method; 
-			params = {@{_type="array"};...}
+			params = [...]
 		}
 		
 		this.send(hSocket,rep);
@@ -103,7 +103,7 @@ class jsonServer{
 		var rep = { 
 			jsonrpc = this.version;
 			method = method; 
-			params = {@{_type="array"};...};
+			params = [...];
 			id = method;
 		}
 		
@@ -113,10 +113,10 @@ class jsonServer{
 		var rep = { 
 			jsonrpc = this.version;
 			method = method; 
-			params = {@{_type="array"};...}
+			params = [...]
 		}
 		
-		var jsonData = ..web.json.stringify(rep);
+		var jsonData = ..JSON.stringify(rep);
 		if( this.afterJsonStringify ) {
 			jsonData = this.afterJsonStringify(jsonData);
 			if(!jsonData) return true;
@@ -127,11 +127,11 @@ class jsonServer{
 		var rep = { 
 			jsonrpc = this.version;
 			method = method; 
-			params = {@{_type="array"};...};
+			params = [...];
 			id = method;
 		}
 		
-		var jsonData = ..web.json.stringify(rep);
+		var jsonData = ..JSON.stringify(rep);
 		if( this.afterJsonStringify ) {
 			jsonData = this.afterJsonStringify(jsonData);
 			if(!jsonData) return true;

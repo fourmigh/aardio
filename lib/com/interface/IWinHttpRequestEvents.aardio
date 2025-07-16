@@ -1,0 +1,14 @@
+﻿import com.interface; 
+namespace com.interface;
+
+class IWinHttpRequestEvents{
+	ctor(){
+		this = ..com.interface.IUnknown(); 
+	};   
+	pointer OnResponseStart = "int(int status,ustring contentType)";
+    pointer OnResponseDataAvailable = "int(pointer &pSafeArrayData)";
+    pointer OnResponseFinished = "int()"; 
+    pointer OnError = "int(int errorNumber,ustring description)"; 
+}
+
+IWinHttpRequestEvents.IID = "{F97F4E15-B787-4212-80D1-D380CBBF982E}";

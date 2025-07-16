@@ -1,5 +1,21 @@
 # 自动发送文本
 
+
+## winex.editor.sendString 
+
+winex.editor.sendStringByClip 将文本临时复制到剪贴板并模拟粘贴文本的快捷键发送文本，在发送前后会备份与恢复剪贴板的文本与图像等。
+
+示例：
+
+```aardio
+import winex.editor;
+
+winex.editor.sendString('abc 中文\t你好\naaa')
+```
+
+这个函数会检测目标窗口类名与运行程序的文件名，并自动选择合适的发送方式。
+对于经典文本框会使用句柄直接设置文本，相当于调用 winex.sendString。对于 winex.editor.sendStringByClipExe 表指定的程序名，会调用 winex.editor.sendStringByClip 通过剪贴板发送文本。对于其他程序调用 key.sendString 发送文本。
+
 ## key.sendString
 
 这个函数的兼容性最好，类似输入法可以广泛适用于所有可输入的目标窗口。
@@ -36,25 +52,11 @@ winex.sendString 直接向目标窗口输入纯文本内容，所有字符都不
 
 可选用第二个参数指定目标窗口句柄，可后台发送文本。不指定目标窗口则自动获取当前输入窗口句柄。
 
-## winex.editor.sendStringByClip
-
-winex.editor.sendStringByClip 将文本临时复制到剪贴板并模拟粘贴文本的快捷键发送文本，在发送前后会备份与恢复剪贴板的文本与图像等。
-
-示例：
-
-```aardio
-import winex.editor;
-
-winex.editor.sendStringByClip('abc 中文\t你好\naaa')
-```
-
-这个函数有较好的兼容性，能粘贴文本的窗口基本都可以使用。也不需要发送任何按键，不受输入法影响。
-
 ## winex.setText
 
 发送 WM_SETTEXT 消息设置控件的全部文本。
 
-```aardio 
+```aardio
 import winex;
 
 //获取输入框句柄

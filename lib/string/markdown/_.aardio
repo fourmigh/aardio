@@ -37,21 +37,16 @@ class markdown{
 		ob.release(); 
 		return str;
 	};
+	renderCode = function(code,lang){  
+		return this.render( this.codeBlock(code,lang) ); 
+	};
 	codeBlock = function(code,lang){
 		var tag = "```"
 		while(..string.indexOf(code,tag)){
 			tag++="```"
 		}
 		
-		//sundown 不支持这种引号配对，转换 HTML 应改用 renderCode 
 		return  tag ++ (lang||"")+ '\r\n'+code+'\r\n'+tag;
-	};
-	renderCode = function(code,lang){ 
-		//sundown 不支持反引号数目配对，所以需要自行处理嵌套的代码块
-		code = ..string.replace(code,'```',`&#x60;&#x60;&#x60;`); 
-		var html = this.render(  '```'+(lang||"")+'\r\n'+code+'\r\n```' );
-		html = ..string.replace(html,`\&amp;#x60;\&amp;#x60;\&amp;#x60;`,'```');
-		return html;
 	};
 	renderFile = function(path){
 		var buf = ..string.loadBuffer(path);
@@ -214,7 +209,7 @@ namespace markdown{
 	}
 }
 
-/*****intellisense(说明)
+/**details(说明)
 
 string.markdown（Sundown） 解析器默认规则：
 
@@ -225,19 +220,27 @@ string.markdown（Sundown） 解析器默认规则：
 - 默认支持删除线，示例： ~~这里显示删除线~~ 。
 - 默认启用表格扩展。
 - 默认启用围栏代码块（Fenced Code Blocks）扩展。
+  多行围栏代码块支持嵌套，可使用 3 个以上的反引号，要点：
+  * 首尾反引号数目要配对。
+  * 首尾反引号都必须是单独一行。
+  * 首尾反引号前面如果有空白缩进，首尾缩进必须一致。
+  * 开始的反引号标记后面可以写语言名称，尾部反引号标记后面不能有其他非空白字符。
+- 可识别并跳过 Front Matter 。
+end details**/
 
----
+/**LICENSE()
 
-string.markdown 调用的 sundown.dll 
-由 aardio 基于 https://github.com/vmg/sundown 改进。
+string.markdown 调用的 sundown 
+由 aardio( https://aardio.com) 基于 https://github.com/vmg/sundown 
+做了大量改进以支持现代化 Markdown 流行风格，并修正渲染后各种页面错乱的问题。
 
-aardio 用户可在遵循 aardio 用户协议与 aardio 开源许可证相关条款、原始开源项目相关条款
-的基础上将此此修改版 sundown 自由使用于 aardio 程序开发，但是禁止将其用于非 aardio 开发的程序。
-禁止基于其他目的单独分发由 aardio 提供的 sundown 组件与源码，所有权利保留。
+aardio 用户可在遵循 aardio 用户协议与 aardio 开源许可证相关条款、
+以及 sundown 原始开源项目相关条款的基础上将此修改版 sundown 自由使用于 aardio 程序开发，
+但是严禁将本组件的任何部分用于非 aardio 开发的程序（不得使用除 aardio 以外的编程语言调用此组件的任何部分）。
+禁止基于其他任何目的单独分发由 aardio 提供的 sundown 组件的任何部分。
+aardio 保留对 sundown 修改代码的所有权利并保留所有解释权。
+END LICENSE**/
 
----
-
-end intellisense*****/
 
 /**intellisense()
 string.markdown(extensions,maxNesting,htmlOpt) = 创建 MARKDOWN 解析器,所有参数可选
@@ -245,8 +248,8 @@ string.markdown(extensions,maxNesting,htmlOpt,自定义回调函数) = @.markdow
 string.markdown() = !string_markdown.
 !string_markdown.render(.(markdownText) = 解析参数 @markdownText 指定的 Markdown 文本并返回 HTML。\n自动调用 tostring 函数将参数 @markdownText 转换为字符串。
 !string_markdown.renderFile(.(markdownFilePath) = 解析参数 @markdownFilePath 指定的 Markdown 文件并返回 HTML
-!string_markdown.codeBlock(.(code,lang) = 将 @code 参数指定的代码首尾加上三连反引号代码块标记。\n如果代码已经包含三连反引号，则会重复首尾三连反引号直到没有冲突。\nstring.markdown 不支持这种嵌套的代码块，可用 renderCode 函数单独处理。\n可选用 lang 参数指定编程语言名称
-!string_markdown.renderCode(.(code,lang) = 将代码中的三连反引号进行转义，\n然后首尾加上三连反引号代码块标记并转换为 HTML。\n可选用 lang 参数指定编程语言名称
+!string_markdown.codeBlock(.(code,lang) = 将 @code 参数指定的代码首尾加上三连反引号代码块标记。\n如果代码已经包含三连反引号，则会重复首尾三连反引号直到没有冲突。\n可选用 lang 参数指定编程语言名称
+!string_markdown.renderCode(.(code,lang) = \n将 @cdode 参数指定的编程代码置入 Markkdown 围栏代码块中，\n然后转换并返回为 HTML 代码，自动处理嵌套的 Markkdown 代码块标记。\n可选用 lang 参数指定编程语言名称
 !string_markdown.free() = 释放解析器对象,\n该函数可在对象回收时自动调用
 string.markdown.buffer(.(缓冲区初始大小) = 创建缓冲区,参数可选
 string.markdown.buffer() = !string_markdown_buf.

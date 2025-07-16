@@ -53,8 +53,8 @@ namespace feather{
 		var r;
 		var s = bmpSrc.lockMemory(,0x26200A/*_PixelFormat32bppARGB*/);
 		var d = bmpDst.lockMemory(,0x26200A/*_PixelFormat32bppARGB*/);
-		if( #s.Scan0 == #d.Scan0 ){
-			_dll.copyAlpha(d.Scan0,s.Scan0,#s.Scan0);
+		if( #s.scan0 == #d.scan0 ){
+			_dll.copyAlpha(d.scan0,s.scan0,#s.scan0);
 			r = true;
 		}
 		bmpDst.unlockMemory(d);

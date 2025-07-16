@@ -5,14 +5,14 @@ import win.ui;
 var winform = win.form(text="win.ui.tabs实现自动完成";right=759;bottom=469)
 winform.add(
 dropdown={cls="plus";left=323;top=104;right=593;bottom=135;align="right";bgcolor=15132390;border={color=-3546113;width=2};editable=1;font=LOGFONT(h=-13);forecolor=16777215;iconStyle={align="right";font=LOGFONT(name='FontAwesome');padding={right=8}};iconText='\uF078';notify=1;paddingRight=28;textPadding={left=2;top=6;right=7;bottom=2};z=1};
-menuItem={cls="plus";text="测试菜单三";left=323;top=135;right=593;bottom=180;align="right";bgcolor=11525002;border={left=1;right=1;bottom=1;color=-3546113};tabstop=1;textPadding={right=20};z=2};
-menuItem2={cls="plus";text="测试菜单三";left=323;top=180;right=593;bottom=225;align="right";bgcolor=11525002;border={left=1;right=1;bottom=1;color=-3546113};ont=LOGFONT(name='FontAwesome';charset=0);tabstop=1;textPadding={right=20};z=3};
-menuItem3={cls="plus";text="测试菜单三";left=323;top=225;right=593;bottom=270;align="right";bgcolor=11525002;border={left=1;right=1;bottom=1;color=-3546113};tabstop=1;textPadding={right=20};z=4}
+tabButton1={cls="plus";text="测试菜单三";left=323;top=135;right=593;bottom=180;align="right";bgcolor=11525002;border={left=1;right=1;bottom=1;color=-3546113};tabstop=1;textPadding={right=20};z=2};
+tabButton2={cls="plus";text="测试菜单三";left=323;top=180;right=593;bottom=225;align="right";bgcolor=11525002;border={left=1;right=1;bottom=1;color=-3546113};tabstop=1;textPadding={right=20};z=3};
+tabButton3={cls="plus";text="测试菜单三";left=323;top=225;right=593;bottom=270;align="right";bgcolor=11525002;border={left=1;right=1;bottom=1;color=-3546113};tabstop=1;textPadding={right=20};z=4}
 )
 /*}}*/
 
 import win.ui.tabs;
-var menu = win.ui.tabs(winform.menuItem,winform.menuItem2,winform.menuItem3)
+var menu = win.ui.tabs(winform.tabButton1,winform.tabButton2,winform.tabButton3)
 
 //配置菜单外观样式
 menu.skin( { 

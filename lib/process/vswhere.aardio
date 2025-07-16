@@ -1,6 +1,6 @@
 ﻿//vswhere 工具
 import process.popen;
-import web.json;
+import JSON;
 
 namespace process;
 
@@ -22,7 +22,7 @@ class vswhere{
 		prcs.close();
 		
 		if(str){
-			return ..web.json.tryParse(str);
+			return ..JSON.tryParse(str);
 		} 
 	}}; 
 }

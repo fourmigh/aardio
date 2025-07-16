@@ -46,7 +46,7 @@ console.log(table.len(arr))
 //可以用 console.dumpTable，util.table.stringify 显示 null 值。
 console.dumpTable(arr)
 
-//支持 web.json, console.dumpJson 输出含 null 值的数组。
+//支持 JSON, console.dumpJson 输出含 null 值的数组。
 console.dumpJson(arr)
 
 //也可以创建空数组
@@ -55,5 +55,5 @@ var arr = table.array()
 //显示 [] 而不是 {}
 console.dumpJson(arr)
 
-//支持 table.type(), table.isArray() 等判断数组类型的函数
+//支持 table.type(), table.isArrayLike() 等判断数组类型的函数
 console.log(table.type(arr))

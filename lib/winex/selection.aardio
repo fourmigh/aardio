@@ -23,10 +23,15 @@ var getByEdit = function(copyText){
 			edit.hwnd = hFocus;
 			return edit.selText,hFocus;
 		}
-		elseif(  cls!="RichEditD2DPT" && ..string.find(cls,"@@richedit") ){
+		elseif( cls!="RichEditD2DPT" && ..string.find(cls,"@@richedit") ){
 			richedit.hwnd = hFocus;
 			return richedit.selText,hFocus;
 		} 
+		elseif(..string.startsWith(cls,"SunAwt") && ..java[["accessBridge"]]){
+			var ret = ..java.accessBridge.getSelection(hFocus);
+			if(ret) return ret,hFocus;
+			return;
+		}
 
 		if(copyText){
 			var ret;
@@ -120,14 +125,14 @@ get = function(copyText,copyText2){
 	var hFocus = focusedEle.GetCurrentPropertyValue(NativeWindowHandleProperty);
 	..com.Release(focusedEle);
 	
-	if(!#ret){
+	if(!#ret){ 
 		return getByEdit(copyText);
 	}
 	return ret,hFocus;
 }
 
 /**intellisense()
-winex.selection = 用于获取当前焦点窗口文本选区，可用于实现划词功能。
+winex.selection = 用于获取当前焦点窗口文本选区，可用于实现划词功能。\n如果提前导入 java.accessBridge 库则自动支持 Java 窗口。
 winex.selection.get( = 如果鼠标左键是放开状态，获取焦点窗口选区文本。\n成功返回文本,焦点窗口句柄。
 winex.selection.get(.() = 无参数调用时不使用剪贴板与模拟按按键方式获取选区文本。\n仅适用于支持 UIA 选区接口或 edit,richedit 消息的窗口。 
 winex.selection.get(.(true) =  优先使用 UIA  接口或 edit,richedit 消息获取选区文本。\n参数 @2 为 true 则允许在不支持前述接口的窗口使用剪贴板复制选区文本，\n用后会尝试还原剪贴板文本与图像。\n不建议连续无间隔地调用此函数以免点用过多 CPU

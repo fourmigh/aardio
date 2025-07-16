@@ -1,40 +1,113 @@
 ﻿//jwt 令牌
-import web.json;
+import JSON;
 import crypt.hmac;
+import crypt.rsa;
 import crypt.bin;
 
 namespace crypt
 
 class jwt{
     
-	ctor(privateKey,expiresIn){
-		this.privateKey = privateKey;
-		this.expiresIn = expiresIn;
+	ctor(key,expiresIn){
+		this.key = key;//@Deprecated
+		this.expiresIn = expiresIn;//@Deprecated
 	};
 	
-	encode = function(data){
-		if(!data.iat)data.iat = tonumber(..time());
+	encode = function(data,key,algorithm){
 		if(this.expiresIn && data.exp===null){
 			data.exp = tonumber(..time().addsecond(this.expiresIn));
 		}
 		
-		var header = ..crypt.bin.encodeUrlBase64(`{"alg":"HS256","typ":"JWT"}`);
-		var payload = ..crypt.bin.encodeUrlBase64( ..web.json.stringify(data) );
-		var sign = ..crypt.hmac.sha256(this.privateKey,header + "." + payload).getValue();
-		return ..string.format("%s.%s.%s",header,payload,..crypt.bin.encodeUrlBase64(sign));
+		return encode(data,key||this.key,algorithm); 
 	};
 	
-	decode = function(token){
+	decode = function(token,key,algorithm){
+		return decode(token,key,algorithm)); 
+	};
+	
+	verify = function(token,key,algorithm){
+		return decode(token,key||this.key,algorithm);
+	};
+	
+	sign = this.encode;
+}
+
+namespace jwt{
+	
+	encode = function(data,key,algorithm){
+		data.iat = tonumber(data.iat || ..time()); 
+		if(algorithm === null) algorithm = "HS256";
+			
+		var header = ..crypt.bin.encodeUrlBase64(`{"alg":"`+algorithm+`","typ":"JWT"}`);
+		var payload = ..crypt.bin.encodeUrlBase64( ..JSON.stringify(data) );
+		var sign;
+		
+		if(algorithm == "HS256"){
+			sign = ..crypt.hmac.sha256(key,header + "." + payload).getValue();
+			sign =  ..crypt.bin.encodeUrlBase64(sign);
+		}
+		elseif(algorithm == "RS256"){
+			var rsa = ..crypt.rsa();
+			rsa.importPemKey(key);
+			
+			rsa.createHashBySha256(header + "." + payload); 
+			sign = rsa.signToUrlBase64();//注意这里有自动反转字节序
+			rsa.release();
+		}
+		elseif(algorithm == "none"){
+			sign = "";
+		}
+		
+		return ..string.format("%s.%s.%s",header,payload,sign);
+	};
+	
+	decode = function(token,key,algorithm){
+		token = ..string.match(token,"[Bb]earer\s+(\S+)") : token;
+		if(algorithm === null) algorithm = "HS256";
+		
+		if(key){
+			var jwt = ..string.split(token,".",3);
+			var header = ..JSON.tryParse(..crypt.bin.decodeUrlBase64(jwt[1]));
+			var alg = header[["alg"]];
+			if(alg!=algorithm) return; 
+		
+        	if(alg==="HS256") {
+        		var sign = ..crypt.hmac.sha256(key,jwt[1] + "." + jwt[2]).getValue() ;
+        		
+        		//注意 encodeUrlBase64 会自动反转字节序
+        		if( jwt[3] !== ..crypt.bin.encodeUrlBase64(sign) ){
+        			return;
+        		}
+        	}
+        	elseif(alg==="RS256") {
+        	    var rsa = ..crypt.rsa();
+				rsa.importPemKey(key);
+				rsa.createHashBySha256(jwt[1] + "." + jwt[2]);
+				
+				if( ! rsa.verifyFromUrlBase64(jwt[3]) ) return; 
+        	}
+        	elseif(alg==="none") {
+        		
+        	}
+        	else{
+        		error("不支持该算法",2);
+        	}
+    	}
+    	
 		var jwt = ..string.split(token,".",3);
 		if(#jwt==3){
 			var ret =  {
-        		header = ..web.json.parse(..crypt.bin.decodeBase64(jwt[1]));
-        		payload = ..web.json.parse(..crypt.bin.decodeBase64(jwt[2]));
+        		header = ..JSON.parse(..crypt.bin.decodeBase64(jwt[1]));
+        		payload = ..JSON.parse(..crypt.bin.decodeBase64(jwt[2]));
         		sign = ..crypt.bin.decodeBase64(jwt[3]);
     		} 
     		
     		if(ret.payload[["exp"]]){
     			ret.payload[["exp"]] = ..time(ret.payload[["exp"]])
+    			
+    			if( key && ret.payload[["exp"]] <= ..time() ){
+        			return;
+        		}
     		}	
     		
     		if(ret.payload[["iat"]]){
@@ -44,35 +117,20 @@ class jwt{
     		if(ret.payload[["nbf"]]){
     			ret.payload[["nbf"]] = ..time(ret.payload[["iat"]])
     		}
+    		
     		return ret;
 		}
-	};
+	};	
 	
-	verify = function(token){
-		token = ..string.match(token,"[Bb]earer\s+(\S+)") : token;
-		if(this.privateKey){
-			var jwt = ..string.split(token,".",3);
-        	var sign = ..crypt.hmac.sha256(this.privateKey,jwt[1] + "." + jwt[2]).getValue() ;
-        	
-        	if( jwt[3] === ..crypt.bin.encodeUrlBase64(sign) ){
-        		var ret = this.decode(token);
-        		if(ret.payload[["exp"]]){
-        			if( ret.payload[["exp"]] <= ..time() ){
-        				return;
-        			}
-        		}
-        		return ret;
-        	}
-         
-    	}
-	};
+	sign = encode;//@Deprecated
+	verify = decode;//@Deprecated 
 }
 
 /**intellisense()
 crypt.jwt = JSON Web Token 令牌
-crypt.jwt(.(密钥,超时) = 使用字符串指定签名使用的密钥,\n参数@2指定令牌超时秒数
-crypt.jwt() = !crypt_jwt.
-!crypt_jwt.verify(__) = 验证参数指定的token是否在有效期内，以及签名是否有效\n如果验证token有效，就解码返回令牌信息
-!crypt_jwt.decode(__) = 解码并返回令牌信息
-!crypt_jwt.encode(__) = 生成令牌，\n参数指定要存储到客户端的数据，\n参数必须是表对象
+crypt.jwt.decode( = 解码并返回令牌信息
+crypt.jwt.decode(.(token,key,algorithm) = 验证签名，失败返回 null。\n成功则解码并获取令牌记录的 JSON 数据，\n然后对 JSON 进行解析并返回解码后的对象。\n\n参数 @key 指定密钥或 PEM 格式公钥。\n可选用参数 @algorithm 指定签名算法，默认为 "HS256"，\n也可指定为 "RS256" 或 "none"，算法为 "none" 则 @key 可指定空字符串。\n暂不支持其他算法。
+crypt.jwt.decode(.(token) = 不验证签名，直接解码并返回令牌信息
+crypt.jwt.encode( = 生成 JWT 令牌。
+crypt.jwt.encode(.(data,key,algorithm) = 生成令牌，\n参数 @data 指定要存储到客户端的数据（必须是一个表对象）\n参数 @key 指定密钥或 PEM 格式私钥。\n可选用参数 @algorithm 指定签名算法，默认为 "HS256"，\n也可指定为 "RS256" 或 "none"，算法为 "none" 则 @key 可指定空字符串。\n暂不支持其他算法。
 end intellisense**/

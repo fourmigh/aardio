@@ -23,7 +23,7 @@ download = function(url,title="下载",saveDir,extraDir,saveName,parentForm,endP
 		downBox.text = "正在解压:" + tPath.file;
 		 
 		if(!extraDir){
-			if(..string.endWith(downBox.savePath,".gz",true) ){
+			if(..string.endsWith(downBox.savePath,".gz",true) ){
 				extraDir = saveDir;
 			}
 			else {
@@ -36,8 +36,8 @@ download = function(url,title="下载",saveDir,extraDir,saveName,parentForm,endP
 			extraDir = ..io.fullpath(extraDir);
 		} 
 		
-		if(..string.endWith(downBox.savePath,".tar.gz",true)
-			|| ..string.endWith(downBox.savePath,".tgz",true)){
+		if(..string.endsWith(downBox.savePath,".tar.gz",true)
+			|| ..string.endsWith(downBox.savePath,".tgz",true)){
 				 
 			var tar = ..fsys.untar(downBox.savePath,extraDir);
 			
@@ -55,7 +55,7 @@ download = function(url,title="下载",saveDir,extraDir,saveName,parentForm,endP
     			} 
 			} 
 		}
-		elseif(..string.endWith(downBox.savePath,".gz",true) ){
+		elseif(..string.endsWith(downBox.savePath,".gz",true) ){
 			var gzFile = ..zlib.gzFile(downBox.savePath,"rb");
 			if(!gzFile){
 				downBox.labProgress.text = "解压缩时遇到错误"

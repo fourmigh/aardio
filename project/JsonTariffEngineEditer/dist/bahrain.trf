@@ -1,0 +1,36 @@
+{
+    "W01":{
+        "maxAmount":99999,
+        "rules":[
+            {
+                "days":[
+                    "Friday"
+                ],
+                "name":"free_or_holiday",
+                "type":"free"
+            },
+            {
+                "countUnit":30,
+                "dailyCap":400,
+                "dailySettlement":true,
+                "name":"flat_rate",
+                "rate":100,
+                "type":"flat",
+                "unit":"minute"
+            },
+            {
+                "name":"time_from_to",
+                "periods":[
+                    {
+                        "endTime":"19:00",
+                        "startTime":"07:00"
+                    }
+                ],
+                "type":"free",
+                "days":{
+                    
+                }
+            }
+        ]
+    }
+}

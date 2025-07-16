@@ -79,6 +79,7 @@ thread.invoke(
 					
 					import fsys;
 					fsys.delete("~\lib\win\ui\ctrl\metaProperty.aardio");
+					fsys.setAttributes("~\lib\win\form.aardio",2/*_FILE_ATTRIBUTE_HIDDEN*/);
 					
 					try{
 						import ide;

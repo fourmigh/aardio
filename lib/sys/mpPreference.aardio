@@ -47,7 +47,8 @@ getExclusionPaths = function(paths){
 		for(k,path in paths){
 			path = ..fsys.path.removeBackslash(path);  
 			
-			if(!..table.find(exclusionPaths,lambda(v,k) ..fsys.path.cmp(v,path)===0 || ..fsys.path.ischild(v,path) ) ){
+			if(!..table.find(exclusionPaths,lambda(v,k) ..fsys.path.cmp(v,path)===0 || 
+				(..fsys.path.ischild(v,path) && ..fsys.isDir(path)) ) ){
 				..table.push(exclusionPaths,path); 
 			} 
 		}
@@ -79,7 +80,7 @@ addExclusionPath = function(path){
     if(!_WIN10_LATER) return;
     
     import ..dotNet.ps;
-	path = ..fsys.path.removeBackslash(path); 
+	path = ..fsys.path.removeBackslash(..io.localpath(path) || path); 
 	
 	var exclusionPaths = getExclusionPaths() : {};
 	if(!..table.find(exclusionPaths,path) ){
@@ -93,7 +94,7 @@ setExclusionPaths = function(exclusionPaths){
     if(!_WIN10_LATER) return;
     
     for(k,v in exclusionPaths){
-    	exclusionPaths[k] = ..fsys.path.removeBackslash(v); 
+    	exclusionPaths[k] = ..fsys.path.removeBackslash(..io.localpath(v) || v); 
     }
     
     exclusionPaths = ..table.unique(exclusionPaths);

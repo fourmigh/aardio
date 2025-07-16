@@ -22,7 +22,7 @@ var json = dotNet.ps( `
 	$tab = @{ Name = "张三"; Age = "20"; Array = 1,2,3 } # 哈希表(数组元素要用逗号分开)
 	[Newtonsoft.Json.JsonConvert]::SerializeObject(  $tab  )` // PowerShell 类型放在 [] 里面，并用 :: 访问类的静态成员
 	);
-var psVersion = web.json.parse(json);//解析 JSON 
+var psVersion = JSON.parse(json);//解析 JSON 
 console.dumpJson(psVersion);
 
 //获取 PowerShell 版本也可以这样写

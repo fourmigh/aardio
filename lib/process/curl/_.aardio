@@ -2,7 +2,7 @@
 import process.popen;
 import process.wow64;
 import inet.url;
-import web.json;
+import JSON;
 
 namespace process{
 
@@ -16,7 +16,7 @@ namespace process{
 			
 			if(param[["--json"]]){
 				if(type(param[["--json"]]) == "table"){
-					param[["--json"]] = ..web.json.stringify(param[["--json"]]);
+					param[["--json"]] = ..JSON.stringify(param[["--json"]]);
 				}
 				
 				..table.unshift(param, "--data", param[["--json"]]);
@@ -35,7 +35,7 @@ namespace process{
 			
 			if((out[1]=='{'# && out[#out]=='}'# )|| 
 				(out[1]=='['# && out[#out]==']'#) ){
-				return ..web.json.tryParse(out) : out;
+				return ..JSON.tryParse(out) : out;
 			}
 			return out:""; 
 		}; 

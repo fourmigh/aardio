@@ -1,11 +1,11 @@
 //ftp 文件传输协议
-import inet
+import inet;
 import fsys;
 namespace inet  
  
 class ftp {
 
-	ctor(server,user,password,port = 21,pasv,agent = "Mozilla/4.0", proxy,proxyBypass="",flags=0 ){ 
+	ctor(server,user,password,port = 21,pasv = true,agent = "Mozilla/4.0", proxy,proxyBypass="",flags=0 ){ 
 		port = tonumber(port);
 		
 	    if( #proxy ){
@@ -39,8 +39,31 @@ class ftp {
     	if(this.session)
     		::InternetCloseHandle(this.session);
     };
-    command = function(cmd,flags=2/*_INTERNET_FLAG_TRANSFER_BINARY*/, expectResponse){
-    	return FtpCommand(this.connect,expectResponse,flags,cmd );
+    command = function(cmdStr,flags=2/*_INTERNET_FLAG_TRANSFER_BINARY*/){
+        if(type(cmdStr)!="string"){
+        	error("参数 @1 必须是字符串",2)
+        }
+        
+        var cmd = ..string.match(cmdStr,"\s*(\a+)");
+        if(cmd){
+        	cmd = ..string.upper(cmd);
+        	if(_DATA_CONNECTION_COMMANDS[cmd]){
+        	  
+        		var ok,hFile = FtpCommand(this.connect,true,flags,cmd );
+        		if(ok){
+        			return file(this.connect,hFile);
+        		}	
+        		
+        		return null;
+        	}
+        	
+        }
+        
+        var ok = FtpCommand(this.connect,false,flags,cmd );
+        if(ok){
+        	return ..inet.lastResponse() || ""; 
+        }
+        
     };
     upload=function(path,remotePath,flags=0){ 
     	if( !..io.exist(path) ){
@@ -143,16 +166,17 @@ class ftp {
 		}while (#queue)
     }
     open = function( path,mode,flag){
-    	var f = file( this.connect,path,mode,flag )
-    	return f;
-    };	
+    	var f,err = file( this.connect,path,mode,flag )
+    	return f,err;
+    };
+    lastResponse = ..inet.lastResponse;
  }
  
 namespace ftp{
 	canonicalizeDirectory = function(path){
 		if(!path)error("目录不能为空",2); 
 		path = ..string.replace(path,"@@\", "/") ;
-     	if( not ..string.endWith( path,"/") ) path = path + "/";  
+     	if( not ..string.endsWith( path,"/") ) path = path + "/";  
      	return path;
 	};
 	getParentDir = function(path){
@@ -160,7 +184,7 @@ namespace ftp{
 		path = ..string.replace(path,"@@\","/");
 		if( path == "/" ) return;
 		
-		if( ..string.endWith(path,"/",true) ) path = ..string.left(path,-2);
+		if( ..string.endsWith(path,"/",true) ) path = ..string.left(path,-2);
 		if( !#path ) return;
 		
 		var pdir = ..string.match( path,".*[/\\]" );
@@ -186,16 +210,24 @@ namespace ftp{
    
 	class file{
 		ctor( hConnect,fileName,mode="rb",flags = 0){
-			flags = flags | (  ..string.find(mode,"b") ? 2/*_FTP_TRANSFER_TYPE_BINARY*/ : 1/*_FTP_TRANSFER_TYPE_ASCII*/ );
-	
-			if(!fileName) return null,"null fileName";
-			fileName = ..string.replace(fileName,"@@\", "/") ;
+			var hFile;
 			
-			mode = mode[1] == 'r'#  ? 0x80000000/*_GENERIC_READ*/ : 0x40000000/*_GENERIC_WRITE*/;
-			var hFile = FtpOpenFile( hConnect,fileName,mode,flags);
-			if(!hFile){
-				return null,..inet.lastResponse();
-			};
+			if(type(fileName)=="pointer"){
+				hFile = fileName;
+			}
+			else{
+				flags = flags | (  ..string.find(mode,"b") ? 2/*_FTP_TRANSFER_TYPE_BINARY*/ : 1/*_FTP_TRANSFER_TYPE_ASCII*/ );
+		
+				if(!fileName) return null,"fileName 不能为空";
+				fileName = ..string.replace(fileName,"@@\", "/") ;
+				
+				mode = mode[1] == 'r'#  ? 0x80000000/*_GENERIC_READ*/ : 0x40000000/*_GENERIC_WRITE*/;
+				hFile = FtpOpenFile( hConnect,fileName,mode,flags);
+				if(!hFile){
+					return null,..inet.lastResponse();
+				};
+			}
+			
 			..table.gc(this,"close");
 		};
 		write = function(...){
@@ -206,13 +238,17 @@ namespace ftp{
 				return readFile(hFile,bufferSize);  
 			}
 			else {
-				var size,sizeHigh = FtpGetFileSize(hFile,0);
-				if(!sizeHigh){
-					return readFile(hFile,,)
-				}
-				error("文件太大,请循环读取",2)
+				return this.readAll();
 			}
 		};
+		readAll = function(bufferSize){
+			var ret = []
+			for data in this.eachRead(){
+				..table.push(ret,data);
+			}
+			
+			return ..string.join(ret); 
+		}
 		eachRead = function(bufferSize){
 			return function(){
 				return readFile(hFile,bufferSize); 
@@ -244,6 +280,7 @@ namespace ftp{
 			}
 		}; 
 	}
+	
 	namespace file{
 		import inet.file;
 		readFile = inet.file.read;
@@ -254,12 +291,19 @@ namespace ftp{
 		FtpOpenFile = ::Wininet.api("FtpOpenFile","pointer(POINTER hConnect,STRING fileName,INT dwAccess,INT flags,pointer contect)")
 		FtpGetFileSize = ::Wininet.api("FtpGetFileSize","INT(POINTER hFile,INT &sizeHigh)");
 	};
+	
+	_DATA_CONNECTION_COMMANDS = {
+    	"LIST":1, "NLST":1, "MLSD":1, // 目录列表
+    	"RETR":1, // 下载
+    	"STOR":1, "APPE":1, "STOU":1  // 上传
+	};
 
 }
+
  
 /**intellisense()
 inet.ftp = FTP文件传输支持库
-inet.ftp(.(主机,用户名,密码,端口号,是否被动模式,UserAgent,代理,绕过代理,选项) = 除第一个参数以外,其他参数可选
+inet.ftp(.(主机,用户名,密码,端口号,是否被动模式,UserAgent,代理,绕过代理,选项) = 除参数 @1 需要指定主机地址以外，其他参数都是可选参数。\n被动模式（PASV/Passive mode） 默认为 true 。\n其他参数用法请参考 inet.http 构造参数。
 inet.ftp.getParentDir(.(路径) = 返回父目录
 !inet_ftp.eachDir = @for(dirName,fileName,findData,curDir in ??.eachDir("\")){
 	 if( !fileName ){
@@ -278,22 +322,24 @@ inet.ftp.getParentDir(.(路径) = 返回父目录
 !inet_ftp.createDir(.(目录) = 创建目录,支持创建多级目录\n可以斜杠开头的的路径表示相对于根目录的完整路径\n也可使用setCurDir()设定当前目录
 !inet_ftp.delete(.(文件) = 删除文件
 !inet_ftp.rename(.(文件名,新名字) = 文件改名
-!inet_ftp.download(.("/本地路径","/远程路径") = 下载前可使用setCurDir()设定当前目录\n也可以斜杠开头的的路径表示相对于根目录的完整路径
+!inet_ftp.download(.("/本地路径","/远程路径") = 下载前可使用 setCurDir 方法设定服务端当前目录位置。\n也可以斜杠开头的的路径表示相对于根目录的完整路径
 !inet_ftp.upload(.("/本地路径","远程路径") = 上传前可使用setCurDir()设定当前目录\n也可以斜杠开头的的路径表示相对于根目录的完整路径
-!inet_ftp.download(.(loadfile,remotefile,1/*_INTERNET_FLAG_TRANSFER_ASCII*/) = ASCII模式下载
-!inet_ftp.download(.(loadfile,remotefile,2/*_INTERNET_FLAG_TRANSFER_BINARY*/) = BINARY模式下载
-!inet_ftp.upload(.(formfile,todir,1/*_INTERNET_FLAG_TRANSFER_ASCII*/) = ASCII模式上传
-!inet_ftp.upload(.(formfile,todir,2/*_INTERNET_FLAG_TRANSFER_BINARY*/) = BINARY模式上传
-!inet_ftp.command("OPTS UTF8 off") = 发送命令通知服务器关闭UTF8编码模式\n可解决中文文件名乱码问题
-!inet_ftp.command(.(命令,选项,是否返回句柄) = 仅指定第一个参数即可,\n参数2指定传送模式,默认为BINARY模式\n也可指定为_INTERNET_FLAG_TRANSFER_ASCII\n参数3默认为false,如果为true则第二个返回值为返回句柄
+!inet_ftp.download(.(loadfile,remotefile,1/*_INTERNET_FLAG_TRANSFER_ASCII*/) = ASCII 模式下载
+!inet_ftp.download(.(loadfile,remotefile,2/*_INTERNET_FLAG_TRANSFER_BINARY*/) = BINARY 模式下载
+!inet_ftp.upload(.(formfile,todir,1/*_INTERNET_FLAG_TRANSFER_ASCII*/) = ASCII 模式上传
+!inet_ftp.upload(.(formfile,todir,2/*_INTERNET_FLAG_TRANSFER_BINARY*/) = BINARY 模式上传
+!inet_ftp.command(.(commandString,flags) = @执行 FTP 命令。参数说明：\n1. 参数 @commandString 指定 FTP 命令。\n2. 可选参数 @flags 指定响应数据传送模式（数值），默认为二进制模式，\n指定为 1/*_FTP_TRANSFER_TYPE_ASCII*/ 则使用 ASCII 传送模式。\n\n执行 "LIST", "NLST", "MLSD", "RETR", "STOR", "APPE", "STOU" 等需要数据连接的 FTP 命令时\n返回 inet.ftp.file 对象（提供 readAll,eachRead 等方法l）, 失败返回 null 。\n执行其他仅建立控制连接的 FTP 命令时成功返回服务器响应数据（字符串），失败返回 null 。
+!inet_ftp.command() = !ftp_file.
+!inet_ftp.lastResponse() = 获取服务器最后发送的数据，成功返回字符串。\n调用此函数等价于调用 inet.lastResponse 函数。
 !inet_ftp.close() = 关闭连接
-!inet_ftp.open("/目录/文件路径","rb") = 二进制只读模式打开ftp文件流\n参数2为"rt"则使用文本模式,\n打开文件后仅允许读文件,其他所有FTP操作被禁用,\n直到调用close()关闭文件
-!inet_ftp.open("/目录/文件路径","wb") = 二进制只写模式打开ftp文件流\n参数2为"wt"则使用文本模式,\n打开文件后仅允许写文件,其他所有FTP操作被禁用,\n直到调用close()关闭文件
+!inet_ftp.open("/目录/文件路径","rb") = 二进制只读模式打开 FTP 文件流。\n成功返回 FTP 文件流对象，失败返回 null, 错误信息。\n\n参数 @2 为"rt"则使用文本模式,\n打开文件后仅允许读文件,其他所有 FTP 操作被禁用,\n直到调用 close 函数关闭文件。
+!inet_ftp.open("/目录/文件路径","wb") = 二进制只写模式打开FTP 文件流。\n成功返回 FTP 文件流对象，失败返回 null, 错误信息。\n\n参数 @2 为"wt"则使用文本模式,\n打开文件后仅允许写文件,其他所有 FTP 操作被禁用,\n直到调用 close 函数关闭文件。
 !inet_ftp.open() = !ftp_file.
 !ftp_file.size() = 返回文件大小
 !ftp_file.size64() = 返回文件大小\n返回文件大小\n返回值为math.size64长整数对象\n!math_size64.
 !ftp_file.read() = 读文件,返回文件数据,\n可选指定缓冲区长度
 !ftp_file.read(-1) = 读取所有数据
+!ftp_file.readAll() = 读取所有数据
 !ftp_file.write(.(写入字符串,不定个数字符串) = 写文件,支持多参数,\n返回写入数据的总长度,失败返回空或0
 !ftp_file.writeBuffer(.(buffer,写入长度) = 上传文件数据\n参数一必须是使用 buffer 对象\n长度参数可选,默认为缓冲区长度. 
 !ftp_file.readBuffer(.(buffer,写入长度) = 下载文件数据\n参数一必须是使用 buffer 对象\n长度参数可选,默认为缓冲区长度. 
@@ -308,8 +354,7 @@ inet.ftp() = !inet_ftp.
 end intellisense**/
 
 /**intellisense()
-_INTERNET_FLAG_TRANSFER_ASCII=@1/*_INTERNET_FLAG_TRANSFER_ASCII*/
-_INTERNET_FLAG_TRANSFER_BINARY=@2/*_INTERNET_FLAG_TRANSFER_BINARY*/
 _FTP_TRANSFER_TYPE_ASCII=@1/*_FTP_TRANSFER_TYPE_ASCII*/
 _FTP_TRANSFER_TYPE_BINARY=@2/*_FTP_TRANSFER_TYPE_BINARY*/
+_FTP_TRANSFER_TYPE_DISABLED=@0/*_FTP_TRANSFER_TYPE_DISABLED*/
 end intellisense**/

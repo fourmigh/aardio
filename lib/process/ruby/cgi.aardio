@@ -8,7 +8,7 @@ class cgi{
 		var env = request.environ;
 		env.REDIRECT_STATUS = 200;
 		env.PHP_SELF = env.PATH_INFO;
-		if( ..string.endWith(env.PATH_INFO,".rb",true) ){
+		if( ..string.endsWith(env.PATH_INFO,".rb",true) ){
 			env.SCRIPT_NAME =  env.PATH_INFO;
 			env.SCRIPT_FILENAME = env.PATH_TRANSLATED;
 		}

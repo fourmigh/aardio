@@ -25,7 +25,7 @@ py3.exec( pyCode );
 
 /*
 aardio 提供 wsock.tcp.simpleHttpServer, wsock.tcp.asynHttpServer 可用于创建 HTTP 服务端。
-参考：aardio 范例 / Web 应用 / HTTP 服务器
+参考：aardio 范例 » Web 应用 » HTTP 服务器
 */
 
 console.open();

@@ -1,7 +1,7 @@
 import win.ui;
 import fonts.fontAwesome;
 /*DSG{{*/
-var winform = win.form(text="WinAsar - 解包工具";right=1075;bottom=736;acceptfiles=1;bgcolor=16777215;)
+var winform = win.form(text="WinAsar - 解包工具";right=1075;bottom=736;acceptfiles=1;bgcolor=0xFFFFFF;)
 winform.add(
 btnExtract={cls="plus";text="提取全部文件";left=805;top=666;right=973;bottom=699;align="left";db=1;dr=1;font=LOGFONT(h=-15);notify=1;textPadding={left=35};z=3};
 btnOpen={cls="plus";text="选择asar文件";left=623;top=4;right=868;bottom=37;align="left";dr=1;dt=1;font=LOGFONT(h=-15);textPadding={left=35};z=6};
@@ -11,7 +11,7 @@ editInfo={cls="richedit";left=371;top=42;right=1058;bottom=654;db=1;dl=1;dr=1;dt
 editOutDir={cls="edit";left=138;top=666;right=800;bottom=699;acceptfiles=1;db=1;dl=1;dr=1;edge=1;multiline=1;z=7};
 progress={cls="plus";left=21;top=710;right=1058;bottom=723;bgcolor=6447459;db=1;dl=1;dr=1;forecolor=9959653;hide=1;z=4};
 static={cls="static";text="输出目录:";left=42;top=672;right=128;bottom=696;align="right";db=1;dl=1;font=LOGFONT(h=-15);transparent=1;z=8};
-treeview={cls="treeview";left=18;top=43;right=364;bottom=658;asel=false;bgcolor=16777215;db=1;dl=1;dt=1;edge=1;vscroll=1;z=1}
+treeview={cls="treeview";left=18;top=43;right=364;bottom=658;asel=false;bgcolor=0xFFFFFF;db=1;dl=1;dt=1;edge=1;vscroll=1;z=1}
 )
 /*}}*/
 
@@ -26,7 +26,7 @@ var showAsarInfo = function(){
 	winform.treeview.clear();
 	winform.treeview.insertItem(unasar.treeData());
 	
-	winform.editInfo.text = web.json.stringify(unasar.info,true);
+	winform.editInfo.text = JSON.stringify(unasar.info,true);
 	
 	if(winform.unasar) winform.unasar.close();
 	winform.unasar = unasar;
@@ -41,7 +41,7 @@ var showAsarInfo = function(){
 
 winform.editAsarPath.oncommand = function(id,event){ 
 	if( event == 0x300/*_EN_CHANGE*/){
-		if( ..string.endWith(winform.editAsarPath.text,"*.asar")){
+		if( ..string.endsWith(winform.editAsarPath.text,"*.asar")){
 				if( ..io.exist(winform.editAsarPath.text)){
 					showAsarInfo();
 				};
@@ -100,7 +100,7 @@ winform.treeview.onnotify = function(id,code,ptr){
             }
             else {
                 winform.btnReplace.disabled = true;
-            	 winform.editInfo.text = web.json.stringify(data,true) 
+            	 winform.editInfo.text = JSON.stringify(data,true) 
             }
             
 		}

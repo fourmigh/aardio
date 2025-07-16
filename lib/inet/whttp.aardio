@@ -250,9 +250,9 @@ class whttp{
 		}
 		this.contentLength = tonumber(this.readHeader("Content-Length:"):null); 
 		this.responseContentType = this.readHeader("Content-Type:");
-		this.eventStream = ..string.startWith(this.responseContentType:"","text/event-stream",true);
-		this.ndjsonStream = ..string.startWith(this.responseContentType:"","application/x-ndjson",true);
-		
+		this.eventStream = ..string.startsWith(this.responseContentType:"","text/event-stream",true);
+		this.ndjsonStream = ..string.find(this.responseContentType:"","application/<json\-?l>|<x\-ndjson>");
+				
 		this.responseContentEncoding = this.readHeader("Content-Encoding:");
 		if( this.afterSend){
 			this.afterSend(this.statusCode,this.contentLength);
@@ -408,6 +408,41 @@ class whttp{
 	eachRead = function(bufferSize){
 		this.lastReadErrCode = null;
 		if(! (this.eventStream || this.ndjsonStream ) ){
+			
+			if( this.tryParseJsonStreamData 
+				&& !this.onReceiveBegin
+				&& ( ..string.match( this.responseContentType,"[\w\/]*<@@json@>![\W]"  ) ) 
+				){
+				var r = this.read;
+				var block =  r(1)
+				if( block !='[' ){ 
+        			return function(){} 
+        		}
+        		
+        		return function(){   
+					var block = r(1); 
+			 		
+					if(block==']' || !block){  
+						return;
+					}
+			 		
+					while( block!='{'){
+				 		block = r(1); 
+				 		if(!block) return;
+					}
+			 		
+					
+					while( var char = r(1) ) {  
+						block = block ++ char; 
+						
+						if( char == '}' ){  
+							var data = this.tryParseJsonStreamData(block);
+							if(data) return data; 
+						}  
+					} 
+				}   
+			}
+			
 			return function(){
 				var str,size,errCode = this.read(bufferSize); 
 				if(!str){
@@ -515,7 +550,7 @@ class whttp{
 	readHeaderList = function(name){ 
 		var list,kv,k = {};
 		for line in ..string.lines( ( this.readHeader() ) ) { 
-			if( name && ! ..string.startWith(line,name,true) ) continue;
+			if( name && ! ..string.startsWith(line,name,true) ) continue;
 			kv = ..string.splitEx(line,"\s*\:\s*",2); 
 			if(#kv<2) continue;
 			
@@ -816,6 +851,15 @@ namespace whttp{
 		)
 	}
 	
+	post = function(...){
+		return ..thread.invokeAndWait(
+			function(...){
+				import inet.http;
+				return inet.http().post(...);
+			},... 
+		)
+	}
+	
 	status = function(url,nr,method){
 		var http = ..inet.whttp();
 		http.setTimeouts(1000,1000,1000);
@@ -890,6 +934,7 @@ inet.whttp.userAgent =  创建 inet.whttp 对象且未明确指定 user agent �
 	__/*如果 ContentType 响应类型为 text/event-stream，\n则 eachRead 与 onReceive 回调会自动调用 parseStreamData 提前转换数据。\n如果 ContentType 响应类型为 application/x-ndjson，\n则 onReceive 回调会自动调用 parseStreamData 提前转换数据\nweb.rest.client 会自动设定此回调*/
 	return data;
 } 
+!inet_whttp.tryParseJsonStreamData = 如果将此属性指定为 JSON.tryParse \n则 eachRead 迭代器 与 onReceive 回调会自动自动解析标准 JSON 对象数组格式的流式输出，\n\n规则为：- Content-Type 响应头必须指定了 JSON 格式，例如 `application/json`。- 服务器响应的完整输出必须是一个对象数组，第一个字符必须是 `[`，最后一个字符必须是 `]`。- 每个块必须是一个使用 `{}` 包围的 JSON 对象，对象之间必须以 `,` 分隔。\n\n如果定义了 onReceiveBegin 事件则忽略此属性。
 !inet_whttp.lastReadErrCode = 最后一次读取数据是否遇到错误,例如网络断开连接等等
 !inet_whttp.read(.(读取长度) = 长度参数可选\n返回读取字符串,以及长度\n该函数必须在send请求以后调用
 !inet_whttp.readAll() = 读取所有返回数据\n该函数必须在send请求以后调用
@@ -933,8 +978,8 @@ inet.whttp.userAgent =  创建 inet.whttp 对象且未明确指定 user agent �
 !inet_whttp.head(.(url,http头,引用网址,MIME) = 发送 HEAD 请求获取 HTTP 头\n此函数不会直接返回 HTTP 头，\n但函数返回后可使用 readHeader 函数读取 HTTP 响应头\n\n除URL外,其他为可选参数\n默认使用上一次访问的网址作为下一次的引用网址\n本地内部错误返回值为:null,错误信息,错误代码,\n服务端返回 HTTP 错误代码时返回值为:false，\n成功返回 true
 !inet_whttp.headEx(.(url,请求方法,提交数据,http头,引用网址,MIME) = 使用指定的请求方法模拟HEAD方法,用于拒绝HEAD请求的网址\n除网址以外所有参数可以省略,默认为使用GET方法
 !inet_whttp.down(.(url,postdata,headers,referer,accept,method,flags,connectFlags,noReceiveData) = 发送请求并下载数据,get,post等调用此函数\n不建议直接调用此函数，参数:\n\nurl:网址,除这个参数必须指定以外，后面其他参数都是可选参数\npostdata:提交数据\nheaders:http头,可以是web.joinHeaders支持的字符串、键值对、数组等格式\nreferer:http引用网址,默认使用上一次访问的网址作为下一次的引用网址\naccept: 此参数用于HTTP请求头accept字段，用于指定可识别的内容类型列表\nflags: 用于设置请求选项,参考beginRequest函数说明\nconnectFlags:用于打开连接选项,参考beginRequest函数说明\nnoReceiveData: 指定为真则不下载服务器回应数据\n\n本地内部错误返回值为:null,错误信息,错误代码\n服务端返回HTTP错误时返回值为:false,错误信息,HTTP错误代码\n成功返回字符串对象
-!inet_whttp.get(.(url,http头,引用网址,MIME) = 向服务器发送GET请求并下载服务器返回的数据,\n此函数会顺序调用 beginRequest(), send()，\n如果指定了onReceive回调函数,则调用该函数接收数据(成功返回true)\n否则，调用readAll()等函数并返回下载数据，\n\n除URL外,其他为可选参数\nhttp头可以是web.joinHeaders支持的字符串、键值对、数组等格式\n默认使用上一次访问的网址作为下一次的引用网址\n本地内部错误返回值为:null,错误信息,错误代码\n服务端返回HTTP错误时返回值为:false,错误信息,HTTP错误代码\n成功返回字符串对象
-!inet_whttp.post(.(url,post数据,http头,引用网址,MIME) = 向服务器发送POST请求并下载服务器返回的数据,\n如果post数据是一个表，则自动调用 inet.url.stringifyParameters 转换为字符串,\n此函数会顺序调用 beginRequest(), send()，\n如果指定了onReceive回调函数,则调用该函数接收数据(成功返回true)\n否则，调用readAll()等函数并返回下载数据，\n\n除URL与post数据以外,其他为可选参数\nhttp头可以是web.joinHeaders支持的字符串、键值对、数组等格式\n默认使用上一次访问的网址作为下一次的引用网址\n本地内部错误返回值为:null,错误信息,错误代码\n服务端返回HTTP错误时返回值为:false,错误信息,HTTP错误代码\n成功返回字符串对象
+!inet_whttp.get(.(url,http头,引用网址,MIME) = 向服务器发送GET请求并下载服务器返回的数据,\n此函数会顺序调用 beginRequest(), send()，\n如果指定了 onReceive 回调函数,则调用该函数接收数据(成功返回true)\n否则，调用readAll()等函数并返回下载数据，\n\n除URL外,其他为可选参数\nhttp头可以是web.joinHeaders支持的字符串、键值对、数组等格式\n默认使用上一次访问的网址作为下一次的引用网址\n本地内部错误返回值为:null,错误信息,错误代码\n服务端返回HTTP错误时返回值为:false,错误信息,HTTP错误代码\n成功返回字符串对象
+!inet_whttp.post(.(url,post数据,http头,引用网址,MIME) = 向服务器发送 POST 请求并下载服务器返回的数据,\n如果 post 数据是一个表，则自动调用 inet.url.stringifyParameters 转换为字符串,\n此函数会顺序调用 beginRequest(), send()，\n如果指定了 onReceive 回调函数,则调用该函数接收数据(成功返回true)\n否则，调用readAll()等函数并返回下载数据，\n\n除URL与post数据以外,其他为可选参数\nhttp头可以是web.joinHeaders支持的字符串、键值对、数组等格式\n默认使用上一次访问的网址作为下一次的引用网址\n本地内部错误返回值为:null,错误信息,错误代码\n服务端返回HTTP错误时返回值为:false,错误信息,HTTP错误代码\n成功返回字符串对象
 !inet_whttp.codepage = 设置post函数上传参数为表并转换为字符串时UrlEncode的输出代码页
 !inet_whttp.lastResponse() = 获取最后一次服务器返回的原始数据,\n仅在调用了readAll函数、或在get,post函数中间接调用readAll函数时设置该值
 !inet_whttp.setAuth(.("用户名","密码") = 为当前打开请求设置登录信息\n成功返回true

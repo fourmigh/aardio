@@ -1,11 +1,18 @@
 //message 聊天消息
 import win.version;
+import string.html;
+
 namespace web.rest.aiChat;
 
 class message{
-	ctor( /*输入构造函数所需要的参数*/ ){
+	ctor( messages ){
 		this = ..table.array();
 		this.limit = 15;
+		
+		if(#messages) {
+			..table.append(this,messages);
+			this.limit = 0;
+		} 
 	};
 	push = function(msg){  
 		if(type.isString(msg)){
@@ -24,115 +31,41 @@ class message{
 				lastMsg.content = lastMsg.content++msg;
 			} 
 		}
-		else {
+		elseif(msg) {
 			
-			//保留消息队列第一个与最后一个系统提示词 
-			if(this.limit && (#this-2)>=this.limit ){ 
-
-				while( var i = 1; i++ ; i < #this/*保留最后一个 system 知识库*/ ) {  
-					var msg = this[i];
-						
-					if(msg.role=="system" ){
-						//优先移除插入的知识库
-						..table.remove(this,i);
-						console.log("remove",i)
-						i--;
-					}
-						
-				}
-				
-				if( (#this-2)>=this.limit ){
-					..table.splice(this,2,(#this-2)-this.limit)
-				}  
-			}
+			//保留消息队列第一个与最后两个可能是系统提示词的消息
+			if(this.limit && (#this-3)>=this.limit ){  
+				..table.splice(this,2,(#this-3)-this.limit+1)
+			} 
 			
 			//加入聊天消息
 			..table.push(this,msg); 
 		} 
+		else{
+			var lastMsg = this[#this]
+			if(lastMsg[["role"]]=="assistant"){
+				lastMsg[["content"]] = ..string.replace(lastMsg[["content"]] ,"\<(<think>|<thought>)\>(.+?)\</\1\>","");
+			}
+		}
 	}
-	aardioSystem = function(prompt,isUserPrompt){
+	aardioSystem = function(prompt){
 		var p = "";
 		
 		if(!this.aardioSystemPrompt){
 			p = p ++ aardioSystemPrompt;
 			
-			var quickRef = ..string.load("~\doc\guide\language\syntax-quick-ref.md");
-			if(quickRef){
-				p = p + '\r\n\r\n---\r\n\r\n' + quickRef;
+			var qr = ..string.load("~\doc\guide\language\syntax-quick-ref.md");
+			if(qr){
+				p = p + '\r\n\r\n---\r\n\r\n' + qr;
 			}
-			
-			p = p ++ '\r\n\r\n---\r\n\r\n## 当前运行环境\r\n- 当前 aardio 主版本号为：' + _AARDIO_VERSION;
-			p = p ++ '\r\n- 当前时间为：' + tostring(..time());
-			p = p ++ '\r\n- 当前应用程序根目录为："' + ..io.fullpath("/") + '"';
-			p = p ++ '\r\n- 当前进程 EXE 目录为："' + ..io._exedir + '"';
-			p = p ++ '\r\n- 当前进程 EXE 执行文件名为："' + ..io._exefile + '"';
-			p = p ++ '\r\n- 当前操作系统为："' + ..win.version.format() + '"';
-
+			 
 			this.aardioSystemPrompt = true; 
 		}
-		
-		if(#prompt){
-			if(!isUserPrompt){
-				p = p + '\r\n\r\n---\r\n\r\n' + prompt;
-			}
-			else{
-				if(!this.aiSystemPropmptSupperHotkeys){
-					if(..string.find(prompt,"<超级热键>|<@@imtip@>|<key\.hotkey>|<@@superHotkey@>")){
-						if(!this.findSystem("超级热键使用指南")){
-							this.system(..string.load("~/doc/library-guide/std/key/hotkey.md"))
-							this.aiSystemPropmptSupperHotkeys = true; 
-						}
-					} 
-				}  
-				elseif(!this.aiSystemPropmptWebView){
-					if(..string.find(prompt,"!\w<web.view>|<@@webview@>|<@@webview2@>|<@@react@>!\W")){
-						if(!this.findSystem("web.view 快速入门指南")){
-							this.system(..string.load("~/doc/library-guide/std/web/view/_.md"))
-							this.aiSystemPropmptWebView = true; 
-						}
-					} 
-				} 
-				elseif(!this.aiSystemPropmptPython){
-					if(..string.find(prompt,"!\w<@@python@>|<py3>|<py2>!\W")){
-						if(!this.findSystem("aardio 调用 Python 入门指南")){
-							var pyDoc = ..string.load("~/doc/library-guide/ext/python/_.md");
-							pyDoc = ..string.concat( pyDoc,'\r\n\r\n---\r\n\r\n',..string.load("~/doc/library-guide/ext/python/conversion.md"));
-							
-							this.system(..string.load(pyDoc))
-							this.aiSystemPropmptPython = true; 
-						}
-					} 
-				}
-				elseif(!this.aiSystemPropmptNet){
-					if(..string.find(prompt,"![\w\.]<\.<@@net@>>|<dotNet>|<System\.>|<[cC]#>![^#\.\a]")){
-						if(!this.findSystem("aardio 调用 .NET 入门指南")){
-							var pyDoc = ..string.load("~/doc/library-guide/std/dotNet/_.md");
-							pyDoc = ..string.concat( pyDoc,'\r\n\r\n---\r\n\r\n',..string.load("~/doc/library-guide/std/dotNet/type-conversion.md"));
-							
-							this.system(..string.load(pyDoc))
-							this.aiSystemPropmptNet = true; 
-						}
-					} 
-				}
-				elseif(!this.aiSystemPropmptStringPatterns){
-					if(..string.find(prompt,"<模式匹配>|<string\.find>|<string\.match>|<string\.gmatch>|<string\.replace>|<string\.replaceUnmatched>")){
-						if(!this.findSystem("模式匹配与正则表达式的区别")){
-							this.system(..string.load("~/doc/library-guide/builtin/string/patterns.md"))
-							this.aiSystemPropmptStringPatterns = true; 
-						}
-					} 
-				} 
-				elseif(!this.aiSystemPropmptWinform){
-					if(..string.find(prompt,"<win\.ui>|<winform>|<win\.form>|<按钮>|<窗口>|<文本框>|<编辑框>")){
-						if(!this.findSystem("如何创建窗口并添加控件")){
-							this.system(..string.load("~/doc/library-guide/std/win/ui/create-winform.md"))
-							this.aiSystemPropmptWinform = true; 
-						}
-					} 
-				}  
-			}
+
+		if(#prompt){ 
+			p = p + '\r\n\r\n---\r\n\r\n' + prompt;
 		}
-		
+
 		if(#p) this.system(p);
 	} 
 	findSystem = function(pattern){
@@ -156,7 +89,21 @@ class message{
 			);			
 		} 
 	};
-	prompt = function(content){ 
+	prompt = function(content,imageUrl){ 
+		if(imageUrl){
+			content = {
+        		{
+        			"type": "text",
+        			"text": content
+      			},
+      			{
+        			"type": "image_url",
+        			"image_url": {
+          				"url": imageUrl
+        			}
+      			}
+        	} 
+		}
 		this.push(
     		{ 
         		role = "user"; 
@@ -167,18 +114,30 @@ class message{
 	assistant = function(content){
 		this.push(content);
 	};
+	url = function(url){
+		var sysMsg = "";
+		
+		if(type(url)!="table" || url[["url"]]) url = {url};
+		
+		for(i=1;#url;1){ 
+			var md,err,u = httpGet(url[i]);
+			if(!md) continue;
+			
+			sysMsg = sysMsg + '\r\n\r\n用户输入的参考网址：' + u 
+				+  '\r\n\r\n下面是自该网址获取的' +(!err?" Markdown ":"文本")+'格式内容：'
+				+  '\r\n\r\n' + md +'\r\n\r\n------------------------\r\n\r\n'	 
+		} 
+		
+		if(!#sysMsg) return null,err;
+		this.system(sysMsg);
+		return sysMsg;  
+	};
 	clear = function(){  
 		for(i=#this;1;-1){
 			..table.remove(this,i);
 		}
 		
 		this.aardioSystemPrompt = null;
-		this.aiSystemPropmptSupperHotkeys = null;
-		this.aiSystemPropmptWebView = null;
-		this.aiSystemPropmptPython = null;
-		this.aiSystemPropmptStringPatterns = null;
-		this.aiSystemPropmptWinform = null;
-		this.aiSystemPropmptNet = null;
 	};
 	started = function(){  
 		for(i=1;#this){ 
@@ -190,23 +149,81 @@ class message{
 }
 
 /*****intellisense()
-web.rest.aiChat.message() = 创建 AI 聊天助手消息队列。\n可以在界面线程单独创建与管理消息队列，\n然后再通过线程参数发给后台线程的 web.rest.aiChat 对象。\n!webRestChatMessage.
+web.rest.aiChat.message() = 创建 AI 聊天助手消息队列。\n可选用参数 @1 指定初始化消息数组。\n可以在界面线程单独创建与管理消息队列，\n然后再通过线程参数发给后台线程的 web.rest.aiChat 对象。\n!webRestChatMessage.
 end intellisense*****/
 
 /*****intellisense(!webRestChatMessage)
 started() = 是否已经发起对话。\n发起对话指的是消息队列中包含非 system 角色的消息。
 clear() = 清除会话记录。
 assistant(__/*增量文本*/) = 显示并记录 AI 接口返回的增量文本。\n参数必须是文本或者表示输出完成的 null 值。
-prompt(__/*提示词*/) = 添加并显示用户提示词。
+prompt( = 添加提示词。
+prompt(.(content) = 添加用户提示词。\ncontent 可以是字符串，也可以是对象数组。\n请参考调用模型与接口的文档了解支持的对象格式。
+prompt(.(txtContent,imageUrl) = 添加并显示用户 @txtContent 参数指定的文本提示词。\n可选用 @imageUrl 指定图像网址，\n本地图像可调用 inet.urlData 转换为 Data URL（Base64) 格式。\n注意请参考接口文档了解调用模型是否支持图像。
 system(__/*提示词*/) = 添加并显示系统提示词。
-aardioSystem( = 自动创建 aardio 编程助手系统提示词，\n并自动增加 aardio 语法速览文档。\n此函数可重复调用，不会重复添加相同的文档。\n除函数自带的基本的 aardio 助手提示词以外，EXE 目录下必须存在待添加的文档。
-aardioSystem(.(sysPrompt) =  增加基本的 aardio 编程助手提示词（如果已添加则忽略）。\n如果指定了参数 sysPrompt 则追加到系统提示词（不会检测之前是否已添加过 sysPrompt 的内容）。
-aardioSystem(.(userPrompt,true) = 如果用 userPrompt 指定稍后要发送的用户提示词。\n则分析 userPrompt 关键词附加关键的 aardio 文档（不会添加 userPrompt 本身）。\n附加规则请查看此函数源码。
+url(__) = 获取参数 @1 指定网址的内容并转换为 Markdown 格式或者文本格式提示词。\n参数 @1 也可以指定包含 url 字段的对象，或这样的对象数组。\n参数为 包含 url 字段的对象时如果同时包含 text 字段，则直接自 text 字段获取网页文本。\n如果参数 @1 指定数组参数，则将所有数组成员作为参数获取目标内容。\n如果参数为空数组、空字符串、null 则返回 null。\n成功返回添加的提示词，失败返回  null,错误信息 。\n\n如果提前导入 web.turndown 库则支持自动转换 HTML 为 Markdown 格式文本。
+aardioSystem( = 自动创建 aardio 编程助手系统提示词。\n除函数自带的基本的 aardio 助手提示词以外，EXE 目录下必须存在待添加的文档。
+aardioSystem(.(prompt) =  增加 aardio 编程助手提示词（如果已添加则忽略）。\n如果指定参数 prompt 则追加到系统提示词（不检测之前是否已添加过）。
 aardioSystemPrompt = 是否自动附加了 aardio 编程助手系统提示词。\n不可手动修改此属性。
 limit = 可选指定一个限制消息队列大小的数值。\nlimit 限制的队列大小不包含第一个系统提示词与最后一个系统提示词。
 findSystem(__/*模式串*/) = 使用模式匹配语法查找消息队列中是否存在指定的系统提示词
 end intellisense*****/
 
 namespace message{
-	aardioSystemPrompt = $"~\lib\web\rest\aiChat\.res\aardio.txt"; 
+	aardioSystemPrompt = ..string.removeBom($"~\doc\guide\ide\system-prompt.md");
+	
+	httpGet = function(url){
+
+		if(type(url)==="table" && #url){
+			url = url[1];
+			url = url[["url"]] || url;
+			if(url && ..string.find(url,"(https?\://<www\.>?aardio\.com/zh\-cn/doc/?$") ){
+				url = url[2] || url;
+			}
+		}
+		
+		var snippet;
+		if(url[["url"]]){
+			var rawText = url[["text"]] || url[["raw_content"]];
+			if(rawText){
+				return rawText,"text",url[["url"]];
+			}
+			
+			snippet = url[["snippet"]] || url[["content"]];
+		}
+		
+		url = url[["url"]] || url;
+		if(!#url) return; 
+ 	
+		var docUrl = ..string.match(url,"(https?\://<www\.>?aardio\.com/zh\-cn/doc/\S+)\.<html.md>|<html>")
+		if( docUrl ){
+			url = docUrl + ".html.md"; 
+			var r,e = ..inet.http.get(url);
+			if(r) return r,,url; 	
+			return null,e;
+		}
+		else{ 
+			var html,err = ..inet.http.get(url);
+			if(html){ 
+				if(!_WIN10_LATER || !..web[["turndown"]]) return ..string.html.toText(html),"text",url;
+				
+				var md; 
+				try { 
+					var turndownService = ..web.turndown.default();
+					md = turndownService.turndown( 
+						html
+					); 
+				} 
+				catch(e){
+					err = e;
+				}
+				
+				if(#md) return md,,url 
+			}
+			
+			if(snippet){
+				return snippet,"text",url;
+			}
+			return null,err;	
+		}
+	}
 }

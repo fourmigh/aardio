@@ -1,10 +1,11 @@
 //plus 控件 - 自动缩放
+//plus 控件使用指南: doc://library-guide/std/win/ui/ctrl/plus.md
 import fonts.fontAwesome;
 import win.ui;
 /*DSG{{*/
 var winform = win.form(text="plus 控件 - 自动缩放内容";right=759;bottom=469)
 winform.add(
-plus={cls="plus";text='\uF06C';left=299;top=143;right=456;bottom=230;bgcolor=12632256;color=16737536;font=LOGFONT(h=-48;name='FontAwesome';charset=0);z=1}
+plus={cls="plus";text='\uF06C';left=299;top=143;right=456;bottom=230;bgcolor=0xC0C0C0;color=0xFF6500;font=LOGFONT(h=-48;name='FontAwesome';charset=0);z=1}
 )
 /*}}*/
 

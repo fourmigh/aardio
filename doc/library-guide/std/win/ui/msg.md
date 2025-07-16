@@ -39,7 +39,7 @@
 在弹出菜单中点击「响应命令」就可以为该控件添加 oncommand 函数。  
 在弹出菜单中点击「响应通知」就可以为该控件添加 onnotify 函数。  
   
-在「 aardio 开发环境 / 窗体设计器」放置的「窗口控件」上直接「双击鼠标左键」可以快速创建或跳转到 oncommand 或 onnotify 函数，一般标准控件双击会创建 oncommand 函数( 如果已创建 oncommand 则跳转到该函数 )，通用控件双击会创建 onnotify 函数( 如果已创建 onnotify 则跳转到该函数 )。
+在「 aardio 开发环境 » 窗体设计器」放置的「窗口控件」上直接「双击鼠标左键」可以快速创建或跳转到 oncommand 或 onnotify 函数，一般标准控件双击会创建 oncommand 函数( 如果已创建 oncommand 则跳转到该函数 )，通用控件双击会创建 onnotify 函数( 如果已创建 onnotify 则跳转到该函数 )。
 
 ## 四、窗口消息回调 <a id="wndproc" href="#wndproc">&#x23;</a>
 

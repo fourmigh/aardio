@@ -1,5 +1,5 @@
 //jsonClient 客户端
-import web.json;
+import JSON;
 import inet.http; 
 import inet.httpStatusCode;
 import string.encoding;
@@ -25,7 +25,7 @@ class jsonClient {
 				owner.lastResponseData = null;
 				owner.lastStatusCode = null;
 				
-				var jsonData = ..web.json.stringify(reqData);
+				var jsonData = ..JSON.stringify(reqData);
 				if( owner.afterJsonStringify ) {
 					jsonData = owner.afterJsonStringify(jsonData);
 					if(!jsonData) return;
@@ -52,7 +52,7 @@ class jsonClient {
 						if(!ret) return;
 					}
 					
-					var data  =  ..web.json.parse(ret); 
+					var data  =  ..JSON.parse(ret); 
 					if(owner.transaction){
 						if(#data){
 							for(i=1;#data;1){
@@ -71,7 +71,7 @@ class jsonClient {
 					}
 					
 					if(data[["error"]]){
-						var err = ..web.json.stringify(data[["error"]],true) ;
+						var err = ..JSON.stringify(data[["error"]],true) ;
 						if(owner.onError) owner.onError(err,data[["error"]]);
 						
 						return data,err;
@@ -96,7 +96,7 @@ class jsonClient {
 				}
 				
 				if( owner.varargs ){
-					reqData.params = {@{_type="array"};...};
+					reqData.params = [...];
 				}
 				else {
 					reqData.params = ...;
@@ -124,7 +124,7 @@ class jsonClient {
 				}
 				
 				if( owner.varargs ){
-					reqData.params = {@{_type="array"};...};
+					reqData.params = [...];
 				}
 				else {
 					reqData.params = ...;

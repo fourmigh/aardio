@@ -1,7 +1,7 @@
 //info 文件信息
 namespace fsys.info;
 
-get = function(filename,flag,attr){
+get = function(filename,flags,attr){
 	var sfi = {
 		pointer hIcon; 
 		int iIcon; 
@@ -11,7 +11,7 @@ get = function(filename,flag,attr){
 	} 
 	
 	filename = ..io.localpath(filename) : filename;
-	sfi.returnValue = ::Shell32.SHGetFileInfoW( filename, attr,sfi, ..raw.sizeof(sfi),flag or 0 ); 
+	sfi.returnValue = ::Shell32.SHGetFileInfoW( filename, attr,sfi, ..raw.sizeof(sfi),flags or 0 ); 
 	return sfi;
 }
 
@@ -21,20 +21,20 @@ getExeType = function(filename){
 }
 
 /**intellisense()
-fsys.info.get( = 返回文件信息
-fsys.info.get(.("路径",SHGFI_->->-> ) = 参数@2指定一个或多个选项,多个选项用|连接,\n如果参数@2指定了_SHGFI_USEFILEATTRIBUTES,\n则参数@3必须用 _FILE_ATTRIBUTE_ 前缀常量指定文件属性
+fsys.info.get( = 返回文件信息。\n相关函数： fsys.findData
+fsys.info.get(.(filepath,flags,fileAttributes) = 参数 @filepath 指定文件路径。参数 @flags 可使用 _SHGFI_ 前缀常量指定一个或多个选项，多个选项用`|`连接。\n如果参数 @2 指定了_SHGFI_USEFILEATTRIBUTES,\n则参数 @fileAttributes 必须用 _FILE_ATTRIBUTE_ 前缀常量指定文件属性。\n详细用法请参考 ::Shell32.SHGetFileInfo 函数文档。
 fsys.info.get() = !shFileInfo.
-fsys.info.getExeType(.(文件路径) = 检测是否EXE文件\n失败返回空
+fsys.info.getExeType(.(文件路径) = 检测是否 EXE 文件，\n失败返回空。
 fsys.info.getExeType() = !fsysExeInfoExeType.
-!fsysExeInfoExeType.magic = DOS程序为"MZ"\n非DOS程序为"PE"
-!fsysExeInfoExeType.winVer = 控制台程序为0\nGUI 程序为 Windows 版本号,\nWindows 版本号参考： https://docs.microsoft.com/en-us/windows/win32/winprog/using-the-windows-headers
+!fsysExeInfoExeType.magic = DOS 程序为 "MZ"。\n非 DOS 程序为 "PE"
+!fsysExeInfoExeType.winVer = 控制台程序为 0，\nGUI 程序为 Windows 版本号。\nWindows 版本号参考： https://docs.microsoft.com/en-us/windows/win32/winprog/using-the-windows-headers
 end intellisense**/
 
 /**intellisense(!shFileInfo)
-hIcon = 图标句柄\n如果不为空要负责释放该句柄
-iIcon = 在图像列表中的索引
-dwAttributes = 文件属性
-szDisplayName = 文件名
-szTypeName = 类型名
-returnValue = SHGetFileInfo的返回值
+hIcon = 图标句柄。\n如果不为空调用者要负责调用 ::User32.DestroyIcon 函数释放该句柄。
+iIcon = 在图像列表中的索引，数值
+dwAttributes = 文件属性，数值
+szDisplayName = 文件名，字符串值
+szTypeName = 类型名，字符串值
+returnValue = SHGetFileInfo的 返回值，数值
 end intellisense**/

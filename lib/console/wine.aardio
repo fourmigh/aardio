@@ -1,7 +1,7 @@
 ﻿//wine 简单控制台
 
 import win.ui;
-import web.json;
+import JSON;
 
 namespace console.wine{};
 
@@ -78,18 +78,18 @@ __open = function(){
 					if( vk == 0xD/*_VK_RETURN*/ ){
 						if(!winform.lastInputStart) return;
 						
-						var b = winform.edit.getsel();
+						var b = winform.edit.getSel();
 						var a = winform.lastInputStart;
 						if( a < b) {
-							winform.edit.setsel(a+1,b);
+							winform.edit.setSel(a+1,b);
 							winform.lastInputLine = winform.edit.selText;
-							winform.edit.setsel(b);
+							winform.edit.setSel(b);
 						}
 					}
 					elseif( vk == 0x8/*_VK_BACK*/ ){
 						if(!winform.lastInputStart) return;
 						
-						var b = winform.edit.getsel();
+						var b = winform.edit.getSel();
 						var a = winform.lastInputStart;
 						if( b <= a ) return true;
 					}
@@ -100,7 +100,7 @@ __open = function(){
 			winform.getInputText = function(){
 				winform.lastInputLine = null;
 				winform.edit.setFocus();
-				winform.lastInputStart = winform.edit.getsel();
+				winform.lastInputStart = winform.edit.getSel();
 				..win.wait( function(){
 					return winform.lastInputLine;
 				},winform.hwnd);
@@ -182,15 +182,15 @@ pause = function(close,msg,erase){
 	}
 	msg := langPause; 
 	
-	var a = self.form.edit.getsel();
+	var a = self.form.edit.getSel();
 	writeText( msg );
-	var b = self.form.edit.getsel();
+	var b = self.form.edit.getSel();
 	
 	var vk = getch();
 	
 	if(#erase) {
 		if( b > a ){
-			self.form.edit.setsel(a,b);
+			self.form.edit.setSel(a,b);
 			self.form.edit.selText = "";
 		}
 	}
@@ -309,7 +309,7 @@ getNumber = function( s,len ){
 }
 
 dumpJson = function(v){ 
-	log( ..web.json.stringify(v,true,false) );
+	log( ..JSON.stringify(v,true,false) );
 }
  
 varDump = function(...){

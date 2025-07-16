@@ -9,6 +9,7 @@ richedit={cls="richedit";text="0 Tokens";left=19;top=432;right=535;bottom=452;db
 
 import mmseg; 
 import win.debounce;
+import fsys.size;
 winform.edit.onChange = win.debounce( function(){ 
 	var str = winform.edit.text;
 	if(!#str) return;
@@ -16,7 +17,19 @@ winform.edit.onChange = win.debounce( function(){
 	var tokens = mmseg.llmTokens(winform.edit.text);
 	
 	if(tokens){
-		winform.richedit.text = "≈ " + math.size64(tokens).format() + "("+tokens+") Tokens";
+		
+		var unitNames = { 
+    		[0x40000000]="G";[0x100000]="M";[0x400]="K";[1]="";
+		}
+		
+		/*
+		1K tokens 通常指的是 1000 tokens，
+		对于上下文窗口大小则可能指的是 1000 或者 1024 tokens。
+		下面按 1K = 1024 计算，估算值请忽略这些细微差异。 
+		*/
+		var size,unit = fsys.size.format(tokens);
+		
+		winform.richedit.text = "≈ " + (size++unitNames[unit]) + " Tokens";
 	}
 	else {
 		winform.richedit.text = "0 Tokens"

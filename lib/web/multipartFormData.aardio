@@ -116,7 +116,7 @@ Content-Disposition: form-data; name="%s"\r\n
 ..math.randomize() 
 
 /**intellisense()
-web.multipartFormData = 用于构建上传文件表单
+web.multipartFormData = web.multipartFormData 用于构建 `multipart/form-data` 格式的上传文件表单。\n如果需要解析此格式的数据请使用 fsys.multipartFormData 库。
 web.multipartFormData() = 构建上传文件表单\n!webMultipartFormData.
 end intellisense**/
 

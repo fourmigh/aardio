@@ -1,0 +1,47 @@
+﻿//c ::Msvcrt
+::Msvcrt := ..raw.loadDll("Msvcrt.dll",,"cdecl");
+namespace raw.c;
+
+memcmp = function(s1,s2,size){
+	if(size===null){
+		if(type.isString(s1)){
+			 size = #s1; 
+			 if(type.isString(s2) && (#s2!=size)) return #s2<size?1:-1;
+		}
+		elseif(type.isString(s2)) {
+			size = #s2; 
+			if(type.isString(s1) && (#s1!=size)) return #s1<size?-1:1;
+		}
+		else error("如果参数 @1,@2 中没有字符串或 buffer 参数，请明确使用参数 @3 指定比较长度。",2)
+	}
+	
+	return ::Msvcrt.memcmp(s1,s2,size);
+}
+
+api = ::Msvcrt;
+
+self@ = {
+	_topointer = ::Msvcrt.gethandle();
+	_get = function(k){
+		if(type(k)==="string"){
+			owner[[k]] = ::Msvcrt[k]
+		}
+	} 
+}
+
+/*****intellisense()
+raw.c = raw.c 库自动导入 "Msvcrt.dll" 并创建 `::Msvcrt` 对象。\n访问  raw.c 名字空间的成员将自动重定向为访问  ::Msvcrt 提供的 C 函数。
+end intellisense*****/
+
+/*****intellisense(raw.c)
+memcmp(.(buffer1,buffer2,size) = 参数 @1,@2 可指定字符串、buffer、指针。\n\n参数 @1,@2 存储数据相等时返回 0，不相等返回非 0 值。\n参数 @3 指定比较长度，\n如果参数 @1 或参数 @2 为字符串或 buffer 则省略长度参数时自参数 @1 或 参数 @2 自动获取长度。\n\n如果参数 @3 未指定比较长度，\n并且参数 @1,@2 都是字符串或 buffer 类型之一，且长度不相等，则返回非 0 值。\n\n此函数基于 ::Msvcrt.memcmp 函数并增加了自动获取字符串与 buffer 长度的功能。
+? = 可不用声明直接在此输入函数名并调用 AP I函数\n\n一、传入参数规则：\n1、null参数不可省略\n2、32位整数类型，小于32位的整数、以及枚举类型都可以直接在API参数中写数值。\n3、对于任何数值类型的指针（输出参数）一律使用结构体表示，例如double * v 表示为{ double v }\n4、数组使用结构体表示\n5、所有结构体传给API的都是指针地址，都是输出参数并增加返回值\n\n二、返回值规则：\n1、返回值默认为int类型,可用 >>> 0 强制转为无符号数,\n2、可以使用[API尾标]改变返回值为其他类型\n\n三、所有可用的【API尾标】:\n::User32.ApiNameW() 切换到Unicode版本，字符串UTF8-UTF16双向转换\n::User32.ApiNameA() 切换到ANSI版本,字符串不作任何转换\n::User32.ApiNameL() 返回值为64位LONG类型\n::User32.ApiNameP() 返回值为指针类型\n::User32.ApiNameD() 返回值为double浮点数\n::User32.ApiNameF() 返回值为float浮点数\n::User32.ApiNameB() 返回值为 C++ 中的8 位 bool 类型\n注意【尾标】前必须是小写字母
+end intellisense*****/
+
+/*****intellisense(::)
+::Msvcrt = VC 基础运行库，这是所有操作系统都自带的系统 DLL。\nconsole,ustring,string.builder,raw.c 等标准库都自动加载了此 DLL。\n默认使用 cdecl 调用约定。\n!dllModule.
+::Msvcrt.gethandle() = 返回句柄
+::Msvcrt.api("__/*输入函数名字*/","void()" ) = 声明Kernel32 API函数
+::Msvcrt.? = 可不用声明直接在此输入函数名并调用 AP I函数\n\n一、传入参数规则：\n1、null参数不可省略\n2、32位整数类型，小于32位的整数、以及枚举类型都可以直接在API参数中写数值。\n3、对于任何数值类型的指针（输出参数）一律使用结构体表示，例如double * v 表示为{ double v }\n4、数组使用结构体表示\n5、所有结构体传给API的都是指针地址，都是输出参数并增加返回值\n\n二、返回值规则：\n1、返回值默认为int类型,可用 >>> 0 强制转为无符号数,\n2、可以使用[API尾标]改变返回值为其他类型\n\n三、所有可用的【API尾标】:\n::User32.ApiNameW() 切换到Unicode版本，字符串UTF8-UTF16双向转换\n::User32.ApiNameA() 切换到ANSI版本,字符串不作任何转换\n::User32.ApiNameL() 返回值为64位LONG类型\n::User32.ApiNameP() 返回值为指针类型\n::User32.ApiNameD() 返回值为double浮点数\n::User32.ApiNameF() 返回值为float浮点数\n::User32.ApiNameB() 返回值为C++中的8位bool类型\n注意【尾标】前必须是小写字母
+::Msvcrt.memcmp(.(buffer1,buffer2,size) = 参数 @1,@2 可指定字符串、buffer、指针。\n参数 @3 必须指定比较长度。\n参数 @1,@2 存储数据相等时返回 0，不相等返回非 0 值。
+end intellisense*****/

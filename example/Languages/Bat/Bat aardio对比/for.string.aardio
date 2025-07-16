@@ -44,7 +44,7 @@ for tokens in string.lines(str,,",") {
 
 /*
 aardio 提供了大量的字符串函数，以及强大的模式匹配功能，
-可以实现非常复杂的文本解析功能，例如标准库中解析JSON的 web.json，解析XML,HTML的 string.xml,string.html等等
+可以实现非常复杂的文本解析功能，例如标准库中解析JSON的 JSON，解析XML,HTML的 string.xml,string.html等等
 */
 
 //例如我们也可以用 string.each 实现上面的功能

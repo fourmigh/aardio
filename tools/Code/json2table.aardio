@@ -1,11 +1,11 @@
 //JSON / URL 编码 /table 互转
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="JSON / URL 编码 /table 互转";right=969;bottom=691)
+var winform = win.form(text="JSON（或简单 Python 字典） / URL 编码 /table 互转";right=969;bottom=691)
 winform.add(
-btnDataType={cls="plus";text="特殊类型说明";left=231;top=655;right=341;bottom=679;color=8388608;db=1;dl=1;font=LOGFONT(h=-13);notify=1;textPadding={left=5};z=3};
-btnHelp={cls="plus";text="web.json 库函数文档";left=342;top=655;right=482;bottom=679;color=8388608;db=1;dl=1;font=LOGFONT(h=-13);notify=1;textPadding={left=5};z=4};
-btnStart={cls="plus";text="入门示例";left=140;top=655;right=230;bottom=679;color=8388608;db=1;dl=1;font=LOGFONT(h=-13);notify=1;textPadding={left=5};z=2};
+btnDataType={cls="plus";text="特殊类型说明";left=231;top=655;right=341;bottom=679;color=0x800000;db=1;dl=1;font=LOGFONT(h=-13);notify=1;textPadding={left=5};z=3};
+btnHelp={cls="plus";text="JSON 库函数文档";left=342;top=655;right=482;bottom=679;color=0x800000;db=1;dl=1;font=LOGFONT(h=-13);notify=1;textPadding={left=5};z=4};
+btnStart={cls="plus";text="入门示例";left=140;top=655;right=230;bottom=679;color=0x800000;db=1;dl=1;font=LOGFONT(h=-13);notify=1;textPadding={left=5};z=2};
 edit={cls="edit";left=9;top=6;right=961;bottom=641;db=1;dl=1;dr=1;dt=1;edge=1;hscroll=1;multiline=1;vscroll=1;z=1};
 radioJson={cls="radiobutton";text="转为 JSON";left=535;top=656;right=648;bottom=689;db=1;dr=1;z=5};
 radioTable={cls="radiobutton";text="转为  table";left=674;top=656;right=787;bottom=689;db=1;dr=1;z=6};
@@ -13,9 +13,11 @@ radioUrlEncode={cls="radiobutton";text="Url Encode";left=813;top=656;right=926;b
 )
 /*}}*/
 
-import web.json;
+import JSON;
 import util.table;
 import inet.url;
+
+winform.edit.limit = -1;
 
 var lastDataType;
 winform.edit.onChange = function(){ 
@@ -35,8 +37,8 @@ winform.edit.onChange = function(){
 			}
 		}
 		
-		var json = web.json.tryParse(winform.text);
-		if(json){ 
+		var json = JSON.tryParse(winform.edit.text);
+		if(json){  
 			lastDataType = "JSON";
 			winform.radioJson.checked = true; 
 			return;
@@ -58,7 +60,7 @@ winform.radioUrlEncode.oncommand = function(id,event){
 	}
 	
 	if(lastDataType = "JSON"){
-		var info = web.json.tryParse(text);
+		var info = JSON.tryParse(text);
 		if(info){
 			winform.edit.text = inet.url.stringifyParameters(info);
 			lastDataType = "URL";
@@ -92,7 +94,7 @@ winform.radioJson.oncommand = function(id,event){
 	if(lastDataType = "URL"){
 		var info = inet.url.splitParameters(text);
 		if(info){
-			winform.edit.text = web.json.stringify(info,true,true);
+			winform.edit.text = JSON.stringify(info,true,true);
 			lastDataType = "JSON";
 			return;
 		}
@@ -101,7 +103,7 @@ winform.radioJson.oncommand = function(id,event){
 	if(lastDataType = "TABLE" ){
 		var info = eval(text);
 		if(info){
-			winform.edit.text = web.json.stringify(info,true,true);
+			winform.edit.text = JSON.stringify(info,true,true);
 			lastDataType = "JSON";
 			return;
 		}
@@ -122,7 +124,7 @@ winform.radioTable.oncommand = function(id,event){
 	}
 	
 	if(lastDataType = "JSON" ){
-		var info = web.json.tryParse(text);
+		var info = JSON.tryParse(text);
 		if(info){
 			winform.edit.text = util.table.stringify(info,'\t');
 			lastDataType = "TABLE";
@@ -156,7 +158,7 @@ winform.btnDataType.oncommand = function(id,event){
 }
 
 winform.btnHelp.oncommand = function(id,event){
-	ide.libMan("web.json");
+	ide.libMan("JSON");
 	winform.show(6/*_SW_MINIMIZE*/);
 }
 

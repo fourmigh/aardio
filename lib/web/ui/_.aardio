@@ -233,7 +233,7 @@ class ui{
 			function (event) {
 				var ele = event.srcElement; 
 				var oldCur = ele.style.cursor;
-				sizeCur = oldCur ? ..string.endWith(oldCur,"-resize",true); 
+				sizeCur = oldCur ? ..string.endsWith(oldCur,"-resize",true); 
 				
 				if( ..win.isZoomed( wb._form.hwnd ) ){ 
 					if( sizeCur  )

@@ -73,7 +73,7 @@ namespace factory{
 			obj[["initializing"]] = true;
 			return obj;
 		} 
-		elseif( ..string.endWith(tParam.cls,".aardio",true) ){
+		elseif( ..string.endsWith(tParam.cls,".aardio",true) ){
 			var parent = tParam.parent;
 			tParam.parent = null;
 			 

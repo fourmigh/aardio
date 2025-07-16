@@ -26,7 +26,7 @@ run = function(main){
 		prcsParent.free();
 		if(!parentPath) return false,"自删进程获取父进程路径失败";
 		
-		var appid = ..  fsys.fileInfo(parentPath).id;
+		var appid = ..fsys.fileInfo(parentPath).id;
 		if(!appid) return false,"自删进程获取父进程唯一标识失败";
 		
 		appId = "aardio.process.temp@" +  appid;

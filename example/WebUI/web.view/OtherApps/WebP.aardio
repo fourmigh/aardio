@@ -3,25 +3,26 @@ import fsys;
 import process;
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="WebView2 - WebP 图像转 JPG 格式";right=966;bottom=622;)
+var winform = win.form(text="WebView2 - WebP 图像转 JPG 格式";right=966;bottom=622)
 winform.add(
-btnCallJavaScript={cls="button";text="转换图像";left=615;top=537;right=869;bottom=606;color=14120960;db=1;dr=1;font=LOGFONT(h=-14);note="WebP 图像转 JPG 格式";z=2;};
-static={cls="static";left=8;top=6;right=956;bottom=503;db=1;dl=1;dr=1;dt=1;z=1;};
-
+btnCallJavaScript={cls="button";text="转换图像";left=615;top=537;right=869;bottom=606;color=0xD77800;db=1;dr=1;font=LOGFONT(h=-14);note="WebP 图像转 JPG 格式";z=2};
+static={cls="static";left=8;top=6;right=956;bottom=503;db=1;dl=1;dr=1;dt=1;z=1}
 )
 /*}}*/
 
 import web.view;
 var wb = web.view(winform.static);
 
-import inet.urlData;
 wb.external = {
-	OnConvertCompleted = function(dataUrl,savePath){
-		var data,mime = inet.urlData.parse(dataUrl);
-		string.save(savePath,data);
+	OnConvertCompleted = function(byteArray,savePath){
+		//JS 数组转换为 buffer 
+		var buf = raw.buffer({BYTE data[]=byteArray})
 		
+		//写入 buffer 到文件
+		io.file.write(savePath,buf);
 		
-		process.exploreSelect(savePath);
+		import process.imageView;
+		process.imageView(savePath);
 	} 
 }
 
@@ -34,21 +35,27 @@ wb.html = /**
 
  	let canvas = document.getElementById("canvas")
 
-	window.convertImage = function(dataUrl,savePath){
+	window.convertImage = function(nativeBuffer,savePath){
+		
+		//wb.xcall 使用 JSON 转换数据，buffer 会转换为 {type:"Buffer",data:[...]} 格式的数据。
+		const uint8Array = new Uint8Array(nativeBuffer.data);
+
+		//自内存加载图像
+		const blob = new Blob([uint8Array], { type: 'image/webp' });
+		const imageUrl = URL.createObjectURL(blob);
+		
 		let img = new Image();
-        img.src = dataUrl;
-        img.onload = function() {
+        img.src = imageUrl;
+        img.onload =   function() {
             canvas.setAttribute("width", this.width);
             canvas.setAttribute("height", this.height);
             canvas.getContext("2d").drawImage(this, 0, 0);
-            canvas.toBlob(function(blob) {
-             
-            const reader = new FileReader();
-    		reader.onloadend = function() {
-        		aardio.OnConvertCompleted(reader.result,savePath);
-    		}
-    		reader.readAsDataURL(blob);
-    
+            canvas.toBlob(async function(blob) { 
+                
+                //ArrayBuffer 转换为可以直接传值给 aardio 的普通 JS 数组。
+                var bytes = Array.from( new Uint8Array(await blob.arrayBuffer()) ); 
+                				
+            	aardio.OnConvertCompleted(bytes,savePath)
             }, `image/jpeg`, 0.1)
         };
 	} 
@@ -59,12 +66,13 @@ wb.html = /**
 **/
 
 import fsys.dlg;
+import inet.urlData;
 winform.btnCallJavaScript.oncommand = function(id,event){
 	var path = fsys.dlg.open("*.webp|*.webp||","请指定要转换的图像");
 	if(!path) return;
 	
-	var url = inet.urlData(,path)
-	wb.xcall("convertImage",url,fsys.path.replaceExt(path,".jpg"));
+	var buf = string.loadBuffer(path);
+	wb.xcall("convertImage",buf,fsys.path.replaceExt(path,".jpg"));
 }
 
 /*

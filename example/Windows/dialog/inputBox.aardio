@@ -1,0 +1,26 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="输入框";right=759;bottom=469)
+winform.add(
+edit={cls="edit";left=59;top=40;right=679;bottom=400;edge=1;multiline=1;z=1}
+)
+/*}}*/
+
+//必须先导入 win.inputBox 为所有窗体或控件对象添加 inputBox 方法。 
+import win.inputBox;
+
+//显示输入框，返回用户输入结果
+var name = winform.inputBox(
+	"请在下面输入您的名字：",//必填的输入提示，如果包含"密码","密钥","password" 则输入字符显示为星号。
+	"输入框",//可选的对话框窗体标题
+	"",//默认显示在输入框内的文本，可选参数。
+	"在这里输入您的名字",//输入框为空时在输入框内部以浅色显示的提示，可选参数。
+)
+
+//取消返回 null，回车或按确认返回输入框内容
+if(#name){ //# 操作符用于 null 或空字符串都会返回 0
+	winform.edit.text = "欢迎您，" + name + "!"
+}
+
+winform.show();
+win.loopMessage();

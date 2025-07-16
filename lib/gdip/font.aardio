@@ -15,6 +15,22 @@ class font {
 			if( unit === null ) unit =  2/*_GdipUnitPixel*/;
 			err,this.pFont  = gdip.CreateFont(pFamily,..math.abs(emSize),style,unit) 
 		}
+		elseif(type(hdcIn)=="string"){
+			var name,emSize,style,unit = hdcIn,logfont,... ;
+			if( style === null ) style =  0/*_GdipFontStyleRegular*/; 
+			if( unit === null ) unit =  2/*_GdipUnitPixel*/;
+			
+			if(name === null || name === "Tahoma" )	{
+				name = _WINXP ? "MS Shell Dlg" : "Segoe UI"; 
+			}
+			
+			var e,f = gdip.CreateFontFamilyFromName(name) ; 
+			if( e ) return null,gdip.errMsg[e];
+			
+			err,this.pFont  = gdip.CreateFont(f,..math.abs(emSize),style,unit) 
+			this.pFamily___ = f; 
+		}
+		
 		else {
 			hdc = hdcIn : ::GetDC(0);
 			 
@@ -86,6 +102,10 @@ namespace font {
 		delete = function(){
 			if( owner[["pFont"]]  ){
 				gdip.DeleteFont(owner[["pFont"]])
+				if(owner[["pFamily___"]]) {
+					::Gdiplus.GdipDeleteFontFamily(owner[["pFamily___"]]);
+					pFamily___ = null; 
+				}
 				owner[["pFont"]] = null;//让其他的函数都用不了
 			}
 		}
@@ -113,10 +133,13 @@ GetFontHeight = $.api("GdipGetFontHeight","int(POINTER curFont,pointer Graphics,
 self.CreateFont = $.api("GdipCreateFont","int(PTR family,float emSize,int style,int unit,pointer& createdfont)")
 self.DeleteFont = $.api("GdipDeleteFont","int(POINTER curFont)")
 
+CreateFontFamilyFromName := $.api("GdipCreateFontFamilyFromName","int(ustring name,ptr fontColl,pointer& fontFamily)")
+			
 /**intellisense()
 gdip.font = 指定字形风格（例如常规、粗体）的字体（font）对象
 gdip.font(  = 创建字体
 gdip.font(.(fontFamily,emSize,style,unit) = 创建字体,\n参数@fontFamily 指定 gdip.family 对象。\n参数@emSize指定大小,\n可选参数@style 使用 _GdipFontStyle 前缀的常量指定字形样式，默认为 _GdipFontStyleRegular。\n可选参数@unit 指定单位,默认值为_GdipUnitPixel
+gdip.font(.(fontName,emSize,style,unit) = 创建字体,\n参数@fontName 指定 字体名称。\n参数@emSize指定大小,\n可选参数@style 使用 _GdipFontStyle 前缀的常量指定字形样式，默认为 _GdipFontStyleRegular。\n可选参数@unit 指定单位,默认值为_GdipUnitPixel
 gdip.font(.(hdc) = hdc为空则取屏幕DC
 gdip.font(.(hdc,LOGFONT字体) = 使用LOGFONT字体创建GDI+字体对象\n可自动支持fonts名字空间下已导入的自带字体\n参数hdc为空则取屏幕DC
 gdip.font() = !gdipfont.

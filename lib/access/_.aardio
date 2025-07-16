@@ -187,7 +187,9 @@ class access {
 	existsTable = function(name){ 
 		return !!this.findTableObject(name);
 	}; 
-	exec = function(sql,...){ 
+	exec = function(sql,...){
+		if(!sql) error( "参数 @1 必须指定 SQL ，不能是 null 值！",2);
+		
 		if( ... )sql = format(sql,...); 
 		var ret,result,recordsAffected = call(this.connection.Execute,this.connection,sql,0,1 | 0x80/*_adCmdText | adExecuteNoRecords*/);
 		if(!ret) error(result,2);  

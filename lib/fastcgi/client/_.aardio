@@ -5,7 +5,7 @@ import fsys.multipartFormData;
 import inet.url;
 import inet.httpStatusCode;
 import sessionHandler.default;
-import web.json;
+import JSON;
 import web;
 import crypt;
 import string.eventStream;
@@ -247,7 +247,7 @@ class client{
 			if( #environ.PATH_INFO  ){
 				environ.PATH_INFO = ..string.split(environ.PATH_INFO,"?")[1];
 				if(#environ.SCRIPT_NAME){
-					if( !..string.startWith(environ.PATH_INFO, environ.SCRIPT_NAME) ){
+					if( !..string.startsWith(environ.PATH_INFO, environ.SCRIPT_NAME) ){
 						environ.PATH_INFO = environ.SCRIPT_NAME ++  environ.PATH_INFO;
 						if(!#environ.PATH_TRANSLATED) environ.PATH_TRANSLATED =  environ.SCRIPT_FILENAME ++  environ.PATH_INFO;
 					}
@@ -278,7 +278,7 @@ class client{
 			
 			var httpHeaders = {};
 			for(k,v in environ){
-				 if( ..string.startWith(k,"HTTP_") ){
+				 if( ..string.startsWith(k,"HTTP_") ){
 				 	k = ..string.replace(..string.lower(..string.right(k,-6)),"_","-" ); 
 				 	httpHeaders[k] = v;
 				 }
@@ -328,7 +328,7 @@ class client{
 					if ( environ.CONTENT_TYPE 
 						&& ..string.find(environ.CONTENT_TYPE,"<@@text@>|<@@application@>/<@@json@>!\W") ) {
 						var data = owner.postData();
-						if(data) return ..web.json.tryParse(data);
+						if(data) return ..JSON.tryParse(data);
 					}
 				};
 				postFileData = function(){
@@ -336,7 +336,7 @@ class client{
 					if(!environ.CONTENT_TYPE) return;
 					if( owner._raw_stdin_data || owner._raw_file_data ) return owner._raw_file_data;
 					
-					if ( ..string.startWith(environ.CONTENT_TYPE,"multipart/form-data",true) ) {
+					if ( ..string.startsWith(environ.CONTENT_TYPE,"multipart/form-data",true) ) {
 						var boundary = ..string.match(environ.CONTENT_TYPE,"boundary\s*=\s*(\S+)");
 						if(!boundary){
 							response.status = "400 Bad Request";
@@ -418,8 +418,7 @@ class client{
 					if( ! owner._headersWritten ) owner.open();
 					
 					owner.flush();	
-					this.endRequest( ,0/*_FCGI_REQUEST_COMPLETE*/,0);
-					session.save();
+					this.endRequest( ,0/*_FCGI_REQUEST_COMPLETE*/,0); 
 					
 					if( request.tempUploadPath ){
 						var ret,err = ..io.remove( request.tempUploadPath );
@@ -515,7 +514,8 @@ class client{
 				writeBuffer = function(buffer,len){
 					if( buffer === null ) return;
 					if( owner.closed ) return; 
-					if( #buffer > 65535 ) error("buffer 长度不应大于65535字节",2);
+					if( len === null ) len = #buffer;
+					if( len > 65535 ) error("FastCGI 服务端在调用此函数写入缓冲区时长度不应大于 65535 字节",2);
 					
 					if( ! owner._headersWritten ) owner.open();
 					this.stream.writeRecord( 
@@ -544,7 +544,7 @@ class client{
 								s = null;
 							}
 						}
-						else s = ..web.json.stringify(s,owner.jsonPrettyPrint);
+						else s = ..JSON.stringify(s,owner.jsonPrettyPrint);
 					}
 					elseif( (ts != 'string') && (ts != 'buffer') ){
 						s = tostring(s);
@@ -581,7 +581,7 @@ class client{
 						if(!..io.exist(request.path,4)){ 
 							var pathDoc =  ..io.joinpath(request.path,owner.defalutDocument);
 							if( ..io.exist(request.path,0) && ( ..io.exist(pathDoc,4) ) ){
-								if(!..string.endWith(request.path,"/") )request.path=request.path+"/";
+								if(!..string.endsWith(request.path,"/") )request.path=request.path+"/";
 							}
 						}
 						url=..inet.url.joinpath(request.scheme + "://"  + request.host  ++request.path,url);
@@ -594,7 +594,7 @@ class client{
 					if( owner.closed ) return;
 					if( ! owner._headersWritten ) owner.open();
 					
-					if( type(s) == type.table ) s = ..web.json.stringify(s,true);
+					if( type(s) == type.table ) s = ..JSON.stringify(s,true);
 					else s = tostring(s);
 					
 					var len = #s;
@@ -610,7 +610,7 @@ class client{
 					return owner.error(...);
 				};
 				customErrors = this.customErrors : {};
-				errorStatus = function(status,msg){
+				errorStatus = function(status,msg,continueRunning){
 					var handler = response.customErrors[status];
 					if( handler && !response["errorStatusHandled"] )  { 
 						response["errorStatusHandled"] = true;
@@ -623,7 +623,7 @@ class client{
 						response.write(msg : response.status);
 					}
 					
-					response.close();
+					response.close(continueRunning);
 				};
 				defalutDocument = "main.aardio";
 				loadcode = function(path,...){
@@ -631,14 +631,14 @@ class client{
 					if(!..io.exist(path,4)){
 						var pathDoc =  ..io.joinpath(path,response.defalutDocument);
 						if( ..io.exist(path,0) && ( ..io.exist(pathDoc,4) ) ){ 
-							if(!..string.endWith(request.path,"/") )request.path=request.path+"/";
+							if(!..string.endsWith(request.path,"/") )request.path=request.path+"/";
 							path = pathDoc;
 						}
 	 					else{
 	 						return response.errorStatus(404); 
 	 					}
 					}
-					elseif( ! ..string.endWith(path,".aardio",true) ) {
+					elseif( ! ..string.endsWith(path,".aardio",true) ) {
 						return response.errorStatus(403); 
 					}
 					
@@ -686,10 +686,10 @@ class client{
 		if( !this.getStream() ) error(_STUDIO_INVOKED?"请发布为EXE文件,并在FastCGI服务器中安装运行!":"创建FastCGI文件流失败,请在FastCGI服务器中安装运行此程序!",2);
 		
 		for( response,request,session in this.eachRequest() ){
-			if( ..string.startWith( request.path,"/config/",true ) ) {
+			if( ..string.startsWith( request.path,"/config/",true ) ) {
 				response.status = "403 Forbidden";
 			}
-			elseif( ..string.startWith( request.path,"/lib/",true ) ) {
+			elseif( ..string.startsWith( request.path,"/lib/",true ) ) {
 				response.status = "403 Forbidden";
 			}
 			else{
@@ -700,6 +700,8 @@ class client{
 					function(response,request,session){
 						var r,e = callex(,app,,response,request,session);
 						if(!r) err = e; 
+						
+						session.save();
 					},request.documentRoot ); 
 				
 				..fiber.resume (f,response,request,session); 
@@ -721,92 +723,97 @@ class client{
 	} 
 }
 
+//@guide [HTTP 服务端开发指南](doc://guide/quickstart/web-server.md)
+
 /**intellisense()
-request = Web服务端请求对象,\nrequest对象必须由服务端框架自动维护，\n用户发起不同的请求时request对象都是不同的，\n并且由服务端框架自动设置为全局变量。\n注意在单线程异步HTTP服务端内，应优先通过函数参数传递此对象,\n\nrequest的接口规范由标准库中fastcgi.client定义，\n目前aardio提供的所有HTTP服务端框架都兼容此接口。
-response =  Web服务端响应对象,\nresponse对象必须由服务端框架自动维护，\n用户发起不同的请求时response对象都是不同的，\n并且由服务端框架自动设置为全局变量。\n注意在单线程异步HTTP服务端内，应优先通过函数参数传递此对象,\n\nresponse的接口规范由标准库中fastcgi.client定义，\n目前aardio提供的所有HTTP服务端框架都兼容此接口。
+request = HTTP 请求对象。\nrequest 对象必须由服务端框架自动维护，\n用户发起不同的请求时 request 对象都是不同的，\n并且由服务端框架自动设置为全局变量。\n注意在单线程异步 HTTP 服务端内，应优先通过函数参数传递此对象,\n\nrequest 的接口规范由标准库中 fastcgi.client 定义，\n目前 aardio 提供的所有 HTTP 服务端框架都兼容此接口。
+response =  Web服务端响应对象,\nresponse 对象必须由服务端框架自动维护，\n用户发起不同的请求时response对象都是不同的，\n并且由服务端框架自动设置为全局变量。\n注意在单线程异步 HTTP 服务端内，应优先通过函数参数传递此对象,\n\nresponse 的接口规范由标准库中 fastcgi.client定义，\n目前 aardio 提供的所有 HTTP 服务端框架都兼容此接口。
 end intellisense**/
 
 /**intellisense(request)
-headers["__"] = HTTP请求头,表对象,\n所有请求头的键名已全部转为小写,请求头的值值都是字符串类型\n\nhttp服务端可选同时以数组形式保存原始http头\n数组的第个元素都是包含键、值两个元素的子数组\n但服务端可选不使用数组存放任何HTTP头
-environ = CGI环境变量,\n环境变量是由多个键值对组成的表,\n所有具有值的变量都是字符串类型,即使是端口号也不可能出现数值\n键名必须大写
-cookies[__] = @.cookies["__/*名字请小写*/"]
-get["__"] = URL请求参数\n名值对组成的表对象,参数名一律小写
-post["__"] = 提交表单参数\n名值对组成的表对象,参数名一律小写
-query("__") = 返回URL参数或表单参数\n参数名请一律小写
-documentRoot = 网站应用程序根目录，\n也是当前 aardio 应用程序根目录
-contentType = 请求信息的MIME类型
-contentLength = 请求消息正文的长度\n数值
-method = HTTP请求方法\n例如"GET"、"POST"
-protocol = HTTP协议版本
+headers["__"] = 包含所有 HTTP 请求头的表对象,\n所有请求头的键名已全部转为小写，请求头的值值都是字符串类型\n\nhttp服务端可选同时以数组形式保存原始http头\n数组的第个元素都是包含键、值两个元素的子数组\n但服务端可选不使用数组存放任何HTTP头
+environ = CGI 环境变量，这是由多个键值对组成的表。\n环境变量中所有值都是字符串类型，即使是端口号也是字符串。\n环境变量的所有键名必须大写
+cookies[__] = 包含所有 Cookies 的表对象。\n字段名已全部转为小写。\n成功返回指定名称的值，失败返回 null 值。
+get["__"] = 包含所有 URL 请求参数名值对的表对象。\n字段名一律转为小写。\n成功返回指定名称的值，失败返回 null 值。
+post["__"] = 包含 form 表单提交参数名值对组成的表对象。\n字段名一律转为小写。\n成功返回指定名称的值，失败返回 null 值。
+query("__") = 返回指定的 URL 参数或表单参数的值。\n参数指定的名称必须小写。\n成功返回指定名称的值，失败返回 null 值。
+documentRoot = 网站应用程序根目录，\n也是当前 aardio 应用程序根目录。
+contentType = HTTP 请求头指定的的 MIME 类型
+contentLength = HTTP 请求消息正文的长度，这是一个数值
+method = HTTP 请求方法，例如"GET"、"POST"。
+protocol = HTTP 协议版本。
 host = 请求的网站域名
-remoteAddr = 客户端IP地址
-scheme = 请求URL中协议部分,值为"http"或"https"
-url = 请求URL\n不带GET参数
-uri = 请求路径\n带GET参数
+remoteAddr = 客户端 IP 地址
+scheme = 请求 URL 中协议部分，值为"http"或"https"。\n注意仅 FastCGI 模块支持 HTTPS 请求。
+url = 请求 URL，不带 URL 参数部分
+uri = 请求路径，带 URL 参数部分
 serverPort = 请求的服务器端口，数值
-documentBase = 嵌入 HTTP 服务器网站根目录,\n此路径不同于 aardio 应用程序根目录。\n在 FastCGI 环境下总是为 "/"\n\nrequest.path 等于 request.documentBase + request.pathInfo
-path = 请求 URL 中的路径部分，前面包含 documentBase 目录。\n注意请求路径不能开始于"/config/","/lib/"\n\nrequest.path 等于 request.documentBase + request.pathInfo
-pathInfo = 请求 URL 中的路径部分，忽略 documentBase 目录。\n注意请求路径不能开始于"/config/","/lib/"\n\nrequest.path 等于 request.documentBase + request.pathInfo
+documentBase = 嵌入 HTTP 服务器网站根目录,\n此路径不同于 aardio 应用程序根目录。\n在 FastCGI 环境下总是为 "/"\n\nrequest.path 等于 request.documentBase ++ request.pathInfo
+path = 请求 URL 中的路径部分，前面包含 documentBase 目录。\n注意 HTTP 请求路径开始于"/config/","/lib/"时会拒绝请求。\n\nrequest.path 等于 request.documentBase ++ request.pathInfo
+pathInfo = 请求 URL 中的路径部分，忽略 documentBase 目录。\n注意 HTTP 请求路径开始于"/config/","/lib/"时会拒绝请求。\n\nrequest.path 等于 request.documentBase ++ request.pathInfo
 scheme = URL协议部分
-sessionId = 会话ID,\n应用程序需要自行管理会话过期时间
-createSessionId() = 应用程序可调用此函数重新创建新的会话ID
+sessionId = 会话 ID。\n应用程序需要自行管理会话过期时间。\n请参考 sessionHandler.default 实现源码。
+createSessionId() = 应用程序可调用此函数重新创建新的会话 ID
 keepAlive = 客户端是否请求保持连接
-postJson() = 如果请求格式为 application/json 或 text/json , \n返回 JSON 格式请求数据并解析为 aardio 对象返回\n解析失败返回 null
-postData() = 获取原始上传数据\nmultipart/form-data表单上传的文件数据应使用postFileData函数读取
-postFileData() = 可以使用此函数判断当前请求是否上传文件\n获取multipart/form-data表单上传的文件数据\n如果无上传数据返回空值,\n解析出错返回空值并发送400错误后关闭页面输出\n\n此函数的返回值是一个fsys.multipartFormData对象\n关于数据的格式请参考标准库中该对象的文档,\n!stdfsysmultipartFormData.
+postJson() = 如果请求格式为 `application/json` 或 `text/json` , \n获取 JSON 格式的请求数据并解析为 aardio 对象并返回。\n解析失败返回 null
+postData() = 获取原始上传数据。\n`multipart/form-data` 表单上传的文件数据应使用postFileData函数读取
+postFileData() = 可以使用此函数判断当前请求是否上传文件\n获取 `multipart/form-data` 表单上传的文件数据。\n如果无上传数据返回空值,\n解析出错返回空值并发送 400 错误后关闭页面输出。\n\n此函数的返回值是一个 fsys.multipartFormData 对象\n关于数据的格式请参考标准库中该对象的文档,\n!fsysMultipartFormData.
 end intellisense**/
 
 /**intellisense(response)
-write(__) = 输出一个或多个值,\n参数将自动转换为字符串对象\n可直接输出结构体,其他table转换为JSON输出
-writeBuffer(.(buffer,长度) = 输出 buffer 对象中的数据
-eventStream( = 按 text/event-stream 协议格式输出表对象。\nwsock.tcp.simpleHttpServer,wsock.tcp.asynHttpServer 已自动支持。\nIIS 需要在处理程序映射配置中添加 responseBufferLimit="0"（注意备份原配置）
-eventStream(.(message) = 将参数 @message 指定的表对象按 text/event-stream 格式输出。\n该表对象中值类型为表的对象自动转换为 JSON 输出。\nresponse.contentType 自动指定为 "text/event-stream"
-redirect("__") = 302重定向,\n必须在页面尚未输出响应头时调用,\n参数@1可以是相对路径或任意网址,\n此函数终止执行页面后续代码 
-redirect("__",301) = 301重定向,\n必须在页面尚未输出响应头时调用,\n参数@1可以是相对路径或任意网址,\n此函数终止执行页面后续代码 
+flush() = 发送并清空缓冲区。\nIIS 仍然会继续在缓冲区缓存输出。\nIIS 内如果要实时输出请修改 FastCGI 缓冲区大小为 0\n[参考文档](doc://guide/quickstart/web-server.html#responseBufferLimit)
+write(__) = 输出一个或多个值。\n可直接输出字符串、buffer、结构体，table 对象自动转换为 JSON 输出，\n其他类型对象则转换为字符串输出。
+writeBuffer(.(buffer,长度) = 输出 buffer 对象中的数据，不指定长度则获取缓冲区长度。\n注意 FastCGI 服务端这个函数单次最大发送长度为 65535。\n其他服务端未限制长度。\n\nresponse.write 也可以用于发送 buffer，并且没有 65535 这个限制。
+eventStream( = 按 `text/event-stream` 协议格式输出表对象。\nwsock.tcp.simpleHttpServer,wsock.tcp.asynHttpServer 已自动支持。\nIIS 需要在处理程序映射配置中添加 `responseBufferLimit="0"`（注意备份原配置），\n\n[参考文档](doc://guide/quickstart/web-server.html#responseBufferLimit)
+eventStream(.(message) = 将参数 @message 指定的表对象按 `text/event-stream` 格式输出。\n该表对象中值类型为表的对象自动转换为 JSON 输出。\nresponse.contentType 自动指定为 `text/event-stream`
+redirect("__") = 302 重定向,\n必须在页面尚未输出响应头时调用。\n参数 @1 可以是相对路径或任意网址,\n此函数终止执行页面后续代码。
+redirect("__",301) = 301重定向,\n必须在页面尚未输出响应头时调用,\n参数@1可以是相对路径或任意网址,\n此函数终止执行页面后续代码。
 close() = 关闭输出\n此函数终止执行页面后续代码
 close(true) = 关闭页面输出\n但继续执行页面后续代码
-closed = HTTP应答对象是否已关闭\n用于判断本次HTTP应答是否已被 response.close 函数关闭\n因为response.close() 会抛出空异常自动退出当前代码,\n所以一般不需要判断这个值\n此属性的值应由HTTP服务器自动维护,用户不可修改
-error(__) = 输出一个或多个500错误信息,\n必须在页面尚未输出响应头时调用,\n参数将自动转换为字符串对象\ntable转换为格式化的对象输出\n此函数终止执行页面后续代码  
-errorStatus(__) = 数值参数@1为HTTP错误代码，\n可选用字符串参数 @2 指定页面默认输出的文本信息。\n触发自定义错误处理函数、或返回对应HTTP状态码。\n必须在页面尚未输出响应头时调用,\n此函数终止执行页面后续代码 
-cookieSecure = 设为true所有cookie默认加上secure属性
-cookieHttpOnly = 设为true所有cookie默认加上HttpOnly属性
-cookieDomain = 默认cookie域名
-cookiePath = 默认cookie目录
-preheaders = 指定在headers发送到客户端以前发送的HTTP头\n此值将使用 web.joinHeaders 函数格式化然后再发送\n可以指定字符串,数组,或键值对,键值对的值可以是多个值组成的数组\n如果参数是键值对,自动对值中的宽字符按UTF-8编码进行UrlEncode编码
-headers[__] = 响应HTTP头,\n值可以是字符串、或者多个字符串值组成的数组,\n值是数组时则自动输出多个名值对到客户端,\n键名的每个单词的首字母必须大写、其他字母必须小写\n注意：这与请求头统一小写是不同的
+closed = HTTP 应答对象是否已关闭。\n用于判断本次HTTP应答是否已被 response.close 函数关闭\n因为 `response.close()` 会抛出空异常自动退出当前代码,\n所以一般不需要判断这个值\n此属性的值应由HTTP服务器自动维护,用户不可修改
+error(__) = 输出一个或多个 500 错误信息，\n必须在页面尚未输出响应头时调用,\n参数将自动转换为字符串对象\ntable转换为格式化的对象输出\n此函数终止执行页面后续代码  
+errorStatus(.(statusCode,message,continueRunning) = 此函数默认输出 HTTP 错误响应代码，\n如果自定义了对应的 HTTP 错误代码处理函数则执行该函数。\n此函数必须在页面尚未输出 HTTP 响应头时调用才会有效。\n\n参数 @statusCode 指定 HTTP 错误代码（数值），\n可选用参数 @message 自定义页面输出的文本信息（字符串）。\n可选指定参数 @continueRunning 为 true 以继续运行页面后续代码，默认为 false 。
+cookieSecure = 设为 true 所有 cookie 默认加上 secure 属性
+cookieHttpOnly = 设为 true 所有 cookie 默认加上 HttpOnly 属性
+cookieDomain = 默认 cookie 域名
+cookiePath = 默认 cookie 目录
+preheaders = 指定在 headers 发送到客户端以前发送的 HTTP 头\n此值将使用 web.joinHeaders 函数格式化然后再发送\n可以指定字符串,数组,或键值对,键值对的值可以是多个值组成的数组\n如果参数是键值对,自动对值中的宽字符按UTF-8编码进行 UrlEncode 编码
+headers[__] = 指定响应 HTTP 头,\n值可以是字符串、或者多个字符串值组成的数组,\n值是数组时则自动输出多个名值对到客户端,\n键名中每个单词的首字母必须大写、其他字母必须小写\n注意：这与请求头统一小写是不同的
 cookies[__] = @.cookies["__/*键名*/"] = {
 	value = "值";
 	expires = time().addday(7);
 	maxAge = 3600;
 }
+_headersWritten = 是否已向客户端发送 HTTP 头。\n如果已发送 HTTP 头，则后续修改 HTTP 状态码或响应头将被忽略。\n调用代码不应修改此属性。
 status = 响应状态码,值可以为数值或文本,\n默认为"200 OK"
-contentType = @.contentType = "application/json";__/*指定响应数据的MIME类型,默认为"text/html"*/
-charset = 输出字符集\n可以为空,默认值为UTF-8\n不建议更改此值
-jsonPrettyPrint = @.jsonPrettyPrint = true;__/*指定respose.write函数将对象转换为JSON输出时否缩进格式化*/
-defalutDocument = 指定loadcode函数加载aardio代码时的默认文件名\n默认为"main.aardio",不建议修改
-keepAlive = 服务端是否保持连接\n此属性为标准库为HTTP服务器所保留\nHTTP服务器可以忽略该值\n或者由HTTP服务器自动维护该值\n用户不应修改此属性
-transferChunked = 是否使用分块传输协议\n此属性为标准库为HTTP服务器所保留\nHTTP服务器可以忽略该值\n或者由HTTP服务器自动维护该值\n用户不应修改此属性
-loadcode( = 运行服务端 aardio 代码或下载其他文件。\n\n参数 @1 如果指定 *.aardio 文件则执行并解析 aardio 模板代码。\n如果指定其他类型的文件则直接下载文件。\n\n注意下载是比较复杂的功能，直接调用这个函数是更可靠的选择。\n自己去实现这一套代码工作量可能很大，一般没有必要。\n\n可以参考『扫码传文件』范例，这个程序在网上转发很多，用的人也不少。\n上传下载都支持，其中下载就是调用这里的 response.loadcode 函数。
-loadcode(.("文件路径",->->->) = 省略参数则默认以  request.path 为参数。\n\n参数 @1 如果指定 *.aardio 文件则执行并解析 aardio 模板代码。\n后面的其他参数作为模板参数传给被调用的 aardio 文件。\n在被调用文件的函数外部可使用 owner 参数获取首个模板参数，\n也可以使用...获取多个模板参数。\n关于模板语法请查看[帮助文档](doc://language-reference/templating/syntax.md)。\n\n如果指定其他文件路径，则下载文件。\n注意下载是比较复杂的功能，直接调用这个函数是更可靠的选择。
+contentType = @.contentType = "application/json";__/*指定响应数据的 MIME 类型,默认为"text/html"*/
+charset = 输出字符集。\n可以为空,默认值为 aardio 的默认文本编码 UTF-8 。\n不建议更改此值。
+jsonPrettyPrint = @.jsonPrettyPrint = true;__/*指定 respose.write 函数将对象转换为 JSON 输出时否缩进格式化*/
+defalutDocument = 指定 `loadcode` 函数加载 aardio 代码时的默认文件名\n默认为"main.aardio",不建议修改
+keepAlive = 服务端是否保持连接。\n此属性为标准库为 HTTP 服务器所保留。\nHTTP 服务器可以忽略该值，\n或者由 HTTP 服务器自动维护该值，\n用户不应修改此属性
+transferChunked = 是否使用分块传输协议。\n此属性为标准库为 HTTP 服务器所保留。\nHTTP服务器可以忽略该值，\n或者由 HTTP 服务器自动维护该值，\n用户不应修改此属性
+loadcode( = 运行服务端 aardio 代码或下载其他文件。\n\n参数 @1 如果指定 `*.aardio` 文件则执行并解析 aardio 模板代码。\n如果指定其他类型的文件则直接下载文件。\n\n注意下载是比较复杂的功能，直接调用这个函数是更可靠的选择。\n自己去实现这一套代码工作量可能很大，一般没有必要。\n\n可以参考『扫码传文件』范例。\n上传下载都支持，其中下载就是调用这里的 response.loadcode 函数。
+loadcode(.("文件路径",->->->) = 省略参数则默认以  request.path 为参数。\n\n参数 @1 如果指定 *.aardio 文件则执行并解析 aardio 模板代码。\n后面的其他参数作为模板参数传给被调用的 aardio 文件。\n在被调用文件的函数外部可使用 `owner` 参数获取首个模板参数，\n也可以使用 `...` 获取多个模板参数。\n关于模板语法请查看[帮助文档](doc://language-reference/templating/syntax.md)。\n\n如果指定其他文件路径，则下载文件。\n注意下载是比较复杂的功能，直接调用这个函数是更可靠的选择。
 customErrors[404] = @.customErrors[404] = function(response,request,session){
 	response.status = "404 Not Found";
 	response.write("404 Not Found"); __/*自定义错误处理函数,\n每次请求仅第一个自定义错误处理函数会被调用*/
 } 									
 end intellisense**/
 
+
 /**intellisense()
-session = Web服务端会话对象,\nsession对象必须由服务端框架自动维护，\n用户发起不同的请求时session对象都是不同的，\n并且由服务端框架自动设置为全局变量。\n\nsession的接口规范由标准库中fastcgi.client定义，\n目前aardio提供的所有HTTP服务端框架都兼容此接口。
-session.start(__) = 载入session,\n此函数会在sessionHandler名字空间下查找自定义的加载器,\n如果没有找到默认会使用sessionHandler.default加载session,\n可选在参数中指定过期时间,以秒为单位\n如果没有调用此函数,首次访问session的键值时会自动调用
-session.save() = 保存session，此函数在请求结束时会自动调用
-session.clear() = 清空session
-session["__"] = 获取或设置session\n值不允许包含函数、类等可执行代码
-session.?= 获取或设置session\n值不允许包含函数、类等可执行代码
+session = HTTP 服务端会话对象,\nsession 对象必须由服务端框架自动维护，\n用户发起不同的请求时 session 对象都是不同的，\n并且由服务端框架自动设置为全局变量。\n\nsession 的接口规范由标准库中 fastcgi.client 定义，\n目前 aardio 提供的所有 HTTP 服务端框架都兼容此接口。
+session.start(__) = 载入 session,\n此函数会在 sessionHandler 名字空间下查找自定义的加载器。\n如果没有找到默认会使用sessionHandler.default加载session,\n可选在参数中指定过期时间,以秒为单位\n如果没有调用此函数,首次访问 session 的键值时会自动调用
+session.save() = 保存 session，此函数在请求结束时会自动调用
+session.clear() = 清空 session
+session["__"] = 获取或设置 session 。\n值不允许指定函数、类等包含可执行代码的对象。
+session.?= 获取或设置 session 。\n值不允许指定函数、类等包含可执行代码的对象。
 end intellisense**/
 
 /**intellisense()
-fastcgi = FastCGI协议实现模块
-fastcgi.client = FastCGI客户端
-fastcgi.client() = 创建FastCGI客户端\n!stdfastcgiclient.
+fastcgi = FastCGI 支持库
+fastcgi.client = FastCGI 客户端
+fastcgi.client() = 创建 FastCGI 客户端。\n!stdfastcgiclient.
 !stdfastcgiclient.run( httpProc ) = @.run( \n    function(response,request,session){ \n         response.loadcode( request.path __/*可省略,可增加多个模板参数,\n在被调用文件的函数外部可使用owner参数获取首个模板参数,\n也可以使用...获取多个模板参数*/ );\n    } 	\n);
 !stdfastcgiclient.getStream = function(){
 	if(!owner.stream){ 

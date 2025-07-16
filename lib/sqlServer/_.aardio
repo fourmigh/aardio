@@ -83,7 +83,9 @@ class sqlServer {
 	existsProcedure = function(name){ 
 		return !!this.findProcedureObject(name);
 	}; 
-	exec = function(sql,...){ 
+	exec = function(sql,...){
+		if(!sql) error( "参数 @1 必须指定 SQL ，不能是 null 值！",2)
+		
 		if( ... )sql = format(sql,...); 
 		var ret,result,recordsAffected = call(this.connection.Execute,this.connection,sql,0,1 | 0x80/*_adCmdText | adExecuteNoRecords*/);
 		if(!ret) error(result,2);  
@@ -497,7 +499,7 @@ namespace sqlServer {
 }
 
 /**intellisense()
-sqlServer( 连接参数表 ) = @sqlServer( \n	["Data Source"] = "127.0.0.1,7788";\n	["Database"] = "数据库名__";\n	["User ID"] = "用户名";\n	["Password"] = "密码"; \n)
+sqlServer( 连接参数表 ) = @sqlServer({ \n	["Data Source"] = "127.0.0.1,7788";\n	["Database"] = "数据库名__";\n	["User ID"] = "用户名";\n	["Password"] = "密码"; \n})
 sqlServer( "数据库连接语句",其他格式化参数 ) = @sqlServer("Provider=SQLOLEDB.1;Data Source=.\SQLEXPRESS;Database=数据库名;User ID=登录名;Password=登录密码");
 打开数据库连接,\n如果指定的数据库不存在将自动创建数据库文件\n如果存在格式化参数，则调用string.fomat格式化连接串
 sqlServer() = !sqlServer.

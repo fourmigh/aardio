@@ -373,9 +373,7 @@ namespace image {
 			if( (type.rget(stream)!="fsys.stream") && (type(stream)!= type.pointer) ) error("参数@1请指定fsys.stream流对象",2);
 			var pImg = owner[["pImage"]] if(!pImg) return;
 			
-			var ext = path ? ..string.match(path,"\.(\w+)$");
-			if(!ext) error("参数@1请指定正确的文件路径（包含正确的后缀名）",2);
-			
+			var ext = path ? ..string.match(path,"\.(\w+)$") || path;
 			var guid = gdip.encoder.imageGuid(ext);
 			if( params === null ){
 				if(quality && (guid === gdip.encoder.image.JPG) ){ 
@@ -603,6 +601,9 @@ namespace encoder {
 	}; 
 	for(k,v in image) image[k] = ..win.guid.fromString( v );
 	
+	image.DIB = image.BMP; 
+	image.RLE = image.BMP; 
+	image.JPE = image.JPG; 	
 	image.JPEG = image.JPG;
 	image.JFIF = image.JPG;
 	image.TIFF = image.TIF;
@@ -615,8 +616,8 @@ namespace encoder {
 
 /**intellisense()
 gdip.image("__/*请输入文件路径\n或图片数据*/") = 创建GDI+L图片对象
-!gdipimage.getResolution() = 返回分辨率xdpi,ydpi
-!gdipimage.isValid() = 图像是否有效\ndispose函数释放以后返回false
+!gdipimage.getResolution() = 返回分辨率 xdpi,ydpi
+!gdipimage.isValid() = 图像是否有效\ndispose 函数释放以后返回 false
 !gdipimage.clone() = 复制图像\n!gdipimage.
 !gdipimage.getGraphics()  = 从图像获取画布\n!gdipgraphics.
 !gdipimage.width = 宽度
@@ -633,15 +634,15 @@ gdip.image("__/*请输入文件路径\n或图片数据*/") = 创建GDI+L图片�
 !gdipimage.saveToBuffer(.(后缀名,输出质量) = 保存图像到 buffer，返回 buffer 对象,\n后缀名默认为"*.jpg",质量默认为100,\n可选在参数@3使用gdip.encoder.parameter数组指定保存参数	
 !gdipimage.save("__/*请输入文件路径*/") = 保存图像\n使用参数指定的文件路径或加载图片时的路径\n根据后缀名自动设定格式,\n可选在参数@3使用gdip.encoder.parameter数组指定保存参数	
 !gdipimage.save("__/*请输入文件路径*/",80) = 保存图像\n使用参数指定的文件路径或加载图片时的路径\n根据后缀名自动设定格式\njpg文件可使用第二个参数指定图像质量,\n可选在参数@3使用gdip.encoder.parameter数组指定保存参数	
-!gdipimage.saveAdd(.(图像路径) = 创建多帧图像,参数指定保存路径,\n使用saveAdd添加帧，添加帧参数@1不能指定路径,\n添加所有帧以后调用saveFlush函数即可
 !gdipimage.saveAdd(.() = 添加当前图像到多帧图像
+!gdipimage.saveAdd(.(图像路径) = 创建多帧图像，参数 @1 指定保存路径,\n后续添加图像帧时，参数 @1 不能再指定路径。\n在添加所有帧以后调用 saveFlush 函数保存文件。
 !gdipimage.saveAdd(.(图像) = 添加其他gdip.image或gdip.bitmap对象到多帧图像,\n可选使用参数2指定saveFlag，可选在参数@3使用gdip.encoder.parameter数组指定保存参数		
 !gdipimage.dispose() = 释放图像\n此对象支持自动释放,不必手工调用此函数
 !gdipimage.getFrameDimensionsList() = 图像帧分辨率列表\n该值是GUID数组 
 !gdipimage.frameDimension = 当前分辨率GUID
 !gdipimage.totalFrames = 动画帧总数\n不是动画返回1
-!gdipimage.activeFrame = 当前帧索引\n修改该属性请使用SelectActiveFrame函数
-!gdipimage.getLoopCount() = 获取动画循环次数,0为一直循环,\n根据 GDI+ 的规则,循环次数为2会改为1,其他不变,\n为不影响性能默认不处理这个问题\n\n如果要处理,步骤如下:\n1、读取循环次数如果为1就进行下一步\n2、在GIF图像数据中搜索关键字"NETSCAPE2.0"\n如果找到就将此图像的 $loopCount 属性赋值为2,\n注意 plus 控件支持将加载好的GDI+图像作为参数\n\nGIF动画循环次数一般不是0就是1,\n其他数值基本无人使用,搞这么复杂是不必要的
+!gdipimage.activeFrame = 当前帧索引\n修改该属性请使用 selectActiveFrame 函数
+!gdipimage.getLoopCount() = 获取动画循环次数,0为一直循环,\n根据 GDI+ 的规则,循环次数为 2 会改为 1,其他不变,\n为不影响性能默认不处理这个问题\n\n如果要处理,步骤如下:\n1、读取循环次数如果为1就进行下一步\n2、在GIF图像数据中搜索关键字"NETSCAPE2.0"\n如果找到就将此图像的 $loopCount 属性赋值为2,\n注意 plus 控件支持将加载好的GDI+图像作为参数\n\nGIF动画循环次数一般不是0就是1,\n其他数值基本无人使用,搞这么复杂是不必要的
 !gdipimage.getFrameDelays() = 返回多帧图像每帧延时数值组成的数组,\n延时单位为厘秒,即0.01秒
 !gdipimage.setFrameDelays(__) = 修改多帧图像每帧延时数值\n参数必须是由数值组成的非空数组,\n延时单位为厘秒,即0.01秒\n必须在调用saveAdd以前设置
 !gdipimage.selectActiveFrame(.(帧序号) = 设置当前动画帧
@@ -656,9 +657,7 @@ gdip.image("__/*请输入文件路径\n或图片数据*/") = 创建GDI+L图片�
 !gdipimage.removePropertyItem(__/*属性ID*/) = 移除字段
 !gdipimage.setPropertyItem(.(字段结构体) = 修改字段
 !gdipimage.getPropertyItem() = !gdip_exif_item.
-!gdipimage.eachProperty() = @for( tagId,propertyItem in ??.eachProperty() ){
-	 propertyItem.__/*遍历图像属性字段*/
-}\n!gdip_exif_item.
+!gdipimage.eachProperty() = @for( tagId,propertyItem in ??.eachProperty() ){\n	 propertyItem.__/*遍历图像属性字段*/\n}\n!gdip_exif_item.
 !gdip_exif_item.propId = 属性 ID
 !gdip_exif_item.length = 数据长度
 !gdip_exif_item.type = 数据类型 

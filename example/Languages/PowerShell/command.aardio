@@ -1,0 +1,26 @@
+//调用 PowerShell 命令 
+import dotNet.ps; 
+
+/*
+调用 PowerShell 命令 Compress-Archive 利用操作系统自带组件压缩 zip 文件：
+
+参数 @1 指定命令名。
+参数 @2 可选用一个表指定命令参数。
+	- 参数 @2 如果是一个表：
+		- 命令参数表如果包含名值对，则用于指定命名参数，参数名前不需要加 $ 或 - 等前缀符号。
+		- 命令参数表如果包含数组成员，则仅添加为参数名。
+	- 参数 @2 如果是一个字符串，则与后续所有字符串参数一起先合并为数组参数。
+	
+成功返回字符串值，失败返回 null,错误信息。
+*/
+var result,err = dotNet.ps.command("Compress-Archive",
+    {
+    	Path = [ io.fullpath("~\doc\guide") ],
+		DestinationPath = io.fullpath("~\doc.guide.zip") 
+	}
+) 
+
+/*
+PowerShell Compress-Archive 命令可用参数参考文档：
+https://learn.microsoft.com/powershell/module/microsoft.powershell.archive/compress-archive
+*/ 

@@ -31,6 +31,12 @@ for(i=1;10;1){
 }
 ```
 
+print 的的第一个参数如果是 [纯数组](../datatype/table/_.md#pure-array-table)，则会先序列化为字符串以输出所有值，示例：
+
+```aardio
+print([1,2,3]);
+```
+
 但是 print 函数并不能支持复杂的控制台功能，而且要考虑 print 函数可能被重写的特性。对于正式开发的控制台程序，仍然应当使用 console 库，例如：
 
 ```aardio

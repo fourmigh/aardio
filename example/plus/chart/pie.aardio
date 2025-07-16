@@ -1,0 +1,25 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="plus 控件显示简单图表（饼图）";right=759;bottom=469)
+winform.add(
+plus={cls="plus";left=40;top=36;right=718;bottom=430;bgcolor=0xF0FBFF;db=1;dl=1;dr=1;dt=1;font=LOGFONT(h=-14);forecolor=0x008000;notify=1;paddingBottom=22;paddingLeft=10;paddingRight=10;paddingTop=10;textPadding={bottom=-20};valign="bottom";z=1}
+)
+/*}}*/
+
+// 导入饼图类
+import gdip.chart.pie;
+var chartPie = gdip.chart.pie(winform.plus)
+
+// 准备图表数据集。如果控件已显示，修改数据集不会刷新，请调用控件的 redrawTransparent() 方法刷新
+chartPie.dataset = {
+    data = [25, 35, 15, 10, 15];
+    labels = ["苹果", "香蕉", "橘子", "葡萄", "其他"]; //可选自定义显示标签（与 data 字段的数组索引一一对应）
+    colors = [0xFFE74C3C, 0xFFF1C40F, 0xFFE67E22, 0xFF9B59B6, 0xFF3498DB];//可选自定义颜色值（数组长度可以小于 data 字段，但不能为空）
+    showPercentage = true;//是否赃示百分比（不指定则显示数据值）
+};
+
+//Chart.js 图表（web.view） file://~/example/WebUI/web.view/OtherApps/Chart.js.aardio
+//Chart.js 图表（web.form） file://~/example/WebUI/web.form/Chart.js/QuickStart.aardio
+
+winform.show();
+win.loopMessage();

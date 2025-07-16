@@ -1,8 +1,10 @@
 内置函数=index.md
+import 导入库=../..//library-guide/import.md
 call 调用函数=call.md
 eval 计算值=eval.md
 loadcode 加载代码=loadcode.md
 loadcodex 加载代码=loadcodex.md
+switch 选择执行=switch.md
 assert 断言=assert.md
 reduce 数组归约=reduce.md
 print 模板输出=print.md

@@ -1,0 +1,45 @@
+﻿//argbColor 取色与选色对话框
+import win.ui.ctrl.pick;
+
+namespace win.dlg;
+
+class argbColor{
+	ctor(form){
+		this = ..win.ui.ctrl.pick(form)
+	}; 
+	
+	choose = function(clr,gdi){
+		if(clr!==null) p.setColor(clr,gdi);
+	
+		this.doModal();
+		
+		var r = this.lastSelectedColor;
+		if(r!==null){
+			if(gdi) r = ..gdi.rgbReverse(r);
+			return r;	
+		} 
+	}
+}
+
+//@guide [范例源码](doc://example/Windows/dialog/colorPicker.html)
+
+/*****intellisense()
+win.dlg.argbColor = 增强版取色与选色对话框。\n支持 GDI+ 颜色格式（用 0xAARRGGBB 格式数值表示颜色）。\n\nwin.dlg.argbColor 继承自 win.ui.ctrl.pick 控件。\n\n取色放大镜使用技巧:\n取色时取的是放大镜十字准星右下角的那个像素。\n取色时按住 `Ctrl` 键放大镜不动且图像不变,\n按住 `Shift` 键放大镜不动但图像随鼠标指向改变,\n同时按住 `Ctrl+Shift` 键等价于按 `Ctrl` 键。
+win.dlg.argbColor(.(parentForm) = 增强版取色与选色对话框。。\n参数 @parentForm 指定父窗口对象或者父窗口句柄。\n返回对象提供 choose 方法可用于打开选色对话框。
+win.dlg.argbColor() = !stdWinDlgArgbColor.
+end intellisense*****/
+
+/*****intellisense(!stdWinDlgArgbColor)
+choose(.(initColor,gdiFormat) = 弹出选择颜色对话框。\n可选使用参数 @initColor 指定最初选定的颜色。\n如果将可选参数 @gdiFormat 指定为 true 则参数与返回值为 GDI 颜色格式（0xBBGGRR 格式数值）。\n否则默认使用 GDI+ 颜色格式（用 0xAARRGGBB 格式数值）。
+lastSelectedColor = 最后获取的颜色，如果未修改初始颜色则此属性为 null 。
+setColor(.(argbColor) = 修改当前颜色。\n参数 @argbColor 指定 0xAARRGGBB 格式颜色（GDI+ 格式）。
+setColor(.(rgbColor,true) = 修改当前颜色。\n参数 @argbColor 指定 0xBBGGRR 颜色格式（GDI 格式）。
+openColorTable(__) = 打开 color.table 支持的色表,\n色表是由多个色卡信息组成的数组,\n每个色卡由颜色中文名、英文名、RGB格式颜色数值三个元素组成
+onColorChange = @.onColorChange = function(argb){
+	__/*调色器当前颜色改变时触发此事件，\n回调参数 argb 为 ARGB 格式（0xAARRGGBB）颜色数值*/
+}
+getRgba() = 返回当前 R,G,B,A 颜色分量
+getHsb() = 返回当前 H,S,V 颜色分量
+getLab() = 返回当前 H,S,B 颜色分量
+onInitDialog = @.onInitDialog = function(hwnd,message,wParam,lParam){\n	??.center()__/*模态对话框初始化完成触发该函数*/\n}
+end intellisense*****/

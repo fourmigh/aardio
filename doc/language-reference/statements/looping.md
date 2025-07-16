@@ -1,10 +1,10 @@
 # 循环语句
 
-## for 循环语句（ Numeric for ） <a id="numeric-for" href="#numeric-for">&#x23;</a>
+## 一. for 计数循环语句（ Numeric for ） <a id="numeric-for" href="#numeric-for">&#x23;</a>
 
-aardio 使用基于数值范围的 for 循环语法（Range-based for）。
+计数 for 循环是基于数值范围的循环（Range-based for）。
 
-for 循环语句基本结构：  
+基本结构：  
   
 ```aardio
 for(i = initialValue;finalValue;incrementValue){
@@ -26,15 +26,12 @@ for(i = initialValue;finalValue;incrementValue){
 
 循环参数：
 
-- **aardio 使用基于数值范围的 `for` 循环，全部循环参数都必须是数值表达式，没有`条件（condition-expression）`与`迭代（iteration-expression）`部分。** 
-- `initialValue` 指定循环范围的起始数值，`finalValue` 指定结束数值。
-- 循环增量 `incrementValue` 可使用负数表示递减循环，省略循环增量则默认为 1。
--  可以用 `;` 或者 `,` 号分隔所有循环参数，但是同一语句分隔循环参数的分隔符必须相同。允许改用任何非大写的标识符分隔循环参数，但不能使用语法关键字、保留函数名、全局常量作为分隔符。
+- 全部循环参数都必须是数值表达式。
 - 所有循环参数都仅在循环开始前计算一次，循环过程中不会重新计算。
+- 可以用 `;` 或者 `,` 号分隔所有循环参数，但是同一语句分隔循环参数的分隔符必须相同。允许改用任何非大写的标识符分隔循环参数，但不能使用语法关键字、保留函数名、全局常量作为分隔符。
+- `initialValue` 指定循环范围的起始数值，`finalValue` 指定结束数值。
+- 循环增量 `incrementValue` 可使用负数表示递减循环。 省略 `incrementValue`  则默认设为 1 。
 
-要点：
-
-aardio 使用基于数值范围的 for 循环语法（Range-based for）。 for 循环范围的终止值 `finalValue`  是一个确定的数值而不是需要循环计算的条件表达式（condition-expression），循环增量 `incrementValue` 也是一个纯数值而不是一个需要重复执行的迭代表达式（iteration-expression）。这一点与其他类 C 风格编程语言完全不同，aardio 使用更简单的 `for` 循环语法。
 
 示例：  
 
@@ -65,23 +62,8 @@ for(i=10;1;-1){
 }
 
 console.pause()
-```  
-
-aardio 允许以多种不同的方式分隔循环参数，示例：
-
-```aardio
-//使用逗号分隔循环参数，前后两个分隔符必须一致
-for i=1,10,1 {  
-    
-}
-
-//使用普通标识符分隔循环参数。 
-for i=1 to 10 step 1 {  
-    
-}
 ```
 
-  
 用 for 循环计算阶乘的示例：  
   
   
@@ -98,21 +80,132 @@ math.factorial = function(n){
    return result;  
 }
 
-import console;
-console.log( math.factorial(15) )
-console.pause();
+print( math.factorial(15) );
 ```
 
-## for in 泛型循环语句（ Generic for ）<a id="for-in" href="#for-in">&#x23;</a>
+aardio 允许以多种不同的方式分隔循环参数，示例：
+
+```aardio
+//使用逗号分隔循环参数，前后两个分隔符必须一致
+for i=1,10,1 {  
+    
+}
+
+//使用普通标识符分隔循环参数。 
+for i=1 to 10 step 1 {  
+    
+}
+```
+
+for 循环语句支持简化的纯 C 风格写法 <a id="c-like-for" href="#c-like-for">&#x23;</a>，基本结构如下：
+
+```aardio
+for (i = initialValue; condition; step){
+
+}
+```
+
+- 必须用分号 `;` 分隔循环参数。
+- 循环参数 `condition` 可以写为  `i<=finalValue`、`i>=finalValue`、`i<stopValue`、`i>stopValue` 等固定格式之一，左操作数 `i` 必须是循环变量。在循环开始前会转换并得到最终的 `finalValue` 以确定 for 循环的数值范围。
+- 循环参数 `step` 可以写为 `i++`、`i--`、`--i`、`++i`、`i+=incrementValue`、`i-=incrementValue`、`i=i+incrementValue`、`i=i+incrementValue` 这几个固定格式，左值或左操作数 `i` 必须是循环变量。在循环开始前会转换并得到最终的 `incrementValue` 以确定 for 循环的递增或递减数值。
+- 循环参数 `step` 也可以指定普通数值表达式，如果省略 `step` （ `step` 前面的分号也要省略）则递增循环默认设为 1，而递减循环默认设为 -1。
+
+一般没必要使用这种纯 C 风格写法，aardio 的标准 for 循环语法更简洁一些。
+
+## 二 泛型 for in 循环语句（ Generic for ）<a id="for-in" href="#for-in">&#x23;</a>
+
+### `for in` 语句有多种不同的用法
+
+在 for in 语句里，in 后面可以指定任意表达式，简单来说：
+
+- in 后面如果是表对象（或数组）,则循环遍历该表。
+- in 后面如果是函数对象（迭代器），则循环调用该函数直到函数返回 null 值。
+- in 后面如果是函数调用语句（迭代器工厂），则必须返回一个函数对象（迭代器），循环调用返回的迭代器函数直到迭代器返回 null 值。
+- in 后面如果是其他任何值，则忽略不报错。
+
+下面是具体用法：
+
+1.  in 后面写单个表达式
+
+    格式：
+
+    ```aardio
+    for k,v in anyExpression {
+
+    }
+    ```
+
+    anyExpression 的类型：
+
+    - anyExpression 必须是单个表达式，不能是用逗号分隔的多个表达式。
+    - anyExpression 不能是函数调用语句。
+    - anyExpression 可以是其他任意表达式，任意值。
+
+    对应执行的操作：
+
+    - anyExpression 的值如果是表，则遍历该表的所有成员。
+    - anyExpression 的值如果是函数，则将该函数作为迭代器函数，循环调用直到函数返回 null 值。
+    - anyExpression 的值如果不是表也不是函数，则 fon in 语句不执行任何操作（不会报错）。
+
+    也就是说，即使下面这样写也符合语法规则：
 
 
-泛型 for 循环是基于迭代器的循环（ Iterator-based for ）。
+2. in 后面写单个函数，或多个表达式
 
-"迭代"是指循环取值并不断逼近最终目标的过程，每次取值的结果总是作为下一次迭代的初始值。
+    格式：
 
-aardio 中的 "迭代器"就是一个在 for in 语句中被循环调用的函数，每一次调用迭代器得到的第一个返回值总会作为下一次调用迭代器的参数 - 这个关键的迭代结果值我们称之为控制变量（Control Variable）。
+    ```aardio
+    for k,v in iterator,ownerObject,initialValue  {
 
-泛型 for（ Generic for ）的基本语法结构如下：
+    }
+    ```
+
+    - iterator 必须是迭代器函数。
+    - ownerObject 是迭代器的 owner 参数,可选值。
+    - initialValue 是首次调用 iterator 初始值,可选值。
+
+3. in 后面是函数调用语句
+
+    ```aardio
+    for k,v in iteratorFactory()  {
+
+    }
+    ```
+
+    `iteratorFactory()` 语句的返回值依次为 iterator,ownerObject,initialValue ，
+    返回的 iterator 必须是函数对象，而 ownerObject ， initialValue 则可以省略。
+
+    aardio 中的所有迭代器工厂函数（Iterator Factory）的名字都以 `each` 开始，例如：
+
+    ```aardio 
+    import process
+
+    //遍历已运行进程，可选用参数指定执行文件名（支持模式匹配与忽略大小写的文本匹配）
+    for processEntry in process.each( ".*.exe" ) {
+        print( processEntry.szExeFile,processEntry.th32ProcessID );
+    }
+
+    import winex;
+
+    //遍历顶层窗口，可选用参数指定要搜索的类名,标题，支持模式匹配语法。
+    for hwnd,title,threadId,processId in winex.each("","") { 	
+        print(hwnd,title)
+    }
+
+    var tab = { a = 123;b = 456 }
+
+    //按字典序输出表中的名值对
+    for k,v in table.eachName(tab){
+        print(k,v)
+    }
+    ```
+
+
+### 泛型 for 与迭代器
+
+泛型 for 循环是基于迭代器的循环（ Iterator-based for ）。只不过在 in 后面指定表对象时 aardio 使用了默认的迭代器，而在 in 后面指定非函数、非表类型的对象时，for in 只是简单地跳过了没有执行任何操作。
+
+泛型 for 直接用于迭代器的结构如下：
 
 ```aardio
 for controlVariable in iterator,ownerObject,initialValue {
@@ -120,17 +213,20 @@ for controlVariable in iterator,ownerObject,initialValue {
 }
 ```  
 
+"迭代"是指循环取值（ 指循环调用迭代器 iterator ）并不断逼近最终目标的过程，每次取值的结果（ 指控制变量 controlVariable ）总是作为下一次迭代调用的参数。
+
 要点：
 
 - 迭代器 `iterator` 必须是一个函数对象。
+- for in 语句会循环调用  `iterator` 函数，当 `iterator` 返回的  `controlVariable` 为 null 时循环结束。
 - 控制变量 `controlVariable` 是在循环时每次调用 `iterator` 函数返回的第一个值，上一次循环返回的 `controlVariable` 会作为下次调用  `iterator` 函数的参数。
-- 当 `iterator` 返回的  `controlVariable` 为 null 时循环结束。
+- 如果 `iterator` 函数有多个返回值，可写在 `controlVariable` 后面，并且用逗号 `,` 分隔多个值。
 - 首次调用 `iterator` 时参数为 `initialValue` 指定的初始值，如果不指定  `initialValue` 则首次的调用  `iterator` 的参数为 null 值。
-- 如果 `iterator` 函数有多个返回值，可写在 `controlVariable` 后面，并用逗号 `,` 分隔。
 - 可选用 `ownerObject` 指定调用  `iterator` 的 owner 参数，请参考 [owner](../function/owner.md) 。
-- 如果不指定 `ownerObject` 与 `initialValue` ，且  `iterator` 是一个表对象（ table ），aardio 会生成一个默认的迭代器用于遍历指定的表对象。
 
-一般我们不会直接使用迭代器，而是先写一个创建并初始化迭代器的迭代器工厂函数，使用迭代器工厂的基本结构如下。
+一般我们不会在 in 后面直接写迭代器，而是先写一个创建并初始化迭代器的迭代器工厂函数，这是因为很多时候我们都需要利用迭代器工厂做一些循环前的准备工作并设定要迭代的数据。
+
+使用迭代器工厂的基本结构如下。
   
 ```aardio
 
@@ -157,13 +253,13 @@ for controlVariable in iteratorFactory(expList) {
 
 - string.each 用于遍历匹配字符串
 - winex.each 用于遍历窗口
-- table.eachIndex 用于遍历数组
+- table.eachIndex 用于遍历数组或伪数组
 - com.each 用于遍历 COM 对象
 - dotNet.each 用于/遍历 .NET 对象
 
 更多关于 for in 语句的细节与示例请查看：[泛型 for 与迭代器](iterator.md)
 
-## while 循环语句 <a id="while" href="#while">&#x23;</a>
+## 三. while 循环语句 <a id="while" href="#while">&#x23;</a>
 
 
 while 语句包含`条件判断`部分、执行代码的`循环体`部分。  
@@ -207,7 +303,7 @@ while( countLoop<10 ){
 console.pause();
 ```  
 
-## while var 循环语句 <a id="while-var" href="#while-var">&#x23;</a>
+## 四. while var 循环语句 <a id="while-var" href="#while-var">&#x23;</a>
 
 
 while var 语句类似 while 语句，但可以条件判断前添加循环变量初始化、判断条件前执行语句。  
@@ -291,7 +387,7 @@ while(i>0){
 console.pause(true);
 ```  
 
-## do while 循环语句
+## 二. do while 循环语句
 
 do while 循环语句的基本结构如下：  
   

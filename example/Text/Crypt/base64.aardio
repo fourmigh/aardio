@@ -1,13 +1,16 @@
 //Base64
-import crypt.bin;
-import console;
+import crypt.bin; 
 
-base64 = crypt.bin.encodeBase64( "base64编码可以将不可见的二进制字符串转换为可见的文本格式" );
+//BASE64 编码
+var base64 = crypt.encodeBin( "字符串" );
 
-console.log( "BASE64编码："  , base64);
-console.log( "BASE64解码："  , crypt.bin.decodeBase64(base64) );
+//BASE64 解码，支持 PEM，非 BASE64 文本等，可以看一看这个函数的源码
+var bin = crypt.decodeBin(base64) 
 
-console.log( "BASE64解码（支持PEM，非BASE64文本）："  , crypt.decodeBin(base64)   ); 
-console.log( crypt.pem("test","PEM") )
+//BASE64 编码，等价于调用 crypt.encodeBin(str, ,_CRYPT_STRING_BASE64|_CRYPT_STRING_NOCRLF)
+var base64 = crypt.bin.encodeBase64("字符串");
 
-console.pause();
+//仅 BASE64 解码
+var bin = crypt.bin.decodeBase64(base64);
+
+print(base64);

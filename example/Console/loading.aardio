@@ -4,7 +4,7 @@ import console.progress;
 var bar = console.progress();
 for(i=1;100; 1){
 	bar.setProgress(i,i +"% loading ......");
-	sleep(30)
+	sleep(5)
 }
 
 console.showLoading("loading",,console.color.yellow);

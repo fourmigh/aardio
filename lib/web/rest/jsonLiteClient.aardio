@@ -1,5 +1,5 @@
 //jsonLiteClient 客户端
-import web.json;
+import JSON;
 import web.rest.client;
 
 namespace web.rest; 
@@ -12,7 +12,7 @@ class jsonLiteClient{
 			var p = {};
 			for name,value in param{
 				if( type(value) == "table" && ( ! ( value@ && value@._tostring) ) ){
-					p[name] = ..web.json.stringify(value)
+					p[name] = ..JSON.stringify(value)
 				}
 				else {
 					p[name] = value;
@@ -27,16 +27,16 @@ class jsonLiteClient{
 			if(t){
 				
 				if( this._http.ndjsonStream && !streamChunk  ) { 
-					return ..web.json.ndParse(s,true);
+					return ..JSON.ndParse(s,true);
 				}
 				
-				if( ..string.match( t,"[\w\/]*<@@json@>![\W]"  ) ) return ..web.json.parse(s,true);
+				if( ..string.match( t,"[\w\/]*<@@json@>![\W]"  ) ) return ..JSON.parse(s,true);
 				
 				if(t=="application/x-www-form-urlencoded"){
 					var r = ..inet.url.splitParameters(s);
 					for(k,v in r){
 						if(v[1]=='{'# || v[1]=='['#){
-							r[k] = ..web.json.tryParse(v,true) : v;
+							r[k] = ..JSON.tryParse(v,true) : v;
 						}
 					} 
 					return r;
@@ -45,34 +45,51 @@ class jsonLiteClient{
 			
 			s = ..string.trim(s);
 			if( s[1] == '{'# || s[1] == '['# ){
-				return  ..web.json.tryParse(s,true);
+				return  ..JSON.tryParse(s,true);
 			}
 			
 			if( s[1]  == '<'# ) return s; 
 			
 			if(this.strictParsing) return s;
-			return  ..web.json.tryParse(s,true) : s;
+			return  ..JSON.tryParse(s,true) : s;
 		}
-		lastResponse = function(){
-			var s = this.lastResponseData;
-			if( s ){
-				s = ..string.trim(s);
-			 	
-		 		if( (..string.match( this._http.responseContentType,"[\w\/]*<@@json@>![\W]"  ) 
-		 			|| s[1] == '{'# || s[1] == '['#) && (!this._http.lastReadErrCode ) ){
-		 				var jObject = ..web.json.parse(s,true);
-		 				if(jObject) s = ..web.json.stringify(jObject,true);
-		 		}
-		 		if( ..console && _STUDIO_INVOKED ) ..console.log(s) else ..io.print(s);
-		 		return s;
-			}
-		};
+		
+		this._http.tryParseJsonStreamData = ..JSON.tryParse;
 	}; 
+	lastResponse = function(){
+		var s = this.lastResponseData;
+		if( s ){
+			s = ..string.trim(s);
+			
+		 	if( (..string.match( this._http.responseContentType,"[\w\/]*<@@json@>![\W]"  ) 
+		 		|| s[1] == '{'# || s[1] == '['#) && (!this._http.lastReadErrCode ) ){
+		 			var jObject = ..JSON.parse(s,true);
+		 			if(jObject) s = ..JSON.stringify(jObject,true);
+		 	}
+		 	if( ..console && _STUDIO_INVOKED ) ..console.log(s) else ..io.print(s);
+		 	return s;
+		}
+	};
+	
 }
 
 /**intellisense()
-web.rest.jsonLiteClient = REST 客户端。\n请求参数使用普通表单编码（application/x-www-form-urlencoded ）。\n请求参数中的参数值如果是表，则首先转换为 JSON 。\n如果请求参数值为函数，则每次请求调用该函数取值。\n所有参数值转换为字符串后并用 URLEncode 编码。\n\n返回数据如果为 JSON 格式或者表单编码则自动解析为对象\n\nUrlEncoded 解码 时会自动解析 JSON 字段值（必须是对象或数组）\n\n如果请求编码也是 JSON ，请改用 web.rest.jsonClient
+web.rest.jsonLiteClient = REST 客户端。\n请求参数使用普通表单编码（application/x-www-form-urlencoded ）。\n请求参数中的参数值如果是表，则首先转换为 JSON 。\n如果请求参数值为函数，则每次请求调用该函数取值。\n所有参数值转换为字符串后并用 URLEncode 编码。\n\n返回数据如果为 JSON 格式或者表单编码则自动解析为对象\n\nUrlEncoded 解码 时会自动解析 JSON 字段值（必须是对象或数组）\n\n如果请求编码也是 JSON ，请改用 web.rest.jsonClient 。
 web.rest..jsonLiteClient( = 创建 REST 客户端。\n请求参数使用普通表单编码（application/x-www-form-urlencoded ）。\n请求参数中的参数值如果是表，则首先转换为 JSON 。\n如果请求参数值为函数，则每次请求调用该函数取值。\n所有参数值转换为字符串后并用 URLEncode 编码。\n\n返回数据如果为 JSON 格式或者表单编码则自动解析为对象\n\nUrlEncoded 解码 时会自动解析 JSON 字段值（必须是对象或数组）\n\n如果请求编码也是 JSON ，请改用 web.rest.jsonClient
 web.rest.jsonLiteClient(.("UserAgent","代理服务器","绕过代理的主机",连接选项) = 创建 REST 客户端，所有参数可选。\nUserAgent 用于自定义 User-Agent 请求标头，用于服务器识别请求程序特征。\nHTTP 代理服务器请指定为 "代理服务器地址:端口" 格式，\n\nSOCKS 代理服务器请指定为 "socks=代理服务器地址:端口" 格式 \n└──  [代理格式说明](doc://library-guide/std/inet/proxy.md)\n\n"绕过代理的主机" 用法参考 inet.setProxy 源码的示例，一般不需要指定。\n连接选项可用一个数值参数指定打开会话的选项，一般不需要指定。
 web.rest.jsonLiteClient() = !web_restClient.
 end intellisense**/
+
+/**details(流式输出)
+web.rest.jsonLiteClient 客户端在调用 HTTP 接口时如果指定回调函数则自动支持 SSE,NDJSON,JSONL 流式输出，
+并自动支持标准 JSON 对象数组格式的流式输出。
+
+SSE,NDJSON,JSONL 流式输出请参考范例：
+doc://example/Web/REST/sse.html
+
+标准 JSON 对象数组格式的流式输出规则为：
+
+- Content-Type 响应头必须指定了 JSON 格式，例如 `application/json`。
+- 服务器响应的完整输出必须是一个对象数组，第一个字符必须是 `[`，最后一个字符必须是 `]`。
+- 每个块必须是一个使用 `{}` 包围的 JSON 对象，对象之间必须以 `,` 分隔。
+end details**/

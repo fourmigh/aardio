@@ -20,7 +20,7 @@ var httpServer = wsock.tcp.asynHttpServer();
 aardio 使用 wsock.tcp.asynHttpServer 或者 wsock.tcp.simpleHttpServer 
 仅需数句代码就可以启动一个轻量的 HTTP 服务器，而且可以自动分配空闲端口,
 */
-httpServer.run( 
+httpServer.run( {
     ["/index.html"] = /*
 <!DOCTYPE html>
 <html>
@@ -33,7 +33,7 @@ httpServer.run(
   </body>
 </html>
     */
-);
+});
 
 //打开目标网站
 wb.go( httpServer.getUrl("/index.html") ) 

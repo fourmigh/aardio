@@ -1,6 +1,6 @@
 ﻿//chrome 浏览器接口
 
-import web.json;
+import JSON;
 import web.socket.jsonClient;
 import inet.http;
 
@@ -16,7 +16,7 @@ class chrome{
 		this.rpc.originUrl = "http://127.0.0.1";
 	}; 
 	getDebuggingInfo = function(port){
-		if(!port) port = self.lastRemoteDebuggingPort : ..electron[["lastRemoteDebuggingPort"]]: ..web.view[["lastRemoteDebuggingPort"]];
+		if(!port) port = self.lastRemoteDebuggingPort : ..web.view[["lastRemoteDebuggingPort"]] : ..electron[["lastRemoteDebuggingPort"]];
 		else {
 			port = port[["remoteDebuggingPort"]] : port;
 		}
@@ -30,7 +30,7 @@ class chrome{
 		var json = http.get(..string.format("http://localhost:%d/json", port));
 		http.close();
 
-		var info =  ..web.json.tryParse(json) : {};
+		var info =  ..JSON.tryParse(json) : {};
 		for(i=1;#info;1){
 			v = info[i];
 			if( v.devtoolsFrontendUrl ){
@@ -109,8 +109,8 @@ on("close",proc) = @.on("close",function(e){\n	__/*连接被关闭\ne.code为错
 on("error",proc) = @.on("error",function(err){\n	__/*发生错误,err为错误信息*/\n})
 on("message",proc) = @.on("message",function(msg){\n    __/*收到服务端数据\nmsg.type为1时msg.data为文本,\n否则msg.data为字节数组（buffer类型）*/\n})
 on("fragment",proc) = @.on("fragment",function(msg){\n   __/*收到分片数据\n第一个数据包使用msg.type指明类型,参考WebSocket协议规范\n后续数据包msg.type为0,最后一个数据包msg.fin为1\n\n如果不指定这个回调函数,则自动并接分片数据后触发onMessage事件*/	\n})
-connect("ws://__") = 重新连接到WebSocket服务端\n参数指定WebSocket服务端网址，例如 "ws://localhost:7511"\n如果不指定参数,则获取上次调用此函数指定的网址参数,\n如果之前也没有指定网址则尝试自动查找可用接口地址\n\n如果存在可用的远程接口地址,此函数返回true,否则返回null\n但返回true并不表示连接成功,应在open事件中判断是否连接成功\n\nchrome的远程调试接口必须是独占模式,\nchrome开发工具连上去了,再连接就会失败\nchrome在整个系统只能用一个端口，启动一个开发工具\n但是electron可以每个进程使用自己的端口,启动一个独立的远程调试接口
-waitForConnected(.(关联窗口句柄,超时) = 等待连接到远程调试接口\n所有参数可选,超时以毫秒为单位,\n\n如果没有找到有效的接口地址,\n此函数会自动发现嵌入electron的远程接口地址并重试连接\n\n连接成功返回true,失败返回false或null
+connect("ws://__") = 重新连接到WebSocket服务端\n参数指定WebSocket服务端网址，例如 "ws://localhost:7511"\n如果不指定参数,则获取上次调用此函数指定的网址参数,\n如果之前也没有指定网址则尝试自动查找可用接口地址\n\n如果存在可用的远程接口地址,此函数返回true,否则返回null\n但返回true并不表示连接成功,应在 open 事件中判断是否连接成功\n\nChrome 的远程调试接口必须是独占模式,\nChrom e开发工具连上去了,再连接就会失败。\nChrome 在整个系统只能用一个端口，启动一个开发工具
+waitForConnected(.(关联窗口句柄,超时) = 等待连接到远程调试接口。\n所有参数可选,超时以毫秒为单位。\n\n连接成功返回 true ,失败返回false 或 null
 readyState = 连接状态,\n0为等待连接,1为已连接并准备就绪,2为正在关闭,3为已关闭\n只有成功通过WebSocket协议握手以后readyState才会被置为1\n这与socket.readyState连接成功就会置为1是不同的
 isClosed() = 套接字是否已关闭
 isConnected() = 套接字是否已连接并准备就绪(已与服务器握手成功)

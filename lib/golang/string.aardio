@@ -1,5 +1,5 @@
 ﻿//string 字符串
-import web.json;
+import JSON;
 
 namespace golang{
     
@@ -20,7 +20,7 @@ namespace golang{
     	@_meta;
     }
     
-    var fromJson = ..web.json.tryParse;
+    var fromJson = ..JSON.tryParse;
     string._meta = {  
         _tostring = function(){
             var s = owner.p_________________;
@@ -86,7 +86,7 @@ namespace golang{
 		}
     }
     
-    string.toJson = ..web.json.stringify; 
+    string.toJson = ..JSON.stringify; 
 }
 
 /**intellisense()
@@ -117,5 +117,5 @@ aardio 在读取新的字符串值时，也同样会用 JSON 自动解析为对�
 
 任何时候都可以通过 value 属性重新设置 golang.string 存储的值。
 
-请参考：aardio 范例 / 调用其他语言 / Go 语言
+请参考：aardio 范例 » 调用其他语言 » Go 语言
 end details**/

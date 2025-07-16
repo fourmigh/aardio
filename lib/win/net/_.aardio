@@ -1,0 +1,201 @@
+﻿namespace win.net;
+
+::MprDll := ..raw.loadDll("Mpr.dll");
+var EnumResourceApi = ::MprDll.api("WNetEnumResource", "int(ptr hEnum, INT &pcCount, ptr lpBuffer, INT &lpcbBuffer)", "stdcall");
+
+class NETRESOURCE{
+		INT scope;
+		INT type;
+		INT displayType;
+		INT usage;
+		ustring localName;
+		ustring remoteName;
+		ustring comment;
+		ustring provider;
+}
+
+addConnection = function(netResource,username,password,hwnd,flags){
+	if(type.isString(netResource)) {
+		var r = NETRESOURCE();
+		r.remoteName = netResource;
+		netResource = r;
+	}
+	if(!netResource._struct) ..table.assign(NETRESOURCE(),netResource);
+	
+	if(hwnd) return ::MprDll.WNetAddConnection3W(hwnd,netResource,username,password,flags);
+	return ::MprDll.WNetAddConnection2W(netResource,username,password,flags);
+}
+
+cancelConnection = function(name,flags,force){
+	::MprDll.WNetCancelConnection2W(name[["remoteName"]]||name,flags,force)
+}
+
+var enumResourceAux;
+enumResource = function(callback,resType,scope=2/*_RESOURCE_GLOBALNET*/,usage){
+	return enumResourceAux(callback,resType,scope,usage);
+}	
+
+enumResourceAux	= function(callback,resType,scope,usage,contrainer){
+	var hEnum = {ptr byRef};
+	
+	var err = ::MprDll.WNetOpenEnum(scope,resType,usage,contrainer,hEnum);
+
+	if (err == 0) {
+		hEnum = hEnum.byRef;
+		
+		var buffer = ..raw.buffer(1024); 
+		var err,lpcCount,lpcbBuffer = EnumResourceApi(hEnum, -1,buffer, 1024);
+
+		if(err==0xEA/*_ERROR_MORE_DATA*/){
+				buffer = ..raw.buffer(lpcbBuffer); 
+				err,lpcCount,lpcbBuffer = EnumResourceApi(hEnum, -1,buffer, lpcbBuffer);
+		}
+		
+		if(err){ 
+			return; 
+		}
+		
+		if(lpcbBuffer){
+			
+			var items = ..raw.convertArray(buffer,lpcCount,NETRESOURCE()); 
+			for (i, item in items) {   
+				if( false  === callback(item,contrainer) ) return false; 
+				if((scope=2/*_RESOURCE_GLOBALNET*/) && (item.usage & 2/*_RESOURCEUSAGE_CONTAINER*/)){ 
+					if(false === enumResourceAux(callback,resType,scope,usage,item) ){
+						return false; 
+					}
+				}
+			} 		
+		}
+			
+		::MprDll.WNetCloseEnum(hEnum);
+	}	
+	else{
+		return; 
+	}
+	
+	
+	return true; 
+}
+
+lasterr  = function(){
+	var errCode = {INT value}
+	var buf = {WORD value[512]}
+	var name = {WORD value[256]}
+	var e = ::MprDll.WNetGetLastErrorW(errCode,buf,512,name,256);
+	if(0==e){
+		if(errCode.value) return buf.value,name.value,errCode.value;
+	}
+};
+
+getInfo = function(netResource){
+	if(type.isString(netResource)) {
+		var r = NETRESOURCE();
+		r.remoteName = netResource;
+		netResource = r;
+	}
+	if(!netResource._struct) ..table.assign(NETRESOURCE(),netResource);
+	
+	var buffer = ..raw.buffer(1024); 
+	var lpcbBuffer = {INT value=1024};
+	var system = {ustring value}
+	var e = ::MprDll.WNetGetResourceInformationW(netResource,buffer,lpcbBuffer,system);
+	
+	if(e==0xEA/*_ERROR_MORE_DATA*/){
+		buffer = ..raw.buffer(lpcbBuffer.value); 
+		e,lpcbBuffer = ::MprDll.WNetGetResourceInformationW(netResource,buffer,lpcbBuffer,system);
+	}
+	
+	if(e==0){
+		var nr = ..raw.convert(buffer,NETRESOURCE())
+		return nr,system.value;
+	}
+}
+
+
+getUser = function(name){
+	
+	var buffer = ..raw.buffer(1024); 
+	var lpcbBuffer = {INT value=#buffer/2};
+	var system = {ustring value}
+	var e = ::MprDll.WNetGetUserW(name[["remoteName"]]||name,buffer,lpcbBuffer);
+	
+	if(e==0xEA/*_ERROR_MORE_DATA*/){
+		buffer = ..raw.buffer(lpcbBuffer.value*2); 
+			e = ::MprDll.WNetGetUserW(name,buffer,lpcbBuffer);
+	}
+	
+	if(e==0){ 
+		return ..string.fromUtf16(buffer,,-1);
+	}
+}
+
+/*****intellisense()
+win.net =  WNet（ Windows networking ）函数库，例如网络共享文件与打印机资源接口。
+end intellisense*****/
+
+/*****intellisense(win.net)
+addConnection(.(netResource,username,password,hwndOwner,flags) = 连接网络资源。\n参数 @netResource 指定 NETRESOURCE 结构体或部分字段。\n参数 @username 指定用户名。\n参数 @password 指定密码\n可选用参数 @hwndOwner 指定所有窗口句柄。\n可选用参数 @flags 指定选项\n详细用法请参考 API 函数 WNetAddConnection3 相关文档。
+cancelConnection(.(name,flags,force) = 连接网络资源。\n参数 @name 指定连接的资源名。\n可选用参数 @flags 指定选项。\n可选用参数 @force 指定如果连接上有打开的作业或文件是否断开，默认为 false 。\n详细用法请参考 API 函数 WNetCancelConnection2W 相关文档。
+enumResource(callback,resType,scope,usage) = @.enumResource(\n	function(netResource,contrainer){\n		__/*枚举网络资源，回调函数的返回 false （必须恒等于 false）则退出枚举。\nnetResource 为包含当前网络资源信息的 NETRESOURCE 结构体。\ncontrainer 为表示父容器的 NETRESOURCE 结构体，无父容器时 contrainer 为 null 。\n创建迭代器的 resType,scope,usage 参数请参考系统 API 函数 WNetOpenEnum 相关文档。\n注意在 aardio 中不指定 scope 则默认设为 2(_RESOURCE_GLOBALNET)*/\n	},1/*_RESOURCETYPE_DISK*/\n)
+getInfo(.(netResource) = 获取信息。\n参数 @1 可指定 NETRESOURCE 结构体或部分字段，也可仅传入指定 remoteName 的字符串。\n第一个返回值为新的 NETRESOURCE 结构体，\n第 2 个返回值为一个字符串，包含适用于特定系统函数的资源名称。
+lasterr() = 返回 WNet 函数设置的错误信息与代码。\n仅返回网络提供商报告的错误而非系统错误。\n无错误则无返回值，否则返回：错误信息,网络提供程序名称,错误代码。
+getUser(.(resName) = 返回连接指定资源的用户名。\n参数 @resName 指定资源名称，如何传入 NETRESOURCE 结构体则取 remoteName 字段。\n不指定参数则返回运行当前进程的用户名。
+end intellisense*****/
+
+/**details(说明)
+win.net 库函数加载 Mpr.dll(Multiple Provider Router) 到了 ::MprDll 对象，
+并封装了部分 Mpr.dll 提供的部份 WNet（ Windows networking ）前缀的 API 函数。
+
+表录网络资源的 NETRESOURCE 结构体定义如下：
+
+```aardio
+namespace win.net{
+	class NETRESOURCE{
+			INT scope;
+			INT type;
+			INT displayType;
+			INT usage;
+			ustring localName;
+			ustring remoteName;
+			ustring comment;
+			ustring provider;
+	}		
+}
+```
+注意 aardio 里去掉了字段名里的类型前缀，例如原来的 `dwDisplayType` 精简为了 `displayType`。
+
+win.net 所有需要输入 NETRESOURCE 结构体的参数都支持指定部分字段名，或仅用字符串指定 remoteName。
+
+例如：`var info,str = win.net.getInfo({remoteName="remoteName",scope=2})`  
+或者：`var info,str = win.net.getInfo("remoteName")`  
+end details**/
+
+
+/*****intellisense()
+_RESOURCEDISPLAYTYPE_GENERIC=@0/*_RESOURCEDISPLAYTYPE_GENERIC*/
+_RESOURCEDISPLAYTYPE_DOMAIN=@1/*_RESOURCEDISPLAYTYPE_DOMAIN*/
+_RESOURCEDISPLAYTYPE_SERVER=@2/*_RESOURCEDISPLAYTYPE_SERVER*/
+_RESOURCEDISPLAYTYPE_SHARE=@3/*_RESOURCEDISPLAYTYPE_SHARE*/
+_RESOURCEDISPLAYTYPE_FILE=@4/*_RESOURCEDISPLAYTYPE_FILE*/
+_RESOURCEDISPLAYTYPE_GROUP=@5/*_RESOURCEDISPLAYTYPE_GROUP*/
+_RESOURCEDISPLAYTYPE_NETWORK=@6/*_RESOURCEDISPLAYTYPE_NETWORK*/
+_RESOURCEDISPLAYTYPE_ROOT=@7/*_RESOURCEDISPLAYTYPE_ROOT*/
+_RESOURCEDISPLAYTYPE_SHAREADMIN=@8/*_RESOURCEDISPLAYTYPE_SHAREADMIN*/
+_RESOURCEDISPLAYTYPE_DIRECTORY=@9/*_RESOURCEDISPLAYTYPE_DIRECTORY*/
+_RESOURCEDISPLAYTYPE_TREE=@0xA/*_RESOURCEDISPLAYTYPE_TREE*/
+_RESOURCEDISPLAYTYPE_NDSCONTAINER=@0xB/*_RESOURCEDISPLAYTYPE_NDSCONTAINER*/
+_RESOURCETYPE_ANY=@0/*_RESOURCETYPE_ANY*/
+_RESOURCETYPE_DISK=@1/*_RESOURCETYPE_DISK*/
+_RESOURCETYPE_PRINT=@2/*_RESOURCETYPE_PRINT*/
+_RESOURCETYPE_UNKNOWN=@0xFFFF/*_RESOURCETYPE_UNKNOWN*/
+_RESOURCEUSAGE_ALL=@0/*_RESOURCEUSAGE_ALL*/
+_RESOURCEUSAGE_CONNECTABLE=@1/*_RESOURCEUSAGE_CONNECTABLE*/
+_RESOURCEUSAGE_CONTAINER=@2/*_RESOURCEUSAGE_CONTAINER*/
+_RESOURCEUSAGE_RESERVED=@0x80000000/*_RESOURCEUSAGE_RESERVED*/
+_RESOURCE_CONNECTED=@1/*_RESOURCE_CONNECTED*/
+_RESOURCE_ENUM_ALL=@0xFFFF/*_RESOURCE_ENUM_ALL*/
+_RESOURCE_GLOBALNET=@2/*_RESOURCE_GLOBALNET*/
+_RESOURCE_PUBLICNET=@2/*_RESOURCE_PUBLICNET*/
+_RESOURCE_REMEMBERED=@3/*_RESOURCE_REMEMBERED*/
+end intellisense*****/

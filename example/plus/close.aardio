@@ -1,9 +1,10 @@
 //悬浮关闭控钮
+//plus 控件使用指南: doc://library-guide/std/win/ui/ctrl/plus.md
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="aardio form";right=785;bottom=509;bgcolor=16777215;border="none";max=false)
+var winform = win.form(text="aardio form";right=785;bottom=509;bgcolor=0xFFFFFF;border="none";max=false)
 winform.add(
-btnClose={cls="close";text="×";left=748;top=7;right=776;bottom=35;bgcolor=13405076;dr=1;dt=1;font=LOGFONT(h=-21);z=2};
+btnClose={cls="close";text="×";left=748;top=7;right=776;bottom=35;bgcolor=0xCC8B94;dr=1;dt=1;font=LOGFONT(h=-21);z=2};
 plus={cls="plus";left=10;top=10;right=775;bottom=504;db=1;dl=1;dr=1;dt=1;repeat="scale";z=1}
 )
 /*}}*/

@@ -17,7 +17,7 @@ try{
 	单个整数值默认在 COM 函数中会转为 4 字节 VT_I4( int ) 类型变体，而小数值默认转为 8 字节 _VT_R8（double) 类型变体。
 	纯数值数组会转为 _VT_R8（double) 类型 SAFEARRAY，要特别注意这里没有使用整型。
 	
-	细节请参考「aardio 范例 / COM 组件 / 进阶提示 / 参数类型转换」
+	细节请参考「aardio 范例 » COM 组件 » 进阶提示 » 参数类型转换」
 	*/
 	
 	doc.SetVariable("SECURELOAD",com.word(0));

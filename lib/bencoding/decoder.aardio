@@ -35,8 +35,8 @@ class decoder {
 			return ret;
 		} 
 		parseList = function(){  
- 			var list = {@{_type="array" }} 
- 			this.__raw_offset__[list] = { ["begin"] = pos-1;}; 
+ 			var list = []; 
+ 			this.__raw_offset__[list] = { ["begin"] = pos-1 }; 
  			
  			while( 
  				var val,err;
@@ -51,7 +51,7 @@ class decoder {
  			return list; 
 		};
 		parseDict = function(){  
- 			var dict = {@{_type="object" }} 
+ 			var dict = {} 
  			this.__raw_offset__[dict] = { ["begin"] = pos-1;};  
  			
  			while( 

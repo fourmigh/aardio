@@ -1,10 +1,10 @@
 ﻿//aasdl 生成器
-import web.json;
+import JSON;
 namespace string;
 
 class aasdl{
 	ctor(external){
-		return ..web.json.stringify( strip(external) );
+		return ..JSON.stringify( strip(external) );
 	};
 }
 

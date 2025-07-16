@@ -1,6 +1,6 @@
 ﻿import com; 
 import util.metaProperty;
-import web.json;
+import JSON;
 
 namespace com;
 
@@ -153,7 +153,7 @@ matlab.loadcode = function(c,...){
 		}
 
 		if( type(args) == "table" ){  
-			var json = ..string.replace( ..web.json.stringify(args,false,true),"'","''") ;
+			var json = ..string.replace( ..JSON.stringify(args,false,true),"'","''") ;
 			args = "jsondecode('" + json + "')"; 
 		}
 		elseif(args!==null) {

@@ -1,4 +1,4 @@
-﻿import web.json;
+﻿import JSON;
 
 namespace web;
 
@@ -27,7 +27,7 @@ class nativeMessaging{
     	..thread.invoke( 
     		function(this){
     			
-    			import web.json;
+    			import JSON;
     			
     			stdin = io.stdin;
     			stdin.mode(0x8000/*_O_BINARY*/);
@@ -38,7 +38,7 @@ class nativeMessaging{
 						var s = stdin.read(header.size);
 						if(!s) continue;
 						
-						var msg,err = ..web.json.tryParse(s);
+						var msg,err = ..JSON.tryParse(s);
 						if(!msg){
 							if(err){
 								if( this.onError ) this.onError(err);
@@ -61,7 +61,7 @@ class nativeMessaging{
 		stderr.write(err);
 	};
 	send = function(data){
-		var s = ..web.json.stringify(data,false,false);
+		var s = ..JSON.stringify(data,false,false);
 		stdout.write({INT size = #s});
 		stdout.write(s);
 		stdout.flush();

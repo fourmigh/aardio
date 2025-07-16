@@ -1,0 +1,49 @@
+import fonts.fontAwesome;
+import win.ui;
+//使用指南: doc://library-guide/std/win/ui/ctrl/winform.plus.md#disabledText
+//更多等待动画: file://~/example/plus/disabledText.aardio
+/*DSG{{*/
+var winform = win.form(text="显示沙漏动画";right=757;bottom=467)
+winform.add(
+plus={cls="plus";text="按钮";left=308;top=253;right=407;bottom=283;align="left";bgcolor=0xB0B28F;iconStyle={align="left";font=LOGFONT(h=-13;name='FontAwesome');padding={left=20}};iconText='\uF021';notify=1;textPadding={left=39};z=1}
+)
+/*}}*/
+
+winform.show();
+
+/*
+准备步骤：
+- 创建窗体。
+- 自「界面控件」拖放一个 plus 控件到窗体上。
+- 点击 「aardio 工具 » 界面 » plus 配色工具」，  
+可自行调整配色方案，或者直接点击「范例」中的示范按钮， 
+然后点击「导出到窗体设计器选中控件」。
+*/
+winform.plus.skin({
+	background={
+		default=0x668FB2B0;
+		disabled=0xFFDDDDDD;
+		hover=0xFF928BB3		
+	}; 
+})
+
+//响应按钮事件
+winform.plus.oncommand = function(id,event){
+	
+	//禁用按钮并播放沙漏动画（循环显示数组中的 FontAwesome 字体图标）
+	winform.plus.disabledText = ['\uF254','\uF251','\uF252','\uF253','\uF250']
+
+	//创建线程
+	thread.invoke( 
+		function(winform){
+			
+			sleep(3000);//模拟耗时操作
+			
+			//取消禁用，恢复显示原来的文本。
+			winform.plus.disabledText = null;
+		},winform
+	)		
+}
+
+winform.show();
+win.loopMessage();

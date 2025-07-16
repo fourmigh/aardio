@@ -1,10 +1,11 @@
-//web.json 库 -  JSON 解析
+//JSON 库 -  JSON 解析
+//JSON 库使用指南: doc://library-guide/std/JSON/_.md
 //参考:『工具 ＞ 编码 ＞ JSON / table 互转』
 
-import web.json;
+import JSON;
 import console;
 
-//web.json 有很好的兼容性，写法非常自由。  
+//JSON 有很好的兼容性，写法非常自由。  
 var json = /*******
 //这是注释
 
@@ -36,15 +37,15 @@ tm: 2021-02-1T15:02:31+08:00 //可以使用ISO 8601格式表示日期时间
 *******/ 
 
 //JSON 字串解码成 table 对象
-var tabObject  = web.json.parse(json);
+var tabObject  = JSON.parse(json);
 console.dumpJson( tabObject ) 
 console.more(1);
 
 // table 对象转换为 JSON 字符串,参数 @2 为 true 时格式化 JSON
-var json = web.json.stringify(tabObject,true);
+var json = JSON.stringify(tabObject,true);
 console.dump(json);
 
 //再次使用 JSON 转换为对象
-var jsonObject = web.json.parse(json); 
+var jsonObject = JSON.parse(json); 
 
 console.pause(true);

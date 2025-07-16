@@ -2,7 +2,7 @@
 import process.popen;
 import sevenZip.decoder2.httpFile;
 import string.cmdline;
-import web.json;
+import JSON;
 
 namespace process.ruby;
 
@@ -271,7 +271,7 @@ self.eval = function(rubyCode){
 		
 	var ok,out,err,exitCode = prcs.waitOne()
 	if(ok && !#err){
-		return ..web.json.parse(out); 
+		return ..JSON.parse(out); 
 	}
 	
 	return null,err;

@@ -18,7 +18,6 @@ try{
 	delegate = app.delegate;
 	wrapObject = app.wrapObject;
 	object = app.object;
-	any = app.any;
 	byte = app.byte;
 	ubyte = app.ubyte;
 	word = app.word;
@@ -30,6 +29,8 @@ try{
 	float = app.float;
     double = app.double;
     buffer = app.buffer;
+    char = app.char;
+    color = app.color;
     reference = app.reference;
     each = app.each;
     dict = app.dict;
@@ -37,6 +38,8 @@ try{
 	
 	getObject = function(v,unbox){
 		var obj = v[["_dotNetObject"]];
+		
+		//如果是可转换的基础类型或 System.Object 数组，可直接使用 Value 属性取值，不必调用此函数。
 		if( obj && unbox && ..com.IsNetObject(obj)===2) return obj.Value;
 		return obj;
 	} 
@@ -46,8 +49,16 @@ try{
 	}
 	
 	setParent = function(n,f,fill){
-		if!(..win && f[["hwnd"]] && f.isForm && n) {
-			error(n?"参数 @2 必须是 win.form 对象或 custom 控件!":"参数 @1 必须是指定控件对象!",2);
+		if(!n) error("参数 @1 必须指定 .NET 控件对象!",2);
+		
+		if( !( f[["hwnd"]] && f.isForm ) ){
+			error("参数 @2 必须是 win.form 对象或 custom 控件!",2);
+		}
+		
+		if(!( ..win[["getThreadProcessId"]] 
+			&& ( ..win.getThreadProcessId(f[["hwnd"]]) == ..thread.getId()) 
+			) ){
+			error("必须在界面线程中嵌入 .NET 控件!",2);
 		}
 		
 		..win.modifyStyle(n.Handle,,0x40000000/*_WS_CHILD*/);
@@ -73,12 +84,50 @@ try{
 			n.Show();	
 		}
 	}
-	
+
 	//.NET 4.5 开始支持异步任务
 	wait = function(t,winform,...){
-		return winform.wait( lambda()(t.IsCompleted?(!t.IsFaulted && !t.IsCanceled):null) ,...); 
+		if(!winform){
+			while(..thread.delay(1)){
+				
+				if(t.IsFaulted){
+					return null,(t.Exception.Message||"异步任务遇到未知错误！");
+				}
+				
+				if(t.IsCanceled){
+					return null,"已取消";
+				}
+				
+				if(t.IsCompleted){
+					return t.Result; 
+				} 
+			}
+			
+			return t.Result;
+		}
+		
+		return winform.wait( 
+			function(){ 
+				if(t.IsFaulted){ 
+					return null,(t.Exception.Message||"异步任务遇到未知错误！");
+				}
+				
+				if(t.IsCanceled){ 
+					return null,"已取消";
+				}
+				
+				if(t.IsCompleted){ 
+					return t.Result; 
+				}
+				
+			},...);  
 	}
 	
+	self@ = {
+		_call = function(...){
+			return self.import(...);//@Deprecated
+		} 
+	}
 }
 catch(e){
 	class clr{
@@ -88,8 +137,11 @@ catch(e){
 	}
 }
 
+
+//@guide [✨ .NET 交互指南](doc://library-guide/std/dotNet/_.html) [💻 .NET 运行时](doc://library-guide/std/dotNet/clr.html)
+
 /**intellisense()
-dotNet = dotNet 支持库\n此名字空间下的函数由当前线程默认应用程序域提供,\n使用无参数调用 dotNet.appDomain 获取当前线程默认应用程序域
+dotNet = dotNet 支持库。\n此名字空间下的函数由当前线程默认应用程序域提供。\n> 无参数调用 dotNet.appDomain 构造函数可返回当前线程默认应用程序域。\n导入此库时如果当前是主线程则将应用程序根目录（"/"）设为当前目录。
 end intellisense**/
 
 /**intellisense(dotNet)
@@ -122,12 +174,12 @@ delegate = 用于操作 .NET 委托（Delegate）或事件（event），\n在 .N
 reference( = 在『虚拟程序集引用表』注册一个或多个虚拟程序集，\n这些虚拟程序集可以是内存程序集、本地程序集、EXE 内嵌资源中的程序集。\n\naardio 加载的 .NET 程序找不到程序集（DLL）时，\n会查找『虚拟程序集引用表』并加载已注册的虚拟 DLL。\n\n同时复制多个 DLL 路径的方法：\n在资源管理器多选 DLL 文件，按住 Shift 点右键菜单项『复制为路径』
 reference(.(simpleAssemblyName,pathOrData) = 在『虚拟程序集引用表』注册虚拟程序集（DLL）。\n@simpleAssemblyName 指定程序集短名称（虚拟 DLL 文件名）\n@pathOrData 指定程序集路径或内存数据，支持内嵌资源路径\n@pathOrData 也可以是返回程序集路径或数据的回调函数
 reference(.(assemblyName2pathOrData) = 在『虚拟程序集引用表』注册多个虚拟程序集（DLL）。\n@assemblyName2pathOrData 指定一个表：\n表的「键」为虚拟程序集短名称（ DLL 文件名 ），\n\n键对应的「值」指定程序集内存数据或程序集路径（支持内嵌资源）。\n\n同时复制多个 DLL 路径的方法：\n在资源管理器多选 DLL 文件，按住 Shift 点右键菜单项『复制为路径』
-setParent( = 嵌入 .NET 窗口到 aardio 窗口，作用类似 win.setParent 函数。\n此函数必须在导入 win.ui 的界面线程中使用\n\n嵌入 .NET 控件而不是窗口对象，\n请改用 System.Windows.Forms.CreateEmbed 函数
+setParent( = 嵌入 .NET 窗口到 aardio 窗口，作用类似 win.setParent 函数。\n此函数必须在导入 win.ui 的界面线程中使用。\n\n嵌入 .NET 控件而不是窗口对象，\n请改用 System.Windows.Forms.CreateEmbed 函数
 setParent(.(netForm,aarForm) = 嵌入 .NET 窗口到 aardio 窗口，并完全覆盖 aardio 窗口。\n@netForm 参数指定 System.Windows.Forms.Form 对象，不能是控件，\n@aarForm 参数指定 aardio 中的窗体对象或 custom 控件对象,\n\n此函数设置 aarForm 为 netForm 的父窗口，\n并禁止 aarForm 窗口绘制窗口背景，\n控件自动填满 aarForm 内部并自适应窗口缩放\n\n也可在 win.ui.ctrl 名字空间下创建自定义控件
 setParent(.(netForm,aarForm,false) = 仅嵌入 .NET 窗口到 aardio 窗口。\n不覆盖 aardio 窗口，不自动设置窗口位置，用于创建自定义控件。\n@netForm 参数指定 System.Windows.Forms.Form 对象，不能是控件，\n@aarForm 参数指定 aardio 中的窗体对象或 custom 控件对象,\n\n此函数设置 aarForm 为 netForm 的父窗口，\n并禁止 aarForm 窗口绘制窗口背景，\n控件自动填满 aarForm 内部并自适应窗口缩放\n\n也可在 win.ui.ctrl 名字空间下创建自定义控件
 wrapObject(__) = 如参数是原生 com.NetObject 对象,则返回 dotNet.object 对象，否则直接返回参数。\n\n所有 .NET 原生对象已经自动转换为 dotNet.object 对象，\n除非 .NET 调用普通 aardio 对象的成员函数而非回调特定的委托或事件函数。\n这时候回调参数中的 .NET 对象需要用此函数转换，但数值和字符串不需要转换。\n\n参数传入 com.IsNetObject 函数会返回非 0 值即为原生 com.NetObject 对象，\n非原生 com.NetObject 对象转换为 dotNet.object 应当直接调用 dotNet.object 函数。
 unwrapObject(__) = 如果对象是 dotNet.object 对象\n返回被封装的原生 com.NetObject 对象,\n否则直接返回参数\nn\n原生 com.NetObject 对象传入 com.IsNetObject 函数应返回非 0 值
-getObject(__) = 如果对象是 dotNet.object 对象\n返回被封装的原生 com.NetObject 对象,\n传入其他类型对象或原生 com.NetObject 对象会返回 null\n如果参数 @2 为 true，则解开 DispatchableObject 封包对象。\n\n原生 com.NetObject 对象传入 com.IsNetObject 函数应返回非 0 值
+getObject(__) = 如果对象是 dotNet.object 对象，\n返回被 dotNet.object 封装的原生 .NET 对象（在 aardio 中存为 com.NetObject 对象 ）。\n原生 com.NetObject 对象传入 com.IsNetObject 函数将返回非 0 值。\n\n如果参数 @2 为 true，并且封包的 .NET 对象是一个 DispatchableObject 代理对象，\n则通过 DispatchableObject 对象的 Value 字段获取真实的值或 .NET 对象。\n如果 DispatchableObject 对象实际存储的是可转换的基础类型或 System.Object 数组，\n可直接使用 dotNet.object 对象的 Value 属性取值，不必调用此函数。\n\n传入其他类型对象或原生 com.NetObject 对象会返回 null。
 object( = 转换参数 @1 指定的 aardio 值或数组为 .NET 原生 DispatchableObject 对象，\n并返回为 aardio 可操作的 dotNet.object 对象。\n\n也可用于转换 原生 .NET 对象为 dotNet.object ，\n或转换 dotNet.object 为支持引用 dotNet.object。\n\ndotNet.object 如果存储的是 Primitive,enum,string 类型或这些类型的数组，\n则可以使用 Value 属性读写值。\n\ndotnet.object 对象支持用 tostring 转换为字符串，\n如果存储的是数值则支持调用 tonumber 函数转为普通数值。
 object(.(value,byRef) = 参数 @byRef 为 true 则支持 .NET 的输出或引用参数\n\n参数 @value 如果指定纯 aardio 对象或数组。\n则转换为 .NET 原生 DispatchableObject 对象，并封装为 dotNet.object 后返回。\n\n如果参数 @1 指定 dotNet.object 对象且参数 @2 不为 true 则直接返回。\n如果参数传入原生 .NET 对象且参数 @2 不为 true 则仅转换为 dotNet.object。\n如果参数 @2 为 true，则这些对象都会转换为 DispatchableObject 并返回新的 dotNet.object
 object() = !dotNetObject.
@@ -154,6 +206,9 @@ double(.(value,byRef) = 创建 .NET System.Double 类型数值或数组，\n用�
 buffer( = \n 调用 raw.buffer 分配可读写的、固定长度的字节数组，\n\n 并返回封包 buffer 的 dotNet.object 对象。\n \n 可用[]下标操作符读写 8 位无符号字节数值。\n 可用 Value 属性获取 buffer 对象，用法请参考 raw.buffer 文档。\n 可用 Length 属性获取数组长度。\n \n 在 .NET 中对应类型为 byte[] 字节数组。\n 可作为 .NET 引用、输出参数使用。
 buffer(.(初始值) = 分配可读写的、固定长度的字节数组。\n参数可以是一个结构体、字符串、或 buffer,传入{ }返回null,\n重新分配内存并复制初始值指定的数据。\n返回封包 buffer 的 dotNet.object 对象
 buffer(.(长度,初始值) = 分配可读写的、固定长度的字节数组。\n\n参数一指定需要分配的内存大小,\n,内存初始值可以用结构体、指针、buffer、或字符串指定一段内存数据,\n也可用一个数值指定所有字节的初始值,不指定默认初始化所有字节为0,\n\n如果初始值指定为字符串或buffer类型，\n填充初始数据以后剩余的字节会全部初始为为0\n返回封包 buffer 的 dotNet.object 对象
+char( = 创建 .NET System.Char 类型数值或数组
+char(.(value,byRef) = 创建 .NET System.Char 类型数值或数组，\n用于存储 16 位无符号整数。\n\n参数 @value 可以指定数值、字符串或数值数组。\n数组参数必须是普通的 aardio 数值数组（double 类型）或 16 位无符号整型 COM 数组。\n参数 @byRef 为 true 则支持 .NET 的输出或引用参数\n\n.NET 的 char 类型数组在 aardio 中将转换为 16 位无符号整型 COM 数组（SafeArray）。\n显式调用 dotNet.char 创建 .NET 对象可避免被自动转换为 COM 数组。
+color(.(value,byRef)  = 创建 .NET System.Drawing.Color 类型数值或数组。\n.NET 的 System.Drawing.Color 类型在 aardio 中会自动转换为数值，\n显式调用 dotNet.color 创建 .NET 对象可避免被自动转换。
 buffer() = !dotNetObject.
 byte() = !dotNetObject.
 ubyte() = !dotNetObject.
@@ -165,14 +220,14 @@ long() = !dotNetObject.
 ulong() = !dotNetObject.
 float() = !dotNetObject.
 double() = !dotNetObject.
-each(netObj) = @for i,v in ??.each(__/*输入需要遍历的 .NET 对象或普通数组，\n返回值 i 为当前索引,v 为当前值，\n注意并非所有 .NET 类型都支持此接口*/) {
+each(netObj) = @for i,v in ??.each(__/*输入需要遍历的 .NET 对象或普通数组，\n返回值 i 为当前索引,v 为当前值，\n注意并非所有 .NET 类型都支持此接口。\n所有 .NET 对象都提供 each 方法，其作用等效于将该对象作为参数调用 dotNet.each 以创建迭代器。*/) {
 	
 }
-wait( = 等待 .NET 异步任务执行完成。 \n如果任务执行成功返回 true ，取消或出错返回 false 。
-wait(.(task,winform,->->->) =  参数 @1 指定异步函数返回的 System.Threading.Tasks.Task 对象。\n参数 @2 指定 win.form 对象，其他可选参数传给 winform.wait 函数。 \n异步任务的 Result 属性可取返回值，Exception.Message 属性可取错误信息。\n也可以用异步任务的 ContinueWith 方法指定异步回调函数，在任务完成后触发。  
+wait( = 等待 .NET 异步任务执行完成。\n如果任务执行成功返回异步任务的 Result 属性，\n出错返回 null，错误信息，取消返回 null,空字符串 。\n[范例](doc://example/Languages/dotNet/Generic.html)
+wait(.(task,winform,->->->) =  参数 @1 指定异步函数返回的 System.Threading.Tasks.Task 对象。\n参数 @2 指定 win.form 对象，其他可选参数传给 winform.wait 函数。\n如果参数 @2 为 null （未指定值）则循环等待（不卡界面），忽略其他参数。 \n成功返回异步任务的 Result 属性（异步函数返回值）。失败返回 null，错误信息；取消返回 null，空字符串。\n\n异步任务的 Result 属性可取返回值，Exception.Message 属性可取错误信息。\n也可以用异步任务的 ContinueWith 方法指定异步回调函数，在任务完成后触发。  
 dict( = 将非空表转换为 .NET 字典。\n如果要创建空字典，调用返回对象的 Clear 函数清空即可。\n返回对象支持用下标操作符访问键值对。\n可用 dotNet.each 遍历字典。
 dict(.(tab,byRef) = 将非空表转换为 .NET 字典（Dictionary）对象。\n\n如果传入空表或 null 返回 null 值。\n否则必须传入非空表，表中所有的键必须是相同类型。\n表中所有的值必须是相同类型。\n\n参数 @byRef 为可选参数，如果 @byRef 为 true，\n则返回对象可作为 .NET 输出与引用参数使用
-dict() = !stdNetDictionary.
+dict() = !stdDotNetDictionary.
 end intellisense**/
 
 /**intellisense(!dotNetCrlAssembly)
@@ -187,8 +242,9 @@ end intellisense**/
 
 /*****intellisense()
 !dotNetObject.byRef(true) = 如果 dotNet.object 对象存储的是 DispatchableObject 。\n则可调用此函数修改传参方式，参数用布尔值指定是否支持参数传址（作为引用或输出参数）。\n如果不指定参数则获取一个表示是否支持参数传址的值。\n指定参数 @1 则返回对象自身。\n\n.NET 返回的 aardio 无法直接使用的对象会自动封包为 DispatchableObject 。\n调用 dotNet.object 也可以创建 DispatchableObject。
-!dotNetObject.Value = 如果 dotNet.object 对象存储的是\n .NET 中的 Primitive,enum,string 类型或这些类型的数组，\n则可以使用 Value 属性读写值
+!dotNetObject.Value = 如果 dotNet.object 对象封包的是 .NET 代理对象（DispatchableObject），\n并且实际存储的是 aardio 可自动转换的基础 .NET 类型数据或者 System.Object 数组，\n则在 aardio 中可以使用 Value 属性读写 DispatchableObject 真实存储的值。\n\n> 可自动转换的类型支持 .NET 中的 Primitive,enum,string 类型或这些类型的数组，\n\n注意 DispatchableObject 的 Value 属性的作用主要是将 .NET 值转换为 aardio 值，\n不要取 Value 属性又传回给 .NET 函数，这会导致不必要地重复来回转换。\n应当直接传 dotNet.object 对象自身给 .NET 函数。
 !dotNetObject.Length = 如果 dotNet.object 对象存储的是数组，可用些属性获取数组长度。\n并可以用数值下标读写指定索引的值
+!dotNetObject.each() = @for i,v in ??.each() {
+	__/*遍历 .NET 集合对象，i 为迭代序号，v 为迭代值。\n不是所有 .NET 对象都支持此迭代接口。*/
+}
 end intellisense*****/
-
-//@guide [创建.NET 运行时](doc://library-guide/std/dotNet/clr.html)

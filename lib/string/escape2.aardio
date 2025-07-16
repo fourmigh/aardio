@@ -27,9 +27,28 @@ s.escape2 = class {
 	};  
 }
 
+s.escape2.unescape = function(v){
+	if( v ? s.startWith(v,"\0") ){ 
+		return s.unescape(v);
+	}
+	
+	return v;
+}
+
+s.escape2.escape = function(v){
+	if( v ? v[1]==0 ){ 
+		return s.replace(v,".",lambda(c) s.format("\%d",c[1]) );  
+	}
+	
+	return v;
+}
+
+
 //@guide [使用范例](doc://example/Text/Crypt/escape2.aardio)
 
 /*****intellisense()
+string.escape2.unescape(__) = 如果参数指定的字符串前两个字符以 "\0" 开始则还原转义。
+string.escape2.escape(__) = 如果参数指定的字符串第一个字节码为 0 则转为转义字符串。
 string.escape2( = 生成或还原 escape2 格式字符串，可兼容普通字符串。\n将普通的字符串作为唯一参数就会直接返回。\n将 escape2 编码的字符串作为唯一参数会复原后再返回。 
 string.escape2(.(str,'\0') = 将参数 str 指定的字符串 escape2 编码，并返回为 十进制转义格式。\n以所有除'\0'以外的单字节为 keyByte 进行 escape2 编码，\n并返回长度最短的结果。
 string.escape2(.(str,keyByte) = 将参数 str 指定的字符串 escape2 编码，并返回为 十进制转义格式。 \n参数 keyByte 必须指定单个单字节字符。

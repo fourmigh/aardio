@@ -11,7 +11,10 @@ class simpleWindow{
 	ctor(winform,fontSize,width=33,height=27,theight){{
 		
 		this.targetForm = winform._parentForm || winform;
+		..win.modifyStyle(this.targetForm.hwnd,0x800000/*_WS_BORDER*/|0x400000/*_WS_DLGFRAME*/|0x40000/*_WS_SIZEBOX*/)
+		
 		var ws = ..win.getStyle(this.targetForm.hwnd);
+		
 		var font = LOGFONT(name='Marlett';charset=2/*_SYMBOL_CHARSET*/;h=fontSize);
 		if(theight===null){ theight = height *2 };
 		
@@ -19,8 +22,7 @@ class simpleWindow{
 			titlebarClose={cls="plus";text="r";top=0;height=height;width=width;marginRight=0;dr=1;dt=1;font=font;z=3};
 			titlebar={cls="static";text="";left=0;top=0;marginRight=width*3;bottom=theight;dl=1;dr=1;dt=1;notify=1;center=1;clip=1;transparent=1;z=4};
 		)
-		
-		winform.titlebarClose.skin(style);
+		 
 		winform.titlebarClose.oncommand = function(id,event){
 			this.targetForm.close()
 		} 
@@ -30,7 +32,6 @@ class simpleWindow{
 				titlebarMax={cls="plus";text="1";top=0;height=height;width=width;marginRight=width;dr=1;dt=1;font=font;z=2};
 			)
 			
-			winform.titlebarMax.skin(style);
 			winform.titlebarMax.oncommand = function(id,event){
 				this.targetForm.hitMax();
 			}
@@ -68,15 +69,14 @@ class simpleWindow{
 			winform.add( 
 				titlebarMin={cls="plus";text="0";top=0;height=height;width=width;marginRight=marginRight;dr=1;dt=1;font=font;z=1}; 
 			)
-			
-			winform.titlebarMin.skin(style); 
+			 
 			winform.titlebarMin.oncommand = function(id,event){
 				this.targetForm.hitMin()
 			}
 		
 		}
 		
-		..win.ui.shadow( this.targetForm,70,9 ); 
+		..win.ui.shadow( this.targetForm,65,10); 
 		..win.ui.minmax( this.targetForm );
 		
 		..win.setPos(winform.titlebar.hwnd,,,,,0x1/*_HWND_BOTTOM*/);
@@ -86,8 +86,40 @@ class simpleWindow{
 		this.titlebarMax = winform.titlebarMax;
 		this.titlebarMin = winform.titlebarMin;
 		this.titlebar = winform.titlebar;
+		
+		this.btnClose = this.titlebarClose;//@Deprecated
+		this.btnMax = this.titlebarMax;//@Deprecated
+		this.btnMin = this.titlebarMin;//@Deprecated
+		
+		winform.setTimeout( 
+			function(){
+				if(! this.$style ){
+					var testCtrl;
+					for(i,n in ["titlebarClose","titlebarMax","titlebarMin"]){
+						if(this[n] && !this[n][["(skin-setting)"]] ){
+							testCtrl = this[n];
+						}
+					}
+					
+					if(!testCtrl) return;
+					
+					testCtrl.predraw();
+					var bgcolor = ..gdi.getPixel(1,1,testCtrl.hwnd);
+					 
+					var r,g,b =  bgcolor & 0xFF, bgcolor>> 8  & 0xFF, bgcolor>> 16 & 0xFF; 
+					var y = 0.299 * r + 0.587 * g + 0.114 * b;//YUV/YCbCr 亮度公式
+					 
+					var style = y > 180 ? darkStyle : lightStyle;
+					if( this.titlebarMax && !this.titlebarMax[["(skin-setting)"]] ) this.titlebarMax.skin(style)
+					if( this.titlebarMin && !this.titlebarMin[["(skin-setting)"]] ) this.titlebarMin.skin(style);
+					if( !this.titlebarClose[["(skin-setting)"]] ) this.titlebarClose.skin(style);
+										
+				}
+			},100);
+			
 	}};
 	skin = function(style){
+		this.$style = style;
 		if(this.titlebarMin)this.titlebarMin.skin(style);
 		if(this.titlebarMax)this.titlebarMax.skin(style);
 		this.titlebarClose.skin(style);	
@@ -95,8 +127,21 @@ class simpleWindow{
 }
 
 namespace simpleWindow{
-    
-    style = {  
+   
+	darkStyle = {
+		background = {  
+			hover = 0x22AAAAAA; 
+			active = 0x44888888;  
+			default = 0x00FFFFFF; 
+		}
+		color = {  
+			hover = 0xFF000000; 
+			active = 0xFFFFFFFF;  
+			default = 0xFF555555;
+		}
+	}
+	
+	lightStyle = {  
 		background = { 
 			hover = 0xff99ffcc;
 			active = 0xffff6666; 
@@ -107,18 +152,18 @@ namespace simpleWindow{
 			active = 0xffffffff; 
 			default = 0xffffffff; 
 		}
-	}
+	} 
 }
 
 /**intellisense()
-win.ui.simpleWindow = 简单初始化无边框窗口\n使用plus控件创建标题栏按钮,拖动边框,阴影等,\n标题栏上添加最小化、最大化、关闭窗口等按钮,\n并自动添加拖动边框、窗口阴影、设置窗口最大化范围等,\n禁用最大化按钮以后不添加用于拖动调整窗体大小的边框
+win.ui.simpleWindow = 为无边框窗口添加窗口标题栏与阴影边框。\n使用 plus 控件创建最小化、最大化、关闭窗口等按钮。\n默认允许拖动阴影边框改变窗口大小，\n如果禁用最大化按钮则不允许改变窗口大小。\n改用 win.ui.simpleWindow2 则不创建最大化按钮，不允许拖动边框改变窗体大小。
 win.ui.simpleWindow(.(窗体对象,字体大小,按钮宽度,按钮高度,标题栏高度) = 为参数@1指定的无边框窗口添加简单的标题栏,\n标题栏是透明的，建议在标题栏拖一个bk控件上去设置合适的背景色,\n标题栏是透明的，建议在标题栏拖一个bk控件上去设置合适的背景色,\n可选使用参数@2指定标题栏按钮字体大小,以像素为单位,\n可选用参数@3,@4指定关闭等按钮宽度,高度\n标题栏高度为可选参数
 win.ui.simpleWindow() = !win_ui_simpleWindow.
-!win_ui_simpleWindow.skin(style) = @.skin(\n	background = { \n		hover = 0xff99ffcc;\n		active = 0xffff6666; \n		default = 0x00000000; \n	}\n	color = { \n		hover = 0xff666666;\n		active = 0xffffffff; \n		default = 0xffffffff; __/*自定义标题栏关闭、最大化、最小化按钮样式\n用法与plus控件的skin函数相同*/\n	}\n)
-!win_ui_simpleWindow.titlebarMin = 最小化按钮,plus控件\n如果窗体设置了禁用最小化按钮则不创建此控件\n!ui_ctrl_plus.
-!win_ui_simpleWindow.titlebarMax = 最大化按钮,plus控件\n如果窗体设置了禁用最大化按钮则不创建此控件,并且不添加拖动边框\n!ui_ctrl_plus.
-!win_ui_simpleWindow.titlebarClose = 关闭按钮,plus控件\n!ui_ctrl_plus.
+!win_ui_simpleWindow.skin(style) = @.skin( \n	background = {  \n		hover = 0x22AAAAAA; \n		active = 0x44888888;  \n		default = 0x00FFFFFF; \n	}\n	color = {  \n		hover = 0xFF000000; \n		active = 0xFFFFFFFF;  \n		default = 0xFF555555;__/*自定义窗口标题栏关闭、最大化、最小化按钮样式，\n参数表用法与 plus 控件的 skin 函数相同。\n如果未显式调用 skin 函数将在 100 毫秒后自动设置样式。*/\n	}\n)
+!win_ui_simpleWindow.titlebarMin = 标题栏最小化按钮，plus控件。\n如果窗体设置了禁用最小化按钮则不创建此控件。\n!ui_ctrl_plus.
+!win_ui_simpleWindow.titlebarMax = 标题栏最大化按钮，plus控件。\n如果窗体设置了禁用最大化按钮则不创建此控件，并且不允许拖动边框改变窗口大小。\n!ui_ctrl_plus.
+!win_ui_simpleWindow.titlebarClose = 标题栏关闭按钮，plus控件。\n调用此控件的 skin 函数可单独修改关闭按钮的样式，\n所有界面组件的 skin 函数的都是用于 plus 控件，用法都一样。\n!ui_ctrl_plus.
 !win_ui_simpleWindow.titlebar = 标题栏,static控件\n!static.
-!win_ui_simpleWindow._form = 标题栏所在窗口\n!winform.
-!win_ui_simpleWindow.targetForm = 要控制的目标窗口\n!winform.
+!win_ui_simpleWindow._form = 标题栏所在窗口。\n!winform.
+!win_ui_simpleWindow.targetForm = 要控制的目标窗口。\n!winform.
 end intellisense**/

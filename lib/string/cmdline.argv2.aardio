@@ -8,15 +8,18 @@ class argv2{
 		var cmdline = ..string.cmdline(cmd); 
 		
 		var n1,n2;
-		var p1,p2;
+		var p1,p2,p3;
 		var nn1;
+		var sp;
 		
 		var r = {}
 		for(i=1;#cmdline){
 			n2 = cmdline[i];
-			p2 = n2[1]
+			p2 = n2[1];
+			p3 = n2[2];
+			sp = ..string.indexAny(n2,' \t\r\n\'"{}[]()');
 			
-			if(n1 && p2!=p1) {
+			if(n1 && ((p2!=p1) || sp)) {
 				r[n1] = n2; 
 				
 				if(opt ? type(opt[n1])=="function"){
@@ -38,9 +41,9 @@ class argv2{
 				nn1 = null;
 				
 				n2 = ..string.trimleft(n2,n2[[1]]);
-				if( #n2>1 && p2=='-'# && n2[1]!='-'# ){
+				if( #n2>1 && p2=='-'# && p3!='-'# ){
 					if( opt ? ..table.some(opt,function(v2,k2){
-						if( ..string.startWith(n2,k2) ){
+						if( ..string.startsWith(n2,k2) ){
 							k = k2;
 							v = ..string.right(n2,-#k2-1)
 							

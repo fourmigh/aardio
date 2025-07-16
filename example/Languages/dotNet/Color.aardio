@@ -16,5 +16,15 @@ System.Drawing.Color 在 aardio 会自动转换为 ARGB 格式的颜色数值。
 */
 winform.plus.background = System.Drawing.Color.Blue; //这是一个 .NET 里的枚举值
 
+/*
+在有些特殊的情况下（例如 .NET 函数重载版本中数值与 System.Drawing.Color 需要区分类型），
+如果不希望 aardio 自动转换 System.Drawing.Color 为数值，
+可以使用 dotNet.color 创建纯 .NET 类型的 System.Drawing.Color 对象。
+*/
+
+var netColor = dotNet.color(0xFFFF0000);//参数也可以是数值数组或 16位无符号整数类型的数组。
+var netColorByRef = dotNet.color(0xFFFF0000,true); //引用类型
+var netColorArray = dotNet.color([0xFFFF0000,0xFFFFFF00]);//数组
+
 winform.show();
 win.loopMessage();

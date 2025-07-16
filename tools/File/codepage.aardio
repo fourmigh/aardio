@@ -105,7 +105,7 @@ winform.edit.orphanWindow();
 
 import win.clip;
 import win.ui.menu;
-import web.json;
+import JSON;
 winform.listview.onnotify = function(id,code,ptr){ 
     
     select(code) {
@@ -116,7 +116,7 @@ winform.listview.onnotify = function(id,code,ptr){
         		
         		var cp = winform.listview.getItemText(row,3);
         		var charsetInfo = multiLanguage.getCodePageInfo(tonumber(cp));
-        		winform.edit.text = web.json.stringify(charsetInfo,true);
+        		winform.edit.text = JSON.stringify(charsetInfo,true);
         	}
     	} 
     	case 0xFFFFFFFE/*_NM_CLICK*/{  

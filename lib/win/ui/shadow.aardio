@@ -3,6 +3,7 @@ import gdip.path;
 import gdip.pathGradientBrush; 
 import gdip.graphics; 
 import win.cur;
+import util.metaProperty;
 
 namespace win.ui;
 
@@ -11,11 +12,11 @@ class shadow{
 		if(winform._shadowWindow) return winform._shadowWindow;
 		winform._shadowWindow = this;
 		
-		if( shadowSize === null ) shadowSize = 9;
-		if( roundRadius === null ) roundRadius = shadowSize;
+		if( shadowSize === null ) shadowSize = 10;
+		if( roundRadius === null ) roundRadius = shadowSize * 0.6;
 		if( interpolation === null ) interpolation = 0.14;
 		if( shadowColor === null) shadowColor = 0xFF000000;
-		if( shadowAlpha === null ) shadowAlpha = 70; 
+		if( shadowAlpha === null ) shadowAlpha = 65; 
 		if( focusRatio === null ) focusRatio = 15;
 		
 		var dpiScaleX,dpiScaleY = ..gdi.getDpiScale();
@@ -39,6 +40,13 @@ class shadow{
 		
 		var shadowColor1 = shadowColor&0x01FFFFFF;
 		var shadowColor2 = shadowColor&0x05FFFFFF;
+		
+		this.setRadius = function(r,i){
+			innerRadius = i * dpiScaleX; 
+			roundRadius = r * dpiScaleX;
+			this._onDrawShadow();
+		}
+		
 		this.onDrawShadow = function(hdc,hMemDc,hMemBitmap,width,height){
 		
 			var graphics = ..gdip.graphics(hMemDc);
@@ -78,21 +86,41 @@ class shadow{
 			graphics.delete(); 
 		}
 		 
-		var transparent = 1;
-		this.transparent = function(v){
+		var transparency = 1;
+		this.setOpacity = function(v){
+			if(v!==null){
+				v = v/255;
+			}
+			else{
+				v  = 1;
+			}
+			
+			if(v == transparency ) return; 
 			if(!..win.isWindow(frmShadow.hwnd)) return;
-			if(v == transparent ) return;
-			transparent = v;
+			
+			transparency = v;
 			this._onDrawShadow();
 		}
-		this.transprent = this.transparent;
+		
+		this.getOpacity = function(v){
+			if(transparency !== 1){
+				return ..math.roundToEven(transparency * 255);
+			}
+			else{
+				return null;
+			} 
+		}
+		
+		this.transparent = function(v){
+			this.setOpacity(v*255);
+		}
 		
 		this._onDrawShadow = function(){
 			..gdi.layeredBuffer( frmShadow.hwnd, 
 				function( hdc,hMemDc,hMemBitmap,width,height ){
 					if( height < 45 ) return;
 					this.onDrawShadow(hdc,hMemDc,hMemBitmap,width,height)
-					..gdi.updateLayeredWindow( frmShadow.hwnd,hMemDc,::SIZE(width,height) ,..gdi.blendFunction(shadowAlpha/*透明度*/*transparent)  );   
+					..gdi.updateLayeredWindow( frmShadow.hwnd,hMemDc,::SIZE(width,height) ,..gdi.blendFunction(shadowAlpha/*透明度*/*transparency)  );   
 				}
 			)
 		}
@@ -208,9 +236,11 @@ class shadow{
 			frmShadow.show(0x4/*_SW_SHOWNOACTIVATE*/);
 		}
 	};
+	@_metaProperty;
 }
 
 namespace shadow{
+	
 	__cursor = {
 		[0xC/*_HTTOP*/]  = ..win.cur.load(0x7F85/*_IDC_SIZENS*/);
 		[0xF/*_HTBOTTOM*/] = ..win.cur.load(0x7F85/*_IDC_SIZENS*/);
@@ -221,18 +251,31 @@ namespace shadow{
 		[0xE/*_HTTOPRIGHT*/] = ..win.cur.load(0x7F83/*_IDC_SIZENESW*/);
 		[0x10/*_HTBOTTOMLEFT*/] = ..win.cur.load(0x7F83/*_IDC_SIZENESW*/); 
 	}
+	
+	_metaProperty = ..util.metaProperty(
+	
+		opacity = {
+			_get = function(){  
+				return owner.getOpacity();
+			}
+			_set = function( v ){
+				owner.setOpacity(v);
+			} 	
+		};
+	)
 }
 
 /**intellisense()
 win.ui.shadow = 阴影边框
 win.ui.shadow( = 创建阴影边框\n创建阴影后,窗体对象的_shadowWindow属性被设置为此对象
-win.ui.shadow(.(窗体对象,透明度,阴影大小,外圆角,内圆角,阻影颜色,暗部插值位置,聚焦系数) = 除参数@1以外,其他所有参数可选\n透明度默认为70,255为不透明\n阴影大小默认为9像素\n外圆角默认为阴影大小\n内圆角默认为空\n阴影颜色默认为0xFF000000,FF为透明度\n暗部插值位置默认为0.15,这个值是阴影内侧暗部插值点距外边界的百分比\n聚焦系数默认为15,以该系数乘以阴影大小换算为距离外边界的百分比,\n加大聚焦系数会淡化阴影
+win.ui.shadow(.(窗体对象,不透明度,阴影大小,外圆角,内圆角,阻影颜色,暗部插值位置,聚焦系数) = 除参数 @1 以外,其他所有参数可选\n不透明度默认为 65,255 为完全不透明。\n阴影大小默认为 10 像素，\n默认根据阴影大小自动计算外圆角大小。\n内圆角默认为空\n阴影颜色默认为0xFF000000,FF为透明度\n暗部插值位置默认为0.15,这个值是阴影内侧暗部插值点距外边界的百分比\n聚焦系数默认为15,以该系数乘以阴影大小换算为距离外边界的百分比,\n加大聚焦系数会淡化阴影
 win.ui.shadow() = !win_ui_shadow.
 !win_ui_shadow._form = !winform.
 !win_ui_shadow.show(true) = 暂时显示或隐藏阴影\n阴影会跟随所有者窗体自动显示隐藏,此函数仅用于特殊情况
 !win_ui_shadow.onDrawShadow(hdc,hMemDc,hMemBitmap,width,height) = @.onDrawShadow = function(hdc,hMemDc,hMemBitmap,width,height){\n	var graphics = ..gdip.graphics(hMemDc);\n	graphics.smoothingMode = 4/*_GdipSmoothingModeAntiAlias*/;\n	__\n	graphics.delete();\n} 
 !win_ui_shadow.setResizeBorder(true) = 允许通过拖动阴影边框改变父窗口大小\n如果窗口当前已经应用win.ui.resizeBorder添加了拖动边框,\n则默认启用此属性,不再需要调用此函数
-!win_ui_shadow.transparent(__) = 设置透明度,参数为0到1之间的小数\n通过wiform.transprent修改窗口透明度时,\n会自动调用wiform._shadowWindow.transprent函数同步透明度
+!win_ui_shadow.opacity = 设置在阴影初始透明度上叠加的不透明度。\n可指定的值范围自 0 到 255，设为 1 禁用叠加不透明度。\n修改普通窗口透明度时会自动修改阴影窗口（如果存在）的叠加透明度。
+!win_ui_shadow.setRadius(.(外圆角,内圆角) = 设置圆角大小。\n如果窗口使用了 win.region.round 创建圆角窗口则会自动调用此函数。
 end intellisense**/
 
 /**details(关于无边框窗口)

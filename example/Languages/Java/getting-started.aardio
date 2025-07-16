@@ -1,0 +1,37 @@
+//aardio 调用 Java 快速入门
+//aardio + Java 开发指南: doc://library-guide/std/java/_.md
+import java; 
+//import java.jre.v8; //默认设置不用写：加载 OpenJDK JRE v8，找不到自动安装
+//java.addClassPath("/java/"); //默认设置不用写：加类搜索目录，进程范围首次创建 Java 虚拟机前设置才有效
+
+var jvm = java();//创建 Java 虚拟机
+
+//加载 Java 类对象
+HelloworldApp = jvm.import("aardio.sample.HelloworldApp");
+
+/*
+也可以如下自内存或文件直接加载类,
+注意下面的路径前面的 $ 操作符可将文件编译到代码中（发布后不再需要原文件）
+*/
+HelloworldApp = jvm.import("aardio.sample.HelloworldApp",$"\java\aardio\sample\HelloworldApp.class");
+
+//用 Java 类创建 Java 对象
+var helloworld = HelloworldApp();
+
+//直接调用 Java 对象的方法 
+var result = helloworld.test(3); 
+print( result );//调用Java对象的方法
+
+//导入 Java 类
+var JString = jvm.import( "java.lang.String"); 
+
+//创建 Java 对象
+print( JString("测试一下")  ); 
+
+var JFileInputStream = jvm.import("java.io.FileInputStream");
+
+/*
+java.io 包导入的类可支持 aardio 格式的文件路径（指单个 "/"、"\"、"~" 字符开头的路径），
+其他 java 路径参数可先调用 io.fullpath 转换为完整路径。
+*/
+var fileStream = JFileInputStream("~\example\Languages\Java\getting-started.aardio")

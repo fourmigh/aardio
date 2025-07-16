@@ -258,7 +258,7 @@ namespace valueObject {
       				owner.setTime( v );
       			}
       			else{
-      				if( ..table.isArray(v) ){
+      				if( ..table.isArrayLike(v) ){
       					for(i=1;#v;1){
       						ValueNthElementValueSet( owner,i-1,valueObject_t( v[i] ) );
       					} 

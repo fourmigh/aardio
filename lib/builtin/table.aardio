@@ -74,17 +74,17 @@ namespace table{
 		return mix(a,...);
 	};
 	array = function(l,v,...){ 
-		var r = {@{_type="array"}}
+		var r = []
 		var t = type(v);
 		var t1 = type(l);
 		
 		if( t1 == "function" || t1 == "class" ){
-			while( var i;  i = { l(v,...) }; i[1]) { push( r,i); }
+			while( var i;  i = [l(v,...)]; i[1]!==null) { push( r,i); }
 		}
 		elseif( t1 == "table" ){
-			..table.append(r,l);
+			append(r,l);
 			if( t === "number" ){
-				r@.length = v == -1? rget(2,..table.range(l)):v;
+				r@ = { length = v == -1? rget(2,range(l)):v };
 			}
 		}
 		elseif( t == "function" || t == "class" ) {
@@ -92,11 +92,11 @@ namespace table{
 				for(i=1;l) r[i]= v(...);
 			}
 			else {
-				while( var i = v(...) ) { push( r,i); }
+				while(var i;i = v(...);i!==null) { push( r,i); }
 			}
 		}
 		elseif( t == "table" ) 
-			for(i=1;l) r[i]= assign({},v); 
+			for(i=1;l) r[i]= append([],v); 
 		else {
 			if( (... !== null) && ( t == "number") ) {
 				for(i=1;l )  r[i]=array(v,...); 
@@ -122,18 +122,20 @@ namespace table{
 		else{ return t[k],t };
 	};
 	var setByNamespace_;
-	setByNamespace_ = function(k,v,t,n=0){  
+	setByNamespace_ = function(k,v,t,n=0){
 		var p,m = ..string.match(k,"\.*(.+)(%\[\])$");
 		if( m ){
 			t = setByNamespace_(p,,t,n+1);
-			k = eval(..string.trim(m,"[]"))
+			k = #m>2 ? eval(..string.trim(m,"[]")) : null;
 			if(k===null)k=#t+1;
 		}
 		else{
 			p,m = ..string.match(k,"\.*(.+)\.([^.]+)$"); 
-			if( m!==null ){ t = setByNamespace_(p,,t,n+1); k = m }
+			if( m!==null ){
+				t = setByNamespace_(p,,t,n+1); k = m 
+			}
 		}
-		
+
 		if( n ){
 			if( t[k]===null ) t[k] = (v===null) ? {} : v ;
 		}
@@ -216,14 +218,14 @@ namespace table{
     	} 
 	};
 	len = function(a){
-		var lm,la = a@[["length"]] || a@[["len"]],#a;
-		var lf = (lm===null) ? ( a.length || a.Length ) : null; 
-		
+		var lm,la = a@[["length"]],#a;
 		if( type(lm) == "function") lm = invoke(lm,a);
 		
-		if( type(lm) == "number") la = ..math.max(lm,la);
-		elseif( ( lf !== null ) && (type(lf)=="number")) la = ..math.max(lf,la); 
+		//length 元方法允许返回 null
+		if( type(lm) == "number") return ..math.max(lm,la);
 		
+		var lf = a.length || a.Length; 
+		if( lf && (type(lf)=="number")) return ..math.max(lf,la); 
 		return la;
 	};
 	eachIndex = function(t){
@@ -295,19 +297,35 @@ namespace table{
 	};
 	self.type = function(v){
 		if( type(v) != "table" ) return;
-		var t = v@[["_type"]];
-		if( t == "object" ) return "object";
-		if( t == "array" ) return "array";
-		if( ( v@[["_keys"]] !== null ) || (v@[["_defined"]] !== null ) || (v[["_struct"]]) ) return "object";
-		if( v@[["_safearray_type"]] !== null ) return "array";
-		if( v@[["length"]] !== null ) return "array";
-		if( ( type(v.length) == "number" ) && (v[["length"]]===null) ) return "array";
-		if( ( type(v.Length) == "number" ) && (v[["Length"]]===null) ) return "array";
+		if( isArray(v) ) return "array";
+		
+		var m = v@;
+		if(m){
+			var t = m[["_type"]];
+			if( t == "array" ) return "array";
+			if( t == "object" ) return "object";
+	 	 
+			var mlen = m[["length"]];
+			if( mlen !== null ){ 
+				if(type(mlen)=="function"){
+					mlen = mlen();//length 元方法可返回 null 以声明不期望被识别为数组
+					
+					if(mlen !== null) return "array";
+					else return t || "object";
+				}
+				
+				return "array";
+			} 	
+			
+			if( m[["_keys"]] || m[["_defined"]] ) return "object";	
+		}
+		
+		if(v[["_struct"]]) return "object";	
+		if( ( type(v.length) == "number" )  ) return "array";
+		if( ( type(v.Length) == "number" )  ) return "array";
+		
 		if( #v ) return "array";
 		return "object";
-	};
-	isArray = function(v){
-		return self.type(v) == "array"; 
 	};
 	gc = function(o,gc){
 		var gd = ..raw.buffer(1);
@@ -327,8 +345,9 @@ namespace table{
 	create = function(p,...){
 		return assign( p ? { @{_get=p} } : {},...);
 	};
-	cache = function(get,kv){
-		if(kv) kv,get = get,kv;
+	cache = function(kv,get){
+		if(kv && (type(kv)!=="string")) kv,get = get,kv;
+		
 		return {@{_weak=kv:"kv";_get=get?function(k){ var v = get(k);owner[[k]]=v;return v;} }}
 	};
 	getCall = function(t,k){
@@ -349,10 +368,9 @@ namespace table{
    		}
 
 		var vt;
- 		var r = {}   
  		if( self.type(t) == "array" ){
- 			r@ = {_type="array"}
- 		  
+ 			var r = [] 
+ 			
 			for k,v in eachIndex(t){    
 				vt = type(v);
 				if(vt=="table") v =  strip(v,ref) 
@@ -363,6 +381,7 @@ namespace table{
 			return r;
  		}; 
 	  
+	  	var r = {}   
 		for k,v in eachName(t){    
 			vt = type(v);
 			if(vt=="table") v =  strip(v,ref) 
@@ -378,45 +397,48 @@ namespace table{
 		return strip(v,{});
 	} 
 	
-	mixin = assign; // 废弃
-	mixr = assignDeep; // 废弃
-	mapr = mapDeep; // 废弃
-	delegate = create;//废弃
-	add_gc = gc;//废弃	
+	mixin = assign;//@Deprecated
+	mixr = assignDeep;//@Deprecated
+	mapr = mapDeep;//@Deprecated
+	delegate = create;//@Deprecated
+	add_gc = gc;//@Deprecated	
+	each = eachName;//@Deprecated
 }  
 
 /**intellisense(table)
 cache() = 创建并返回弱引用缓存表,\n弱引用指的是加入表中的键或值不会增加引用计数,\n不会阻止对象被回收,\n返回的弱引用表适合用于缓存对象
 cache(.(getter) = 创建并返回弱引用缓存表,\n可选用参数 @getter 指定读取值函数,\n该函数的参数为当前读取的键,函数应返回对应的值,\n在返回读取值以前,该值会被临时存入缓存表
 cache(.(kv,getter) = 创建并返回弱引用缓存表,\n可选用参数 @kv 指定弱引用类型,\n参数@1为字符串 "k" 时仅弱引用键,为 "v" 仅弱引用值,\n不指定刚默认为 "kv", 指弱引用键与值。\n可选用参数 @getter 指定读取值函数,\n该函数的参数为当前读取的键,函数应返回对应的值,\n在返回读取值以前,该值会被临时存入缓存表
-type(__) = 参数 @1 指定表（table），返回表的实际类型。 \n此函数返回 "object" 则表为对象，返回 "array" 则表为数组。\n如果参数不是一个表（table）返回 null。\n\n检测步骤如下：\n如果表的 _type 元属性为 "object" 或 "array" 则返回该值，\n如果表的 _key 或 _defined 元属性非空则返回  "object" 。\n如果表是结构体则返回  "object" 。\ncom.SafeArray 创建或相兼容的 COM 数组返回 "array" 。\n如果表的 length 元属性非空则返回 "array" 。\n如果在表的元表中定义了 length 属性且为数值。返回"array"。\n如果使用#操作符取数组长度返回值不是 0, 返回"array"。\n其他表一律返回 "object"\n\n可用 {} 创建空对象，table.array 函数可创建空数组 \n\nweb.json使用此函数区分数组与对象，解析 JSON 时会自动指定表的 _type 元属性
-isArray(__) = 此函数调用 table.type 函数检测表的类型是否为数组。\n如果表的类型为 "array" 则返回 true ，否则返回 false 。\n\n表的 _type 元属性为 "array" 则直接返回 true。\n其他检测规则请参考 table.type 函数说明。 \n\n使用 table.array 函数可以创建一个符合此检测条件的数组
-len(.(数组) = 获取数组长度\n在数组本身的长度,数组的length属性,以及数组的元表length属性中取最大值返回\nweb.json调用此函数以支持定长数组
+type(__) = 用于检测参数指定的表对象的首选操作类型（preferred type）。\n如果参数 @1 不是表（table）则返回 `null`，否则返回字符串 `"array"` 或者 `"object"`\n\n返回 "array" 则表明表对象可作为伪数组（pseudo-array）\n使用 table.len ，table.eachIndex 等函数操作。\n\n函数检测顺序如下：\n1. 纯数组总是返回 "array"。\n2. _type 元属性如果明确指定了 "array" 或`"object" 则直接返回。\n3. length 元属性或元方法返回非 null 值则返回"array"，如果指定了 length 元方法但调用元方法返回 null 值返回"object"。\n4. 指定了 _keys 或 _defined 等预定义名值对的元属性返回 "object"。\n5. 如果对象的 length 或 Length 字段用数值指定了数组长度则返回 "array"。\n6. 如果使用 `#` 操作符取对象的稠密数组元素个数返回非零值则返回 "array"。\n7. 以上都不符合时默认返回 "object" 。
+isArrayLike(__) = 参数 @1 如果是类数组（array-like table）则返回 true，否则返回 false。\n`类数组`是指纯数组（pure-array）或包含稠密数组成员的`表`（用 `#` 操作符取到非零长度）。\n\n`类数组`可使用 `#` 操作符获取稠密数组成员的长度，可使用 \n`for(i=1;#arrayLike;1){ var v = arrayLike[i] }` 的方式遍历数组元素。
+isArray(__) = 检测参数是否纯数组( pure-array )，。\n注意纯数组的数据类型也是表（ pure-array table )，\n\n纯数组是起始索引为 1 的稠密数组，但也可以包含其他类型的键值对。\n可以使用以下方式创建纯数组：\n- 在代码中用 `[]` 构造纯数组。\n- 调用 table.array 构造纯数组。\n- 调用 com.SafeArray 函数构造纯数组。\n- 操作并创建新稠密数组的标准库函数通常返回纯数组。\n- 原生结构体的内存数组转换为 aardio 数组时返回纯数组。\n\n在 `[]`构造器内 `[]` 只能表示子数组，不能用于包含索引。
+len(.(数组) = 获取纯数组、类数组、或伪数组（pseudo-array）的长度。\n\n获取长度步骤如下：\n1. 取 length 元属性的值（ 如果是函数则先执行并取值 ），\n如果取到的值为数值，则在该值与 `#` 操作符获取的长度中取最大值返回。\n2. 取 length 或 Length 字段的值，\n如果取到的值为数值，则在该值与 `#` 操作符获取的长度中取最大值返回。\n3. 否则返回  `#` 操作符获取的稠密数组成员的长度。\n\nJSON.stringify 将调用此函数以支持定长数组。
 define(.(表对象,->->->) = 预定义一个或多个键名\n即使对应键的值为 null,仍然在 eachName 迭代器中显示出来\n注意该迭代器的预定排序对null值无效,\n此函数在对象的元表的 _define 元属性添加键名，\n如果 _define 为数组或 null 则可重复调用此函数。\n如果 _define 已经定义为函数对象则会失败\n table.eachName,webs.json 等自动支持 _define 元属性
 define(.(表对象) = 清空预定义键名
-keys(.(表对象,排序函数,优先前排键名) = 获取表中的所有字符串类型的键名,不包含_struct\n\n如果元表中定义了_keys元方法,则调用该方法获取全部自定义键名取代表本身的键名列表\n_keys元方法可以是一个键名数组，或者是返回键名数组的函数,\n\n如果元表中定义了_defined元方法,则使用该方法获取允许为null的键值,\n_defined可以是一个键名数组，或者是返回键名数组的函数,_defined返回的键,\n名数组不会覆盖表本身的键名数组或者_keys元方法定义的数组,仅起到键名占位的作用,\n\n可选指定键名排序函数,如果不指定则使用默认字典序排序,\n可选使用参数@3预定优先排序在最前面的键名数组
-eachIndex(数组) = @for i,v in table.eachIndex(__/*指定数组对象\n按数组索引大小顺序遍历数组\n支持使用表对象的 length 属性,_length 元方法确定数组的长度,\n支持表对象使用 _startIndex 元属性自定义下标\n如果是普通的纯数组不需要用到这些功能,\n改用计数 for 循环会更快*/){
+keys(.(表对象,排序函数,优先前排键名) = 获取表中的所有字符串类型的键名（不含 _struct），\n\n如果元表中定义了 _keys 元属性或元方法，则使用 _keys 获取全部键名数组取代对象实际的键名数组。\n\n如果元表中定义了 _defined 元属性或元方法法,则使用 _defined 获取允许值为 null 的键名。\n_keys 的作用是替换键名数组，而 _defined 的作是预定义部分键名（既使没有包含实际的键值）。\n\n可选指定键名排序函数,如果不指定则使用默认字典序排序,\n可选使用参数 @3 预定义优先排序在最前面的键名数组
+eachIndex(数组) = @for i,v in table.eachIndex(__/*可用于遍历纯数组、类数组、伪数组等表对象的数组元素。\n按数组索引大小顺序遍历数组。\n支持使用表对象的 length 属性,_length 元方法确定数组的长度。\n支持表对象使用 _startIndex 元属性自定义下标。\n如果是普通的纯数组不需要用到这些功能。\n改用计数 for 循环会更快*/){
 	
 }
 eachName(表对象,排序函数,预定定前排键名) = @for k,v in ??.eachName(__/*使用表中的键排序并遍历所有键值对\n参数: @1表对象, @2排序函数, @3排序表\n调用table.keys获取排序后的键名,支持_keys,_defined元方法\n所有参数用法与table.keys相同*/){
 	
 }
 eachValue(表对象,排序值函数) = @for k,v in table.eachValue(__/*使用表中的值排序并遍历所有键值对,\n默认值最小的排在前面,可选在后面指定排序函数，\n排序函数的v,v2参数为正在比较的成员值,owner参数为表自身,\n如果要v排在前面返回true,请用<或>比较,不要用>=或<=\n省略排序值的函数则值小的排在前面*/,lambda(a,b) a > b ){\n	\n}
-find(.(表,查找值) = 使用恒等操作符查找表中是否存在某个值并返回对应的键,\n无任何匹配值时返回null
-find(.(表,回调函数) = 遍历表中所有的值,\n并调用参数@2指定的回调函数，直到该函数返回true时返回匹配的键,值\n回调函数参数为（当前值,当前键,表对象）
-findAll(.(表,查找值) = 使用恒等操作符查找表中是否存在某个值并返回对应的键数组\n找不到返回空数组,可使用#操作符检测长度
-findAll(.(表,回调函数) = 遍历表中所有的非函数值，\n并调用参数@2指定的回调函数，该函数返回true时对应的键添加到返回值中,\n回调函数参数为（当前值,当前键,表对象）\n返回值为所有匹配键组成的数组,无任何匹配值返回空数组
+find( = 在表包含的所有键值对象搜索匹配的值，找到第一个值就返回对应的键。\n以值查键才需要调用此函数，以键查值请改用下标操作符直接检索，例如：\n`if( tabObject["keyName"] ) {} `
+find(.(表,查找值) = 在表对象中以值查键。\n在表中搜索所有键值对，并使用恒等操作符匹配相等的值。\n找到第一值值就返回对应的键，找不到则返回 null
+find(.(表,回调函数) = 遍历表中所有的值，返回匹配成功的`键`,`值`（返回值有 2 个）。\n并调用参数 @2 指定的回调函数，直到回调函数返回 true 时返回匹配的`键`,`值`。\n回调函数参数为（当前值,当前键,表对象）
+findAll(.(表,查找值) =  在表包含的所有键值对象搜索匹配的值，返回这些值对应的`键`组成的数组。\n使用恒等操作符查找并匹配值（数据类型与值都必须完全相等，不会自动转换类型）。\n找不到返回空数组,可使用 `#` 操作符取数组长度判断查找结果。
+findAll(.(表,回调函数) = 遍历表中所有的非函数值，\n并调用参数 @2 指定的回调函数，\n回调函数接收到的参数为（当前值,当前键,表对象）。\n回调函数返回 true 则`当前键`添加到 table.findAll 函数的返回值（数组）中。\ntable.findAl 的返回值为由表对象中所有匹配成功的`键`数组，无任何匹配值返回空数组。
 lastIndexOf(.(表,查找值,开始索引) = 在数组中自后向前查找参数@2指定的值并返回对应的数组索引,\n开始索引省略时默认值为1，可用负数表示自尾部开始的倒计数索引值,\n无任何匹配值时返回null，有匹配值时返回大于或等于1的索引值
 indexOf(.(表,查找值,开始索引) = 在数组中自前向后查找参数@2指定的值并返回对应的数组索引,,\n开始索引省略时默认值为1，可用负数表示自尾部开始的倒计数索引值,\n无任何匹配值时返回null，有匹配值时返回大于或等于1的索引值
-array( = 创建数组，参数可以为空,\n数组元表中添加_type="array"，,\n例如table.isArray,web.json.stringify等函数\n会将此类数组对象视为数组而不是普通的表对象。\n\n数组类型声明仅在当前线程内有效。
-array(.(任意个数组长度,默认值) = 可使用不定个数长度参数指定多维数组长度, 例：\n table.array(3,5,{} ); \n如果默认值是table对象使用浅拷贝复制,不复制嵌套包含的表\n默认值嵌套包含子表时应使用类对象作为参数
+array( = 创建纯数组（ pure-array ），参数可以为空。\n纯数组的数据类型也是表（ table ）, 但主要用于创建与操作稠密数组。\n纯数组传入 table.isArray,table.isArrayLike 函数都会返回 true 。\n纯数组在使用 table.tostring 或 JSON.stringify 等序列化后总是使用 `[]` 包围数组成员。
+array(.(任意个数组长度,默认值) = 可使用不定个数长度参数指定多维数组长度。例：\n `table.array(3,5,[] )` 。\n如果默认值是 table 对象使用浅拷贝方式复制数组成员为纯数组。
 array(.(任意个数组长度,取值函数或类,任意个调用参数) = 可使用不定个数长度参数指定多维数组长度,\n最后一个参数可以是创建默认值的函数或类,并在后面指定调用参数
-array(.(取值函数或类,任意个调用参数) = 如果参数@1是函数或类,\n这时候会循环调用参数@1直到函数返回null值,\n每次调用的所有返回值放到一个数组中,\n返回包含这些数组的数组,\n如果只想返回包含首个返回值的一维数组,\n请添加一个 null 参数,将参数@1移动到参数@2位置,\n\n参数@1不可使用无状态的迭代器,\n也不支持迭代器的 owner 参数与控制变量参数,
-array(.( ,取值函数或类,任意个调用参数) = 如果参数@1为空,且参数@2是函数或类,\n这时候会循环调用参数@2直到函数返回null值,\n每次取首个返回值放入数组,并返回该数组\n\n参数@2不可使用无状态的迭代器,\n也不支持迭代器的 owner 参数与控制变量参数,
-array(.(源数组,最小长度) = 如果参数 @1 为表，则复制（浅拷贝）并返回新表。\n新表声明为数组类型，如果指定最小长度则声明最小长度。\n最小长度为 -1 时则自动获取最大数值索引作为最小长度。\n返回数组传入 web.json 等支持定长数组的库函数时，允许在最小长度内包含 null 值。\n注意数组类型声明与最小长度仅在当前线程生效。\n包含 null 的数组是相当罕见并且通常是不必要的。
+array(.(取值函数或类,任意个调用参数) = 如果参数 @1 是函数或类，\n这时候会循环调用参数 @1 直到函数或类返回 null 值。\n每次调用的所有返回值放到一个纯数组中，\n返回包含这些纯数组的纯数组。\n如果只想返回包含首个返回值的一维数组，\n请添加一个 null 参数,将参数 @1 移动到参数 @2 位置。\n\n参数 @1 可指定有状态的迭代器，不支持无状态的迭代器。
+array(.( ,取值函数或类,任意个调用参数) = 如果参数@1为空，且参数 @ 2是函数或类，\n则循环调用参数 @2 直到函数返回 null 值，\n每次取首个返回值放入一个纯数组，并返回该数组。\n\n参数 @2 不可使用无状态的迭代器。
+array(.(源数组,最小长度) = 如果参数 @1 为表或数组，\n则获取所有数组成员并复制（浅拷贝）到新的纯数组中。\n返回纯数组，如果指定最小长度则使用 length 元属性声明最小长度。\n最小长度为 -1 时则自动获取最大数值索引作为最小长度。\nlength 仅对 JSON.stringify 等特定函数有效，跨线程传递数组时也会丢弃 length 元属性。
 slice(.(数组,开始位置,结束位置) = 从指定位置截取并返回新数组,\n开始位置可选,默认为1\n结束位置可选,默认为数组长度,返回值包含结束位置元素,\n如果位置参数为负数,则自右侧反向计算
-assignDeep( = 递归式混入表、支持混入成员表,\n此函数不复制元表。
-assignDeep(.(对象,任意多个混入对象) = 参数@1为空则创建新表,\n使用后面的对象混入前面的对象,并返回该对象\n对表成员支持递归混入,覆盖已存在的键值,\n如果在子级成员遇到表对象,则继续使用table.mixr混入而不是替换\n使用深拷贝,请避免复制递归引用自身的对象
+assignDeep( = 递归式混入表、支持递归混入嵌套的成员表。\n此函数使用深拷贝方式复制对象，但会丢弃对象的元表。
+assignDeep(.(对象,任意多个混入对象->->->) = 将参数列表中后面的表对象深度混入前面的表对象,并返回合并后的表对象。\n实际上就是返回参数 @1 指定的表对象（ 如果参数 @1 为空则默认创建新表作为合并的目标 ）。\n\n在混合表对象时如果遇到已存在的键值，并且目标值与源值都是表对象，\n则继续使用 table.assignDeep 递归混入子表（合并子表而非替换已存在值），\n否则以深拷贝的方式复制键值到目标表内（这会替换已存在的键值）。\n\n此函数总是使用深拷贝，并支持递归混合子表，要避免用于复制在子元素中递归引用自身的表。
 assign( = 覆盖式混入表,\n支持覆盖已存在的值,不支持递归混入成员表,\n此函数不复制元表。\n\ntable.mix 函数混入表但不覆盖已存在的值\ntable.clone函数递归混入成员且复制元表
 assign(.(对象,任意多个混入对象) = 参数@1为空则创建新表,\n使用后面的对象混入前面的对象(浅拷贝),并返回该对象\n该函数仅修改第一个参数(混入目标) ,覆盖已存在的键值\n此函数不会覆盖已存在的只读成员\n\n除参数@1，其他任何参数为 null 则停止合并返回结果
 mix( = 混入表但不覆盖已存在的值,\n此函数不复制元表
@@ -427,9 +449,9 @@ gc(.(table对象,"析构函数名") =  指定析构函数名,返回参数@1\n函
 gc( = 添加对象在销毁前执行的析构函数\n按调用 table.gc 顺序的逆序析构对象,\n最后调用 table.gc 标记的对象会最先执行析构函数
 gcOnly( = 创建一个被保护的对象析构函数,\n此析构函数只会在对象被自动回收时自动触发,\n主动调用此析构函数将被忽略
 gcOnly(.(dtor) = @dtor 参数指定使用 table.gc 标记的析构对象的析构函数,\n此函数将返回一个新的用于覆盖原析构函数的函数,\n应将返回的析构函数重新赋值为对象的同名析构函数
-namespace(__) = 创建字符串参数@1指定的全局名字空间,\n查询或创建名字空间不会触发元方法，\n如果名字被非表对象占用导致名称冲突则返回 null，\n成功返回该名字空间\n\n此函数的作用与 namespace 语句相同，但不会改变当前名字空间
+namespace(__) = 创建字符串参数 @1 指定的全局名字空间,\n查询或创建名字空间不会触发元方法，\n如果名字被非表对象占用导致名称冲突则返回 null，\n成功返回该名字空间\n\n此函数的作用与 namespace 语句相同，但不会改变当前名字空间
 getByNamespace(.("表内名字空间路径->名字[2]",表对象) = 返回两个值:名字路径指向对象,该对象所在的表.\n参数一为表内名字空间路径,参数二可选指定查找路径的表对象,\n默认在global全局对象内查找路径\n\n要注意此函数会触发表的元方法，\n而 namespace 语句以及 table.namespace 函数不会触发元方法
-setByNamespace(.("表内名字空间路径->名字[]",新值,表对象) = 参数一指定表内名字空间路径,如果不存在则则创建此表内名字空间,\n参数二指定需要设置的值,如果不指定则创建空表并赋值,\n参数三可选指定一个表对象,默认为global全局对象\n\n要注意此函数会触发表的元方法，\n而 namespace 语句以及 table.namespace 函数不会触发元方法
+setByNamespace(.("表内名字空间路径->名字[]",新值,表对象) = 参数 @1 指定表内名字空间路径,如果不存在则则创建此表内名字空间,\n└── 可用 `.` 分隔上下级名字空间。\n└── 可用下标`[]`包含简单表达式，空的`[]`表示追加值到数组尾部。\n参数 @2 指定需要设置的值,如果不指定则创建空表并赋值,\n参数 @3 可选指定一个表对象,默认为 global 全局对象\n\n要注意此函数会触发表的元方法，\n而 namespace 语句以及 table.namespace 函数不会触发元方法
 unpackArgs(.(args) = 从索引1到最大索引返回所有元素值,包含中间的null值
 spliceArgs(.(数组,位置,删除长度,参数表) = 类似splice函数替换数组片段,\n从索引1到最大索引取参数表所有元素插入数组指定位置,\n返回包含删除元素的数组
 spliceArgs(.(数组,位置,删除长度,参数表,开始索引,结束索引) = 类似splice函数替换数组片段,\n从开始到结束索引取出参数表元素插入数组指定位置,\n返回包含删除元素的数组
@@ -452,6 +474,6 @@ getAttr( = 调用成员（属性）操作符获取对象的键值。
 getAttr(.(object,member) = 如果对象实际包含 @member 参数指定键的值则直接返回。\n否则调用 _get 元方法获取指定键的值，元方法第 3 个参数（@ownnerCall）设为 false。 \n使用索引下标 [] 获取键值触发 _get 元方法时 @ownnerCall 参数为 null 。
 setAttr( = 调用成员（属性）操作符修改对象的键值。
 setAttr(.(object,member) = 如果对象实际包含 @member 参数指定键的值则直接修改。 \n否则调用 _set 元方法修改指定键的值，元方法第 3 个参数（@ownnerAttr）设为 true。 \n使用索引下标 [] 修改键值触发 _set 元方法时 ownnerAttr 参数为 false 。 
-parseValue(__) = 如果参数不是表则直接返回，\n否则将表（table）转换为纯值表。\n如果对象定义了 _json 元方法，则调用该元方法（返回值 2 为 true 时不采用其结果）。\n\n纯值表只包含纯值类型数据。\n纯值类型指的是字符串、数值、布尔值、buffer、指针、纯值表。\n纯值表必须遵守规则如下：\n1、索引只能为数值或者字符串，移除其他索引。\n2、移除类型为 function,class,fiber,cdata 成员，值为表则必须也是纯值表。\n3、表要么是索引自1开始的有序数组，要么是只包含名值对的对象，只能二选一（数组优先）。\n4、纯值表的所有数据都直接保存在表中，也就是用直接下标可以获取所有值。\n5、纯值表是可保持原值序列化的表，并且兼容 JSON。 \n\nweb.json.strip 函数的转换结果也属于纯值
+parseValue(__) = 如果参数不是表则直接返回，\n否则将表（table）转换为纯值表。\n\n如果对象定义了 _json 元方法，\n则调用该元方法返回值（返回值 2 为 true 时不采用其结果）。\n_json 元方法通常会返回纯值或者类纯值类型，但不一定是表对象，\ntable.parseValue 只会原样返回通过 _json 元方法获取的值，不作其他处理。\n\n纯值表只包含纯值类型数据。\n纯值类型指的是字符串、数值、布尔值、buffer、指针、纯值表。\n纯值表必须遵守规则如下：\n1. 索引只能为数值或者字符串，移除其他索引。\n2. 移除类型为 function,class,fiber,cdata 成员，值为表则必须也是纯值表。\n3. 表要么是索引自1开始的有序稠密数组，要么是只包含名值对的对象，只能二选一。\n	如果传入对象是纯数组或类数组（使用 table.isArrayLike 判断），则返回为新的纯数组。\n4. 纯值表的所有数据都直接保存在表中，也就是用直接下标可以获取所有值。\n5. 纯值表是可保持原值序列化的表，并且兼容 JSON。 \n\nJSON.strip 函数的转换结果也属于纯值
 invert(__) = 翻转参数 @1 指定表对象的键值对，\n使值变为键，键变为值。
 end intellisense**/

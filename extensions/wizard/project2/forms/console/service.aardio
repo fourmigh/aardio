@@ -5,32 +5,30 @@ winform.add()
 /*}}*/
 
 import web.form;
-var wb = web.form( winform,5/*_UIFLAG_DIALOG*/,,,true);
+var wb = web.form(winform);
 wb.noScriptErr = true; 
 
-wb.html = /** 
-<!doctype html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />  
-    <title>FastCGI安装配置说明</title>
-</head>
-<body style="white-space:pre;font-size:	11pt;word-wrap: break-word;word-break: normal;">
+wb.html = $"~\extensions\wizard\project2\res\index.html"
 
-<pre>
-后台服务可在系统启动时自动运行。
-应先生成EXE文件、并注册为NT服务才能使用。
+var md = /*
+发布为 EXE 以后，在桌面上直接双击运行就会显示控制台。  
+在控制台窗口按 <kbd>Y</kbd> 注册系统服务，按 <kbd>N</kbd> 卸载系统服务。
+操作系统开机就会自动启动注册成功的后台服务。  
 
-后台服务程序本质也是一个控制台程序，
-发布后在服务进程中启动以后,不能在用户桌面上直接显示界面，如果需要在桌面显示控制台输出，请在控制面板->管理工具->服务管理器中右键点击注册的服务，属性中勾选：本地系统服务->允许与桌面交互。另外aardio提供 service.msgbox() 等函数可以用于服务进程在当前用户桌面上显示交互对话框。
+服务进程不能在用户桌面上直接显示界面，  
+新系统在 ~~服务管理器中勾选 【允许与桌面交互】~~ 是无效的。  
+但可以通过 service.msgbox() 等函数向用户桌面发送对话框。
 
-编写服务程序,可以调用fsys.log输出日志文件记录运行状态以及错误信息
-</pre>
+记录运行时数据或错误信息的一些方法：
+- 使用 fsys.log 读写日志文件
+- 简单写数据到文件可以使用 io.file.write 或 string.save 函数
+- 可使用 JSON.save  函数将对象以 JSON 格式输出到文件。
+*/
 
-</body>
-</html>
-**/
+import string.markdown;
+var markdown = string.markdown();
+
+wb.body.outerHTML = markdown.render(md);
 
 winform.getTemplatePath = function(){
 	return io.fullpath("/template/service/") 

@@ -1,5 +1,5 @@
 ﻿import fsys;
-import web.json;
+import JSON;
 
 namespace fsys.asar;
 
@@ -39,7 +39,7 @@ class writer{
 		var count = 0;
 		for(i=#t;1;-1){
 			var f = lower(t[i]);  
-			if((f===path) || (..string.startWith(f,dir) )){
+			if((f===path) || (..string.startsWith(f,dir) )){
 				..table.remove(t,i); 
 				this.map[f] = null;
 				count++;
@@ -57,7 +57,7 @@ class writer{
 		for(path,size,progress in this.eachPack(asarpath)){}
 	};
 	eachPack = function(asarpath,buf){
-		if(! ( asarpath ?..string.endWith(asarpath,".asar",true) ) )
+		if(! ( asarpath ?..string.endsWith(asarpath,".asar",true) ) )
 			error("文件后缀名必须是 .asar",2);
 			
 		return ..fiber.generator(this.eachPackeFiber,asarpath,buf);
@@ -168,7 +168,7 @@ class writer{
 			return null;
 		}
 		
-		var json = ..web.json.stringify(info);
+		var json = ..JSON.stringify(info);
 		var header = {
 			struct headerSize = {
 				INT pickleOjectSize = 4;

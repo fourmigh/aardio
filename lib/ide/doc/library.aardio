@@ -81,12 +81,16 @@ class library{
             this.filePath = "~\lib\" + libPath;
         }
         
+        this.documentPath = ..string.replace(this.filePath,"^~\\lib\\(.+)\.aardio$","/library-reference/\1.md")
+        this.documentPath = ..string.replace(this.documentPath,"\\","/");
+        
         if(libPath) {
-            if( ..string.endWith(libPath,"_.aardio") ) { 
+            
+            if( ..string.endsWith(libPath,"_.aardio") ) { 
                 libPath = ..string.left(libPath,-10);
                 this.fileName = libPath + "/_";
             }
-            elseif( ..string.endWith(libPath,".aardio") ) {
+            elseif( ..string.endsWith(libPath,".aardio") ) {
                 libPath = ..string.left(libPath,-8);
                 this.fileName = libPath;
             }
@@ -118,7 +122,7 @@ class library{
             this.libPath = "";
             this.sections[""] = createList( this,str,"");
         }
-        
+ 
         _,this.detailsSummary,this.details  = ..string.match( str,"/(**)details\((.*?)\)(.+?)end details\1/")
         
         this.guide  = ..string.match(str,"\n\s*//@\s*guide\s+(\N+)");
@@ -135,7 +139,6 @@ class library{
         		}
         	} 
         }
-        
         
         if( this.sections[""] ? ( !..table.next(this.sections[""]) ) ) this.sections[""] = null;
         if( !..table.next(this.const) ) this.const = null;
@@ -162,7 +165,7 @@ namespace library{
             }
         }  
                 
-        if( ..string.startWith(name,"std") ) name = ..string.right(name,-4);
+        if( ..string.startsWith(name,"std") ) name = ..string.right(name,-4);
         return name;
     }
     
@@ -280,7 +283,10 @@ namespace library{
                 	obj = camelObjectName( obj );
                 	v = h;
                 	if(#v) v = v ++ '  \r\n';
-                	v = ..string.concat(v,`[返回对象:` + obj + "]("+(redirectObjectPath[obj]||"")+"#" + obj + ")" );
+                	
+                	var objLink = redirectObjectPath[obj];
+                	objLink = (#objLink && objLink!==this.documentPath)?objLink:""
+                	v = ..string.concat(v,`[返回对象:` + obj + "]("+objLink+"#" + obj + ")" );
                 }
             }
             
@@ -299,11 +305,16 @@ namespace library{
                 v =  ..string.replace(v,"__","");
                 v =  '\r\n\r\n```aardio\r\n' +v + '\r\n```\r\n\r\n';
             }
-            elseif( ..string.startWith(v,"class ") ){
+            elseif( ..string.startsWith(v,"class ") ){
             	v =  '\r\n\r\n```aardio\r\n' +v + '\r\n```\r\n\r\n';
             }
             elseif( !..string.find(v,":") ){
-            	v =  '\r\n\r\n```aardio\r\n' +v + '\r\n```\r\n\r\n';
+                if(..string.find(v,'\n')){
+             		v =  '\r\n\r\n```aardio\r\n' +v + '\r\n```\r\n\r\n';               	
+                }
+				else if(!..string.find(v,'`')){
+            		v =  '`' +v + '`';
+				}			
             }
             else { 
                 k = ..string.replace(k,"@'\x80'","`'\x80'`");
@@ -390,10 +401,16 @@ namespace library{
     }	 
     
     redirectObjectPath = {
+        inetHttpObject="/library-reference/inet/http.md";
 		WebSocketJsonClientObject="/library-reference/web/socket/jsonClient.md";
 		asynHttpServerObject="/library-reference/wsock/tcp/asynHttpServer.md";
 		dllModuleObject="/library-reference/raw/_.md";
 		dotNetNameSpaceObject="/library-reference/dotNet/appDomain.md";
+		dotNetCrlAssemblyObject="/library-reference/dotNet/appDomain.md";
+		dotNetCrlArrayListObject="/library-reference/dotNet/appDomain.md";
+		dotNetCompilerObject="/library-reference/dotNet/appDomain.md";
+		dotNetDelegateObject="/library-reference/dotNet/appDomain.md";
+		dotNetDictionaryObject="/library-reference/dotNet/appDomain.md";
 		editObject="/library-reference/win/ui/ctrl/edit.md";
 		embedObject="/library-reference/com/_.md";
 		fileObject="/library-reference/io/_.md";
@@ -410,6 +427,8 @@ namespace library{
 		processPopenObject="/library-reference/process/popen.md";
 		rectObject="/library-reference/global/_.md";
 		rectfObject="/library-reference/gdip/core.md";
+		pointObject="/library-reference/global/_.md";
+		pointObject="/library-reference/gdip/core.md";
 		staticObject="/library-reference/win/ui/ctrl/static.md";
 		tcpaclientObject="/library-reference/wsock/tcp/asynClient.md";
 		tcpclientObject="/library-reference/wsock/tcp/client.md";
@@ -421,6 +440,7 @@ namespace library{
 		winform="/library-reference/win/ui/_.md";
 		py3Object="/library-reference/py3/object.md"; 
 		py2Object="/library-reference/py2/object.md"; 
+		fsysMultipartFormDataObject="/library-reference/fsys/multipartFormData.md"; 
 	}
 }
 
@@ -439,4 +459,5 @@ end intellisense*/
 !libDocument.fileName = 移除后缀名的库文件相对路径
 !libDocument.filePath = 库文件路径
 !libDocument.libPath = 名字空间路径
+!libDocument.documentPath = 以"/library-reference/"开始的库参考文档路径
 end intellisense**/

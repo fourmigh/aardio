@@ -19,6 +19,13 @@ console.log(stamp);
 var stamp = tonumber( time() );
 console.log(stamp); 
 
+//注意同一时间无论是转换为 UTC 还是本地时间，时间戳是不变的。
+var localTime = time();
+var utcTime = localTime.utc(true);
+console.log(localTime) //显示不同的时间
+console.log(utcTime) //显示不同的时间
+console.log(utcTime == localTime,"时间戳是相等的")
+
 //Unix 时间戳，返回字符串，以毫秒为单位
 var fileTime = fsys.time().now();
 var stamp = fileTime.stamp(true);

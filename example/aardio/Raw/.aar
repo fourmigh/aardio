@@ -4,3 +4,5 @@
 结构体二级指针=raw.argsPointer.aardio
 静态内存结构体=raw.struct.aardio
 API 钩子=raw.apiHook.aardio
+汇编机器码=asm.aardio
+二进制比较=memcmp.aardio

@@ -38,7 +38,6 @@
 		</folder>
 		<folder name="images" path="forms\images" comment="forms\images">
 			<file name="console.jpg" path="forms\images\console.jpg" comment="forms\images\console.jpg"/>
-			<file name="electron.jpg" path="forms\images\electron.jpg" comment="forms\images\electron.jpg"/>
 			<file name="htmlayout.jpg" path="forms\images\htmlayout.jpg" comment="forms\images\htmlayout.jpg"/>
 			<file name="winform.jpg" path="forms\images\winform.jpg" comment="forms\images\winform.jpg"/>
 		</folder>
@@ -58,7 +57,6 @@
 			<file name="chromeApp.aardio" path="forms\web\chromeApp.aardio" comment="forms\web\chromeApp.aardio"/>
 			<file name="htmlayout.aardio" path="forms\web\htmlayout.aardio" comment="forms\web\htmlayout.aardio"/>
 			<file name="webform.aardio" path="forms\web\webform.aardio" comment="forms\web\webform.aardio"/>
-			<file name="sciter.aardio" path="forms\web\sciter.aardio" comment="forms\web\sciter.aardio"/>
 			<file name="view.aardio" path="forms\web\view.aardio" comment="forms\web\view.aardio"/>
 		</folder>
 		<folder name="winform" path="forms\winform" comment="forms\winform" local="false" embed="false" ignored="false">

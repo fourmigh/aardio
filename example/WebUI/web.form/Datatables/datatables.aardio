@@ -12,7 +12,7 @@ static={cls="static";text="可单击编辑姓名、状态值";left=353;top=698;r
 import web.form; 
 var wb = web.form(winform.lbBrowser);
 
-import web.json;
+import JSON;
 wb.external = {
 	getData = function(){
 		var data = {
@@ -30,13 +30,19 @@ wb.external = {
             } 
 		}
 		
-		//转换为纯 JS 对象
+		/*
+        转换为纯 JS 对象。
+        只有 web.form 控件里才需要使用 wb.jsObject 以解决 IE 内核的 JSON 兼容问题。
+
+        web.view 控件里则可以直接返回 JSON.stringify(data) 并在网页中使用 JSON.parse(result) 转换为 JS 对象。
+        web.view 控件用 wb.export 导出的本地 aardio  函数则会自动使用 JSON 转换参数与返回值。
+        */
 		return wb.jsObject(data,true);
 	};
 } 
 
 winform.button.oncommand = function(id,event){
-	wb.script.reloadData(web.json.stringifyArray({
+	wb.script.reloadData(JSON.stringifyArray({
         {
             "id": "001",
             "name": "李一二三",

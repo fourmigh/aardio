@@ -1,6 +1,6 @@
 ﻿//app 执行更新程序
 import thread.command;
-import web.json;
+import JSON;
 
 namespace fsys.update;
 
@@ -14,7 +14,7 @@ class app {
 		
 		var updateInfo = ..string.load( ..io.joinpath(srcDir,"update-info") );
 		if(updateInfo){
-			this[["updateInfo"]] = ..web.json.tryParse(updateInfo);
+			this[["updateInfo"]] = ..JSON.tryParse(updateInfo);
 		};
 	};
 }

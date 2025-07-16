@@ -45,8 +45,8 @@ namespace win.api{}
 ::SetCursor = ::User32.api("SetCursor","int(ptr hCur)")
 ::DestroyIcon = ::User32.api("DestroyIcon","int(ptr hIcon)")
 ::DestroyCursor = ::User32.api("DestroyCursor","int(ptr hCursor)")
-::GetClassInfoEx = ::User32.api("GetClassInfoEx", "int(ptr,utf16,struct&)")
-::RegisterClassEx = ::User32.api( "RegisterClassEx", " word(struct wc) " )  
+::GetClassInfoEx = ::User32.api("GetClassInfoEx", "int(ptr,ustring,struct&)")
+::RegisterClassEx = ::User32.api( "RegisterClassEx", "word(struct wc) " )  
 /*end intellisense*/
 
 ::GetAsyncKeyState := ::User32.api("GetAsyncKeyState","word(int vKey)" );

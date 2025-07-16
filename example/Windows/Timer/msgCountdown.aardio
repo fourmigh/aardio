@@ -1,0 +1,32 @@
+import fonts.fontAwesome;
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="倒计时提示框演示";right=757;bottom=467;bgcolor=0x808080)
+winform.add()
+/*}}*/
+
+import win.dlg.message;
+//更多 win.dlg.message 范例:  file://~/example/plus/msg.aardio
+var msgDlg = win.dlg.message(winform); 
+
+var countdown = 5; // 倒计时5秒
+var dialog = msgDlg.create("倒计时: " + countdown + " 秒",,true)
+dialog.progress.setProgressRange(0,countdown);//设置进度条区间
+dialog.progress.progressPos = countdown;//设置进度条位置
+dialog.icon.font = LOGFONT(name='FontAwesome';h=-37);//自定义图标字体
+dialog.icon.text = '\uF017';//clock-o 图标
+
+// 设置定时器更新倒计时
+dialog.setInterval(1000, function(){
+    countdown = countdown - 1;
+    if(countdown <= 0){
+        dialog.close(); // 关闭弹窗
+        return false; // 停止定时器
+    }
+    
+    dialog.message.text = "倒计时: " + countdown ++ " 秒";
+    dialog.progress.progressPos = countdown;//更新进度条位置
+});
+    		
+winform.show() 
+win.loopMessage();

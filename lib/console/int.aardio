@@ -37,7 +37,7 @@ class int{
 	..thread.lock("console.ctrlHandler{C18CF52E-FC08-44C2-BE78-67959680F1AE}"
 		,function(){
 			var hwnd = ..console.getWindow();
-			if( hwnd && ::User32.IsWindowVisible(hwnd)){
+			if( hwnd && ::User32.IsWindowVisible(hwnd) && !..console[["pausedOnce"]]){
 				..console.pause();
 				..io.close();
 			}	

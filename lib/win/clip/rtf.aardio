@@ -3,7 +3,7 @@ namespace win.clip;
 
 namespace rtf{
 
-	format = ::User32.RegisterClipboardFormat("RTF"); 
+	format = ::User32.RegisterClipboardFormat("Rich Text Format"); 
  
 	read = function(){
 		var buf;

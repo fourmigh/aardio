@@ -1,4 +1,6 @@
-搜索类名=meta_class.aardio
-监视进程=SWbemSink.aardio
+﻿WMI 查询入门=query.aardio
+WMI 事件/监视进程=SWbemSink.aardio
+CIM 时间=CIM_DATETIME.aardio
 获取系统信息=SysInfo.aardio
+搜索类名=meta_class.aardio
 RUNAS//系统账号管理=UserAccount.aardio

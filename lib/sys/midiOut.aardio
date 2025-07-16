@@ -62,9 +62,10 @@ class midiOut{
 		return ::Winmm.midiOutShortMsg(this.handle
 			,(i << 8 ) | 0xC0 | (channel:this.channel:0)) );
 	};
-	afterTouch = function(pitch,touch,channel){
+	afterTouch = function(pitch,pressure,channel){
+		if(type(pitch)=="string") pitch = parseNotes(pitch)[1];
 		return ::Winmm.midiOutShortMsg(this.handle
-			,(touch << 16 ) | (pitch << 8 ) | 0xA0 | (channel:this.channel:0)) );
+			,(pressure << 16 ) | (pitch << 8 ) | 0xA0 | (channel:this.channel:0)) );
 	};
 	channelPressure = function(pressure,channel){
 		return ::Winmm.midiOutShortMsg(this.handle
@@ -272,7 +273,7 @@ namespace midiOut{
 		..table.assign(numNotes,notes,octaves);
 		numNotes["0"] = {"reset"};
 		
-		var ret = {};
+		var ret = [];
 		var methodParams;
 		for(k,v in items){
 			if(!#v) continue;
@@ -365,11 +366,33 @@ namespace midiOut{
 		
 		return ret;
 	};
+	
+	parseNotesToFrequency = function(exp,duo,delay){
+		var notes = parseNotes(exp,duo,delay);
+		
+		var r = []
+		var d,f = 0;	
+		for(k,v in notes){
+			if( type(v) == "number"){
+				if(v>127) d+=v; //计算当前音符的延时
+				else{ 
+					if(d ) ..table.push(r,{freq=f,duration=d}); //保存当前音符  
+					f = (v>0) ? ..math.round(440 * 2**((v - 69) / 12)): 0 ;//记录下一个音符
+					d = 0; //计算下一个音符的延时
+				} 
+			}
+		}
+		
+		if(d ) ..table.push(r,{freq=f,duration=d});  
+		return r;
+	}
 }
 
+//@guide [使用编程记谱法合成音乐](doc://library-guide/std/sys/midiOut.md)
+
 /**intellisense()
-sys.midiOut = MIDI 音乐输出设备操作\n[教程链接](https://mp.weixin.qq.com/s/Feq3dT7r7G6F0cXlpXpRZQ)
-sys.midiOut( = 打开 MIDI 音乐输出设备。\n成功返回设备对象，失败返回 null,错误信息。\n返回的设备对象可传到其他线程，或复制多个副本对象，\n副本对象可指定不同的 channel 属性，\n并可调用 changeInstrument 函数切换不同的乐器，\n可实现多线程多乐器多通道合奏\n\n在同一进程中如果未关闭设备则不能重复打开，\n不同进程可以打开同一设备
+sys.midiOut = MIDI 音乐输出设备
+sys.midiOut( = 打开 MIDI 音乐输出设备。\n成功返回设备对象，失败返回 null，错误信息。\n返回的设备对象可传到其他线程，或复制多个副本对象，\n副本对象可指定不同的 channel 属性，\n并可调用 changeInstrument 函数切换不同的乐器，\n可实现多线程多乐器多通道合奏\n\n在同一进程中如果未关闭设备则不能重复打开，\n不同进程可以打开同一设备
 sys.midiOut(.(deviceId,callback,flags) = 打开 MIDI 输出设备。\n所有参数都可以省略，一般不需要了解，用法细节请查看源码。\n\n可选用 @deviceId 指定设备 ID\n设备 ID 从 0 开始且小于 sys.midiOut.numDevice 函数返回值，\n省略则为默认值 -1，也就是 _MIDI_MAPPER
 sys.midiOut(.(sysMidiOutObject) = 参数指定其他 sys.midiOut 对象，\n返回复制的副本对象。\n副本对象可指定不同的 channel 属性，\n并可调用 changeInstrument 函数切换不同的乐器
 sys.midiOut.eachDevice() =  @for deviceId,capabilities in sys.midiOut.eachDevice(){
@@ -379,6 +402,7 @@ sys.midiOut() = !sysMidiOut.
 sys.midiOut.notes = 定义了全部音符的名字空间，\n键为 SPN 音名，值为音高（pitch）。\n音名中的 -1 省略，升号 ♯（Sharp） 用小写 s 替代。\n例如：C-1♯ 略写为 Cs\n\n可用 namespace sys.midiOut.notes { } 语句打开此名字空间使用音名\n\n此名字空间还包含所有音名的小写音名，\n小写音名为对应音高取负并减 1。\n正值作为音符参数传给 note 函数演奏该音符，\n负值作为音符参数传给 note 函数停止演奏对应音符\n\n此名字空间的下划线 _ 的值为 250，\n传入 note,xcal 等函数可延时 250 毫秒
 sys.midiOut.parseNotes( = 解析字符串格式乐谱并返回 play 函数支持的音符数组，\n所有音符或指令使用逗号、竖线、换行之一分开，忽略空格与制表符。\n不符合格式要求的项一律作为字幕传给 log 函数输出
 sys.midiOut.parseNotes(.(notes,do,delay) = 解析字符串格式乐谱并返回 play 函数支持的音符数组。\n参数 @notes 指定一个字符串，\n在字符串中所有音符或指令使用逗号、竖线、换行之一分开，忽略空格与制表符。\n除了支持 sys.midiOut.notes 定义的全部音名，\n也可以使用简谱记号 1,2,3,4,5,6,7 表示音符，\n数字音符后加 N（小于 5 ）个单引号表示提高 N 个八度音，\n数字音符前加 N（小于 5 ）个单引号表示降低 N 个八度音。\n数字音符前再加 # 号表示升高半个音，0 为休止符。\n下划线则表示一个延时单位，其他数值也表示延时（毫秒），\n前面的音符（或下划线）与后面的下划线可以连起来写。\n双下划线 ‗ 表示 _ 的延时取半，多个 ‗ 不能连着写。\n支持函数语法，例如 "1,delay(120)" \n\n如果 @notes 为字符串，可选用 @duo 参数指定 1 音的音高，默认为"C4"，\n可选用 @delay 参数指定下划线表示的延时单位，默认 250 毫秒
+sys.midiOut.parseNotesToFrequency(.(notes,do,delay) = 首先将调用参数传给 sys.midiOut.parseNotes 函数并取得返回值。\n然后将返回值转换为包含频率（freq）与时长（duration）字段的对象数组。\n可将所有频率与时长顺序传给 ::Kernel32.Beep 函数作为调用参数以播放声音。
 end intellisense**/
 
 /**intellisense(!sysMidiOut)
@@ -397,8 +421,8 @@ noteOff(.(pitch,velocity,channel) = 停止演奏音符\n@pitch 可用 0~127 范�
 note( = 演奏或停止演奏
 note(.(pitch,velocity,channel) = 演奏或停止演奏\n@pitch 如果指定 0~127 范围的值指定音高，则演奏指定音符。\n如果指定 -1~-128之间的值，则取正数并减一，然后停止演奏音高的音符。\n@velocity 指定按键速度（音量强度），可指定 0~127 范围的值。\n@channel 可用 0~16 范围的值指定通道，省略则默认为 0
 changeInstrument(.(instrument,channel) = 切换乐器,\n@instrument 指定乐器编号，可选编号为 0~127 范围的值。\n乐器编号就搜索 MIDI 资料。\n@channel 可用 0~16 范围的值指定通道，省略则默认为当前通道。\n注意指定 @channel 并不会修改当前通道
-afterTouch(.(pitch,touch,channel) = 触后效果，\n指击键后通过改变对键盘的压力来改变音色符\n@pitch 可用 0~127 范围的值指定音高。\n@channel 可用 0~16 范围的值指定通道，省略则默认为当前通道。\n注意指定 @channel 并不会修改当前通道
-channelPressure(.((pressure,channel) = 触后通道压力\n@pressure 指定压力，\n可选用 @channel 指定通道，省略则默认为当前通道
+afterTouch(.(pitch,pressure,channel) = 单个按键的触后效果，\n指击键后通过改变对键盘的压力来改变音色符。\n@pitch 用字符串指定数字音符或 SPN 音名，也可用 0~127 范围的值直接指定音高。\n@pressure 指定压力，可指定  0~127 范围的值。\n@channel 可用 0~16 范围的值指定通道，省略则默认为当前通道。\n注意指定 @channel 并不会修改当前通道
+channelPressure(.((pressure,channel) = 所有按键的触后通道压力。\n@pressure 指定压力，可指定  0~127 范围的值。\n可选用 @channel 指定通道，省略则默认为当前通道
 cc(.(number,value,channel) = 发送 CC（Continuous controller） 消息\n@number 指定编号，@value 指定值，\n可选用 @channel 指定通道，省略则默认为当前通道。\n注意指定 @channel 并不会修改当前通道
 pitchBend(.(value,channel) = 调整弯音轮\n@value 用一个小数指定音高弯曲比例。\n0 ~ 0.5 表示向下弯曲，0.5 ~ 1 表示向上弯曲
 pitchBend2(.(value,channel) = 调整弯音轮\n@value 用 14 位整数指定 0~16383 范围的音高弯曲值。\n0表示向下弯曲2个半音，16383表示向上弯曲2个半音

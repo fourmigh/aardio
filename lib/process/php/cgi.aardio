@@ -13,7 +13,7 @@ class cgi{
 		var env = request.environ;
 		env.REDIRECT_STATUS = 200;
 		env.PHP_SELF = env.PATH_INFO;
-		if( ..string.endWith(env.PATH_INFO,".php",true) ){
+		if( ..string.endsWith(env.PATH_INFO,".php",true) ){
 			env.SCRIPT_NAME =  env.PATH_INFO;
 			env.SCRIPT_FILENAME = env.PATH_TRANSLATED;
 		}
@@ -37,7 +37,7 @@ class cgi{
 		var httpHeaders;
 		while( var char = prcs.stdOut.read(1) ) { 
 			strHeaders = strHeaders ++ char;
-			if(..string.endWith(strHeaders,'\r\n\r\n')){
+			if(..string.endsWith(strHeaders,'\r\n\r\n')){
 				strHeaders = ..string.left(strHeaders,-5);
 				httpHeaders = ..string.splitEx(strHeaders,"\r\n"); 
 				break;

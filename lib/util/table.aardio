@@ -9,9 +9,10 @@ var next = ..table.next;
 var eachName = ..table.eachName;
 var mixin = ..table.assign;
 var join = ..string.join;
-
 var stringfyValue, stringifyTable;
-stringfyValue = function(v,keys,objreferences,prettyPrintLevel,prettyPrintIndent){
+
+var hexFields = {bgcolor:1,color:1,forecolor:1,iconColor:1}
+stringfyValue = function(k2,v,keys,objreferences,prettyPrintLevel,prettyPrintIndent){
 	var tv = type(v); 
 	
 	if( tv == "table" ){
@@ -33,14 +34,15 @@ stringfyValue = function(v,keys,objreferences,prettyPrintLevel,prettyPrintIndent
 	}
 	
 	select(tv) {
+		case "number"{ 
+			if !hexFields[k2] return ..math.stringify(v);
+			return ..string.format("0x%06X",v )
+		} 
 		case "string" {
 			var es = escape(v);
 			if(es) return "'" + es + "'"; 
 			return '"' ++ v ++ '"';
 		}
-		case "number"{ 
-			return ..math.stringify(v);
-		} 
 		case "boolean"{
 			return tostring(v);
 		} 
@@ -59,7 +61,7 @@ stringifyTable = function(t,keys,prettyPrintLevel,prettyPrintIndent,objreference
 	
 	if( ! next(t) ){
 		if(t@[["_type"]]=="array"){
-			return `{ @{_type="array"} }`;
+			return `[]`;
 		}
 		return "{}";
 	}
@@ -77,26 +79,47 @@ stringifyTable = function(t,keys,prettyPrintLevel,prettyPrintIndent,objreference
 		CRLF = '\r\n';
 		prettyPrintLevel = -1;
 	}
+	
+	var isArrayType = ..table.isArray(t);
+	var arrayLength = ..table.len(t);
 
- 	var s = { "{";CRLF };
-	for k,v in eachName(t, ,keys ? mixin({},keys) ){
-		if( ! ( math(k,"^[\a_]\w*$")  || math(k,"^:+\w*$") ) ){
-			var es = escape(k);
-			k = es ? "['" + es + "']" : '["' + k + '"]'
+ 	var s = { isArrayType ? "[":"{";CRLF };
+ 	
+ 	if(isArrayType){
+ 		for k,v in eachName(t, ,keys ? mixin({},keys) ){
+			if( ! ( math(k,"^[\a_]\w*$")  || math(k,"^:+\w*$") ) ){
+				var es = escape(k);
+				
+				k = es ? "'" + es + "'" : '"' + k + '"'
+			}
+			v = stringfyValue(k,v,keys,objreferences,prettyPrintLevel,prettyPrintIndent);
+			if(v){  push( s,curIndent,k,":",v,",",CRLF); }
 		}
-		v = stringfyValue(v,keys,objreferences,prettyPrintLevel,prettyPrintIndent);
-		if(v){  push( s,curIndent,k,"=",v,";",CRLF); }
-	}
-	
-	if( s[#s-1] == ";" ) pop(s,2);
-	
+		
+		if( s[#s-1] == "," && !arrayLength ) pop(s,2); 	
+ 	}
+ 	else {
+		for k,v in eachName(t, ,keys ? mixin({},keys) ){
+			if( ! ( math(k,"^[$\a_]|<:><\w|<:>>*$") ) ){
+				var es = escape(k);
+				
+				k = es ? "['" + es + "']" : '["' + k + '"]'
+			}
+			v = stringfyValue(k,v,keys,objreferences,prettyPrintLevel,prettyPrintIndent);
+			if(v){  push( s,curIndent,k,"=",v,";",CRLF); }
+		} 
+		
+		if( s[#s-1] == ";" && !arrayLength ) pop(s,2);	
+ 	}
+ 	
+
 	var singleLine = 1;  
-	for(i=1;..table.len(t);1){ 
+	for(i=1;arrayLength;1){ 
 		if(type(t[i])=="table") {
 			singleLine = 0;
 			break;
 		}
-	}
+	} 
 
 	if(singleLine){
 		if(#s==2) {
@@ -107,18 +130,18 @@ stringifyTable = function(t,keys,prettyPrintLevel,prettyPrintIndent,objreference
 			push(s,curIndent);
 		}
 		
-		for(i=1;..table.len(t);1){ 
-			push( s,stringfyValue(t[i],keys,objreferences,prettyPrintLevel,prettyPrintIndent),";");
+		for(i=1;arrayLength;1){ 
+			push( s,stringfyValue(i,t[i],keys,objreferences,prettyPrintLevel,prettyPrintIndent),",");
 		} 
 		
-		if( s[#s] == ";" ) pop(s,1);
+		if( s[#s] == "," ) pop(s,1);
 	}
 	else{
-		for(i=1;..table.len(t);1){ 
-			push( s,curIndent,stringfyValue(t[i],keys,objreferences,prettyPrintLevel,prettyPrintIndent),";",CRLF);
+		for(i=1;arrayLength;1){ 
+			push( s,curIndent,stringfyValue(i,t[i],keys,objreferences,prettyPrintLevel,prettyPrintIndent),",",CRLF);
 		}
 		
-		if( s[#s-1] == ";" ) pop(s,2);
+		if( s[#s-1] == "," ) pop(s,2);
 	}
 	 
 	if(prettyPrintLevel > 0 ){
@@ -127,10 +150,10 @@ stringifyTable = function(t,keys,prettyPrintLevel,prettyPrintIndent,objreference
 	}
 	
 	if(singleLine<2){
-		push( s,CRLF,curIndent,"}");
+		push( s,CRLF,curIndent,isArrayType ? "]":"}");
 	}
 	else {
-		push( s,"}");
+		push( s, isArrayType ? "]":"}");
 	}
 	
 	return join(s);

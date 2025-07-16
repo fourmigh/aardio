@@ -158,9 +158,9 @@ cdeclCallback = raw.tocdecl( function(a,b){
 
 ## 九、示例程序：在 WinAPI 函数中使用回调函数枚举桌面窗口
 
-枚举与遍历桌面软件可以直接使用标准库函数 [winex.enum](../../std/winex/winex.md#enum), [winex.each](../../std/winex/winex.md#each) 更方便一些。
+枚举与迭代桌面窗口可以直接使用标准库函数 [winex.enum](../../std/winex/winex.md#enum), [winex.each](../../std/winex/winex.md#each) 更方便一些。
 
-WinAPI 回调函数使用 stdcall 约定,stdcall 是调用外部函数时使用最普遍的调用约定。
+Windows API 回调函数使用 stdcall 约定,stdcall 是调用 DLL 动态链接库导出函数时最常用的调用约定。
 
 调用 ::User32.EnumWindows 枚举桌面窗口示例：
   

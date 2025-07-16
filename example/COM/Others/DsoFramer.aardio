@@ -6,17 +6,20 @@ DsoFramer 是微软开源的控件用于嵌入 Word、 Excel、 PPT 文档，
 
 但是要注意微软已经不维护这个控件了，
 如果你还有更多的改进想法，可自行到网上下载 DsoFramer 源码并进行改进。
+
+推荐改用免费开源不依赖 Office 的 ReoGrid 控件：
+https://www.aardio.com/zh-cn/doc/library-guide/ext/dotNet/ReoGrid/
 */
 import win.ui;
 /*DSG{{*/
-mainForm = win.form(text="dsoFrame控件测试";right=1191;bottom=769;bgcolor=16448250)
+mainForm = win.form(text="dsoFrame控件测试";right=1191;bottom=769;bgcolor=0xFAFAFA)
 mainForm.add(
 btnExcel={cls="button";text="创建表格";left=40;top=710;right=162;bottom=755;db=1;dl=1;z=2};
 button={cls="button";text="打开文档、表格、或幻灯片";left=187;top=711;right=384;bottom=756;db=1;dl=1;z=6};
-chkMenubar={cls="checkbox";text="显示菜单栏";left=613;top=721;right=716;bottom=748;bgcolor=16448250;z=3};
-chkTitlebar={cls="checkbox";text="显示标题栏";left=930;top=721;right=1033;bottom=748;bgcolor=16448250;z=5};
-chkToolbars={cls="checkbox";text="显示工具条";left=771;top=721;right=874;bottom=748;bgcolor=16448250;z=4};
-custom={cls="custom";text="自定义控件";left=0;top=7;right=1186;bottom=690;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;z=1}
+chkMenubar={cls="checkbox";text="显示菜单栏";left=613;top=721;right=716;bottom=748;bgcolor=0xFAFAFA;z=3};
+chkTitlebar={cls="checkbox";text="显示标题栏";left=930;top=721;right=1033;bottom=748;bgcolor=0xFAFAFA;z=5};
+chkToolbars={cls="checkbox";text="显示工具条";left=771;top=721;right=874;bottom=748;bgcolor=0xFAFAFA;z=4};
+custom={cls="custom";text="自定义控件";left=0;top=7;right=1186;bottom=690;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;z=1}
 )
 /*}}*/
 
@@ -36,8 +39,21 @@ dsoFrame.OnDocumentOpened = function( path, document){
 
 mainForm.btnExcel.oncommand = function(id,event){
 	dsoFrame.createNewExcel();
-	dsoFrame.activeDocument.Sheets(1).Cells(1,1).Value2 = "测试一下"; 	
 	
+	dsoFrame.activeDocument.Sheets[1].Cells[1,1].Value = "测试一下"; 
+	/*
+	dsoFrame.activeDocument 的用法请参考：
+	
+	Word 文档对象：
+	https://learn.microsoft.com/en-us/office/vba/api/word.document
+	
+	Excel 文档对象： 
+	https://learn.microsoft.com/en-us/office/vba/api/excel.workbook
+	
+	PowerPoint 文档对象： 
+	https://learn.microsoft.com/en-us/office/vba/api/powerpoint.presentation
+	*/	
+
 	//监听文档事件
 	com.Connect(dsoFrame.activeDocument,{ 
 		SheetSelectionChange = function(sheet,targetRange){
@@ -79,17 +95,6 @@ mainForm.button.oncommand = function(id,event){
 	}
 }
 
-/*
-dsoFrame.activeDocument 的用法：
 
-Word 文档对象请参考：
-https://docs.microsoft.com/en-us/office/vba/api/word.document
-
-Excel 文档对象请参考： 
-https://docs.microsoft.com/en-us/office/vba/api/excel.workbook
-
-PowerPoint 文档对象请参考： 
-https://docs.microsoft.com/en-us/office/vba/api/powerpoint.presentation
-*/
 return win.loopMessage();
  

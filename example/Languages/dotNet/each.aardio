@@ -1,0 +1,50 @@
+//在 aardio 中使用 .NET 数组
+//.NET 下标: doc://example/Languages/dotNet/Item.html
+//.NET 多项索引: doc://example/Languages/dotNet/Multidimensional-Array.html
+
+
+import dotNet; 
+var compiler = dotNet.createCompiler("C#");
+compiler.Source = /***
+namespace CSharpLibrary  
+{   
+    public class Object  
+    {      
+        
+		public static object[] GetObjectArray()
+		{   
+    		return new object[] 
+    		{
+        		 new object[] { 123, "str", true },
+        		 new object[] { 456, "字符串", true }
+    		}; 
+                        
+		}
+    }   
+} 
+***/
+ 
+compiler.import("CSharpLibrary"); 
+
+//获取 .NET 数组，object 类型数组不会自动转换为 aardio 数组
+var netArray = CSharpLibrary.Object.GetObjectArray();
+ 
+/*
+所有 .NET 对象在 aardio 中都会多一个 each 方法用于创建迭代器。
+注意，并非所有集合对象都支持迭代接口（大多数是支持的）。
+*/
+for i,v in netArray.each() {
+	//注意第一个迭代变量 i 是序号，第二个迭代变量 v 才是当前迭代的值。
+	print(i,v) //在这里 i 是数组索引（起始索引为 1），v 是数组值。
+}
+ 
+/*
+如果不确定 netArray 是否 .NET 对象，可以改用效果相同的 dotNet.each，
+dotNet.each 对普通数组调用 table.eachIndex 创建迭代器。
+对于 .NET 对象则调用对象的 each 方法。
+对于 COM 对象则调用 com.each 创建迭代器。
+*/
+for i,v in dotNet.each(netArray) {
+	//注意第一个迭代变量 i 是序号，第二个迭代变量 v 才是当前迭代的值。
+	print(i,v)	
+}

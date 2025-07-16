@@ -101,7 +101,7 @@ class IconDirEntry{
 queryIconFromResource = function(iconData,fIcons,queryProc,flags){ 
 	if( fIcons === null ) fIcons = true; 
 	if ( (#iconData <= 0x410/*_MAX_PATH_U8*/ ) ) {
-		if( ( ..string.endWith(iconData,".ico",true) || ..string.endWith(iconData,".cur",true) ) ) { 
+		if( ( ..string.endsWith(iconData,".ico",true) || ..string.endsWith(iconData,".cur",true) ) ) { 
 			iconData = ..string.load( iconData ); 
 		}
 	} 

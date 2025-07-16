@@ -6,38 +6,155 @@ class regex{
 	ctor(pattern){
 		this = ..com.CreateObject("{3F4DACA4-160D-11D2-A8E9-00104B365C9F}")  ;
 		this.Pattern = pattern; 
-		this.global = 1;
+		this.Global = true;
 	}; 
 	gmatch = function(str,pattern){
+		this.Global = true;
 		if(pattern) this.Pattern = pattern;
 		var colMatches = this.Execute(str); 
 		return ..com.each(colMatches)  
-	}
+	};
+	match = function(str,pattern){
+		this.Global = false;
+		if(pattern) this.Pattern = pattern;
+		var colMatches = this.Execute(str);  
+		if(colMatches && colMatches.Count){
+			return colMatches[0];
+		}
+	};
 	find = function(str,pattern){
 		if(pattern) this.Pattern = pattern
 		return this.Test(str);
+	};
+	replace = function(str,pattern,replStr){
+		this.Global = true;
+		if(pattern) this.Pattern = pattern;
+		return this.Replace(str,replStr);  
+	};
+}
+
+namespace regex{
+	
+	gmatch = function(str, pattern) {
+		var re = ..string.regex(pattern)
+		var next = re.gmatch(str); 
+		return function(){
+			var m = next();
+			
+			if(!m) {
+				..com.Release(re)
+				return;
+			}
+			
+			var matches = m.SubMatches;
+			var count = m.SubMatches.Count;
+			if(count){
+				var result = {}
+				for(i=0;i<count;i++){
+					..table.push(result,matches[i]);
+				}
+				
+				..com.Release(matches); 
+				..com.Release(m); 
+				
+				return ..table.unpack(result);
+			}
+				
+			var result = m.Value;
+			..com.Release(matches); 
+			..com.Release(m); 
+				
+			return result;
+		}
+		
+	}
+	
+	match = function(str, pattern) {
+		var re = ..string.regex(pattern)
+		var m = re.match(str); 
+		if(!m) {
+			..com.Release(re)
+			return;
+		}
+		
+		var matches = m.SubMatches;
+		var count = m.SubMatches.Count;
+		if(count){
+			var result = []
+			for(i=0;i<count;i++){
+				..table.push(result,matches[i]);
+			}
+			
+			..com.Release(matches); 
+			..com.Release(m);
+			..com.Release(re);
+			
+			return result;
+		}
+			
+		var result = m.Value;
+		..com.Release(matches); 
+		..com.Release(m);
+		..com.Release(re);
+			
+		return [result];
+	}
+	
+	find = function(str,pattern){
+		var re = ..string.regex(pattern)
+		var m = re.match(str); 
+		if(!m) {
+			..com.Release(re)
+			return;
+		}
+		
+		var i,len = m.FirstIndex,m.Length;
+		
+		..com.Release(m);
+		..com.Release(re); 
+		return i+1,i+len; 
+	}
+	
+	replace = function(str, pattern,replStr) {
+		var re = ..string.regex(pattern)
+		var newStr = re.replace(str,,replStr); 
+		..com.Release(re)
+		return newStr;
+	}
+
+	test = function(str, pattern) {
+		var re = ..string.regex(pattern)
+		var exist = re.Test(str); 
+		..com.Release(re);
+ 
+		return exist;
 	}
 }
 
-/**intellisense()string.regex = 
-VBS正则表达式支持库
-string.regex("__/*正则表达式*/") = 创建正则表达式
-string.regex() = !vbsrgx.
-!vbsrgx_match.Value = 匹配结果
-!vbsrgx_match.FirstIndex = 位置
-!vbsrgx_match.Length = 长度
-!vbsrgx_match.SubMatches(__/*索引*/) =  匹配子串(用括号指定的分组)
-!vbsrgx.find(__/*目标字符串*/,".+") = 搜索字符串,成功返回true
-!vbsrgx.find(__/*目标字符串*/) = 搜索字符串,成功返回true
-!vbsrgx.gmatch(str,pattern) = @for i,smatch in regex.gmatch(__/*要匹配的字符串*/,".+"){
-	
+//@guide 正则表达式语法请参考：[preg 扩展库使用指南](doc://library-guide/ext/preg/_.md)
+
+/**intellisense()
+string.regex = 正则表达式支持库，基于操作系统自带的 VBScript.RegExp 组件。\n建议改用 preg 扩展库（更快更强大）或 aardio 自带的模式匹配（更简单更快）。\n\n正则表达式语法请参考 preg 扩展库使用指南。
+string.regex("__/*正则表达式*/") = 创建正则表达式，注意正则表达式首尾不需要添加斜杆。
+string.regex() = !stringRegex.
+!stringRegex.IgnoreCase = 是否忽略大小写
+!stringRegex.Pattern = 设置或返回用于匹配的正则表达式。
+!stringRegex.Global = 是否全局匹配。\n只能设为 false 或 true 。\n默认为 true 表示启用全局匹配。\n注意调用 gmatch,match,replace 等函数会自动修改此属性。
+!stringRegex.find(__/*目标字符串*/,".+") = 从字符串参数 @1 开头查找 @2 参数指定的正则表达式。\n如果不指定参数 @2 则使用创建 string.regex 时指定的默认正则表达式。\n匹配失败返回 null，匹配成功返回字符串开始位置与结束位置，按字符个数计数（不是按字节计数）。\n正则表达式语法错误会抛出异常。 
+!stringRegex.gmatch(str,pattern) = @for m1,m2 in regex.gmatch(__/*要匹配的字符串*/,".+"){
+	__/*从字符串参数 @1 开头全局匹配 @2 参数指定的正则表达式。\n如果不指定参数 @2 则使用创建 string.regex 时指定的默认正则表达式。\n如果指定了捕获组，每次迭代遍历时都返回一个或多个捕获组对应的字符串。\n如果未指定捕获组，每次迭代遍历时都返回包含完整匹配结果的单个字符串。\n正则表达式语法错误会抛出异常。*/
 }
-!vbsrgx.gmatch(str) = @for i,smatch in regex.gmatch(__/*要匹配的字符串*/){
-	
-}
-!vbsrgx.gmatch() = !vbsrgx_match.
-!vbsrgx.replace(.(源字符串,替换字符串) = 替换
-!vbsrgx.pattern = 设置或返回用于搜索的正则表达式
-!vbsrgx.ignoreCase = 是否忽略大小写
-!vbsrgx.global = 是否全局匹配\n只能设为0或1\n默认为1表示启用全局匹配
+!stringRegex.replace(.(str,pattern,repl) = 从字符串参数 @str 开头全局替换 @pattern 参数指定正则表达式匹配的字符串。\n如果 @pattern 为 null 则使用创建 string.regex 时指定的默认正则表达式。\n@repl 参数指定替换字符串，替换参数不能是函数。\n返回替换后的新字符串。\n正则表达式语法错误会抛出异常。
+!stringRegexMatch.Value = 匹配结果
+!stringRegexMatch.FirstIndex = 位置
+!stringRegexMatch.Length = 长度
+!stringRegexMatch.SubMatches(__/*索引*/) =  匹配子串（用括号指定的分捕获分组），\n对于外部 COM 对象第一个元素索引为 0（aardio 数组起始索引则为 1）。
 end intellisense**/
+
+/*****intellisense(string.regex)
+match(.(str,pattern) = 从字符串 str 开头尝试匹配 pattern 参数指定的正则表达式。\n匹配失败返回 null，匹配成功返回字符串数组。\n如果指定了捕获组，则返回数组对应所有捕获组匹配的字符串。\n如果未指定捕获组，则返回包含单个字符串的（匹配结果）数组。\n正则表达式语法错误会抛出异常。
+gmatch(.(str,pattern) = 从字符串参数 @str 开头尝试全局匹配 @pattern 参数指定的正则表达式。\n返回适用于 for in 语句的迭代器。\n\n如果指定了捕获组，每次迭代遍历时都返回一个或多个捕获组对应的字符串。\n如果未指定捕获组，每次迭代遍历时都返回包含完整匹配结果的单个字符串。\n正则表达式语法错误会抛出异常。
+find(.(str,pattern) = 从字符串参数 @str 开头查找 @pattern 参数指定的正则表达式。\n匹配失败返回 null，匹配成功返回字符串开始位置与结束位置，按字符个数计数（不是按字节计数）。\n正则表达式语法错误会抛出异常。
+test(.(str,pattern) = 从字符串参数 @str 开头查找 @pattern 参数指定的正则表达式。\n匹配失败返回 false，匹配成功返回 true。\n正则表达式语法错误会抛出异常。
+replace(.(str,pattern,repl) = 从字符串参数 @str 开头全局替换 @pattern 参数指定正则表达式匹配的字符串。\n@repl 参数指定替换字符串，替换参数不能是函数。\n返回替换后的新字符串。\n正则表达式语法错误会抛出异常。
+end intellisense*****/

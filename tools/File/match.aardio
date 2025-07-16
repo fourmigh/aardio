@@ -65,7 +65,7 @@ winform.lstMatch.oncommand = function( id,event ){
     	
     	if( !pos or (pos2 != 1) ){  
     		pos, pos2 = string.find(strSource,winform.txtPattern.text,pos - 1,true );
-    		winform.txtSource.setsel( pos, pos2);
+    		winform.txtSource.setSel( pos, pos2);
     		var line = winform.txtSource.lineFromChar( pos );  
     		winform.txtSource.scrollCaret();
     	}
@@ -445,7 +445,7 @@ i,j = string.find( str,  pattern );
 		strtemp1 = string.format('串起始位置i="%d":', i);
 		strtemp2 = string.format('串结束位置j="%d":', j); 
 		i,j = string.find( str, pattern,,true ); 
-		winform.txtSource.setsel( i, j );
+		winform.txtSource.setSel( i, j );
 	}
 	else{
 		strtemp1 = "没有找到相匹配的文本!";

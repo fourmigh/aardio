@@ -1,11 +1,11 @@
-//access 库 - mdb 数据库
-//下面的代码仅使用系统组件,不需要安装 Access 软件
+//Microsoft Access 数据库（ mdb 数据库 ）操作
+//下面的代码仅使用系统组件,不需要额外安装 Access 软件
 
 import access;
 import console;
 
-//打开数据库,如果不存在就自动创建
-var db = access("/test.mdb") //也可以直接写数据库连接串 http://www.connectionstrings.com/excel/
+//打开 mdb 据库,如果不存在就自动创建
+var db = access("/test.mdb") //也可以使用参数 @1 指定数据库连接串 https://www.connectionstrings.com/access/
 
 //创建表
 if(!db.existsTable("aardioTestDb") ){
@@ -17,10 +17,10 @@ if(!db.existsTable("aardioTestDb") ){
 	db.exec("CREATE TABLE aardioTestDb (url CHAR(30), comment CHAR(20), photo IMAGE NULL)")
 }
 
-//使用命令参数 - 参数化可避免SQL注入
+//使用参数化 SQL 命令操作数据库 - 可避免 SQL 注入
 var cmd = db.createCommand( "INSERT INTO aardioTestDb(url,comment,photo) VALUES(@url,@comment,@photo)" );  
 
-//设置所有参数的值
+//设置所有 SQL 参数的值
 cmd.bind( 
 	url = "http://www.aardio.com";
 	comment = "hi!";
@@ -29,7 +29,7 @@ cmd.bind(
 
 cmd.execute() //执行命令
 
-//增 - 调用 access.formatParameter() 格式化命名参数生成SQL语句
+//增 - 调用 access.formatParameter() 格式化命名 SQL 参数生成 SQL 语句并执行
 db.exec( "INSERT INTO aardioTestDb(url,comment) VALUES(@url,@comment)",{
 	url = "http://www.aardio.com";
 	comment = "字符串包含'单引号' 测试一下";
@@ -57,7 +57,7 @@ db.close();
 
 /*
 import access.query;
-access.query("/test.mdb");
+access.query("/test.mdb"); //调用 MSA Query 打开 mdb 数据库
 */
 
 console.pause();

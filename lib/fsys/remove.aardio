@@ -4,36 +4,41 @@ import fsys.safepath;
 namespace fsys;
 
 class remove {
-	ctor( path,subfiles ){
-		path = ..fsys.safepath(path);
-		if( ..io.exist(path) ){
-			if(..fsys.isDir(path)){
+	ctor( dirPath, onlySubfiles ){
+		dirPath = ..fsys.safepath(dirPath);
+		if(! onlySubfiles && ..fsys.delete(dirPath) ) return true;
+		
+		if( ..io.exist(dirPath) ){
+			if(..fsys.isDir(dirPath)){
 				var dirs = {};
-				..fsys.enum( path, "*.*",
+				..fsys.enum( dirPath, "*.*",
 					function(d,f,fullpath){ 
 						if(f)  ..io.remove(fullpath) 
 						else ..table.push(dirs,fullpath);
 					},true
 				);
 				
-				for(i=#dirs;1;-1)::Kernel32.RemoveDirectory(dirs[i]); 
+				for(i=#dirs;1;-1){
+					::Kernel32.RemoveDirectory(dirs[i]) 
+					..fsys.delete(dirs[i]); 
+				}
 				
-				if(subfiles) return true;
-				if( ::Kernel32.RemoveDirectory(path) ) return true;
+				if( onlySubfiles) return true;
+				if(::Kernel32.RemoveDirectory(dirPath) || ..fsys.delete(dirPath) ) return true;
 			}
 			else {
-				if(subfiles) return;
-				if( ..io.remove(path) ) return true;
+				if( onlySubfiles ) return;
+				if( ..io.remove(dirPath) ) return true;
 			}
 		}
 	
-		if(subfiles) return;
-		return ::Kernel32.MoveFileExB(path,null,4/*_MOVEFILE_DELAY_UNTIL_REBOOT*/);
+		if( onlySubfiles) return;
+		return ::Kernel32.MoveFileExB(dirPath,null,4/*_MOVEFILE_DELAY_UNTIL_REBOOT*/);
 	}; 
 }
 
 /**intellisense()
-fsys.remove = 用于删除目录或文件\n支持 fsys.delete 函数无法删除的畸形路径,\n此函数库不在 fsys 库内需要单独导入
-fsys.remove(.(path) = 移除参数 @1 指定路径的目录或文件
-fsys.remove(.(path,true) = 清空参数 @1 指定路径的目录，但不删除目录本身。\n如果参数 @1 指定的不是一个存在的目录，忽略不执行任何操作
+fsys.remove = 用于删除目录或文件。\n可用于删除 fsys.delete 函数无法删除的畸形路径。\n使用 fsys.remove 前需要先用 import 语句导入 fsys.remove 库。\n\n如果已知删除目标不是罕见的畸形路径就没必要用这个函数，\n可直接使用 fsys.delete 或 fsys.deleteEx 函数。
+fsys.remove(.(dirPath) = 移除参数 @dirPath 指定路径的目录或文件
+fsys.remove(.(dirPath,true) = 清空参数 @dirPath 指定目录下面的文件与子目录，但不删除目录本身。\n如果参数 @dirPath 指定的不是一个存在的目录，则忽略不执行任何操作
 end intellisense**/

@@ -1,0 +1,45 @@
+import com.wmi;
+import time.cim;//com.wmi 已自动导入了 time.cim ，这里仅演示导入方法。
+
+/* 
+com.wmi.get 第二个参数指定属性时，
+如果返回 CIM DATETIME 格式字符串可自动转为 time.cim 对象。。
+*/
+var installDate = com.wmi.get("os","installDate");
+
+//time.cim 实际上就是一个 time 对象，仅格式化串（format 属性）为 CIM 格式。
+print(installDate);
+
+var first = com.wmi.get("SELECT * FROM Win32_Process WHERE CreationDate >= @creationDate",{
+	//参数化 WQL 自动转换参数里的 aardio 时间对象为 CIM DATETIME 格式
+	creationDate = time().addhour(-1);
+})
+
+print(first.Description)
+
+//也可以用下面的 COM 对象处理 CIM 时间。
+var cimDateTime = com.CreateObject("WbemScripting.SWbemDateTime");
+
+/*
+写入 time 时间对象，参数 2指定是否返回本地时间。
+COM 时间没有约定时区规则，所以只能靠参数显式指定。
+*/
+cimDateTime.SetVarDate(time(),true); 
+
+/*
+获取 aardio 时间对象，参数 1 指定是否返回本地时间。
+这里应当将参数指定为 true，因为默认情况下 aardio 会创建本地时间。
+*/
+var tm = cimDateTime.GetVarDate(true); 
+
+//获取 CIM DATETIME 格式字符串
+var cimStr = cimDateTime.Value
+
+//写入 CIM DATETIME 格式字符串 
+cimDateTime.Value = cimStr;
+
+// 用 time.cim 解析 DATETIME
+var tm = time.cim(cimStr);
+
+//格式化输出
+print( tm.format("%Y年%m月%d日 %H时%M分%S秒") );

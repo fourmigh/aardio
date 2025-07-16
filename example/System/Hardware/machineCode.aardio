@@ -1,0 +1,20 @@
+//生成机器码
+//获取硬件信息: file://~/example/System/Hardware/device.aardio
+import sys.cpu;
+import sys.storage
+import crypt;
+
+var hdInfo = sys.storage.queryProperty();
+var cpuName = sys.cpu.getBrand() 
+
+/*
+稳妥考虑这里用 string.concat 拼接字符串并可以忽略 null 参数，
+其实这几个函数有兼好的兼容性，基本都会成功。
+也可以考虑添加其他硬件信息，例如网卡等等（一般没必要）。
+*/
+var machineInfo = string.concat("你的软件标识:",hdInfo[["serialNumber"]],cpuName);
+var machineCode = crypt.md5(machineInfo, false); // false 表示不转换为大写
+print( machineCode );
+
+import win.clip;
+win.clip.write(machineCode);

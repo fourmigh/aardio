@@ -1,0 +1,43 @@
+//线程控件: file://~/example/aardio/Thread/threadCtrl.aardio
+import win.ui;
+/*DSG{{*/
+var mainForm = win.form(text="在新线程内创建 web.view 浏览器控件";right=846;bottom=497)
+mainForm.add(
+button={cls="button";text="在线程内创建 WebView2 浏览器控件";left=463;top=455;right=798;bottom=492;db=1;dr=1;z=1}
+)
+/*}}*/
+
+mainForm.button.oncommand = function(id,event){ 
+	mainForm.button.disabledText = ["✶","✸","✹","✺","✹","✷"]
+
+	mainForm.add(  
+		threadCtrl = { 
+			cls="thread";
+			marginTop=12;marginBottom=60;margionLeft=8;marginRight=8;//指定四周边距并自动缩放
+			
+			//创建线程窗口的线程启动函数，必须是遵守多线程规则的纯函数
+			loadForm = function(threadParent){
+				import win.ui;//线程内使用的库必须在线程内导入
+				var winform = ..win.form( 
+					right=599;bottom=399;parent=threadParent
+				);
+				
+				import web.view;
+				var wb = web.view(winform); 
+				
+				//threadParent 或 winform.threadParent 都可以访问父窗口在当前线程的代理对象
+				wb.html =  `<!doctype html><html><meta charset="utf-8"><body>` 
+					+ winform.threadParent.text + "<br><br>
+如果需要用多线程创建界面对象，很可能是无意义且不必要地将简单的事复杂化。
+				"; 
+					
+				winform.show()
+			};
+		}
+	)
+	
+	mainForm.button.disabled = false;
+} 
+
+mainForm.show();
+win.loopMessage();

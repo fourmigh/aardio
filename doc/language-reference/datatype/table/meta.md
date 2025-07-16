@@ -31,8 +31,8 @@ _metaTable = {
 
 var tab = { 
 	
-	//使用 @ 操作符设置元表 
-	@_metaTable
+	//使用 @ 操作符设置元表（下面的等号可以省略）
+	@ = _metaTable
 }
 ```
 
@@ -107,12 +107,15 @@ tab@ = {};
 | `_readonly` | 如果显式指定此元属性为 false，则该表可以重写属性名首字符为下划线的字段( 禁用只读成员保护 )。<br><br> `_readonly` 的值只能为 false 或 null 。设置 `_readonly` 为任何非null值都会被强制转换为 false, 只有不指定此属性的值(即保持 null 值)才能启用只读成员保护（所有名字以下划线开头的属性禁止修改非null值）。<br><br> global对象无论元属性`_readonly`怎么设置都会被忽略，只读成员保护总是启用状态。<a id="_readonly" href="#_readonly">&#x23;</a> [关于表的只读成员](../../../language-reference/datatype/table/_.md#readonly-member)|
 | `_defined` | 用于返回对象的预定义已排序键名，被用于table.eachName等函数。 |
 | `_keys` | 可用于table.keys等函数动态获取对象的键名列表（例如动态生成键值对的外部JS对象可使用这个元方法返回成员名字列表）。 |
-| `_startIndex` | 用于table.eachIndex等函数动态指定数组的开始下标。 |
-| `_get = function(k,ownerCall) {<br> <br> }` | 成员（属性）操作符 `.` <br>索引（下标）操作符 `[]` <br><br>如果用 [属性（.）操作符或下标操作符（\[\]）](../../../language-reference/operator/member-access.md)读取表中不存在的键会触发 `_get` 元方法并返回值。<br> <br>注意：使用 `owner[[member]]` 形式的直接下标以及 namespace 语句打开新的名字空间不会触发元方法。with 语句打开新的名字空间则会触发元方法。在 aardio 中.NET 名字空间 依赖元方法自动导入下级名字空间的 ，所以 namespace 只能用于打开已导入的 .NET 名空字间（否则应改用 with 语句）。<br><br>`_get` 不但可以是一个函数,也可以指定一个 table 对象(找不到成员就到 `_get` 指定的 table 里找)。<br><br>如果是 `_get` 元方法是一个函数，则调用参数 k 为键名。<br><br>使用 `owner[member]` 形式的下标操作符触发 owner 对象的 `_get` 元方法时 ownerCall 参数的值为 null 。<br><br>使用 owner.method() 形式的成员函数触发 owner 对象的 `_get` 元方法时 ownerCall 参数的值为 true 。ownerCall 参数如果为 true 则应当返回一个函数对象。 <br><br>其他方式访问表的成员触发对象的 `_get` 元方法时 ownerCall 参数的值为 false。<br> |
+| `_startIndex` | 用于 table.eachIndex 等支持处理`伪数组`的函数自定义数组开始索引。 |
+| `length` | 用于 table.len， table.eachIndex 支持处理`伪数组`的函数以获取数组最小长度。length 可以指定数值也可以指定用于动态获取长度的函数，如果length 指定一个函数并且返回  `null` 值，则这可以阻止 table.type 函数获取首选操作类型时返回 `array` （除非对象是纯数组或者 _type 属性值为  `array` ）<a id="length" href="#length">💡</a>
+|
+| `_get = function(k,ownerCall) { }` | 成员（属性）操作符 `.` <br>索引（下标）操作符 `[]` <br><br>如果用 [属性（.）操作符或下标操作符（\[\]）](../../../language-reference/operator/member-access.md)读取表中不存在的键会触发 `_get` 元方法并返回值。<br> <br>注意：使用 `owner[[member]]` 形式的直接下标以及 namespace 语句打开新的名字空间不会触发元方法。with 语句打开新的名字空间则会触发元方法。在 aardio 中.NET 名字空间 依赖元方法自动导入下级名字空间的 ，所以 namespace 只能用于打开已导入的 .NET 名空字间（否则应改用 with 语句）。<br><br>`_get` 不但可以是一个函数,也可以指定一个 table 对象(找不到成员就到 `_get` 指定的 table 里找)。<br><br>如果是 `_get` 元方法是一个函数，则调用参数 k 为键名。<br><br>使用 `owner[member]` 形式的下标操作符触发 owner 对象的 `_get` 元方法时 ownerCall 参数的值为 null 。<br><br>使用 owner.method() 形式的成员函数触发 owner 对象的 `_get` 元方法时 ownerCall 参数的值为 true 。ownerCall 参数如果为 true 则应当返回一个函数对象。 <br><br>其他方式访问表的成员触发对象的 `_get` 元方法时 ownerCall 参数的值为 false。<br> |
 | `_set = function(k,v,ownerAttr) { }` | 成员（属性）操作符 `.` <br> 索引（下标）操作符 `[]` <br><br> 如果用 [. 或 \[\] 操作符](../../../language-reference/operator/member-access.md)给表中不存在的键赋值会触发 `_set` 元方法。<br> <br> 注意：使用 `owner[[member]]` 形式的直接下标赋值不会触发元方法。<br> <br> `_set` 元方法的 k 参数为新的键，v 参数为新的值 。<br><br> 在赋值语句中使用 `owner[member] = value `形式的下标操作符赋值触发 owner 对象的 `_set` 元方法时 ownerAttr 参数的值为 false，其他任何方式触发对象的 `_set` 元方法时 ownerAttr 参数的值为 true 。<br> <br> 使用形如 `{ ["key"] = value}` 的格式在表内使用下标定义键名时如果触发 `_set` 元方法 ownerAttr 的值仍然为 true。<br> <br> 只有 `owner[member] = value` 的形式 ownerAttr 参数才会为 false，也就是说下标操作符前面必须有一个 owner 对象。 |
+| `_serialize = function(kernelCall){ }` | 序列化元方法<br>使用 table.tostring 序列化表对象时会调用此元方法，<br>aardio 内核在通过序列化的方式复制表对象时也会隐式调用此元方法。<br>kernelCall 参数为 true 则为内核隐式调用。|
 | `_tostring = function(...) { }` | 除布尔值、字符串 以外的对象作为参数 @1 调用 tostring 函数可触发该对象的 `_tostring` 元方法，调用 tostring 的第二个参数开始的所有参数会作为 `_tostring` 的调用参数。 |
 | `_tonumber = function() { }` | 除数值、指针、布尔值、字符串 以外的对象作为参数 @1 调用 tonumber() 会触发会调用该对象的 `_tonumber` 元方法转换为数值 。 |
-| `_json` | 表对象可使用此元方法自定义 web.json.stringify() 处理该对象时返回的数据。 此元方法的回调参数 owner 为当前表对象。如果此元方法返回一个值则 web.json.stringify() 继续转换返回对象为 JSON。 如果此元方法的第二个返回值为 true，并且第一个返回值为字符串，则 web.json.stringify() 将第一个返回值直接放入 JSON 并不作任何转换。 |
+| `_json` | 表对象可使用此元方法自定义 JSON.stringify() 处理该对象时返回的数据。 此元方法的回调参数 owner 为当前表对象。如果此元方法返回一个值则 JSON.stringify() 继续转换返回对象为 JSON。 如果此元方法的第二个返回值为 true，并且第一个返回值为字符串，则 JSON.stringify() 将第一个返回值直接放入 JSON 并不作任何转换。 |
 | `_eq = function(b) { }` | 相等运算、不等运算符调用此元方法并取反<br> 比较的两个对象必须指向相同的元方法(即 a@.`_eq` === b@.`_eq` ),否则默认规则进行比较.<br> |
 | `_le = function(b) { }` | 小于等于、大于等于运算符<br> 比较的两个对象必须指向相同的元方法(即 `a@._le === b@._le` )<br> <br> 当调用 `a <= b` 时, a 为元方法的 owner 对象(左参数)<br>当调用 `a >= b` 时, b 为元方法的 owner 对象(右参数作为左参数) |
 | `_lt = function(b) { }` | 小于运算、大于运算符 <br> 比较的两个对象必须指向相同的元方法(即 `a@._lt === b@._lt` )<br> <br> 当调用 `a < b` 时, a为元方法的owner对象(左参数)<br> 当调用 `a > b` 时, b 为元方法的 owner 对象(右参数作为左参数) |

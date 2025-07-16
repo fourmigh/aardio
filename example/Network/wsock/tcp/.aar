@@ -1,1 +1,3 @@
 传送文件=FileTransfer
+端口扫描=portScanner.aardio
+端口检测=portTest.aardio

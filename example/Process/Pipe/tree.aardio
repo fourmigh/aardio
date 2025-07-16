@@ -1,0 +1,45 @@
+//字符化目录树结构
+//异步回显: file://~/example/Process/Pipe/logResponse.aardio
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="字符化目录树结构";right=759;bottom=469;topmost=1)
+winform.add(
+btnDir={cls="button";text="浏览";left=586;top=13;right=654;bottom=44;dr=1;dt=1;z=4};
+btnTree={cls="button";text="转换";left=660;top=13;right=728;bottom=44;dr=1;dt=1;z=3};
+edit={cls="edit";left=13;top=56;right=735;bottom=445;db=1;dl=1;dr=1;dt=1;edge=1;hscroll=1;multiline=1;vscroll=1;z=1};
+editPath={cls="edit";left=16;top=15;right=581;bottom=44;dl=1;dr=1;dt=1;edge=1;z=2}
+)
+/*}}*/
+
+winform.editPath.setCueBannerText("请拖动目录到这里");
+winform.editPath.autoComplete();//开启文件路径自动完成输入
+
+import process.popen
+winform.btnTree.oncommand = function(id,event){
+	winform.edit.text = ""
+	winform.btnTree.disabledText = ["✶","✸","✹","✺","✹","✷"]
+	
+	var prcs,err = process.popen.cmd("tree",winform.editPath.text,"/f")
+	if(!prcs) return winform.editPath.showErrorTip(err); 
+	
+	//进程管道异步输出到文本框
+	prcs.logResponse(winform.edit);
+	
+	//进程管道输出结束触发事件
+	prcs.onResponseEnd = function(){
+		winform.btnTree.disabledText = null;
+	}
+}
+
+//接受文件拖放
+winform.onDropFiles = function(files){
+	winform.editPath.text = files[1]
+}
+
+import fsys.dlg.dir;
+winform.btnDir.oncommand = function(id,event){
+	winform.editPath.text = fsys.dlg.dir(,winform)
+}
+
+winform.show()
+win.loopMessage();

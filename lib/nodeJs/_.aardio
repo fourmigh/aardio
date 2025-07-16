@@ -5,7 +5,7 @@ import process.popen;
 import zlib.httpFile;
 import inet.installer;
 import string.cmdline;
-import web.json;
+import JSON;
 import fsys;
 import fsys.lnk;
 import process.rpc.jsonClient;
@@ -235,7 +235,7 @@ self.eval = function(js){
 	if(prcs){ 
 		prcs.codepage = 65001; 
 		var str  = prcs.read(-1) 
-		var ret =  ..web.json.tryParse( str );
+		var ret =  ..JSON.tryParse( str );
 		
 		var err = prcs.readErr(-1);
 		prcs.close();
@@ -615,13 +615,13 @@ startEnviron = function(environ){
     
     var aarStartEnviron = ..string.getenv("aarStartEnviron");
     if(aarStartEnviron){
-    	aarStartEnviron = ..web.json.tryParse(aarStartEnviron);
+    	aarStartEnviron = ..JSON.tryParse(aarStartEnviron);
     	if(aarStartEnviron){
     		environ = ..table.assign(aarStartEnviron,environ);
     	}
     } 
     
-	..string.setenv("aarStartEnviron",..web.json.stringify(environ));
+	..string.setenv("aarStartEnviron",..JSON.stringify(environ));
 	var path = ..io.joinpath(nodeModulesPath,"\startEnviron.js");
 	..string.save(path,`module.exports = JSON.parse(process.env.aarStartEnviron)` );
 	

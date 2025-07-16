@@ -227,7 +227,7 @@ namespace listview{
 		struct item =  LVITEM();
   	}
  
- 	var listview ={
+ 	var metaListview ={
 		bgcolor = {
 			_get = function(){
 				::SendMessage(owner.hwnd,0x1000/*_LVM_GETBKCOLOR*/);
@@ -420,6 +420,7 @@ namespace listview{
 				if(!( col.mask & 2/*_LVCF_WIDTH*/  ) ){ 
 					col.cx = null;
 				} 
+				
 				return col;
 			}
 		}; 
@@ -477,7 +478,7 @@ namespace listview{
 		};
 		getColumnText = function (idx,max) { 
 			var col = owner.getColumn({
-				cchTextMax = max : 100;
+				cchTextMax = max : 300;
 			},idx);
 			if( col[["text"]] ) return ..string.fromUtf16( col[["text"]],,-1 );
 		};
@@ -510,10 +511,10 @@ namespace listview{
 				return ::SendMessageInt(owner.getHeader(), 0x1200, 0, 0);
 			}
 		};
-		getItemRect = function(row,col,rc,code=0/*_LVIR_BOUNDS*/){ 
+		getItemRect = function(row,col,rc,code){ 
 			rc := ::RECT();
-			if(col){ rc.top = col-1; }
-			rc.left = code;  
+			if(col){ rc.top = col - 1; rc.left = 2/*_LVIR_LABEL*/ }
+			if(code) rc.left = code;  
 			var ret = ::SendMessageByStruct(owner.hwnd,(col!==null)?0x1038/*_LVM_GETSUBITEMRECT*/ : 0x100E/*_LVM_GETITEMRECT*/,(row : owner.selIndex)-1,rc); 
 			return rc;
 		};
@@ -684,6 +685,27 @@ namespace listview{
 			var c = t.checked;	
 			if(c) for(i=1;#c) owner.setChecked(c[i],true);
 		};
+		columns = {
+			_get = function(){
+				var col = LVCOLUMN();
+				col.cchTextMax = 300;
+				col.mask = 2#111/*_LVCF_WIDTH | _LVCF_FMT | _LVCF_TEXT*/
+				var count = owner.columnCount;
+				var r = [];
+				for(i=1;count;1){   
+					owner.getColumn(col,i);
+					
+					r[i] = [
+						..string.fromUtf16( col[["text"]],,-1 )
+						,col.cx,col.fmt
+					];
+				}
+				return r;
+			};
+			_set = function( t ){ 
+				owner.setColumns(t);
+			}
+		}
 		items = {
 			_get = function(){
 				var upk = ..table.unpack;
@@ -793,7 +815,7 @@ namespace listview{
 			var columnCount = owner.columnCount;
 			var columns = fields;
 			if(!fields){
-				if(#t && !..table.isArray(t[1])){
+				if(#t && !..table.isArrayLike(t[1])){
 					fields = ..table.keys(t[1]);
 					if(!columnCount) owner.setColumns(fields);
 				}
@@ -870,6 +892,24 @@ namespace listview{
 				for(i=1;#fields;1) {
 					owner.insertColumn(fields[i],widths[i]:-1,,alignments[[i]]);
 				}
+				return;
+			}
+			
+			if(type(fields[1])=="table"){
+				var f;
+				if(#fields[1]){
+					for(i=1;#fields;1){
+						f = fields[i];
+						owner.insertColumn(f[1],f[2],,f[3]);
+					}	
+				}
+				else{
+					for(i=1;#fields;1){
+						f = fields[i];
+						owner.insertColumn(f.text,f.cx || f.width,,f.align || f.fmt);
+					}
+				}
+				
 				return;
 			}
 			
@@ -1220,9 +1260,18 @@ namespace listview{
 			}	
 		}; 
  	};
- 	listview.editLable = listview.editLabel; // @Deprecated 
+ 
+	with metaListview{ 
+		editLable = editLabel; // @Deprecated
+		removeItem = delItem;// @Deprecated
+		deleteItem = delItem;// @Deprecated
+		insertItem = addItem;// @Deprecated
+		insert = addItem;// @Deprecated
+		addColumn = insertColumn;// @Deprecated
+		value = items;
+	};
  	
-	_metaProperty = ..win.ui.ctrl.metaProperty(listview)
+	_metaProperty = ..win.ui.ctrl.metaProperty(metaListview)
 }
 
 //https://docs.microsoft.com/zh-cn/windows/win32/controls/bumper-list-view-list-view-control-reference
@@ -1297,7 +1346,9 @@ namespace listview{
 !listview.getItemRect(.(行,列,RECT,选项) = 返回表示项目表示项目区块的RECT结构体,\n除第一个参数以外,其他参数为可选参数,\n如果不指定列则返回所在行区块,\n使用_LVIR_前缀常量指定选项
 !listview.getItemRect() = !rect.
 !listview.hitTest(.(x坐标,y坐标,是否屏幕坐标) = 该函数返回指定坐标的行号,参数三可省略,默认为false.\n如果不指定任何参数,则自动调用 win.getMessagePos() 获取消息坐标\n返回行号,列号,_LVHT_前缀的状态常量
-!listview.selected = 所有选中项目索引的数组,\n注意是选中列表项而不是指勾选复选框\n设为 null 或空表清除所有选中项
+!listview.checked = 获取或设置所有已勾选项，这是包含所有已勾选的项目行索引的数组。\n此数组内的行索引按实际显示的前后排序。\n必须需先启用控件的复选框功能，才能获取或设置复选项是否勾选。\n\n注意 selected 属性表示所有鼠标单击选中的项目，而 checked 表示所有复选项被勾选的项目。\n请注意区分。
+!listview.checkbox = 是否在每个项目前显示复选框\n注意虚表不存在实际的项也不支持设置项目复选框
+!listview.selected = 获取或设置所有选中项，这是包含所有选中的项目行索引的数组。\n设为 null 或空表清除所有选中项。\n\n也可以使用 eachSelected 方法创建迭代器并且 for in 循环遍历所有选中项。\n\n注意 selected 属性表示所有鼠标单击选中的项目，而 checked 表示所有复选项被勾选的项目。\n请注意区分。
 !listview.setSelected(__/*项索引*/) = 选中项,注意是选中列表项而不是勾选复选框
 !listview.setSelected(__/*项索引*/,false) = 取消选中项,注意是选中而不是勾选复选框
 !listview.getSelected(__/*项索引*/) = 指定项是否选中状态
@@ -1309,7 +1360,7 @@ namespace listview{
 !listview.fullRow = 是否选中整行
 !listview.hwnd = 控件句柄
 !listview.id = 控件ID
-!listview._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!listview._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !listview.getParent() = 返回父窗口\n!static.
 !listview.setParent(__/*控件对象*/) = 改变父窗口 
 !listview.disabled = 是否禁用
@@ -1328,6 +1379,8 @@ namespace listview{
 !listview.setRect(rc) = 设置控件区块位置(::RECT结构体)  
 !listview.setRect(rc,true) = 设置控件屏幕区块位置(::RECT结构体)
 !listview.getClientRect() =  控件客户区块位置(::RECT结构体)\n!rect.
+!listview.clientWidth = 控件窗口客户区宽度，只读属性。
+!listview.clientHeight = 控件窗口客户区宽度，只读属性。
 !listview.getFont() = 控件字体(::LOGFONT结构体)\n!logfont.
 !listview.setFont(__/*指定字体*/) = 指定LOGFONT字体对象,或逻辑字体句柄 
 !listview.setFont(混入字体属性) = @.setFont(point=10;name="宋体");
@@ -1336,13 +1389,14 @@ namespace listview{
 !listview.delItem(__) = 参数为数值,移除指定索引的项目
 !listview.replaceItems(__) = 替换所有列表项。\n参数@1 指定包含所有列表项的数组，格式与 items 属性相同。\n数组的每个项表示一行，每行也必须是包含列文本的数组，\n数组可以有一个可选字段 checked 包含了所有勾选的行。\n\n此函数不会事先清空列表，而 items 则会事先清空列表。\n当每次替换需要删除的项数较少时，此函数可避免清空导致的闪烁。\n建议先用 enableDoubleBuffering 函数启用双缓冲
 !listview.items = 返回或设置包含所有列表项的数组\n数组的每个项表示一行，每行也必须是包含列文本的数组\n返回数组有一个可选字段 checked 包含了所有勾选的行
-!listview.setColumns(.(columns,widths,alignments) = 参数@1用一个字符串数组指定要显示的列\n如果参数@1为空则清空所有列,\n可选在 @widths 参数用一个数组指定各列宽度,\n可选在 @alignments 参数用一个数组指定各列对齐选项,\n各列可用参数与 insertColumn 函数相同
-!listview.setColumns(.(column1,column2,->->->) = 参数用不定个数的字符串指定要显示的列\n如果参数@1为空则清空所有列
+!listview.value = 返回或设置包含所有列表项的数组\n数组的每个项表示一行，每行也必须是包含列文本的数组\n返回数组有一个可选字段 checked 包含了所有勾选的行
+!listview.columns = 读取或设置所有的列。\n值为由所有列配置信息的数组，每个列的配置也是一个数组。\n表示单个列的数组格式为 `[标题,列宽,对齐格式]`,\n写入列配置时对齐格式可省略。
+!listview.setColumns(.(columns) = 参数 @columns 传入包含所有列配置信息的数组。\n单个列应当是 `[标题,列宽,对齐格式]` 格式的数组，对齐格式可省略。
+!listview.setColumns(.(texts,widths,alignments) = 参数 @texts 用一个字符串数组指定所有列的显示文本。\n如果参数 @texts 为空则清空所有列,\n可选用参数 @widths 传入一个数值类型的数组指定各列宽度。\n可选用参数 @alignments 传入一个数值类型的数组指定各列对齐样式。
+!listview.setColumns(.(text1,text2,->->->) = 可用不定个数的字符串参数用指定要显示的列文本。\n如果参数 @1 为空则清空所有列
 !listview.setTable( = 用 listview 控件显示数据表（包含名值对的对象或数组组成的数组）。\n此函数会自动清空控件之前的所有项。\n如果没有创建任何列，则自动创建标题列。\n如果要重新创建列，请先调用 clear 函数并指定参数为 true 以清空原来的列。
 !listview.setTable(.(dataTable) =  参数 @dataTable 指定要加载的数据表。\n数据表应当包含行组成的数组。\n数据行可以是数组，也可以是名值，值用 tostring 转为文本显示。\n可选通过数据表的 fields 字段指定要显示的索引数组（键名或索引数值）。\n\n如果视图控件的标题列为空，则用显示键名（或数组值）创建标题列。\n如果数据行为数组，第一行填充到标题列以后，默认从第二行加载数据。\n\n可用 startIndex 属性或元属性自定义要加载的起始行。\n可用 length 属性自定义要加载的行数，默认加载所有行。\n\nsqlite,access,sqlServer 等数据库对象，\n提供的 getTable 函数可获取通过 fields 字段指定列名数组的数据表。
 !listview.getTable(__) = 返回数据表。\n如果参数 @1 指定列名数组（被复制为返回表的 fields 字段），\n则返回的每行数据都是名值对，否则返回的每行数据都是文本数组。\n\n如果参数 @1 为 true，则返回的文本数组第一行为列标题文本数组。
-!listview.checked = 返回已勾选复选框的行索引数组,\n此数组内的行索引按实际显示的前后排序,\n需要先启用复选框支持
-!listview.checkbox = 是否在每个项目前显示复选框\n注意虚表不存在实际的项也不支持设置项目复选框
 !listview.modifyStyle(.(remove,add,swpFlags) = 修改窗口样式,所有参数都是可选参数,\n@remove 用数值指定要移除的样式,可使用 _WS_ 前缀的常量\n@add 用数值指定要添加的样式,可使用 _WS_ 前缀的常量\n@swpFlags 可选用数值指定调整窗口选项,可使用 _SWP_ 前缀的常量\n如果指定了 @swpFlag ,则使用该参数调用::SetWindowPos\n细节请参考 win.modifyStyle 函数源码 
 !listview.modifyStyleEx(.(remove,add,swpFlags) = 修改窗口扩展样式,所有参数都是可选参数,\n@remove 用数值指定要移除的样式,可使用 _WS_EX_ 前缀的常量\n@add 用数值指定要添加的样式,可使用 _WS_EX_ 前缀的常量\n@swpFlags 可选用数值指定调整窗口选项,可使用 _SWP_ 前缀的常量\n如果指定了 @swpFlag ,则使用该参数调用::SetWindowPos\n细节请参考 win.modifyStyle 函数源码
 !listview.capture = 是否捕获全局鼠标消息
@@ -1372,12 +1426,13 @@ namespace listview{
 	__/*遍历所有项*/
 }
 !listview.eachSelected(col) = @for item,value in ??.eachSelected(){
-	__/*从后向前倒序遍历所有选中项,\n迭代变量 item 为选中项行号,\n迭代变量 value 为  @col 参数所指定列的文本值\n@col 参数省略则默认为1*/
+	__/*从后向前倒序遍历所有选中项,\n迭代变量 item 为选中项目的行号。\n迭代变量 value 为  @col 参数所指定列的文本值\n@col 参数省略则默认为1。\n\n也可以使用 listview 控件的 selected 属性直接返回所有已选中的行号。*/
 }
 !listview.eachChecked(col) = @for item,value in ??.eachChecked(){
 	__/*从后向前倒序遍历所有勾选项,\n迭代变量 item 为勾选项行号,\n迭代变量 value 为  @col 参数所指定列的文本值\n@col 参数省略则默认为1*/
 }
-!listview.adjust = @.adjust = function( cx,cy,wParam ) {	 \n	 __/*窗口缩放时会自动触发此函数。\ncx 参数为窗口宽度,cy 参数为窗口高度,\nwParam 参数请参考 _WM_SIZE 消息参数说明,一般不用管。\n\n所有 win.form 创建的窗体和控件都支持此事件,\n重复赋值只会追加而不会覆盖此事件。\n一般不建议添加一个 wndproc 仅仅是为了处理  _WM_SIZE 消息，\n定义 adjust 事件是更好的选择。\n\n可主动调用此事件,省略参数时 cx,cy 参数默认设为窗口大小*/  \n}; 
+!listview.onSize = @.onSize = function( width,height,wParam ) {	 \n	__/*父窗口改变大小后会自动触发此事件函数。\n注意 onSize 是 adjust 事件的别名，作用相同\n所有 win.form 创建的窗体和控件都支持 onSize（或 adjust）事件,\n重复赋值 onSize（或 adjust）会追加事件触发器而非替换原来的值。\n\nwidth 参数为窗口客户区宽度,height 参数为窗口客户区高度,\nwParam 参数来自 _WM_SIZE 消息的 wParam 参数，一般不用管。\n一般不建议添加一个 wndproc 仅仅是为了处理  _WM_SIZE 消息，\n定义 onSize 事件是更好的选择。\n \n};*/ 
+!listview.adjust = @.adjust = function( cx,cy,wParam ) {	 \n	__/*父窗口改变大小后会自动触发此事件函数。\n注意 onSize 是 adjust 事件的别名，作用相同。\n所有 win.form 创建的窗体和控件都支持 adjust 事件,\n重复赋值 adjust 会追加事件触发器而非替换原来的值。\n\ncx 参数为窗口客户区宽度,cy 参数为窗口客户区高度,\nwParam 参数来自 _WM_SIZE 消息的 wParam 参数，一般不用管。\n一般不建议添加一个 wndproc 仅仅是为了处理  _WM_SIZE 消息，\n定义 adjust 事件是更好的选择。\n\n如果主动调用此函数，则检查并执行所有之前添加的 adjust 事件函数。\n省略调用参数时 cx,cy 参数默认设为窗口大小*/  \n}; 
 !listview.onGetDispItem = @.onGetDispItem = function(item,row,col){
 	__/*处理 _LVN_GETDISPINFOW 通知消息\n参数 @item 为 LVITEM 结构体,@row 为当前行号,@col 为当前列号,\n返回 item 或包含 item 部分字段则更新 LVITEM 结构体*/
 	return {text="要显示的文本"}; 
@@ -1419,6 +1474,7 @@ namespace listview{
 !listview.postMessage(.(msg,wParam,lParam) = 投递窗口消息到消息队列中\n此函数用法请参考 ::User32.PostMessage
 !listview._defWindowProc(hwnd,message,wParam,lParam) = 用于在 wndproc 回调中提前调用默认消息回调函数,\n所有窗口和控件定义了 wndproc 回调以后会自动创建这个函数,\n调用此函数以后,wndproc 必须指定非 null 返回值,\n以避免再次重复调用默认回调函数
 !listview.valid = 窗口是否有效，\n窗口未关闭返回 true ，\n窗口已关闭或正在关闭返回 false
+!listview.hide = 当前控件窗口是否隐藏。\n仅检查当前窗口的可见性样式（窗口 是否移除了 _WS_VISIBLE 样式）。\n不考虑父窗口是否可见，不考虑是否被其他窗口遮挡。\n如果需要同时判断父窗口的可见性，应改用 win.isVisible 函数。\n\n以 `.` 前导的 `.hide()` 作为成员函数被调用时，\n作用等价于将 hide 属性设为 null 。
 !listview.translateCommand() = 允许转发转发子窗口的命令（_WM_COMMAND）与通知（_WM_NOTIFY）消息，\n避免子窗口 oncommand，onnotify 等回调失效。\n同时会处理子窗口的 _WM_CTLCOLORSTATIC 等消息，\n以避免部分外观属性失效
 ?win.ui.ctrl.listview  =!listview.
 win.ui.ctrl.listview() = 列表视图\n!listview.

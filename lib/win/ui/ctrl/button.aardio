@@ -178,14 +178,14 @@ groupbox._metaProperty = metaProperty( )
 !button.cls = 设计时类名
 !button.className = 运行时类名
 !button.text = 按钮文本属性
-!button.disabledText = @.disabledText = {"✶";"✸";"✹";"✺";"✹";"✷"}__/*disabledText 属性指定为文本时，禁用此控件并显示指定文本。\n指定为数组时,创建动画并在原控件文本前面循环显示数组中的字符串。\n数组内可选用 text 属性指定按钮禁用状态按钮主文本。\ndisabledText 属性指定为 null 时，启用此控件并恢复控件之前的正常文本。*/
+!button.disabledText = @.disabledText = ["✶","✸","✹","✺","✹","✷"]__/*disabledText 属性指定为文本时，禁用此控件并显示指定文本。\n指定为数组时,创建动画并在原控件文本前面循环显示数组中的字符图标。\n数组内可选添加一个 text 字段指定按钮禁用状态显示的文本。\ndisabledText 属性指定为 null 时，启用此控件并恢复控件之前的正常文本。*/
 !button.note = 设置按钮附注\n必须在创建控件的初始化参数中也指定该属性,\n\n指定该属性会切换为「命令链接」样式,\n支持Vista,Win7 以及之后的系统,不支持 XP 系统\n「命令链接」样式忽略控件的字体设置，但支持背景色属性
 !button.hwnd = 控件句柄
 !button.id = 控件ID 
-!button._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!button._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !button.getParent() = 返回父窗口\n!static.
 !button.setParent(__/*控件对象*/) = 改变父窗口  
-!button.hide = 当前控件窗口是否隐藏。\n仅检查当前窗口的可见性样式（窗口 是否移除了 _WS_VISIBLE 样式）。\n不考虑父窗口是否可见，不考虑是否被其他窗口遮挡。\n如果需要同时判断父窗口的可见性，应改用 win.isVisible 函数。
+!button.hide = 当前控件窗口是否隐藏。\n仅检查当前窗口的可见性样式（窗口 是否移除了 _WS_VISIBLE 样式）。\n不考虑父窗口是否可见，不考虑是否被其他窗口遮挡。\n如果需要同时判断父窗口的可见性，应改用 win.isVisible 函数。\n\n以 `.` 前导的 `.hide()` 作为成员函数被调用时，\n作用等价于将 hide 属性设为 null 。
 !button.disabled = 是否禁用
 !button.left = 左侧坐标
 !button.right = 右侧坐标
@@ -240,9 +240,11 @@ groupbox._metaProperty = metaProperty( )
 !button.dpiScaleY = 窗口当前使用的DPI纵坐标缩放系数,\n该值由界面系统自动维护，任何情况下都不应手动修改,\n\n这是一个以小数表示百分比的数，例如 1.25 表示 125%,\n窗口未使用缩放或未完成缩放初始化时，值可能为 null，\n如果要获取屏幕缩放设置应改用 gdi.getDpiScale 函数
 !button.translateCommand() = 允许转发转发子窗口的命令（_WM_COMMAND）与通知（_WM_NOTIFY）消息，\n避免子窗口 oncommand，onnotify 等回调失效。\n同时会处理子窗口的 _WM_CTLCOLORSTATIC 等消息，\n以避免部分外观属性失效
 !button.valid = 窗口是否有效，\n窗口未关闭返回 true ，\n窗口已关闭或正在关闭返回 false
+!button.addCtrl(controlsPropertiesTable) = @.addCtrl(\n	cls="button";marginRight=2;marginTop=1;marginBottom=4;width=16;text="4";font=LOGFONT(charset=2;name='Marlett';weight=500);\n	oncommand = function(id,event){ \n		owner.msgbox(owner.text)\n	}\n)__/*在 button 控件窗口内添加子窗口*/
+!button.addCtrl() = !static. 
 ?win.ui.ctrl.button  =!button. 
 win.ui.ctrl.button() = 控钮控件\ncheckbox.radiobutton 等控件继承自 button 控件,\nbutton 控件默认会忽略背景色、字体颜色属性,\n在创建参数中指定 note 属性时会切换为「命令链接」样式\n!button. 
-?win.ui.ctrl.groupbox  =!static. 
+?win.ui.ctrl.groupbox = !static. 
 win.ui.ctrl.groupbox() = 控钮控件\n!static.
 end intellisense***/
 
@@ -253,10 +255,10 @@ win.ui.ctrl.checkbox() = 复选控钮控件\n!checkbox.
 !checkbox.text = 文本属性
 !checkbox.hwnd = 控件句柄
 !checkbox.id = 控件ID
-!checkbox._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!checkbox._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !checkbox.getParent() = 返回父窗口\n!static.
 !checkbox.setParent(__/*控件对象*/) = 改变父窗口 
-!checkbox.hide = 控件是否隐藏
+!checkbox.hide = 当前控件窗口是否隐藏。\n仅检查当前窗口的可见性样式（窗口 是否移除了 _WS_VISIBLE 样式）。\n不考虑父窗口是否可见，不考虑是否被其他窗口遮挡。\n如果需要同时判断父窗口的可见性，应改用 win.isVisible 函数。\n\n以 `.` 前导的 `.hide()` 作为成员函数被调用时，\n作用等价于将 hide 属性设为 null 。
 !checkbox.disabled = 是否禁用
 !checkbox.left = 左侧坐标
 !checkbox.right = 右侧坐标
@@ -305,10 +307,10 @@ win.ui.ctrl.radiobutton() = 单选控钮控件\n!radiobutton.
 !radiobutton.checked = 单选按钮否选中状态
 !radiobutton.hwnd = 控件句柄
 !radiobutton.id = 控件ID
-!radiobutton._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!radiobutton._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !radiobutton.getParent() = 返回父窗口\n!static.
 !radiobutton.setParent(__/*控件对象*/) = 改变父窗口 
-!radiobutton.hide = 控件是否隐藏
+!radiobutton.hide = 当前控件窗口是否隐藏。\n仅检查当前窗口的可见性样式（窗口 是否移除了 _WS_VISIBLE 样式）。\n不考虑父窗口是否可见，不考虑是否被其他窗口遮挡。\n如果需要同时判断父窗口的可见性，应改用 win.isVisible 函数。\n\n以 `.` 前导的 `.hide()` 作为成员函数被调用时，\n作用等价于将 hide 属性设为 null 。
 !radiobutton.disabled = 是否禁用
 !radiobutton.left = 左侧坐标
 !radiobutton.right = 右侧坐标

@@ -5,9 +5,9 @@ import win.ui;
 var winform = win.form(text="简单多标签浏览器 —— 使用「高级选项卡」实现";right=992;bottom=623;bgcolor=16777215)
 winform.add(
 tabBorder={cls="bkplus";left=0;top=33;right=991;bottom=34;bgcolor=32768;border=1;disabled=1;dl=1;dr=1;dt=1;z=1};
-tabPanel={cls="custom";left=-2;top=53;right=989;bottom=622;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;z=4};
-tabPlus1={cls="plus";text="网页开发";left=0;top=2;right=149;bottom=34;bgcolor=16777215;border={bottom=1;color=-16744448};dl=1;dt=1;font=LOGFONT(h=-14);z=2};
-tabPlus2={cls="plus";text="JavaScript 脚本";left=149;top=2;right=299;bottom=34;bgcolor=16777215;border={bottom=1;color=-16744448};dl=1;dt=1;font=LOGFONT(h=-14);z=3}
+tabPanel={cls="custom";left=-2;top=53;right=989;bottom=622;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;z=4};
+tabPlus1={cls="plus";text="网页开发";left=0;top=2;right=149;bottom=34;bgcolor=0xFFFFFF;border={bottom=1;color=-16744448};dl=1;dt=1;font=LOGFONT(h=-14);z=2};
+tabPlus2={cls="plus";text="JavaScript 脚本";left=149;top=2;right=299;bottom=34;bgcolor=0xFFFFFF;border={bottom=1;color=-16744448};dl=1;dt=1;font=LOGFONT(h=-14);z=3}
 )
 /*}}*/
 
@@ -41,7 +41,7 @@ import web.form;
 tabs.createWebForm = function(url){
  
 	//动态添加更多选项卡
-	var tabIndex = tabs.add(text="正在加载...") 
+	var tabIndex = tabs.add(text="正在加载...",hasCloseButton = true) 
 	tabs.selIndex = tabIndex;//选中新选项卡
 	
 	var form = tabs.loadForm(tabIndex); 
@@ -100,8 +100,8 @@ tabs.closeButton.skin(
     } 
 )
 
-//可以自定义关闭按钮在选项卡上的显示位
-tabs.beforeShowCloseButton = function(tab,rcTab,rcCloseButton){
+//可以自定义关闭按钮在选项卡上的显示位置
+tabs.beforeShowCloseButton = function(tabButton,rcTab,rcCloseButton){
     return rcTab.right - rcCloseButton.width() - 5, rcTab.top + ( rcTab.height() - rcCloseButton.height() )/2;
 }
 

@@ -1,0 +1,21 @@
+import raw.c; //加载 ::Msvcrt
+var memcmp = raw.c.memcmp; // 基于 ::Msvcrt.memcmp 函数
+
+var str1 = "abc";
+var buffer2 = raw.buffer("abc");
+
+//内存逐字节比较二进制数据
+if( 0 == memcmp(str1,buffer2) ){
+	print("存储了相同的二进制数据。");
+}
+else{
+	print("存储了不同的二进制数据。");	
+}
+
+//调用原始 ::Msvcrt.memcmp 则不可省略比较长度参数。 
+var eq = ::Msvcrt.memcmp(str1,buffer2,3)
+
+//也可以对 buffer 或内存指针使用模式匹配
+if( raw.find(buffer2,#buffer2,"^abc$") ){
+	print("匹配成功。");	
+}

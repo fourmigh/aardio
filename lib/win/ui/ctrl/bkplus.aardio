@@ -14,11 +14,21 @@ class bkplus{
 	ctor(parent,tParam){ 
 		
 		this.text = tParam.text;
+		
 		if(tParam.bgcolor!==null){
-			this.backgroundColor = ..gdi.rgbReverse(tParam.bgcolor) | 0xFF000000;
+			if(!(tParam.bgcolor & 0xFF000000)){
+				this.backgroundColor = ..gdi.rgbReverse( tParam.bgcolor ) |  0xFF000000;
+			}
+			else this.backgroundColor = tParam.bgcolor;
+			tParam.bgcolor = null;
 		}
+		
 		if(tParam.forecolor!==null){
-			this.foregroundColor = ..gdi.rgbReverse(tParam.forecolor) | 0xFF000000;
+			if(!(tParam.forecolor & 0xFF000000)){
+				this.foregroundColor = ..gdi.rgbReverse( tParam.forecolor ) |  0xFF000000;
+			}
+			else this.foregroundColor = tParam.forecolor;
+			tParam.forecolor = null;
 		}
 		
 		this.paddingRight = tParam.paddingRight:0;
@@ -50,6 +60,8 @@ class bkplus{
 		this.interpolationMode = 7/*_InterpolationModeHighQualityBicubic*/;
 	};
 	onDirectDrawBackground = function(hdc,graphics){
+		if(this.$hidden) return;
+		
 		var rc = this.rect;
 		if(!graphics) { graphics = ..gdip.graphics(hdc); hdc = null; }
 		
@@ -139,10 +151,10 @@ class bkplus{
 		if(!hdc) graphics.delete();
 	};
 	setPos = function(x,y,cx,cy){
-		this.rect.ltrb(x,y,cx,cy);
+		this.rect.setPos(x,y,cx,cy);
 	};
 	getPos = function(){
-		return this.rect.xywh();
+		return this.rect.getPos();
 	};
 	redraw = function(){
 		owner[["_parentForm"]].redrawBackground(owner.rect);
@@ -269,6 +281,26 @@ bkplus._metaProperty = ..util.metaProperty(
 			owner.setFont(font);
 		}
 	};
+	show = function(v){
+		owner.$hidden = (v===null || !v);
+		owner.redraw();
+	};
+	hide = {
+		_get = function(ownerCall){ 
+			if(ownerCall) return function() {owner.$hidden = true;owner.redraw();};
+			
+			return owner.$hidden;
+		}
+		_set = function(v){ 
+			owner.$hidden = v;
+			owner.redraw();
+		}
+	};
+	close = function(){
+		owner[["_parentForm"]].remove(owner);
+		owner._onDestroy();
+		owner.redraw();
+	};	
 )
 
 bkplus.__stringAlignment = { 
@@ -276,16 +308,24 @@ bkplus.__stringAlignment = {
 		left =0/*_GdipStringAlignmentNear*/ ; right = 2/*_GdipStringAlignmentFar*/;
 		center = 1/*_GdipStringAlignmentCenter*/;
 	}	
+	
+/**details(更多绘图样式与选项)
+[plus 控件](doc://library-guide/std/win/ui/ctrl/plus.md)调用 directDrawBackgroundOnly 函数也可以转换为背景贴图控件，
+不但拥有 bk,bkplus 控件的相同优势，而且支持更多的绘图样式与选项。
+end details**/
 
 /**intellisense()
 win.ui.ctrl.bkplus() = 无窗口控件,仅用于背景贴图,支持透明png图像,\n直接输出颜色或图像到窗口背景图缓存,\n因为不需要创建窗口可避免前后叠加控件后，处理不当带来的闪烁，\n适合显示静态、不会频繁变动的图像\n\nplus控件也可通过\n调用directDrawBackgroundOnly函数变为背景控件\n!winuictrlbkplus.
 end intellisense**/
 
 /**intellisense(!winuictrlbkplus)
+background = 设置背景图像或背景颜色。\n设置背景图像时支持 jpg,gif,png 等格式图像路径或内存数据，支持 gdip.bitmap 对象。\n设置背景颜色支持 0xAARRGGBB 格式颜色数值（ARGB 格式）。\n通过此属性修改背景颜色会自动删除之前指定的背景图像。\n修改此属性后会自动重绘，而通过 backgroundColor 属性修改背景色不会自动重绘。\n\n读取此属性时，即使未指定背景图像，也不会返回背景颜色值，\n应改用 backgroundColor 属性获取背景颜色值。
+backgroundColor = 背景颜色， 0xAARRGGBB 格式颜色数值（ARGB 格式）\n直接修改这个属性时不会重绘控件。\n也不会删除通过 background 属性指定的背景图像。\n\nbk,bkplus 是无句柄控件，可以任意前后叠加多个 bk,bkplus 控件。
+foreground = 设置前景图像或前景颜色。\n设置前景图像时支持 jpg,gif,png 等格式图像路径或内存数据，支持 gdip.bitmap 对象。\n设置前景颜色支持 0xAARRGGBB 格式颜色数值（ARGB 格式）。\n修改此属性后会自动重绘，通过 foregroundColor 属性修改前景色不会自动重绘。\n\n读取此属性时，即使未指定前景图像，也不会返回前景颜色值，\n应改用 foregroundColor 属性获取前景颜色值。
+foregroundColor = 前景颜色， 0xAARRGGBB 格式颜色数值（ARGB 格式）\n直接修改这个属性时不会重绘控件。\n也不会删除通过 foreground 属性指定的前景图像。\n\nbk,bkplus 是无句柄控件，可以任意前后叠加多个 bk,bkplus 控件。
 redraw() = 刷新,会导致背景窗口重建背景图缓存\n不建议频繁调用
-background = 重新指定背景图像,支持jpg,gif,png等格式,\n\n如果在这里指定ARGB格式颜色数值，\n则删除背景图像并指定backgroundColor然后刷新。\n\n读取此属性时，即使未指向图像，也不会返回backgroundColor
-backgroundColor = 背景颜色,ARGB格式颜色数值\n直接修改这个属性时不会刷新，\n也不会解除background属性引用的图像。
-getPos（） = 返回x,y,cx,cy,\nx,y为控件坐标,cx,cy为控件宽、高
+getPos() = 返回 `x,y,cx,cy` 等 4 个值。\n`x,y`为控件坐标，`cx,cy` 为控件宽、高。
+setPos(.(x,y,cx,cw) = 修改控件的 x，y 坐标与宽（cx），高（cw）。\n所有参数可选，不指定的参数则保持原值。\n对于 bk,bkplus 控件此函数不负责重绘。
 onDrawBackground = @.onDrawBackground(hdc,rc){
 	/*背景绘图以后触发此回调,\nhdc为当前绘图设备句柄,rc为控件位置*/
 }
@@ -293,7 +333,6 @@ onDrawString = @.onDrawString = function(graphics,text,font,rectf,strformat,brus
     __/*自定义输出文本,请不要删除传入参数中的GDI+对象*/
     graphics.drawString(text,font,rectf,strformat,brush);
 }
-foreground = 使用ARGB格式颜色数值指定前景色,不可指定图像,\nbkplus是无窗口控件，如果要叠加前景图像，添加多个bkplus控件即可
 paddingRight = 前景色右边距
 paddingBottom = 前景色下边距
 paddingLeft = 前景色左边距
@@ -303,4 +342,7 @@ argbColor = ARGB格式颜色数值,用于文本输出
 textRenderingHint = @.textRenderingHint = _GdipTextRenderingHint__ ;
 smoothingMode = 绘图画布默认抗锯齿模式,\n默认值为_GdipSmoothingModeAntiAlias
 interpolationMode = 图像缩放时的默认插值模式,\n默认值为_GdipInterpolationModeHighQualityBicubic
+show() = 显示窗口。\n参数 @1 为 false 时隐藏窗口。
+hide = 当前控件是否隐藏\n\n以 `.` 前导的 `.hide()` 作为成员函数被调用时，\n作用等价于将 hide 属性设为 null 。
+close() = 关闭控件。
 end intellisense**/

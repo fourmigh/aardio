@@ -2,14 +2,14 @@
 import fonts.fontAwesome;
 import win.ui;
 /*DSG{{*/
-mainForm = win.form(text="高级选项卡 - 入门";right=1040;bottom=642;bgcolor=16777215;border="none")
+mainForm = win.form(text="高级选项卡 - 入门";right=1040;bottom=642;bgcolor=0xFFFFFF;border="none")
 mainForm.add(
-caption={cls="bkplus";text="选项卡演示";left=35;top=12;right=160;bottom=30;color=15780518;dl=1;dt=1;font=LOGFONT(h=-16);z=5};
-logo={cls="bkplus";text='\uF0AD';left=6;top=9;right=35;bottom=34;color=15780518;dl=1;dt=1;font=LOGFONT(h=-18;name='FontAwesome');z=4};
-tabPanel={cls="custom";left=0;top=40;right=1040;bottom=643;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;z=1};
-tabPlus1={cls="plus";text="测试1";left=166;top=5;right=294;bottom=40;align="left";color=16777215;dl=1;dt=1;font=LOGFONT(h=-16);iconStyle={align="left";font=LOGFONT(h=-19;name='FontAwesome');padding={left=12;top=4}};iconText='\uF00A';notify=1;paddingLeft=1;paddingRight=1;paddingTop=3;textPadding={left=39;bottom=1};x=0.5;y=0.2;z=3};
-tabPlus2={cls="plus";text="测试2";left=294;top=5;right=422;bottom=40;align="left";color=16777215;dl=1;dt=1;font=LOGFONT(h=-16);iconStyle={align="left";font=LOGFONT(h=-19;name='FontAwesome');padding={left=12;top=4}};iconText='\uF11C ';notify=1;paddingLeft=1;paddingRight=1;paddingTop=3;textPadding={left=39;bottom=1};x=0.5;y=0.2;z=6};
-titleBar={cls="bkplus";left=0;top=0;right=1042;bottom=41;bgcolor=14977280;dl=1;dr=1;dt=1;z=2}
+caption={cls="bkplus";text="选项卡演示";left=35;top=12;right=160;bottom=30;color=0xF0CAA6;dl=1;dt=1;font=LOGFONT(h=-16);z=5};
+logo={cls="bkplus";text='\uF0AD';left=6;top=9;right=35;bottom=34;color=0xF0CAA6;dl=1;dt=1;font=LOGFONT(h=-18;name='FontAwesome');z=4};
+tabButton1={cls="plus";text="测试1";left=166;top=5;right=294;bottom=40;align="left";color=0xFFFFFF;dl=1;dt=1;font=LOGFONT(h=-16);iconStyle={align="left";font=LOGFONT(h=-19;name='FontAwesome');padding={left=12;top=4}};iconText='\uF00A';notify=1;paddingLeft=1;paddingRight=1;paddingTop=3;textPadding={left=39;bottom=1};x=0.5;y=0.2;z=3};
+tabButton2={cls="plus";text="测试2";left=294;top=5;right=422;bottom=40;align="left";color=0xFFFFFF;dl=1;dt=1;font=LOGFONT(h=-16);iconStyle={align="left";font=LOGFONT(h=-19;name='FontAwesome');padding={left=12;top=4}};iconText='\uF11C ';notify=1;paddingLeft=1;paddingRight=1;paddingTop=3;textPadding={left=39;bottom=1};x=0.5;y=0.2;z=6};
+tabPanel={cls="custom";left=0;top=40;right=1040;bottom=643;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;z=1};
+titleBar={cls="bkplus";left=0;top=0;right=1042;bottom=41;bgcolor=0xE48900;dl=1;dr=1;dt=1;z=2}
 )
 /*}}*/
 
@@ -21,7 +21,7 @@ import win.ui.tabs;
 
 创建"高级选项卡"步骤：
 
-1. 在窗体上添加两个 plus 控件 mainForm.tabPlus1, mainForm.tabPlus2 
+1. 在窗体上添加两个 plus 控件 mainForm.tabButton1, mainForm.tabButton2 
 这些 plus 控件显示在选项卡头部（ header ）位置，并且用于确定选项卡的外观与排列方向。
 	
 2. 在窗体上添加一个 custom 控件 mainForm.tabPanel 作为页面容器，
@@ -29,9 +29,9 @@ import win.ui.tabs;
 
 然后调用下面的代码创建 win.ui.tabs 控件。
 */
-var tabs = win.ui.tabs(mainForm.tabPlus1,mainForm.tabPlus2);
+var tabs = win.ui.tabs(mainForm.tabButton1,mainForm.tabButton2);
 
-//可选清除  mainForm.tabPlus1,mainForm.tabPlus2，这些选项卡获取的默认样式与排列方向与间距已经保存。
+//可选清除  mainForm.tabButton1,mainForm.tabButton2，这些选项卡获取的默认样式与排列方向与间距已经保存。
 tabs.clear();
 
 //指定选项卡右侧预留的空白边距（用于显示下拉菜单，以及其他需要放置的控件）
@@ -52,16 +52,15 @@ tabs.skin({
 		color={default=0xFF42A875;};
 	}
 })
-//控件样式参数建议写到用户库里，改为 tabs.skin( styles.tabs ) 会更好。
 
-//添加更多选项卡，参数可指定创建选项卡控件的属性(作为创建 plus 控件的表参数)
+//添加更多选项卡按钮，调用参数为创建选项卡控件（plus 控件）的属性表
 var tabIndex1 = tabs.add({
 	text="标签页1";
 	iconText='\uF0AD';
 	hasCloseButton = true;
 })
 
-//继续添加选项卡, 一般不用取返回值，这是给 AI 看的。
+//继续添加选项卡按钮。
 var tabIndex2 = tabs.add({
 	text="标签页2";
 	iconText='\uF0AD';
@@ -80,7 +79,7 @@ tabs.loadForm(tabIndex2,"\dlg\hotkey.aardio" );
 // 在第一个标签页上添加按钮，用法与 winform.add 相同。
 formPage1.add({
    button1 = { 
-   		cls="button";
+   		cls="button";//指定控件类名，对应 win.ui.ctrl.button
     	text="按钮2";
     	left=20;top=20;right=120;bottom=50;
     	
@@ -93,7 +92,7 @@ formPage1.button1.oncommand = function(){
 }
 
 //切换选项卡触发下面的事件
-tabs.onSelchange = function(index,tabItem,form){
+tabs.onSelChange = function(tabIndex,tabButton,form){
 	
 }
 
@@ -121,11 +120,12 @@ tabs.closeButton.skin(
     }
 )
 
-//可以自定义关闭按钮在选项卡上的显示位
-tabs.beforeShowCloseButton = function(tab,rcTab,rcCloseButton,dpiScaleX){ 
+//可以自定义关闭按钮在选项卡上的显示位置
+tabs.beforeShowCloseButton = function(tabButton,rcTab,rcCloseButton,dpiScaleX){ 
     return rcTab.right - 10 * dpiScaleX, rcTab.top -2* dpiScaleX;
 }
 
+//在无边框窗口上添加自定义的标题栏（包含最小化、最大化、关闭等标题栏按钮）
 import win.ui.simpleWindow;
 win.ui.simpleWindow( mainForm );
 

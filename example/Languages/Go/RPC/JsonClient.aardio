@@ -15,7 +15,7 @@ if(!io.exist("/goRpc.exe"))  loadcodex("/JsonServer.aardio",true);
  
 import process.rpc.jsonClient;
 
-//可添加命令行参数，用法与 process，process.popen 相同。参考：范例 / 进程
+//可添加命令行参数，用法与 process，process.popen 相同。参考：范例 » 进程
 var go,err = process.rpc.jsonClient("/goRpc.exe"); 
 
 winform.button.oncommand = function(id,event){

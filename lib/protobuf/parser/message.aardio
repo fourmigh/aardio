@@ -147,16 +147,16 @@ class message{
 		 
 				if(field.packed){
 					fieldTemplate = template.fieldPackedArray;
-					fieldValue = `{ @{_type="array"}}`;
+					fieldValue = `[]`;
 				}
 				else {
 					fieldTemplate = template.fieldArray;
-					fieldValue = `{ @{_type="array"}}`;
+					fieldValue = `[]`;
 				} 
 				
 				fieldMetaTemplate = template.fieldArrayMeta;
 			}
-			elseif(..string.endWith(field.varName,"time",true) ){
+			elseif(..string.endsWith(field.varName,"time",true) ){
 				fieldValue = field.default===null?"null":field.default;
 				fieldMetaTemplate = template.fieldTimeMeta;
 			}
@@ -221,7 +221,7 @@ class message{
 		for(i=1;#this.fieldTypes;1){ 
 			var field = this.fieldTypes[i]
 			var vtype = ..string.trim(field.fullTypeName,".")
-			var scalarType = ..string.startWith(vtype,"protobuf.type.")
+			var scalarType = ..string.startsWith(vtype,"protobuf.type.")
 			var inellCustomType = ..string.replace( vtype,"@.","_");
 			if(#inellCustomType>32){
 				inellCustomType = ..string.format("%x", ..string.crc32(inellCustomType) ) ++ ..string.right(inellCustomType,16);

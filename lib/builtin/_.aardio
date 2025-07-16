@@ -91,7 +91,7 @@ import builtin.struct;
 import builtin.math;
 
 ::GetLastError = k.api( "GetLastError", "int()"); 
-var formatMessage = k.api("FormatMessage","INT(INT dwFlags,pointer source,INT id,INT lang,utf& buf,INT size,pointer &arg )");
+var formatMessage = k.api("FormatMessage","INT(INT dwFlags,pointer source,INT id,INT lang,ustring& buf,INT size,pointer &arg )");
 lasterr  = function(err,where){
 	err := GetLastError(); 
 	if(err){ 
@@ -157,12 +157,15 @@ print = function(s,...){
 			}
 			else {
 				conPause = true;
-				if(..console) ..console.open();
+				if(..console) {
+					..console.open();
+					..console.pausedOnce = null;
+				}
 				else{
 					var h = ::Kernel32.GetConsoleWindow();
-					if(!(h?::User32.IsWindowVisible(h))) ..io.open();
+					if(!(h?::User32.IsWindowVisible(h))) { ..io.open(); publish("afterConsoleOpen");}
 				}
-				..io.print(s,...);
+				..io.print(..table.isArray(s)?..table.tostring(s):s,...);
 				return;
 			} 
 		}
@@ -186,36 +189,10 @@ __beforeUnload =  function(){
 		if(..win.isClosed()) return;
 	}
 	
-	if(conPause) execute("pause");
-}
-
-time.gmt = function(t,f){
-    if( time.istime(t) ) t = t.utc(true);
-	var tm = time(t,f:"!%a, %d %b %Y %H:%M:%S GMT","enu");	
-	if( tm.endstr ){
-		var h,m;
-		if(#tm.endstr<4) h = tm.endstr;
-		else h,m =  ..string.match(tm.endstr,"([+-]\d\d?)\:?(\d\d)$");
-
-		if( h ){
-			h = tonumber(h,10) * 60;
-			if(m){
-				m = tonumber(m,10);
-				h = h + ( (h<0)?-m:m )
-			}
-			tm.addminute(-h);
-			tm.endstr = null;
-		}
+	if(conPause){
+		var h = ::Kernel32.GetConsoleWindow();
+		if(h && ::User32.IsWindowVisible(h) && !console[["pausedOnce"]]) execute("pause");
 	}
-	return tm;
-}
-
-time.iso8601 = function(t){
-	return time.gmt (t,"!%Y-%m-%dT%H:%M:%SZ") || time.gmt(t,"!%Y-%m-%d");
-}
-
-time.utc = function(t){
-	return  time(t,"!%Y/%m/%d %H:%M:%S") || time(t,"!%Y-%m-%d");
 }
 
 _IMPORTURL = {};
@@ -229,6 +206,37 @@ type.isFile = function(obj){
 	var t1,t2 = type(obj);
 	return (t1=="cdata"&&t2=="io.file")||(t1=="table"&&(t2=="fsys.file"||t2=="fsys.stream"))
 }
+
+namespace time{
+	gmt = function(t,f){
+    	if( istime(t) ) t = t.utc(true);
+		var tm = ..time(t,f:"!%a, %d %b %Y %H:%M:%S GMT","enu");	
+		
+		var e = tm[["endstr"]];
+		if( e && (type(t)==="string") ){
+			var h,m = ..string.match(e,"([+-]<\d\d>|<\d!\D>)\:?(<\d\d>?)!\D");
+			if( #h ){
+				h = tonumber(h,10) * 60;
+				if(#m){
+					m = tonumber(m,10);
+					h = h + ( (h<0)?-m:m )
+				}
+				tm.addminute(-h);
+				tm.endstr = null;
+			}
+		}
+		return tm;
+	}
+	
+	iso8601 = function(t){
+		return gmt (t,"!%Y-%m-%dT%H:%M:%SZ") || gmt(t,"!%Y-%m-%d");
+	}
+
+	utc = function(t){
+		return  ..time(t,"!%Y/%m/%d %H:%M:%S") || ..time(t,"!%Y-%m-%d");
+	}		
+}
+
 
 /**intellisense(::)
 ::Ntdll = 默认已加载的系统DLL组件ntdll.dll\n!dllModule.

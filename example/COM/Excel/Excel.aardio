@@ -25,6 +25,10 @@ cell.Value2 = "haha";
  
 console.log( cell.Text );
 
+//也可以使用多项索引获访问单元格 doc://language-reference/operator/member-access.md#multiple-indexing
+var cell = sheet.Cells[1,1];
+sheet.Cells[1,1] = "新的值";//修改默认的 Value 属性
+
 //遍列所有单元格
 for(i,values in excel.eachValue(1) ){ 
 	console.log("行号"+i,table.tostring(values));  

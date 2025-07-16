@@ -14,7 +14,7 @@ load = function(strfile){
 	
 	if(!len) return null,"无效参数";
 	elseif( len < 0x410/*_MAX_PATH_U8*/){
-		if( (strfile[1] == 'h'#) && ..string.startWith(strfile,"http") && ..inet[["http"]]  ){
+		if( (strfile[1] == 'h'#) && ..string.startsWith(strfile,"http") && ..inet[["http"]]  ){
 			if( !self.http ) self.http = ..inet.http();
 			bin = self.http.get(strfile);
 		}
