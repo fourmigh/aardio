@@ -3,7 +3,7 @@ import process.popen;
 import string.cmdline;
 import zlib.httpFile;
 import process.job.limitKill;
-import web.json;
+import JSON;
 import win.reg;
 import process.rpc.jsonClient;
 import web.rest.github;
@@ -16,7 +16,7 @@ namespace process{
     	    var path = checkPath();
 				
 			var err;
-    		this,err = ..process.popen(self.path,..string.cmdline.arguments(...),{workDir=workDir});
+    		this,err = ..process.popen(self.path,..string.cmdline.arguments(...),{workDir=workDir,environment=environment});
     		if(!this) error(err,2); 
 			
     		this.codepage = codepage;
@@ -35,7 +35,7 @@ namespace process{
             
             var prcs,err;
             
-        	if(..string.endWith(code,".py",true) ){
+        	if(..string.endsWith(code,".py",true) ){
         	    if(..io.exist(code)){
         	    	prcs,err = execfile(code,...);
         	    }
@@ -44,7 +44,7 @@ namespace process{
         			if(code) prcs,err = command(code,...);
         		}
         	}
-        	elseif( ..string.endWith(code,".aardio",true)  ){
+        	elseif( ..string.endsWith(code,".aardio",true)  ){
         		var code,err = ..string.loadcode(code);
         		if(code === null ) return null,err;
         		
@@ -73,7 +73,7 @@ namespace process{
 						}
 					
 						if(..table.next(kwargs)){
-							reqData.params = {args = ..table.append({@{_type="array"}},arg1);kwargs=kwargs};	
+							reqData.params = {args = ..table.append([],arg1);kwargs=kwargs};	
 							return reqData;
 						} 
 					}
@@ -103,7 +103,7 @@ namespace process{
     	} 
     	
     	execfile = function(path,...){ 
-    	    var args = ..process.joinArguments(..io.fullpath(path),...);
+    	    var args = ..process.joinArguments({..io.fullpath(path),...});
     		return ..process.python(args);
     	}
     	
@@ -113,7 +113,7 @@ namespace process{
         	
         	if( type.isString(code) ){
         	    if(..io.localpath(code) || ..io.exist(code)){
-        	    	if( ..string.endWith(code,".aardio",true) ){
+        	    	if( ..string.endsWith(code,".aardio",true) ){
         	    		code = ..string.loadcode(code);
         	    	}
         	    	else {
@@ -203,12 +203,13 @@ namespace process{
 					}	
 				}
 				
+				var majorVersion,minorVersion = ..string.match(sysVersion,"(\d+)\.(\d+)");
 				for k,v in ..table.eachName(python,lambda(k) owner > k){
 					if(..io.exist(v)){
-						var sysVersionReg = ..string.match(k,"\d+\.\d+");
-						if(sysVersionReg 
-								&& (sysVersionReg[1] == sysVersion[1] )
-								&& (tonumber(sysVersionReg)>tonumber(sysVersion) )){
+						var majorVersionReg,minorVersionReg = ..string.match(k,"(\d+)\.(\d+)");
+						if( majorVersionReg  && minorVersionReg
+								&& (majorVersion == majorVersionReg)
+								&& (tonumber(minorVersionReg)>=tonumber(minorVersion) )){
 							return v; 
 						} 
 					}	
@@ -349,7 +350,7 @@ https://www.python.org/ftp/python
 end details**/
 
 /**intellisense()
-process.python = 用于调用任意版本 python.exe，支持 32 位、64位 Python\n\n此支持库已导入 web.json，\n可直接使用返回 Python 进程的 json,jsonAll,ndjsonAll,jsonWite 等函数
+process.python = 用于调用任意版本 python.exe，支持 32 位、64位 Python\n\n此支持库已导入 JSON，\n可直接使用返回 Python 进程的 json,jsonAll,ndjsonAll,jsonWite 等函数
 process.python(__) = 创建 Python 进程，当前进程退出时 Python 会自动退出。\n返回进程管道（ process.popen ）对象。\n可以用一个字符串参数指定多个启动参数，用空格分隔多个参数，\n也可以传入多个参数由 aardio 自动合并（空格分隔参数），\n合并多参数时，单参数含空格或需转义时自动加双引号并自动转义
 end intellisense**/
 
@@ -378,9 +379,10 @@ github() = !process_popen.
 codepage = 代码页，默认为 65001（UTF-8 编码）\nPython 2.x 需要改为 0，Python 3.x 不用修改
 checkPath() = 检查 Python.exe 路径。\n如果未找到 Python.exe 则尝试自动安装。\n成功则返回 Python.exe 路径
 path = python.exe 路径，\n默认为 "/py/python.exe"。\n如果路径不存在会自动下载 process.python.version\n指定版本号的 Python 绿色版，\n64位系统默认下载 64 位 Python
-version = 默认 Python 版本。\n\n如果指定 "python.exe"，则调用系统安装的 Python，\n如果系统未安装 Python ，则会自动安装 process.python.version 指定的版本。\n\n如果指定其他路径则表示 embed 嵌入版，embed 版完全独立。\n如果指定的路径不存在，则会自动下载 embed 版 Python 到指定的位置。\nprocess.python.version 指定要下载的 Python 版本。\n\n此属性的默认值为 "/py/python.exe"\n路径首字符的单个斜杆表示应用程序根目录。\naardio 工程会对 "/py" 目录提供优先支持。
+version = 默认 Python 版本。\n\n如果指定 "python.exe"，则调用系统安装的 Python，\n如果系统未安装 Python ，则会自动安装 process.python.version 指定的版本。\n\n如果指定其他路径则表示 embed 嵌入版，embed 版完全独立。\n如果指定的路径不存在，则会自动下载 embed 版 Python 到指定的位置。\nprocess.python.version 指定要下载的 Python 版本。\n\n此属性的默认值为 "/py/python.exe"\n路径首字符的单个斜杠表示应用程序根目录。\naardio 工程会对 "/py" 目录提供优先支持。
 win32 = 在 64 位系统是否也默认下载 32 位 Python。\n发布时如果选择打包为独立 EXE 时可兼容 32 / 64 位 Python
 cdnUrl = 下载镜像，如果镜像失效会自动跳转到 Python 官网下载
 userBase = 自定义使用 embed 版 Python 的 PYTHONUSERBASE 环境变量值，\n process.python.path 的值为 "python.exe" 时此属性无效
-workDir = 工作目录
+workDir = 指定运行 Python 代码的工作目录
+environment = 指定 Python 进程的环境变量。\n可指定包含环境变量名值对的表对象。\n也可传入以下格式的字符串对象：\n\n环境变量的名字与值之间以`=`号分隔，多个环境变量以`'\0'`分隔。\n\n也可提前用 string.setenv("name","value") 指定当前进程的环境变量。\nPython 进程默认会继承当前进程的环境变量。
 end intellisense**/

@@ -1,0 +1,51 @@
+//在下标中使用多项索引访问 .NET 多维数组 
+//.NET 数组: doc://example/Languages/dotNet/Array.html
+//Item 属性: doc://example/Languages/dotNet/Item.html
+
+import dotNet;  
+var compiler = dotNet.createCompiler("C#");
+
+compiler.Source = /****** 
+using System;
+using System.Collections.Generic;
+namespace CSharpLibrary  
+{ 
+	public class TestClass
+    { 
+   		public object[,] multiDimensionalArray = { {1,2,3} , {4,5,6}  };
+    }
+} 
+******/ 
+
+compiler.import("CSharpLibrary"); 
+var netObj = CSharpLibrary.TestClass(); 
+
+/*
+C# 中的普通的一维数组、多维数组只要是简单值类型的数组都会转换为纯 aardio 数组。
+.NET 中包果是简单值类型的多维数组则会被转换为 aardio 的嵌套数组，也就是数组的数组。
+简单值指的是字符串、数值、布尔值等两种语言中可以通用的基础值类型。
+.NET 类型转换: doc://library-guide/std/dotNet/type-conversion.md
+
+类似上面 C# 里的 object 多维数组这种则是无法自动转换为 aardio 数组的类型，
+在 aardio 中 netObj.multiDimensionalArray 将是一个原始的 .NET 对象。
+*/
+
+/*
+aardio 支持在下标中用逗号分隔多项索引（第一个索引必须是单个标识符或字面量），
+这种语法支持 .NET 接口、COM 接口，普通对象也可以使用 _get 元方法自定义对应的操作。
+
+在 aardio 中这种写法实际上是创建了一个纯数组 [0,0] 作为索引，
+再由 aardio 在调用 .NET 时自动展开为多维索引。 
+*/
+netObj.multiDimensionalArray[0,0] = 123;
+
+//也可以使用多项索引读取值，
+var value = netObj.multiDimensionalArray[0,0];
+
+//实际上面的代码会被转换为下面这种写法的简化
+var value = netObj.multiDimensionalArray[ [0,0] ];//用空格分开双层方括号以避免被识别为直接下标操作符
+
+//注意在 .NET 对象下标操作符中的单个数值索引值 aardio 将自动减 1，
+//而使用多项索引时，则与 .NET 相同以 0 为起始索引，aardio 不会自动减 1。
+
+print( value );

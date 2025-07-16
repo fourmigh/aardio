@@ -2,10 +2,11 @@
 import win.ui;
 import win.ui.menu;
 /*DSG{{*/
-var winform = win.form(text="按钮中嵌按钮";right=599;bottom=399;)
+var winform = win.form(text="按钮中嵌按钮";right=599;bottom=399)
 winform.add(
 btnInner={cls="button";text="4";left=183;top=47;right=209;bottom=77;dr=1;dt=1;font=LOGFONT(charset=2;name='Marlett';weight=500);z=2};
-button={cls="button";text="按钮中按钮";left=53;top=43;right=213;bottom=83;dr=1;dt=1;z=1}
+button={cls="button";text="按钮中按钮";left=53;top=43;right=213;bottom=83;dr=1;dt=1;z=1};
+button2={cls="button";text="按钮中按钮";left=53;top=187;right=213;bottom=227;dr=1;dt=1;z=3}
 )
 /*}}*/
 
@@ -45,6 +46,13 @@ winform.btnInner.oncommand = function(id,event){
 	} ).popup(rc.left,rc.bottom,true/*使用屏幕坐标*/)	
 }
 
+//更简单的方法是调用 addCtrl 函数直接在按钮内部添加控件，一句代码代码上面所有步骤。
+var innerButton = winform.button2.addCtrl(
+	cls="button";marginRight=2;marginTop=1;marginBottom=4;width=16;text="4";font=LOGFONT(charset=2;name='Marlett';weight=500);
+	oncommand = function(id,event){ 
+		owner.msgbox(owner.text)
+	}
+)
 
 winform.show()
 win.loopMessage();

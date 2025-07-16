@@ -2,7 +2,7 @@
 import fsys;
 import fsys.version;
 import sevenZip.lzma;
-import web.json;
+import JSON;
 
 namespace fsys.update;
 
@@ -135,7 +135,7 @@ class maker {
 			this.updater = this.main;
 		} 
 		
-		..string.save(..io.joinpath(this.outDir,"version.txt"),..web.json.stringify( {
+		..string.save(..io.joinpath(this.outDir,"version.txt"),..JSON.stringify( {
 			version = this.version; //tostring( ..fsys.version(this.version) );
 			url = this.url;
 			description = this.description;

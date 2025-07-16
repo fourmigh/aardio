@@ -1,0 +1,36 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="增强颜色对话框（支持屏幕取色）";right=759;bottom=469)
+winform.add(
+plus={cls="plus";left=5;top=8;right=287;bottom=82;z=1}
+)
+/*}}*/
+
+winform.show();
+
+/*
+增强颜色对话框（支持屏幕取色），支持 GDI+ 颜色格式（用 0xAARRGGBB 格式数值表示颜色，支持透明通道）。
+支持 ARGB,HSB,Lab 不同模式配色，支持色卡、色表、配色方案。
+*/
+import win.dlg.argbColor;
+
+//创建颜色对话框，也可以作为嵌入窗口的控件（创建控件时指定参数 cls="pick" ）。
+var colorPicker = win.dlg.argbColor(winform);
+
+//变更颜色时触发此事件
+colorPicker.onColorChange = function(argb){
+	winform.plus.background = argb;
+}
+
+//弹出调色与取色对话框
+var r = colorPicker.choose()
+if(r!==null){
+	winform.plus.text = string.format("#%08X",r)
+}
+
+/*
+也可以使用 win.dlg.color 创建操作系统提供的基础颜色对话框（功能较简单，仅支持 GDI 不透明色）。
+import win.dlg.color;
+var rgbColor = win.dlg.color(winform).choose();
+*/
+win.loopMessage();

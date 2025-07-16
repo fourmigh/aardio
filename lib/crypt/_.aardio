@@ -1,8 +1,8 @@
 
 class crypt{
-	ctor( provider,provType=1/*_PROV_RSA_FULL*/,szContainer){ {
-			var ret,hCryptProv = AcquireContext( ,szContainer/*当前用户*/, provider,provType, 0xF0000000/*_CRYPT_VERIFYCONTEXT*/);
-			if (!ret) {
+	ctor( provider,provType=1/*_PROV_RSA_FULL*/,szContainer,acFlags){ {
+			var ret,hCryptProv = AcquireContext( ,szContainer/*当前用户*/, provider,provType, acFlags || 0xF0000000/*_CRYPT_VERIFYCONTEXT*/);
+			if (!ret && (acFlags===null) ) {
 				ret, hCryptProv = AcquireContext( ,szContainer/*当前用户*/,provider,provType, 8/*_CRYPT_NEWKEYSET*/);	
 			}
 			if (!ret) return;
@@ -404,7 +404,19 @@ class crypt{
 			sign = ..string.reverse(..crypt.decodeBin(sign));
 			if(sign) return this.verifySignature(sign,flags);
 		} 
-	}
+	};
+	signToUrlBase64 = function(keySpec,flags){
+		var sign =  this.sign(keySpec,flags); 
+		if(sign){
+			return ..crypt.encodeUrlBase64(..string.reverse(sign));
+		}
+	};
+	verifyFromUrlBase64 = function(sign,flags){
+		if(sign){
+			sign = ..string.reverse(..crypt.decodeUrlBase64(sign));
+			if(sign) return this.verifySignature(sign,flags);
+		} 
+	};
 	allocBuffer = function(size,blockSize,str){
 		if( blockSize === null ) blockSize = this.blockSize;
 		size = ( size - ( size % blockSize) ) + blockSize; 
@@ -594,6 +606,20 @@ namespace crypt{
 		}
 	}
 	
+	encodeUrlBase64 = function(str,len){
+		var bin = encodeBin(str,len,0x40000001/*_CRYPT_STRING_BASE64*/);
+		if(bin){ 
+    		return ..string.trimright(..string.replace(bin,"[\+/]",{["+"]="-";["/"]="_"} ),"=");
+		}
+	}
+	
+	decodeUrlBase64 = function(str,len){
+    	if(!str) return;
+    	str = ..string.replace(str,"@-","+");
+    	str = ..string.replace(str,"@_","/");
+		return decodeBin(str,len,1/*_CRYPT_STRING_BASE64*/);
+	}
+	
 	pem = function(bin,header){
 		if(bin) return ..string.format('-----BEGIN %s-----\r\n%s-----END %s-----',header,encodeBin(bin,,1/*_CRYPT_STRING_BASE64*/),header);
 	}
@@ -650,9 +676,10 @@ namespace crypt{
 	};
 }
 
+//@guide [关于 CSP](https://learn.microsoft.com/en-us/windows/win32/seccertenroll/cryptoapi-cryptographic-service-providers)
 /**intellisense()
 crypt() = !crypt.
-crypt(.(CSP名称,CSP类型) = 获取密钥容器.\n所有参数可选,CSP类型使用 _PROV_前缀常量指定\n如果不指定 CSP类型 则使用默认值 _PROV_RSA_FULL\n如果不使用 CSP名称，则获取该类型默认提供程序名称\n参考： https://docs.microsoft.com/en-us/windows/win32/seccertenroll/cryptoapi-cryptographic-service-providers
+crypt(.(provider,provType,container,flags) = 获取密钥容器，所有参数可选。\n可选参数 @provider 使用 _PROV_前缀常量指定 CSP（Cryptographic Service Provider） 名称。\n可选参数 @provType 指定 CSP 类型，默认值为 _PROV_RSA_FULL。\n可选参数 @container 指定密钥容器名称，默认值为 null。\n可选参数 @flags 指定选项（数值），默认值为 _CRYPT_VERIFYCONTEXT。\n全部参数用法请参考系统 API 函数 CryptAcquireContext 的文档。
 !crypt_key.duplicate() = 复制密钥\n!crypt_key.
 !crypt_key.destroy() = 删除密钥
 !plaintextkeyblob.hdr.aiKeyAlg =  密钥使用的算法ID
@@ -716,8 +743,10 @@ allocBuffer(.(大小,块大小) = 分配加解密需要用到的 buffer。\n如�
 blockSize = 加密填充的块大小，默认为 8
 sign(.(keySpec,flags) = 返回签名\n可选用 @keySpec 参数中指定密钥类型,\n@flags 不必指定
 verifySignature(.(sign,flags) = 验证签名,\n参数@1为签名字符串,其他参数可选\n验证签名以前必须首先导入公钥,并创建哈希对象
-signToBase64(.(keySpec,flags) = 签名并反转字节序,进行 Base64 编码后返回,\n可选用 @keySpec 参数中指定密钥类型,\n@flags 参数不必指定
-verifyFromBase64(.(signBase64,flags) = 验证签名,\n参数@signBase64 为 Base64编码并反转字节序的签名,\n@flags 参数不必指定,\n验证签名以前必须首先导入公钥,并创建哈希对象
+signToBase64(.(keySpec,flags) = 签名并反转字节序（通用格式），进行 Base64 编码后返回,\n可选用 @keySpec 参数中指定密钥类型,\n@flags 参数不必指定
+verifyFromBase64(.(signBase64,flags) = 验证签名。\n对参数 @signBase64 指定的签名进行 Base64 解码并反转字节序（为了兼容通用格式）。\n@flags 参数不必指定,\n验证签名以前必须首先导入公钥,并创建哈希对象
+signToUrlBase64(.(keySpec,flags) = 签名并反转字节序（通用格式），进行 UrlBase64 编码后返回。\n可选用 @keySpec 参数中指定密钥类型,\n@flags 参数不必指定
+verifyFromUrlBase64(.(signBase64,flags) = 验证签名。\n对参数 @signBase64 指定的签名进行 UrlBase64 编码并反转字节序（为了兼容通用格式）。\n@flags 参数不必指定,\n验证签名以前必须首先导入公钥,并创建哈希对象
 exportPublicKeyInfo(.(keySpec,encodingType) = 导出公钥信息(CERT_PUBLIC_KEY_INFO),返回值为buffer类型,\n用法参考 crypt.rsa中相关函数
 importPublicKeyInfo(.(certPublicKeyiNFO,encodingType) = 导入公钥信息(CERT_PUBLIC_KEY_INFO),参数@1为buffer或字符串,\n用法参考 crypt.rsa中相关函数,\n成功返回true
 importPrivateKeyInfo(.(certPrivateKeyInfo,encodingType,structType) = 导入私钥信息(CRYPT_PRIVATE_KEY_INFO),参数@1为buffer或字符串,\n用法参考 crypt.rsa中相关函数,\n成功返回true
@@ -737,7 +766,9 @@ sha384(.(字符串,是否大写,返回位数) = 计算sha384哈希值,\n参数2�
 sha256(.(字符串,是否大写,返回位数) = 计算sha256哈希值,\n参数2可选,默认大写。\n可选用参数 @3 指定返回字符个数。\n正值自左侧截取，负值自右侧截取，设为 true 自中间截取16个字符
 encodeBin(.(字符串,长度,选项) = 将字符串转换为 Base64 或 Hex 编码。\n可选参数 @3 使用 _CRYPT_STRING_ 前缀常量指定选项\n参数 @3 默认为 _CRYPT_STRING_BASE64 。\n\n相关库与函数： string.base32, crypt.bin
 decodeBin(.(字符串,长度,选项) = Base64 或 Hex 解码。\n可选参数 @3 使用 _CRYPT_STRING_ 前缀常量指定选项\n参数@3默认为_CRYPT_STRING_ANY\n\n相关库与函数： string.base32, crypt.bin
-pem(.(字符串,标题) = PEM编码字符串,\n如果参数@1是空值时不操作直接返回null
+encodeUrlBase64(.(字符串,长度,允许补等号) = UrlBase64 编码。\n参数 @1 可以指定字符串、buffer 或指针。\n如果参数 @1 是指针则应同时指定长度参数，否则长度参数可省略。\n\n返回字符串不包含用于尾部对齐的等号,\n并且 `+` 替换为`-`,`/`替换为`_`，\n以保证作为 URL参数安全传输。
+decodeUrlBase64(.(字符串,长度) = UrlBase64 解码。\n参数 @1 可以指定字符串、buffer 或指针。\n如果参数 @1 是指针则应同时指定长度参数，否则长度参数可省略。
+pem(.(字符串,标题) = PEM编码字符串,\n如果参数 @1 是空值时不操作直接返回 null
 end intellisense**/
 
  /**intellisense()

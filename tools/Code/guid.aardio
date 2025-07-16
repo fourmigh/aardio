@@ -61,7 +61,7 @@ winform.txtGuid.onChange = function(){
 		winform.txtGuid2.text = guid.toString("%08X%04X%04X%02X%02X%02X%02X%02X%02X%02X%02X")
 			+ '\r\n' + guid.toString()
 			+ '\r\n' + guid.toString(,true)
-			+ '\r\n\'' + guid.hex() + "'" 
+			+ '\r\n\'' + guid.hex("\x") + "'" 
 			+ '\r\n' + guid.toString("{ 0x%X, 0x%X, 0x%X, { 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X } }")
 			+ '\r\n' + guid.toString("0x%X, 0x%X, 0x%X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X")
 			+ '\r\n---------------------------------------------------------------------------'
@@ -118,13 +118,13 @@ winform.txtGuid.onChange = function(){
 
 winform.txtGuid.oncommand = function(id,event){
 	if(event==0x100/*_EN_SETFOCUS*/){
-		winform.txtGuid2.setsel(-1);
+		winform.txtGuid2.setSel(-1);
 	}
 }
 
 winform.txtGuid2.oncommand = function(id,event){
 	if(event==0x100/*_EN_SETFOCUS*/){
-		winform.txtGuid.setsel(-1);
+		winform.txtGuid.setSel(-1);
 	}
 }
 
@@ -139,7 +139,7 @@ var autoSel = function(hwnd,message,wParam,lParam){
 			if(line){
 				var b = owner.lineToChar(line);
 				var e = b + owner.lineLength(line)		
-				owner.setsel(b,e);	
+				owner.setSel(b,e);	
 				
 				winform.btnCpy.oncommand();
 			}

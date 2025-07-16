@@ -1,0 +1,39 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="监听控件的 text 变更事件（ _WM_SETTEXT 消息）";right=759;bottom=469)
+winform.add(
+button={cls="button";text="改变文本";left=340;top=364;right=505;bottom=400;z=2};
+edit={cls="edit";text="Edit";left=46;top=358;right=218;bottom=390;edge=1;z=3};
+static={cls="static";text="Static";left=117;top=125;right=411;bottom=165;notify=1;transparent=1;z=1}
+)
+/*}}*/
+
+//edit,richedit 控件可在 onChange 事件中监听 text 属性变更事件
+winform.edit.onChange = function(){ 
+	
+	if(!owner.modified) return; 	
+	
+	owner.validateText("<\d+\.\d\d>|<\d+\.\d>|<\d+\.>|<\d+>"
+		,"请输入金额，小数点后不能超过 2 位!");  
+	
+}
+
+//其他不支持 onChange 事件的控件可以在消息回调中拦截 _WM_SETTEXT 消息。
+winform.static.wndproc = function(hwnd,message,wParam,lParam){
+	if((message == 0xC/*_WM_SETTEXT*/) && lParam){
+		var newText = string.fromUtf16( topointer(lParam),,true );
+		if(owner.text != newText){
+			winform.msgbox( "static 即将修改文本：" + newText );
+			
+			//返回非 null 值阻止修改文本，也就是阻止继续执行默认消息回调函数
+			//return true; 
+		}
+	}
+}
+
+winform.button.oncommand = function(id,event){
+	winform.static.text = "新文本"
+}
+
+winform.show();
+win.loopMessage();

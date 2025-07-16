@@ -9,7 +9,7 @@ import web.view;
 var wb = web.view(winform);
 
 //窗口透明
-winform.transparent(true);
+winform.transparent = true;
 
 //webView2 控件透明
 wb.defaultBackgroundColor = 0;

@@ -4,12 +4,12 @@ import console;
 import sqlServer;
 
 //打开数据库
-var db = sqlServer( 
+var db = sqlServer({
     ["Data Source"] = "127.0.0.1,7788"; //"IP地址,服务端口"
     ["Database"]= "database";  //数据库名
     ["User ID"]  = "sa"; //用户名
     ["Password"]= "123456"; //用户密码
-)
+})
 
 //创建表
 if(!db.existsTable("TestDb109") ){
@@ -21,7 +21,7 @@ if(!db.existsTable("TestDb109") ){
 //使用命令参数 - 参数化可避免SQL注入
 var cmd = db.createCommand( "INSERT INTO TestDb109(url,comment,photo) VALUES(@url,@comment,@photo)" );  
 
-//绑定命令参数,二进制字段只能用这种方法插入
+//绑定命令参数,photo 这种二进制字段只能用这种方法插入（值必须是 buffer 类型）
 cmd.bind( 
 	url = "http://bbs.aardio.com"; //UTF-8字符串会被 MSSQL 转换为 ANSI 字符串，这里也可以直接传 buffer。
 	comment = '✔ ❤ ☆ Unicode 字符百科测试一下hi!'u; //NVARCHAR 必须使用 UTF-16 字符串（ustring），其他编码可以用 string.toUtf16() 函数转换为UTF-16 编码。
@@ -31,11 +31,11 @@ cmd.bind(
 //执行命令
 cmd.execute(); 
 
-//增 - 调用 access.formatParameter() 格式化命名参数生成SQL语句
+//增 - 调用 access.formatParameter() 格式化命名参数生成 SQL 语句
 db.exec( "INSERT INTO TestDb109(url,comment) VALUES(@url,@comment)",{
 	url = "http://bbs.aardio.com";
 	comment = "字符串包含'单引号' 测试一下";
-} )
+} ) //db.exec 执行的是 SQL 字符串，不适合用来插入图像文件这样的二进制数据。
 
 //改
 db.exec("UPDATE TestDb109 SET url='%s' WHERE comment='%s' ","http://www.aardio.com","这是说明")

@@ -1,54 +1,113 @@
-//padding 填充边距
+//padding 填充与对齐
 namespace string;
 
 class padding {
-	ctor( max,space ){
+	ctor( max,space,... ){
+		if(type.isString(max)){
+			this.text = max; 
+			max,space = space,...;
+		}
+		
 		this._max = max : 15;
 		this._space = space : " ";
 	};
-	len = function(s){ 
-		s = ..string.toUtf16(s);
-		var l = #s/2;
-		for(i=1;l;1){
-			if(s[i]>0x7F) l++;
-		} 
-		return l;
-	};
 	ljust = function(...){ 
-		var s = {...}
+		var s = ... === null ? [this.text || ""] : [...];
+		
 		var v;
 		for(i=1;#s;1){
 			v = tostring(s[i]);
-			s[i] = v ++ ..string.repeat(this._max-this.len(v),this._space); 
+			s[i] = v ++ ..string.repeat(this._max-len(v),this._space); 
 		}
 		return ..table.unpack( s,..table.range(s) );
 	};
 	rjust = function(...){
-		var s = {...}
+		var s = ... === null ? [this.text || ""] : [...];
+		
 		var v;
 		for(i=1;#s;1){
 			v = tostring(s[i]);
-			s[i] = ..string.repeat(this._max-this.len(v),this._space) ++ v; 
+			s[i] = ..string.repeat(this._max-len(v),this._space) ++ v; 
 		}
 		return ..table.unpack( s,..table.range(s) ); 
 	};
 	center = function(...){ 
-		var s = {...}
+		var s = ... === null ? [this.text || ""] : [...];
+		
 		var v;
 		for(i=1;#s;1){
 			v = tostring(s[i]);
-			s[i] = ..string.repeat( ..math.floor( (this._max-this.len(v))/2 ),this._space) 
-				++ v ++ ..string.repeat((this._max-this.len(v))/2,this._space); 
+			s[i] = ..string.repeat( ..math.floor( (this._max-len(v))/2 ),this._space) 
+				++ v ++ ..string.repeat((this._max-len(v))/2,this._space); 
 		}
 		return ..table.unpack( s,..table.range(s) );
 	};
+	wrap = function(text){
+		if(!text) text = this.text;
+        if(!text) return {""};
+        text = tostring(text);
+
+        var lines = {};
+        var currentLine = "";
+        var currentWidth = 0;
+
+		arr = ..string.split(text);
+		var width = this._max;
+        for(i=1;#arr;1){
+            var char = arr[i];
+            var charWidth = #char>1?2:1;
+
+            if( (currentWidth + charWidth) > width ){
+                ..table.push(lines, currentLine);
+                currentLine = char;
+                currentWidth = charWidth;
+            }
+            else {
+                currentLine = currentLine ++ char;
+                currentWidth = currentWidth + charWidth;
+            }
+
+            if(char == '\n'){
+                 ..table.push(lines, ..string.trim(currentLine) );
+                 currentLine = "";
+                 currentWidth = 0;
+            }
+        }
+
+        if(#currentLine > 0){
+            ..table.push(lines, currentLine);
+        }
+
+        return lines;
+    }
+	len = lambda(s) len(s);
 }
 
+namespace padding{
+	len = function(s){ 
+  		if(s===null) return 0;
+        s = tostring(s); 
+        
+        var width = 0;
+        var arr = ..string.split(s);
+        for(i=1;#arr){ 
+            width = width + (( #arr[i]>1 )?2:1);
+        }
+         
+        return width;
+	};	
+}
+
+
 /**intellisense()
-string.padding(.(宽度,空白字符) = 宽度必须指定\n空白字符默认为空格
+string.padding = 用于填充字符串指指定宽度。\n用于创建文本化表格的 string.textTable 库内部用到了 string.padding 库。
+string.padding(.(最大显示宽度,空白字符) = 参数 @1 必须指定最大显示宽度。\n可选用参数 @2 指定空白字符，默认为空格。
+string.padding(.(文本,最大显示宽度,空白字符) = 参数 @1 指定需要填充与对齐的文本。\n参数 @2 必须指定最大显示宽度。\n空白字符默认为空格。
 string.padding() = !string_padding.
-!string_padding.ljust(__) = 右侧填充空格并左对齐,\n支持多参数多返回值
-!string_padding.rjust(__) = 左侧填充空格并右对齐,\n支持多参数多返回值
-!string_padding.center(__) = 两侧填充空格并居中对齐,\n支持多参数多返回值
-!string_padding.len(__) = 计算字符长度\nASCII字符长度计为1,非ASCII字符长度计为2
+!string_padding.ljust(__) = 在字符串右侧填充空格并左对齐并返回填充对齐后的新字符串。\n\n可指定多个字符串参数，每个字符串参数都会增加一个对应的返回值（字符串）。\n如果参数 @1 未指定输入字符串（ null 值 ），\n则默认取 string.padding 构造参数指定的字符串。
+!string_padding.rjust(__) = 在字符串左侧填充空格并右对齐并返回填充对齐后的新字符串。\n\n可指定多个字符串参数，每个字符串参数都会增加一个对应的返回值（字符串）。\n如果参数 @1 未指定输入字符串（ null 值 ），\n则默认取 string.padding 构造参数指定的字符串。
+!string_padding.center(__) = 在字符串两侧填充空格并居中对齐并返回填充对齐后的新字符串。\n\n可指定多个字符串参数，每个字符串参数都会增加一个对应的返回值（字符串）。\n如果参数 @1 未指定输入字符串（ null 值 ），\n则默认取 string.padding 构造参数指定的字符串。
+!string_padding.wrap(__) = 按行拆分字符串并返回一个数组，清除每行首尾多余的空白字符。\n如果文本超出最大显示宽度则自动换行。\n\n可选用参数 @1 指定输入字符串。\n如果参数 @1 未指定输入字符串（ null 值 ），\n则默认取 string.padding 构造参数指定的字符串。
+!string_padding.len(__) = 计算字符串的显示宽度。\nASCII 字符长度计为1，非 ASCII 字符长度计为 2。
+string.padding.len(__) = 计算字符串的显示宽度。\nASCII 字符长度计为1，非 ASCII 字符长度计为 2。
 end intellisense**/

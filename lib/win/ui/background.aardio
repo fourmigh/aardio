@@ -139,7 +139,7 @@ namespace background {
 		};
 		loadImage = function(path){
 			if(type(path) == type.string ){ 
-				if( ..string.startWith(path,"http",true) 
+				if( ..string.startsWith(path,"http",true) 
 					&& ..string.match(path,"^\w+\:") && ..inet[["http"]] ){
 					path = ..inet.http.get(path);
 					if(!path) return;

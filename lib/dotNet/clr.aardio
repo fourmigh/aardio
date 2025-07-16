@@ -23,14 +23,14 @@ class clr{
 		
 		if( version[1] != 'v'# ) version = "v" + version;
 		if(  ! ..string.match(version,"^v\d+[\d.]+$")  ) return;
-		if( ..string.startWith( version,"v1.") ){
+		if( ..string.startsWith( version,"v1.") ){
 			error("指定的.NET Framework 最低版本不能小于v2.0");
 		}
-		if( version == "v2.0" ||  ..string.startWith( version,"v3.") ){ 
+		if( version == "v2.0" ||  ..string.startsWith( version,"v3.") ){ 
 			version = "v2.0.50727";
 			this.majorVersion = 2;
 		}
-		elseif( version == "v4.0" ||  ..string.startWith( version,"v4.") ){
+		elseif( version == "v4.0" ||  ..string.startsWith( version,"v4.") ){
 			//必须是 2 或 3 位版本号，CLR 4 只有这一个 3 位版本号，不能写 v4.0.30319.42000
 			version = "v4.0.30319";
 			this.majorVersion = 4;
@@ -185,8 +185,12 @@ namespace clr{
 	}
 }
 
+if(..thread.getMainId() === ..thread.getId() ){
+	..io.curDir("/");	
+}
+
 /**intellisense()
-dotNet = dotNet支持库;
+dotNet.clr =  CLR 运行时支持库。\n导入此库时如果当前是主线程则将应用程序根目录（"/"）设为当前目录。
 dotNet.clr("v4->0") = 创建 CLR 运行时,\n可以使用多个参数指定多个允许加载的版本号,\n不指定参数可以自动选择合适的版本,\n如果之前已成功创建此对象,则会使用之前指定的 .Net 运行时版本,\n\n注意 .NET 3.5 的 CLR 运行时是 v2.0,.Net 4.x 的 CLR 运行时是 v4.0,\nWin7 自带 CLR 2.0运行时,Win10,Win11 自带 CLR 4.0 运行时\n\naardio 可以自适应 CLR 2.0/4.0，对 .Net 版本没有严格要求，\n一般不需要自己去创建应用程序域，例如加载程序集，直接写 \ndotNet.load 或 dotNet.loadFile 就可以
 dotNet.clr() = !dotNetClr.
 !dotNetClr.runtimeHost = !dotNetCorRuntimeHost.

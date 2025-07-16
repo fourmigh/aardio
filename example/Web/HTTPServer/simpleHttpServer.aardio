@@ -2,6 +2,7 @@
 import console;
 import process;
 
+//HTTP 服务端开发指南: doc://guide/quickstart/web-server.md
 import wsock.tcp.simpleHttpServer;
 var server = wsock.tcp.simpleHttpServer("127.0.0.1",/*8081*/);
 

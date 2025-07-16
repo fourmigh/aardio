@@ -4,7 +4,7 @@ import win.ui;
 var winform = win.form(text="aria下载器";right=1010;bottom=607;border="none";)
 winform.add(
 bk={cls="bk";left=0;top=0;right=1012;bottom=31;bgcolor=11841964;dl=1;dr=1;dt=1;forecolor=5392444;linearGradient=0;z=2;};
-custom={cls="custom";text="自定义控件";left=0;top=30;right=1012;bottom=609;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;z=1;};
+custom={cls="custom";text="自定义控件";left=0;top=30;right=1012;bottom=609;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;z=1;};
 
 )
 /*}}*/
@@ -32,8 +32,8 @@ wb.onNewWindow = function(url){
 	//如果打开的是 file: 前缀网址。
  	var filePath = inet.url.getFilePath(url)
  	if(filePath){
- 		if( ..string.endWith(filePath,".torrent",true)
- 			|| ..string.endWith(filePath,".aria2",true)
+ 		if( ..string.endsWith(filePath,".torrent",true)
+ 			|| ..string.endsWith(filePath,".aria2",true)
  		){
  			aria2.taskAdd(filePath);
  			return true;

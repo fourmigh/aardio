@@ -1,5 +1,6 @@
 ﻿import console;
 import process.python;
+import inet.httpFile;
 
 namespace process.python;
 
@@ -12,25 +13,70 @@ class pip {
 				..io.exist(..io.joinpath(pyRoot,"\pip\pip\__init__.py"))
 				|| ..io.exist("\pip\pip\__init__.py")	
 			)){
-				
-				..console.showLoading("正在下载 Python 模块安装工具：pip");
-		 	
-				import inet.http;
-				var http = inet.http();
-				
-				var pyCode = http.get("https://bootstrap.pypa.io/get-pip.py");
-				if(!#pyCode){
-					pyCode = http.get("https://mirrors.aliyun.com/pypi/get-pip.py");
+				 
+				var majorVersion,minorVersion = ..string.match(..process.python.version:"","(\d+)\.(\d+)");
+ 
+				var getPipUrl;
+				if(majorVersion==="3" && (tonumber(minorVersion) <= 8 )){
+					getPipUrl = "https://bootstrap.pypa.io/pip/"+majorVersion+"."+minorVersion+"/get-pip.py";
+				}
+				else{
+					getPipUrl = "https://bootstrap.pypa.io/get-pip.py";
 				}
 				
-				if(!#pyCode){
-					error("pip 下载失败！");
+				if(majorVersion && minorVersion){
+					pipSavePath = ..io.appData("aardio/std/pip/"+majorVersion+"."+minorVersion+"/get-pip.py");
 				}
-				else {
-					..console.log("已下载完成，正在安装 pip ……"); 
-				}  
-		 	
-				var python = ..process.python.exec(pyCode,"--no-warn-script-location")
+				else{
+					pipSavePath = ..io.appData("aardio/std/pip/latest/get-pip.py");
+				}
+				
+				..console.showLoading(" 请稍候，正在初始化 get-pip.py");
+				
+				import console.progress;
+				var progress = console.progress();  
+				var downloadPipInstaller = function(url){
+					progress.reset();
+					
+					var remoteFile = ..inet.httpFile(url,pipSavePath)
+				
+					remoteFile.onReceiveBegin = function(statusCode,contentLength,fileSize){
+						if( statusCode == 206/*断点续传*/ ){
+							progress.setProgress((fileSize/contentLength)*100,"继续下载 get-pip.py") 
+						}
+						elseif(fileSize){
+							progress.setProgress((fileSize/contentLength)*100,"开始下载 get-pip.py")  
+						}
+					}
+					
+					remoteFile.onReceive = function(str,downSize,contentLength){
+						progress.addProgress((downSize/contentLength)*100
+								,"正在下载  get-pip.py 文件大小：" + ..math.size64(contentLength).format() )   
+					}
+					
+					var ok,err,fileSize = remoteFile.download() 
+					return ok,err,fileSize;
+				}
+				 
+				var pyCode;
+				if( (majorVersion==="3") &&  (minorVersion=="8") ){
+					pyCode = ..string.load("~\lib\py3\.res\get-pip.py")
+						|| ..string.load(pipSavePath);
+				}
+
+				if(!#pyCode){
+					if(!downloadPipInstaller(getPipUrl) && !downloadPipInstaller("https://mirrors.aliyun.com/pypi/get-pip.py")){
+						error("pip 下载失败！");
+					}	
+					
+					pyCode = ..string.load(pipSavePath)
+				}
+				
+				progress.clear(); 
+				
+				..console.log("正在安装 pip ……"); 
+				var python = ..process.python.exec(pyCode,"--no-warn-script-location");
+				
 				python.logResponse();
 				python.close();
 				

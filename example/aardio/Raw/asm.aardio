@@ -1,0 +1,66 @@
+import raw.asm.cdecl;
+ 
+/*
+写入机器码（适用 32 位目标进程），并返回 cdecl 调用约定的 C 函数对象。
+- 参数 @1 可选指定函数原型（与声明原生 API 的语法相同）。
+如果参数 @1 为 null 则遵循未声明调用 API 规则: doc://library-guide/builtin/raw/directCall.html 。
+- 参数 @2 开始可用一个或多个参数指定机器码，机器码可以是字符串、buffer、结构体、数值、原生指针。
+
+如果仅在参数 @2 用一个字符串参数指定机器码，并且首个字节是大写的 16 进制字符，
+则逐行解析 16 进制编码的机器码，规则：
+
+- 忽略每一行前面的空白字符，忽略机器码之后的内容。
+- 每两个连续的大写 16 进制字等表示一个机器码，多个机器码之间必须用半角空格分开。
+*/
+var rawCdeclFunction = raw.asm.cdecl("void( INT id, struct & cpuid )","
+	55  push ebp
+	89 E5  mov ebp, esp
+	81 EC C0 00 00 00  sub esp, 0xc0
+	53  push ebx
+	51  push ecx
+	52  push edx
+	56  push esi
+	8B 45 08  mov eax, [ebp+0x8]
+	8B 75 0C  mov esi, [ebp+0xc]
+	0F A2  cpuid
+	89 06  mov [esi], eax
+	89 5E 04  mov [esi+0x4], ebx
+	89 4E 08  mov [esi+0x8], ecx
+	89 56 0C  mov [esi+0xc], edx
+	5E  pop esi
+	5A  pop edx
+	59  pop ecx
+	5B  pop ebx
+	89 EC  mov esp, ebp
+	5D  pop ebp
+	C3  ret
+")
+
+//写入机器码,并返回函数对象
+var rawCdeclFunction = raw.asm.cdecl("void( INT id, struct & cpuid )",
+	'\x55', // push ebp
+	'\x89\xE5', // mov ebp, esp
+	'\x81\xEC\xC0\x00\x00\x00', // sub esp, 0xc0
+	'\x53', // push ebx
+	'\x51', // push ecx
+	'\x52', // push edx
+	'\x56', // push esi
+	'\x8B\x45\x08', // mov eax, [ebp+0x8]
+	'\x8B\x75\x0C', // mov esi, [ebp+0xc]
+	'\x0F\xA2', // cpuid
+	'\x89\x06', // mov [esi], eax
+	'\x89\x5E\x04', // mov [esi+0x4], ebx
+	'\x89\x4E\x08', // mov [esi+0x8], ecx
+	'\x89\x56\x0C', // mov [esi+0xc], edx
+	'\x5E', // pop esi
+	'\x5A', // pop edx
+	'\x59', // pop ecx
+	'\x5B', // pop ebx
+	'\x89\xEC', // mov esp, ebp
+	'\x5D', // pop ebp
+	'\xC3', // ret
+)
+
+var cpuid = rawCdeclFunction( 0,{ INT eax;BYTE ebx[4];BYTE ecx[4];BYTE edx[4] });
+print( cpuid.ebx ++ cpuid.edx ++ cpuid.ecx )
+

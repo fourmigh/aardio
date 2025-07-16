@@ -9,7 +9,7 @@ import win.ui;
 /*DSG{{*/
 var winform = win.form(text="aardio form";right=1047;bottom=634;bgcolor=10789024)
 winform.add(
-custom={cls="custom";text="自定义控件";left=26;top=23;right=799;bottom=416;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;z=1}
+custom={cls="custom";text="自定义控件";left=26;top=23;right=799;bottom=416;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;z=1}
 )
 /*}}*/
 

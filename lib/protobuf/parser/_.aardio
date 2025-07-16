@@ -251,7 +251,7 @@ class parser{
             	    } 
             	}
             	else{
-            	    if( (#this.package) && ..string.startWith(msgParent.package,this.package ) ){
+            	    if( (#this.package) && ..string.startsWith(msgParent.package,this.package ) ){
             	    	msgParent.nameSpace = ..string.right(lex.data,-(#this.package+2)); 
             	    }
             	    else {

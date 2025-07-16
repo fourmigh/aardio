@@ -4,7 +4,7 @@ import com.interface.IPersistStreamInit;
 import sys.reg;
 import inet;
 import inet.tls;
-import web.json;
+import JSON;
 
 namespace web;  
 
@@ -99,7 +99,7 @@ namespace form {
 					if( !curl ) return false;
 						
 					if( ..string.find( curl,url) ) return true; 
-					if( ..string.startWith( curl, "res://ieframe.dll/",true) ){  
+					if( ..string.startsWith( curl, "res://ieframe.dll/",true) ){  
 	   					return false; 
 					}			
 					  	
@@ -232,7 +232,7 @@ namespace form {
 				jsThis = ..string.match(method,"(.+)\.[^.]+$") : "null";
 			}
 			
-			var js  = "(" + method + ").apply(" + jsThis + "," + ..web.json.stringifyArray({...}) + ")";
+			var js  = "(" + method + ").apply(" + jsThis + "," + ..JSON.stringifyArray({...}) + ")";
 			
 			return owner.eval(js);
 		}; 
@@ -247,10 +247,10 @@ namespace form {
 		};
 		jsArray = function(arr){
 			if(!owner.script.vbArrayToJsArray)owner.doScript("vbArrayToJsArray =function(a){ return new VBArray(a).toArray(); }");  
-			return owner.script.vbArrayToJsArray( ..com.SafeArrayV(arr:{}) );
+			return owner.script.vbArrayToJsArray( ..com.toSafeArray(arr) );
 		};
 		jsObject = function(data,isArray){ 
-			var s = ..web.json[isArray?"stringifyArray":"stringify"](data); 
+			var s = ..JSON[isArray?"stringifyArray":"stringify"](data); 
         	return owner.eval(s);
 		};
 		jsNew = function(cls,...){
@@ -276,7 +276,7 @@ namespace form {
 				return owner.script.jsConstructor( cls,...);
 			}
 			
-			var js  = "jsConstructor.apply(null," + ..web.json.stringifyArray(args) + ")";
+			var js  = "jsConstructor.apply(null," + ..JSON.stringifyArray(args) + ")";
 			return owner.eval(js);
 		};
 		jsConstructor = function(cls){
@@ -341,7 +341,7 @@ namespace form {
 		  		return r ;
 		  	} 
 		  	
-			var mtype = ..string.endWith(path,".vbs",true) 
+			var mtype = ..string.endsWith(path,".vbs",true) 
     			? "vbs"
     			: "javascript"
     				
@@ -552,10 +552,14 @@ namespace form {
 			
 			var stm = ..com.interface.IPersistStreamInit.Query(doc);
 			if( stm ){
+				strhtml = ..string.replace(strhtml,"@<head>",`<head><meta charset="utf-8">`);
 				stm.fromString(strhtml); 
 				owner.waitDoc();
 				return owner;
 			}
+		};
+		insertAdjacentHTML = function(...){
+			return owner.body.insertAdjacentHTML(...)
 		};
 		loadcode = function(data,...){
 			var data,err  = ..string.loadcode(data,...);
@@ -569,7 +573,7 @@ namespace form {
 			owner._browser.Navigate(mapurl(url),flags: 0,target : "_self" ,null,..web.joinHeaders( headers,owner.addHeaders ) )
 		}; 
 		goDirectory = function(url){
-			if(  ..string.startWith(url,"shell:",true) || (..io.exist(url) && ( ::Kernel32.GetFileAttributes(url) & 0x10/*_FILE_ATTRIBUTE_DIRECTORY*/) ) ){
+			if(  ..string.startsWith(url,"shell:",true) || (..io.exist(url) && ( ::Kernel32.GetFileAttributes(url) & 0x10/*_FILE_ATTRIBUTE_DIRECTORY*/) ) ){
 				var this = owner;  
 				this.DocumentComplete = function( pDisp, url) {
 					this.shellFolderView = owner.document;
@@ -587,8 +591,10 @@ namespace form {
 		};
 		post = function(url,postdata,headers,target,flags){ 
 			if(!postdata)return owner.go(url); 
+			if(type(postdata)==="table") postdata = ..inet.url.stringifyParameters(postdata);
+			
 			owner._browser.Navigate( mapurl(url) ,( flags: 0 ) | 2/*_navNoHistory*/,target: "_self"
-				,{ _safearray = postdata/* 转换为字节数组*/ } 
+				,..com.toSafeArray(postdata)
 				,..web.joinHeaders( ( headers : 'Content-Type: application/x-www-form-urlencoded' ),owner.addHeaders ) 
 				)
 		};
@@ -914,6 +920,7 @@ namespace form {
 				}
 			}
 		};
+		show = lambda(...) owner._form.show(...);
 		doModal = lambda(...) owner._form.doModal(...);
 	) 
 	
@@ -992,6 +999,7 @@ namespace form {
 
 ..thread.set("@web.form.imported!!!", true);//用于避免与 web.script("ES6") 同时使用
  
+//@guide [创建 Web 窗体](doc://library-guide/std/web/form/webform.md)
 /******intellisense( ) 
 web.form = web 窗体。\n基于系统自带 IE 内核 WebBrowser 浏览器控件。\n注意新版系统虽移 除IE，但 WebBrowser 属于系统组件仍可正常使用.\n\n导入此库时已默认设为启用IE最高兼容版本,\n可调用web.form.emulation函数修改,或在网页HTML中设置,例如:\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n可自动启用IE最高版本
 web.form( = 创建web窗体。基于系统自带IE内核WebBrowser浏览器控件。 \n此对象支持多线程界面回调，可传入工作线程使用。\n\n自IE11开始会默认阻止 ajax 请求本地文件,\n改用 wsock.tcp.simpleHttpServer/asynHttpServer 访问本地文件即可
@@ -1028,11 +1036,11 @@ web.form.ie11() = !wb.
 !wb.goDirectory(.("__/*本地目录*/") = 打开本地目录\n支持 shellFolderSelectionChanged 事件\n打开目录以后, document 属性会变为\n[IShellFolderViewDual 接口对象](https://docs.microsoft.com/en-us/windows/win32/api/shldisp/nn-shldisp-ishellfolderviewdual2)
 !wb.go( = 打开网址
 !wb.go(.("网址","HTTP头","目标框架") = 打开网址或本地路径\n注意驱动器根目录要以反斜杠结束,\n支持回车换行连接的字符串值、或包含键值对的表,\n指定的HTTP头将会使用 web.joinHeaders 函数转换为字符串\n目标框架一般可省略
-!wb.post(.("网址","POST数据","HTTP头","目标框架") = 自动提交表单数据,\nPOST数据使用&&连接键值对,例如:"k=v&&k2=v2",\nHTTP头支持回车换行连接的字符串值、或包含键值对的表,\n指定的HTTP头将会使用 web.joinHeaders 函数转换为字符串\n目标框架一般可省略
+!wb.post(.("网址","POST数据","HTTP头","目标框架") = 自动提交表单数据,\nPOST 数据可以传入包含名值对的表对象，也可以传入URL 参数格式的字符串，例如:"k=v&&k2=v2"。\nHTTP 头支持回车换行连接的字符串值、或包含键值对的表,\n指定的HTTP头将会使用 web.joinHeaders 函数转换为字符串\n目标框架一般可省略
 !wb.location = 当前网址
 !wb.host = 当前网址所在主机名 
 !wb.getFrame() = !jsGlobal.
-!jsGlobal.? = 访问 JavaScript 全局名字空间的成员。\n在 web.form 内使用全局对象调用 JS 函数，\n即使没有参数也至少要指定 1 个 null 参数，避免返回函数对象自身。
+!jsGlobal.? = 访问 JavaScript 全局名字空间的成员。\n在 web.form 内使用全局对象调用 JS 函数。
 !jsGlobal.frameElement = 获取在父文档中生成 window 的 frame 或 iframe 对象
 !jsGlobal.parent = 获取对象层次中的父窗口
 !jsGlobal.document = document.
@@ -1214,7 +1222,7 @@ web.form.ie11() = !wb.
 !wb.translate = @.translate = function( url ){
 	/*解析URL时触发 */
 	owner.translateUrl = url; 
-	__/* if( string.startWith(url,"http:",true) )
+	__/* if( string.startsWith(url,"http:",true) )
 	return 新的URL;*/
 }
 !wb.translateAccelerator = @._form.translateAccelerator = function(msg){
@@ -1230,7 +1238,7 @@ web.form.ie11() = !wb.
 }
 !ele.document = document.
 !wb._form = !winform.
-!wb.getForm() = 返回该控件所在窗体对象\n!winform.
+!wb.getForm() = 返回创建此网页控件的容器窗口。\n!winform.
 !ele.type = 类型
 !ele.src = 源文件地址
 !ele.click() = 触发onclick 事件来模拟单击
@@ -1418,7 +1426,9 @@ document.compatMode = "BackCompat" 对应 quirks mode(无DTD声明)\n"CSS1Compat
 !wb.jQuery("__") = jQuery选择器,并可自动载入jQuery库\nn首次调用按需加载jQuery v1.10:\n "/res/js/jQuery/jQuery.min.js"\n失败则通过网络CDN服务器下载jquery-1.9.0.min.js\n\n注意 jQuery v1.6.3 以上 ajax 函数才会支持 res 协议访问 EXE 资源文件\nIE11 内核默认已阻止 ajax 访问本地文件,\n改用 wsock.tcp.simpleHttpServer/asynHttpServer 访问本地文件即可
 !wb.jQuery() = 无参数时返回jQuery类对象\n首次调用按需加载 jQuery v1.9:\n "/res/js/jQuery/jQuery.min.js"\n失败则通过网络CDN服务器下载jquery-1.9.0.min.js\n!jQuery.
 !wb.doModal(.(ownerForm,showFlags) = 宿主窗口显示为模态对话框。\n可选用参数 @ownerForm 指定所有者窗口，\n参数 @showFlags 可选用 _SW_ 前缀常量指定显示选项。
-!jQuery.val() = 取值
+!wb.show(.(true) = 显示窗口
+!wb.show(.(false) = 隐藏窗口
+jQuery.val() = 取值
 !jQuery.val("__") = 赋值
 !jQuery.hide() = 隐藏
 !jQuery.show() = 显示
@@ -1603,4 +1613,4 @@ _FVM_THUMBNAIL=@5/*_FVM_THUMBNAIL*/
 _FVM_TILE=@6/*_FVM_TILE*/
 _FVM_THUMBSTRIP=@7/*_FVM_THUMBSTRIP*/
 _FVM_CONTENT=@8/*_FVM_CONTENT*/
-end intellisense**/
+end intellisense**/ 

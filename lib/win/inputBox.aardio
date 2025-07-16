@@ -7,14 +7,22 @@ import win.ui.ctrl.static;
 namespace win;  
 
 class  inputBox{
-	ctor(parent,password){  
+	ctor(parent,prompt,title,default,cueBannerText,password){{
+		var promptType = type(prompt);
+		if( promptType == "boolean" ){
+			password = prompt;
+			prompt = null;
+		} 
+		elseif( promptType == "string" ){
+			if(password===null) password = ..string.find(prompt,"<密码>|<密钥>|<password>");
+		}
 			
-		this = ..win._form(cls="";text="输入框";right=442;bottom=137;border="dialog frame";exmode="none";max=false;min=false;mode="popup";parent=parent)
+		this = ..win._form(text=title||"输入框";right=442;bottom=137;border="dialog frame";exmode="none";max=false;min=false;mode="popup";parent=parent)
 		this.add(
 			btnCancel={cls="button";text="取消";left=298;top=87;right=372;bottom=115;db=1;dr=1;z=2};
 			btnOk={cls="button";text="确定";left=205;top=87;right=279;bottom=115;db=1;dr=1;style=1;z=1};
-			info={cls="static";text="请输入";left=20;top=20;right=350;bottom=38;dl=1;dt=1;notify=1;transparent=1;z=4};
-			input={cls="edit";left=20;top=46;right=423;bottom=71;dl=1;dt=1;dr=1;edge=1;password=password;z=3}
+			info={cls="static";text=prompt||"请输入：";left=20;top=20;right=350;bottom=38;dl=1;dt=1;notify=1;transparent=1;z=4};
+			input={cls="edit";text=default;left=20;top=46;right=423;bottom=71;dl=1;dt=1;dr=1;edge=1;password=password;z=3}
 		)
 		
 		this.onInitDialog = function(hwnd,message,wParam,lParam){
@@ -36,13 +44,24 @@ class  inputBox{
 		this.onCancel = function(){
 	    	this.endModal();
 		}; 
-	} 
+		
+		if(cueBannerText){
+			this.input.setCueBannerText(cueBannerText,true); 
+		}
+	}} 
 }
  
+..win.ui.ctrl.metaProperty.mixin({
+	inputBox = function(...){
+		var dlg = ..win.inputBox(owner,...);
+		return dlg.doModal();
+	} 
+})
+
 /***intellisense()
-win.inputBox = 输入对话框 
-win.inputBox( = 创建一个输入对话框
-win.inputBox(.(父窗口,密码模式） =  创建一个输入对话框,所有参数可选\n设置密码模式输入框输入内容显示为星号
+win.inputBox = 输入对话框。\n导入此库以后自动为所有窗口或控件对象添加 inputBox 函数。\n窗体控件的 inputBox 成员函数不需要指定父窗体参数，且直接返回输入结果。
+win.inputBox( = 创建输入对话框。
+win.inputBox(.(parent,prompt,title,default,cueBannerText,password) = 创建输入对话框，返回 win.form 对象。\n- @parent 参数指定父窗体或控件对象，必填。\n- @prompt 参数指定在输入框上面一排显示的输入提示，单行文本，必填。\n- @title 参数指定对输入对话框窗口标题，可选。\n- @default 参数指定输入框中显示的默认文本，可选。\n- @cueBannerText 参数指定输入框为空时在输入框内部以浅色字体显示的提示，可选。\n- @password 参数输入字符是否显示为星号，可选。\n如果 @prompt 参数包含"密码","密钥","password"则 @password 默认为 true。
 win.inputBox() = !wininputBox.
 end intellisense***/
 

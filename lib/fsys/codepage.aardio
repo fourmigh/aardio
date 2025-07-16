@@ -92,7 +92,7 @@ save = function(p,s,outputCp,cp=65001){
 	var nobom;
 	if( type(outputCp) == type.string ){
 		outputCp = ..string.upper(outputCp) 
-		if( ..string.endWith(outputCp,"-NOBOM") ){
+		if( ..string.endsWith(outputCp,"-NOBOM") ){
 			nobom = true;
 			outputCp = ..string.left(outputCp,-7)
 		}

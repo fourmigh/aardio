@@ -25,16 +25,16 @@ class info{
 
 /**intellisense()
 sys.info = 获取 SYSTEM_INFO
-sys.info() = 调用 GetSystemInfo() 获取 SYSTEM_INFO结构体 \n!sys_info.
-!sys_info.wProcessorArchitecture = CPU体系结构
+sys.info() = 调用 GetSystemInfo() 获取 SYSTEM_INFO 结构体 \n!sys_info.
+!sys_info.wProcessorArchitecture = CPU 体系结构
 !sys_info.dwPageSize = 被API函数 VirtualAlloc 使用的页大小
 !sys_info.lpMinimumApplicationAddress = 程序可以访问的最低内存地址
 !sys_info.lpMaximumApplicationAddress = 程序可以访问的最高内存地址
-!sys_info.dwActiveProcessorMask = CPU掩码
-!sys_info.dwNumberOfProcessors = CPU数目
-!sys_info.dwProcessorType = CPU类型
+!sys_info.dwActiveProcessorMask = CPU 掩码
+!sys_info.dwNumberOfProcessors = CPU 数目
+!sys_info.dwProcessorType = CPU 类型
 !sys_info.dwAllocationGranularity = 已被分配的虚拟内存空间粒度
 !sys_info.wProcessorLevel = 处理器级别
 !sys_info.wProcessorRevision = 修订版本号
-!sys_info.isX64() = 是否64位处理器
+!sys_info.isX64() = 是否6 4 位处理器
 end intellisense**/

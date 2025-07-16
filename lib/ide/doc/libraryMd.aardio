@@ -3,7 +3,7 @@ import ide.doc.library;
 namespace ide.doc;
 
 class libraryMd{
-	ctor( fullpath ){ { 
+	ctor( fullpath,aiKnowledge ){ { 
 			 
 			var builtin = {table=1;string=1;raw=1;io=1;com=1;math=1;time=1;thread=1;fiber=1;global=1;builtin=1 };
 			var builtinLibName = ..string.match(fullpath,"~[\\/]lib[\\/](\w+)[\\/]_.<aardio>|<.md>")  
@@ -72,7 +72,7 @@ class libraryMd{
            				sections["embedObject._host"] = this.sections["embedObject._host"];
            				
            				for k,v in ..table.eachName(this.sections){
-           					if(..string.startWith(k,"com",true)){
+           					if(..string.startsWith(k,"com",true)){
            						sections[k] = this.sections[k]
            					}
            				}
@@ -84,6 +84,7 @@ class libraryMd{
            			if(builtinLibName=="io"){
            				sections["fileObject"] = this.sections["fileObject"];
            				sections["ioFileObject"] = this.sections["ioFileObject"];
+           				sections["io.file"] = this.sections["io.file"];
            			};
            			if(builtinLibName=="time"){
            				sections["timeObject"] = this.sections["timeObject"];
@@ -125,20 +126,26 @@ class libraryMd{
 				if( this.libPath == "win.ui" ) sortNames = { "win.ui";"win.form";"winform"};
 				elseif( this.libPath == "web.form" ) sortNames = { "web";"web.form";"wb"};
 				elseif( this.libPath == "web.layout" ) sortNames = { "web.layout";"wbLayout"}; 
-				elseif(  ..string.startWith(this.libPath,"win.ui.ctrl.",true) ){
+				elseif(  ..string.startsWith(this.libPath,"win.ui.ctrl.",true) ){
 					sortNames = { "win.ui.ctrl";..string.match(this.libPath,"[^.]+$") + "Object"}; 
 				}
 			};
 			
+			var hid = function(id){
+				if(aiKnowledge) return "";
+				id = ..string.replace(id,"\.[\?\*]",".any");
+				return '<a id="'+id+'" href="#'+id+'">&#x23;</a>'
+			}
+			
 			for(path,section in ..table.eachName(this.sections,,sortNames)){
 					if(!..table.next(section) ) continue;
 					
-					..table.push(tOutput, '\r\n<a id="',(#path? path : "global"),'"></a>\r\n## ',#path? path : "全局对象",' 成员列表\r\n' 
+					..table.push(tOutput, '\r\n## ',#path? path : "全局对象",' 成员列表 ',hid(#path? path : "global"),'\r\n' 
 						,'\r\n');
 					 
 					if( section[path] ){ 
 						var v = section[path];
-						if( ..string.startWith(v,path) ){
+						if( ..string.startsWith(v,path) ){
 							v = ..string.right(v,-(#path+1));
 						}
 						..table.push(tOutput,v,'\r\n');
@@ -150,25 +157,33 @@ class libraryMd{
            					if( globalkw[[k]] ) continue;
            					if( ..io.libpath(k) ) continue;
            					
-							..table.push(tOutput,'\r\n<a id="', (..string.match(k,"(.+\.[^.]+)\(")  or k ) ,'"></a>\r\n### ',k,' \r\n ');
+           					k = ..string.replace(k,"\.\?",".*");
+           					
+							..table.push(tOutput,'\r\n### ',k,' '
+								,hid( ..string.match(k,"(.+\.[^.]+)\(")  or k  ),'\r\n');
+								
 							..table.push(tOutput, ..string.replace(v,"#\s+","&num; "),'\r\n' ); 
 			  			} 
            			}
            			else {
            				for(k,v in ..table.eachName(section)){  
-							..table.push(tOutput,'\r\n<a id="', (..string.match(k,"(.+\.[^.]+)\(")  or k ) ,'"></a>\r\n### ',k,' \r\n ');
+           				     
+           				    k = ..string.replace(k,"\.\?",".*");
+           				    
+							..table.push(tOutput,'\r\n### ',k,' ', hid( ..string.match(k,"(.+\.[^.]+)\(")  or k  ),'\r\n');
 							..table.push(tOutput, ..string.replace(v,"#\s+","&num; "),'\r\n' ); 
 			  			} 
            			}
 			}  
  
 			if( this.const ){
-				..table.push(tOutput,  '\r\n\r\n',"### 全局常量",'\r\n');
+				..table.push(tOutput,  '\r\n',"### 全局常量",'\r\n');
 					
 				for(k,v in ..table.eachName(this.const)){ 
            			if( ..io.libpath(k) ) continue;
            			
-					..table.push(tOutput,'\r\n<a id="', (..string.match(k,"(.+\.[^.]+)\(")  or k ) ,'"></a>\r\n### ',k,' \r\n ');
+           			 
+					..table.push(tOutput,'\r\n\r\n### ',k,' ',hid(..string.match(k,"(.+\.[^.]+)\(")  or k ),'\r\n');
 					..table.push(tOutput, v,'\r\n' ); 
 			  	}
 			}
@@ -184,6 +199,7 @@ class libraryMd{
 			
 			this.outputString = ..string.join(tOutput);
 			this.outputString = ..string.replace(this.outputString,"\]\(doc\://","](/");
+			this.outputString = ..string.crlf(this.outputString,'\r\n',1);
 			
 	} };
 	@_meta;

@@ -1,0 +1,26 @@
+import java;
+
+var jvm = java()
+
+/*
+创建 java.util.HashMap，
+参数可指定要转换为 HashMap 的 aardio 表对象
+
+在调用 Java 函数时，
+aardio 参数如果是一个纯表对象，并且不是 java 对象、
+数组、类数组、时间对象，也会自动转换为 java.util.HashMap 
+*/
+var jMap = jvm.hashMap({ 
+    key1 = "value1";
+    key2 = "value2";
+})
+
+//遍历 Java 的 HashMap 对象。
+for k,v in jMap.each(){
+	print(k,v);
+}
+
+//转换为纯 aardio 表
+var tab = jMap.parseValue();
+
+print(jMap)

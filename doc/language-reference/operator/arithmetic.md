@@ -40,3 +40,14 @@ console.log("计算结果：" ,num);
 
 console.pause(true);
 ```
+
+**关于取模运算** <a id="mod" href="#mod">&#x23;</a>
+
+aardio 取模运算符 `%` 的计算过程为 `a % b == a - ⌊a/b⌋ b`，在计算 ⌊a/b⌋ 这一步时对结果下取整（向负无穷大取整）。在 aardio 中 `a % b` 的结果与 `a - ( math.floor(a/b) * b)` 相同，`a % b` 运算结果的符号与 b 的符号相同。
+
+> 不同编程语言的 `%` 运算符的规则并不完全相同， Python 的  `%` 运算符 与 aardio 相同，而 C 语言在计算  `a % b` 时使用的则是 a/b 向零取整的结果（ `a % b` 运算结果的符号与 a 的符号相同 ） 。
+
+相关链接：[模式匹配 `%` 运算符](../../library-guide/builtin/string/patterns.html#balanced-strings) 
+
+
+

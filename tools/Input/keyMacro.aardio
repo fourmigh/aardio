@@ -150,7 +150,7 @@ showCode = function(){
 		)
 	
 	winform.txtCode.text = str
-	winform.txtCode.setsel(-1,-1)
+	winform.txtCode.setSel(-1,-1)
 	 
 }
  

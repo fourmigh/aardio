@@ -1,6 +1,12 @@
 ﻿import dotNet;
 dotNet.import("System.Drawing");
 
+var loadImageFromFile = System.Drawing.Image.FromFile
+System.Drawing.Image[["FromFile"]] = function(path,ucem){
+	return loadImageFromFile(..io.fullpath(path),ucem);
+}
+
 /**intellisense()
-System.Drawing = .NET System.Drawing 名字空间\n!dotNetNameSpace.
+System.Drawing = .NET System.Drawing 名字空间。\n!dotNetNameSpace.
+System.Drawing.Image = .NET System.Drawing.Image 名字空间。\n导入 aardio 标准库 System.Drawing 则会重写\n System.Drawing.Image.FromFile 函数，\n自动调用 io.fullpath 转换参数中的图像文件路径。\n!dotNetNameSpace.
 end intellisense**/

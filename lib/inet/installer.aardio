@@ -30,11 +30,11 @@ class installer{
 			downBox.progress.setProgressRange(0,100) 
 			
 			var prcs,err; 
-			if(..string.endWith(downBox.savePath,".msi",true)){
+			if(..string.endsWith(downBox.savePath,".msi",true)){
 				parameters = `/i "` + downBox.savePath + `" ` + (parameters : "/quiet /qn /passive /norestart") ; 
 				prcs,err = ..process.shell("msiexec.exe",parameters,operation:"runas",,,downBox[["hwnd"]]);
 			}
-			elseif(..string.endWith(downBox.savePath,".msu",true)){
+			elseif(..string.endsWith(downBox.savePath,".msu",true)){
 				parameters = `"` + downBox.savePath + `" ` + (parameters : "/quiet /norestart") ; 
 				prcs,err = ..process.shell("wusa.exe",parameters,operation:"runas",,,downBox[["hwnd"]]);
 			}

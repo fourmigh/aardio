@@ -5,8 +5,8 @@ var winform = win.form(text="树形文件视图";right=961;bottom=539;bgcolor=16
 winform.add(
 cbDrivers={cls="combobox";left=24;top=12;right=236;bottom=36;dl=1;dt=1;edge=1;items={};mode="dropdown";z=3};
 editStatus={cls="plus";left=266;top=509;right=939;bottom=535;align="right";border={bottom=1;color=-6908266};db=1;dl=1;dr=1;editable=1;font=LOGFONT(h=-13);textPadding={top=6;bottom=2};z=4};
-static={cls="static";left=253;top=15;right=937;bottom=493;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;z=2};
-treeview={cls="treeview";left=24;top=40;right=236;bottom=494;asel=false;bgcolor=16777215;db=1;dl=1;dt=1;edge=1;z=1}
+static={cls="static";left=253;top=15;right=937;bottom=493;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;z=2};
+treeview={cls="treeview";left=24;top=40;right=236;bottom=494;asel=false;bgcolor=0xFFFFFF;db=1;dl=1;dt=1;edge=1;z=1}
 )
 /*}}*/
 

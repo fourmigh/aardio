@@ -7,25 +7,27 @@ import win.ui.atom;
 import win.ui.shadow;
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="aardio 图标字体浏览器";right=994;bottom=611;bgcolor=16777215)
+var winform = win.form(text="aardio 图标字体浏览器";right=994;bottom=611;bgcolor=0xFFFFFF)
 winform.add(
 btnAdd={cls="button";text="添加图标字体";left=605;top=0;right=707;bottom=25;dr=1;dt=1;z=13};
 cbFonts={cls="combobox";left=77;top=2;right=206;bottom=28;dl=1;dt=1;edge=1;items={};mode="dropdownlist";z=10};
-chkTopmost={cls="checkbox";text="此窗口保持置顶";left=774;top=584;right=902;bottom=605;bgcolor=16777215;db=1;dr=1;z=9};
-cmbCssClass={cls="combobox";left=840;top=50;right=981;bottom=73;dr=1;dt=1;edge=1;items={};mode="dropdown";z=15};
-custom={cls="custom";text="custom";left=1;top=30;right=765;bottom=612;bgcolor=15793151;db=1;dl=1;dr=1;dt=1;z=3};
+chkTopmost={cls="checkbox";text="此窗口保持置顶";left=774;top=584;right=902;bottom=605;bgcolor=0xFFFFFF;db=1;dr=1;z=9};
+cmbCssClass={cls="combobox";left=840;top=75;right=981;bottom=98;dr=1;dt=1;edge=1;items={};mode="dropdown";z=15};
+custom={cls="custom";text="custom";left=1;top=30;right=765;bottom=612;bgcolor=0xF0FBFF;db=1;dl=1;dr=1;dt=1;z=3};
 editFontPath={cls="edit";left=213;top=2;right=604;bottom=26;align="right";dl=1;dr=1;dt=1;edge=1;z=12};
+editNcr={cls="edit";left=840;top=48;right=981;bottom=71;dr=1;dt=1;edge=1;z=18};
 editText={cls="edit";left=840;top=21;right=981;bottom=44;dr=1;dt=1;edge=1;z=5};
-groupbox={cls="groupbox";text="在线图标工具";left=773;top=498;right=981;bottom=575;bgcolor=16777215;db=1;dr=1;edge=1;z=2};
-groupbox2={cls="groupbox";text="添加图标字体步骤";left=773;top=248;right=981;bottom=493;bgcolor=16777215;db=1;dr=1;edge=1;z=17};
-lbCssClass={cls="static";text="CSS类名:";left=770;top=50;right=831;bottom=73;align="right";dr=1;dt=1;transparent=1;z=4};
+groupbox={cls="groupbox";text="在线图标工具";left=773;top=498;right=981;bottom=575;bgcolor=0xFFFFFF;db=1;dr=1;edge=1;z=2};
+groupbox2={cls="groupbox";text="添加图标字体步骤";left=773;top=248;right=981;bottom=493;bgcolor=0xFFFFFF;db=1;dr=1;edge=1;z=17};
+lbCssClass={cls="static";text="CSS类名:";left=770;top=75;right=831;bottom=98;align="right";dr=1;dt=1;transparent=1;z=4};
 lbEscape={cls="static";text="转义字符:";left=770;top=24;right=831;bottom=47;align="right";dr=1;dt=1;transparent=1;z=6};
-lbPlusSet={cls="static";text="点上方按钮 / 修改选定控件图标";left=781;top=219;right=977;bottom=238;color=3427271;dr=1;dt=1;transparent=1;z=8};
-lbTip={cls="static";left=782;top=268;right=974;bottom=484;bgcolor=16777215;db=1;dr=1;z=1};
-lnkFontello={cls="plus";text="fontello.com";left=789;top=517;right=892;bottom=541;align="left";color=8388608;db=1;dr=1;font=LOGFONT(charset=0;h=-13);notify=1;textPadding={left=5};z=14};
-lnkIconfont={cls="plus";text="iconfont.cn";left=789;top=546;right=892;bottom=570;align="left";color=8388608;db=1;dr=1;font=LOGFONT(charset=0;h=-13);notify=1;textPadding={left=5};z=16};
-plusSet={cls="plus";text='\uF0AD';left=816;top=105;right=924;bottom=208;bgcolor=16777215;color=255;dr=1;dt=1;font=LOGFONT(h=-96;name='FontAwesome');notify=1;z=7};
-static={cls="static";text="选择字体:";left=12;top=5;right=71;bottom=24;align="right";dl=1;dt=1;transparent=1;z=11}
+lbPlusSet={cls="static";text="点上方按钮 / 修改选定控件图标";left=781;top=219;right=977;bottom=238;color=0x344BC7;dr=1;dt=1;transparent=1;z=8};
+lbTip={cls="static";left=782;top=268;right=974;bottom=484;bgcolor=0xFFFFFF;db=1;dr=1;z=1};
+lnkFontello={cls="plus";text="fontello.com";left=789;top=517;right=892;bottom=541;align="left";color=0x800000;db=1;dr=1;font=LOGFONT(charset=0;h=-13);notify=1;textPadding={left=5};z=14};
+lnkIconfont={cls="plus";text="iconfont.cn";left=789;top=546;right=892;bottom=570;align="left";color=0x800000;db=1;dr=1;font=LOGFONT(charset=0;h=-13);notify=1;textPadding={left=5};z=16};
+plusSet={cls="plus";text='\uF0AD';left=827;top=118;right=920;bottom=202;bgcolor=0xFFFFFF;color=0x0000FF;dr=1;dt=1;font=LOGFONT(h=-64;name='FontAwesome');notify=1;z=7};
+static={cls="static";text="选择字体:";left=12;top=5;right=71;bottom=24;align="right";dl=1;dt=1;transparent=1;z=11};
+static2={cls="static";text="NCR:";left=770;top=50;right=831;bottom=73;align="right";dr=1;dt=1;transparent=1;z=19}
 )
 /*}}*/
 
@@ -126,11 +128,11 @@ import inet.http;
 var userFontLibs = {};
 var addUserFont = function(path){
     var family;
-    if(..string.startWith(path,"//")){
+    if(..string.startsWith(path,"//")){
     	path = "http:" + path;
     }
     
-    if(..string.startWith(path,"http") || ..string.startWith(path,"//")){
+    if(..string.startsWith(path,"http") || ..string.startsWith(path,"//")){
     	var http = inet.http();
     	var data = http.get(path);
     	if(#data){
@@ -161,7 +163,7 @@ var addUserFont = function(path){
 		if( ! winform.cbFonts.findEx(fontName) ) winform.cbFonts.add(fontName); 
 		
 		showFonts(fontName);
-		if(!..string.startWith(path,"http",true) ){
+		if(!..string.startsWith(path,"http",true) ){
 			ide.loadPrivateFont(path);	
 		} 
 		
@@ -204,12 +206,15 @@ unescape2 = function(s){
 
 winform.editText.onChange = function(){ 
 	s = unescape2(winform.editText.text);
-	winform.plusSet.text =  s;
+	winform.plusSet.text =  s; 
+	
+	winform.editNcr.text = #s ? ("&#x"+..string.format("%X",string.charCodeAt(s))+";") : "";
 }
 
 wb.external={
 	click = function(chr){
 		winform.plusSet.text = ustring.fromCharCode(chr);
+		winform.editNcr.text = ("&#x"+..string.format("%X",chr)+";")
 		winform.editText.text = string.escape(winform.plusSet.text,true,true);
 		
 		if(winform.currentIconFontName=="FontAwesome"){
@@ -274,7 +279,7 @@ var htmlTemplate = /**
       		?>)" 
       		onmouseover="javascript:external.mouseover(<?
       		=owner.fontUnicodeChars[i]
-      		?>)" >&#<?=owner.fontUnicodeChars[i]?>;</a>
+      		?>)">&#<?=owner.fontUnicodeChars[i]?>;</a>
       <? 	
       }
       ?>  
@@ -307,7 +312,7 @@ showFonts = function(fontName){
 		winform.cmbCssClass.hide = true;	
 	}
 	
-	winform.plusSet.setFont(h=-96;name=fontName);
+	winform.plusSet.setFont(h=-64;name=fontName);
 	
 }
 showFonts("FontAwesome");
@@ -331,7 +336,7 @@ winform.plusSet.oncommand = function(id,event){
 			strImport = 'import fonts.'+stdFontLibs[winform.currentIconFontName ] + ';\r\n';
 		}
 		elseif(userFontLibs[winform.currentIconFontName]){
-			if(string.startWith(userFontLibs[winform.currentIconFontName],"http",true)){
+			if(string.startsWith(userFontLibs[winform.currentIconFontName],"http",true)){
 				strImport = 'import fonts.httpFamily\r\nfonts.httpFamily("'+userFontLibs[winform.currentIconFontName] + '");\r\n'
 			}
 			else {
@@ -419,7 +424,7 @@ winform.plusSet.oncommand = function(id,event){
 		}
 		elseif(userFontLibs[winform.currentIconFontName]){
 			if(!string.find(frmCode,"@"+userFontLibs[winform.currentIconFontName])){
-				if(string.startWith(userFontLibs[winform.currentIconFontName],"http",true)){
+				if(string.startsWith(userFontLibs[winform.currentIconFontName],"http",true)){
 					frmCode = 'fonts.httpFamily("'+userFontLibs[winform.currentIconFontName] + '");\r\n'+ frmCode;
 					if(!string.find(frmCode,"import\s*fonts.httpFamily")) frmCode = 'import fonts.httpFamily;\r\n'+ frmCode ; 
 				}
@@ -487,12 +492,12 @@ winform.plusSet.shawdow = win.ui.shadow(winform.plusSet)
 winform.plusSet.shawdow.show(false);
 
 winform.plusSet.onMouseEnter = function(wParam,lParam){
-	winform.transparent(0)
+	winform.opacity = 0
 	winform.plusSet.shawdow.show(true);
 }
 
 winform.plusSet.onMouseLeave = function(wParam,lParam){
-	winform.transparent(false)
+	winform.opacity = null
 	winform.plusSet.shawdow.show(false);
 }
 
@@ -519,6 +524,7 @@ winform.cmbCssClass.onListChange = win.debounce(
     		if(v===text){
     			winform.editText.text = string.escape(k,true,true);
     			winform.plusSet.text = string.unescape(k)
+    			winform.editNcr.text =("&#x"+..string.format("%X",string.charCodeAt(winform.plusSet.text))+";")
     		}
     	} 
 	},300

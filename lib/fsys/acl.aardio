@@ -100,7 +100,7 @@ temp = function(filePath,proc){
 }
 
 /**intellisense()
-fsys.acl = 管理文件权限\n当前进程需要通过管理权限启动 
+fsys.acl = 管理文件权限。\n当前进程需要通过管理权限启动 
 end intellisense**/
 
 /**intellisense(fsys.acl)
@@ -109,8 +109,26 @@ takeOwn(.(filePath,->->->) = 执行 takeown 命令获取文件所有权限,\n参
 cacls(.(filePath,->->->) = 执行 cacls 命令修改文件权限,\n参数 @filePath 指定文件路径，\n可附加不定个数的字符串参数指定命令行参数,\n参数 @2 也可以传入一个文本参数并用空格分隔多个命令行参数,\n省略命令行参数时默认为当前登录用户添加全部权限,\n失败返回 false,错误信息,成功返回进程标准输出文本
 ownCacls(.(filePath,->->->) = 执行 takeown 命令获取文件所有权限,\n如果成功再执行 cacls 命令修改文件权限,\n参数 @filePath 指定文件路径，\n可附加不定个数的字符串参数指定命令行参数,\n省略命令行参数时默认为当前登录用户添加全部权限,\n失败返回 false,错误信息,成功返回进程标准输出文本
 icacls(.(filePath,->->->) = 执行 icacls 命令修改文件权限,\n参数 @filePath 指定文件路径，\n可附加不定个数的字符串参数指定命令行参数,\n参数 @2 也可以传入一个文本参数并用空格分隔多个命令行参数,\n省略命令行参数时默认为当前登录用户添加全部权限,\n失败返回 false,错误信息,成功返回进程标准输出文本
-ownICacls(.(filePath,->->->) = 执行 takeown 命令获取文件所有权限,\n如果成功再执行icacls命令修改文件权限,\n参数 @filePath 指定文件路径，\n可附加不定个数的字符串参数指定命令行参数,\n省略命令行参数时默认为当前登录用户添加全部权限,\n失败返回 false,错误信息,成功返回进程标准输出文本
+ownICacls(.(filePath,->->->) = 执行 takeown 命令获取文件所有权限,\n如果成功再执行 icacls 命令修改文件权限,\n参数 @filePath 指定文件路径，\n可附加不定个数的字符串参数指定命令行参数,\n省略命令行参数时默认为当前登录用户添加全部权限,\n失败返回 false,错误信息,成功返回进程标准输出文本
 save(.(filePath,aclPath) = 执行 icacls 命令导出文件权限,\n参数 @filePath 指定文件路径,\n失败返回 false,错误信息,成功返回进程标准输出文本
 restore(.(filePath,aclPath) = 执行 icacls 命令导入文件权限,\n参数 @filePath 指定文件路径,\n失败返回 false,错误信息,成功返回进程标准输出文本
 temp(filePath,proc) = @.temp(__/*指定目标文件路径，\n执行 icacls 命令备份权限后调用参数 @2 指定的回调函数,\n回调函数执行完自动恢复权限,\n如果文件不存在，仍然会回调此函数,但回调参数为 null\n成功返回回调函数的返回值,失败返回false,错误信息*/,function(filePath){\n	\n})
 end intellisense**/
+
+/**details(示例)
+
+```aardio
+//RUNAS//
+
+//获取文件所有权限（这样才能进一步修改权限）	
+fsys.acl.takeOwn(filePath)
+
+//调用 icacls 命令修改文件权限
+var out,err = fsys.acl.icacls(filePath,"/grant","Administrators:(F)")
+
+//执行 icacls 命令
+out,err = fsys.acl.icacls(filePath,"/setowner","NT SERVICE\TrustedInstaller");
+```
+
+aardio 启动代码第一行为 `//RUNAS//` 运行时会请求以系统管理权限运行。
+end details**/

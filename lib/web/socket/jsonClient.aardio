@@ -1,6 +1,6 @@
 ﻿//jsonClient RPC客户端
 
-import web.json;
+import JSON;
 import web.socket.client;
 
 namespace web.socket;
@@ -20,7 +20,7 @@ class jsonClient{
 					if(!msg.data) return;
 				}
 			
-    			var data,err  =  ..web.json.tryParse(msg.data);
+    			var data,err  =  ..JSON.tryParse(msg.data);
     			if( type(data) != "table"){ 
     				// Chrome DevTools Protocol 没有 jsonrpc 字段
     				if( this.rpc.onError ) 	this.rpc.onError(..string.concat( err," 接收到的数据格式错误:",msg.data));
@@ -37,7 +37,7 @@ class jsonClient{
 		};
 		
 		this.rpc.sendJson = function(data){
-			var jsonData = ..web.json.stringify(data);
+			var jsonData = ..JSON.stringify(data);
 			if( owner.afterJsonStringify ) {
 				jsonData = owner.afterJsonStringify(jsonData);
 				if(!jsonData) return;
@@ -127,7 +127,7 @@ class jsonClient{
 			}
 			
 			if( owner.varargs ){
-				data.params = {@{_type="array"};...}
+				data.params = [...]
 			}
 			else {
 				data.params = ...;
@@ -145,7 +145,7 @@ class jsonClient{
 			
 			if( owner.sendJson(data) ) return cb;
 			if(this.rpc.onError){
-				var err =  '发送失败,请先调用 connect 函数连接 JSON RPC 服务端:\n'+ ..web.json.stringify(data);
+				var err =  '发送失败,请先调用 connect 函数连接 JSON RPC 服务端:\n'+ ..JSON.stringify(data);
 				if(this.rpc.onError) this.rpc.onError(err);
 				
 				..win.setTimeout(

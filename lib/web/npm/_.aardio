@@ -1,6 +1,6 @@
 ﻿import zlib.httpFile;
 import web.rest.jsonLiteClient;
-
+import inet.url;
 namespace web.npm;
 
 registry = "http://registry.npmmirror.com"
@@ -29,7 +29,7 @@ download = function(package,version,savePath,parentForm){
 	
 	var tagUrl = latest.dist.tarball; 
 	if(tagUrl){
-		var extraDir,err = ..zlib.httpFile.download(tagUrl,"正在下载NPM包:"+package
+		var extraDir,err = ..zlib.httpFile.download(tagUrl,"正在下载 NPM 包:"+package
 			,savePath,,,parentForm : ..win.getActive());
 			
 		if(extraDir){ 
@@ -40,6 +40,39 @@ download = function(package,version,savePath,parentForm){
 	}
 }
 
-/**intellisense()
-web.npm.download(.(包名,版本号,存储路径,父窗口) = 下载 NPM 包,成功返回解压目录\n如果解压目录已经存在则不下载，直接返回该目录,\n失败返回null,错误信息
+url = function(package,path,version="latest"){ 
+	return  ..inet.url.append("https://registry.npmmirror.com/",package,version,"files",path);
+}
+
+get = function(package,path,version){
+	var u = url(package,path,version);
+	return ..inet.http.get(u);
+}
+
+save = function(dir,package,path,version){
+	var d = get(package,path,version);
+	
+	if(d){
+		var path = ..io.joinpath(dir,package,path)
+		return ..string.save(path,d);
+	}
+}
+
+load = function(dir,package,path,version){
+	var localPath = ..io.joinpath(dir,package,path)
+	if(!..io.exist(localPath)){
+		if(!save(dir,package,path,version)){
+			return;
+		}
+	}
+	
+	return ..string.load(localPath);
+}
+
+/**intellisense(web.npm)
+download(.(包名,版本号,存储路径,父窗口) = 下载 NPM 包,成功返回解压目录\n如果解压目录已经存在则不下载，直接返回该目录,\n失败返回null,错误信息
+url(.(包名,文件路径,版本号) = 返回 NPM 包中指定文件的 URL。\n省略版本号则使用默认值 "latest" 。
+get(.(包名,文件路径,版本号) = 获取 NPM 包中指定文件的 内容。\n省略版本号则使用默认值 "latest" 。
+save(.(存储目录,包名,文件路径,版本号) = 获取 NPM 包中指定文件的 内容并保存到参数 @1 指定的存储目录。\n省略版本号则使用默认值 "latest" 。
+load(.(存储目录,包名,文件路径,版本号) = 自存储目录加载指定包名的指定文件，返回文件数据。\n省略版本号则使用默认值 "latest" 。\n\n如果没有找到文件，\n则先获取 NPM 包中指定文件的 内容并保存到参数 @1 指定的存储目录。
 end intellisense**/

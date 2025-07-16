@@ -93,7 +93,7 @@ win.ui.ctrl.ipaddress() = IP地址控件\n!SysIPAddress.
 !SysIPAddress.clear() = 清除列表框所有内容 
 !SysIPAddress.hwnd = 控件句柄
 !SysIPAddress.id = 控件ID
-!SysIPAddress._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!SysIPAddress._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !SysIPAddress.getParent() = 返回父窗口\n!static.
 !SysIPAddress.setParent(__/*控件对象*/) = 改变父窗口 
 !SysIPAddress.addCtrl = @.addCtrl(\n\n	edit ={ cls="edit";left=0;top=0;right=50;bottom=50;autoResize=false ;hide=1;edge=1;  }\n)

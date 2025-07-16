@@ -1,0 +1,26 @@
+import process.popen;
+
+/*
+调用 Windows 自带 tar 命令压缩 zip 文件。
+Windows 10 1803 开始自带 curl 与 tar 命令。
+*/
+var tar = process.popen("tar.exe",{
+	"-a",//基于扩展名自动选择压缩方式
+	"-c",//压缩
+	"-f",//指定文件，必须是最后一个选项
+	io.fullpath("/test.zip"),//输出文件，写绝对路径
+	"guide"
+	},{
+		//指定工作目录，压缩时以此目录为根目录生成相对路径
+		workDir = "~/doc/"
+	}
+)
+
+//出错才会输出信息，如果要展示进度请改用 zlib.zip, fsys.tar 等库
+for out in tar.each(){
+    print( out );
+}
+
+print("完成");
+
+//调用 PowerShell 压缩 zip: file://~/example/Languages/PowerShell/command.aardio

@@ -61,7 +61,11 @@ datetimepick._metaProperty = metaProperty(
 		}
 		_set = function( v ){
 			if(!v) return ::SendMessageByStruct(owner.hwnd, 0x1002/*_DTM_SETSYSTEMTIME*/,1, {});
-			if(! ..time.istime(v)) error("无效的time对象",2);
+			if(! ..time.istime(v)){
+				v = ..time(v);
+				if(! ..time.istime(v)) error("无效的time对象",2);
+			}
+			
 			owner.$setTimeFormat = v.format;
 			
 		    ::SendMessageByStruct(owner.hwnd, 0x1002/*_DTM_SETSYSTEMTIME*/,0, v);
@@ -113,20 +117,25 @@ datetimepick._metaProperty = metaProperty(
 	}; 
 )
 
+with datetimepick._metaProperty{
+	value = time;
+}
+
 /***intellisense() 
 ?win.ui.ctrl.datetimepick =!datetimepick.
 win.ui.ctrl.datetimepick() = 时间控件\n!datetimepick.
 !datetimepick.cls = 设计时类名
 !datetimepick.className = 运行时类名
 !datetimepick.checked = 或取设置控件选中状态\n创建控件的参数中指定style=_DTS_SHOWNONE
-!datetimepick.time = 获取或设置时间,值为time对象,\n在读取此属性值时，保留上次设置此属性的时间对象使用的format字段\n!time.
+!datetimepick.time = 获取或设置时间，值为 time 对象。\n写入属性值时支持可使用 time 构造函数转换为时间对象的参数。\n在读取此属性值时，保留上次设置此属性的时间对象使用的 format 字段\n!time.
+!datetimepick.value = 获取或设置时间，值为 time 对象。\n写入属性值时支持可使用 time 构造函数转换为时间对象的参数。\n在读取此属性值时，保留上次设置此属性的时间对象使用的 format 字段\n!time.
 !datetimepick.setRange(.(时间下限,时间上限) = 设置时间范围,参数为time()对象\n可省略其中一个参数,仅指定下限或仅指定上限
 !datetimepick.getRange() = 返回两个time()对象:时间范围下限,时间范围上限\n如果未调用setRange()指定上限或下限,相应值返回为空
 !datetimepick.setFormat("'时间'hh':'m':'s ddddMMMdd', 'yyy") = 所有非格式化字符必须包含在单引号中
 !datetimepick.hwnd = 控件句柄
 !datetimepick.id = 控件ID
 !datetimepick.text = 控件文本,也就是格式化以后实际显示的时间字符串
-!datetimepick._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!datetimepick._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !datetimepick.getParent() = 返回父窗口\n!static.
 !datetimepick.setParent(__/*控件对象*/) = 改变父窗口 
 !datetimepick.hide = 控件是否隐藏
@@ -162,7 +171,7 @@ win.ui.ctrl.datetimepick() = 时间控件\n!datetimepick.
 !datetimepick.sendMessage(.(msg,wParam,lParam) = 发送窗口消息\n此函数用法请参考 ::User32.SendMessage
 !datetimepick.postMessage(.(msg,wParam,lParam) = 投递窗口消息到消息队列中\n此函数用法请参考 ::User32.PostMessage
 !datetimepick.onDateTimeChanged = @.onDateTimeChanged = function(dateTime,none){
-	__/*控件变更值回调此函数,\ndateTime 为变更后的 time 对象,\nnone 为1则控件值为空，否则为有效时间*/	
+	__/*控件变更值回调此函数,\ndateTime 为变更后的 time 对象,\nnone 为 1 则控件值为空，否则为有效时间*/	
 }
 !datetimepick.onKillFocus = @.onKillFocus = function(){
 	__/*控件失去焦点回调此函数*/

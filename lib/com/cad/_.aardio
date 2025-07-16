@@ -23,7 +23,7 @@ class cad{
 	LoadLisp = function(lisp,args,doc){
 
 		if( (#lisp<0x410/*_MAX_PATH_U8*/) && ..io.localpath(lisp) || ..io.exist(lisp) ){
-			if(..string.endWith(lisp,".lsp",true)){
+			if(..string.endsWith(lisp,".lsp",true)){
 				return this.LoadLispFile(lisp);
 			}
 			
@@ -272,7 +272,7 @@ class cad{
 
 cad.list = function(args,part){
  
-	if(!..table.isArray(args)){ 
+	if(!..table.isArrayLike(args)){ 
 		if( args.car!==null && args.cdr!==null){
 			return cad.list({args.car,args.cdr,cons=true});
 		}	 

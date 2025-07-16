@@ -8,7 +8,7 @@ class control{
 			a = ..string.join({a;b; ... },",");
 		}
 		
-		if( type.isString(a) && ..string.startWith(a,"ms-settings:") ){
+		if( type.isString(a) && ..string.startsWith(a,"ms-settings:") ){
 			..process.execute(a,,,1/*_SW_NORMAL*/);
 		}
 		else {

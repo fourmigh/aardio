@@ -1,14 +1,14 @@
 //C# 使用 dynamic 调用 aardio
 
 /*
-只要简洁，不求完美！
-Win7 在市场上已经接近消失，现在开发软件再处处考虑 Win7 兼容是不必要的。
-Win10 已自带.NET 4.6 以上，而 .NET 4.x 都支持 dynamic 对象
+C# 里只要将 aardio 对象声明为 dynamic 类型就可以自由调用。
+Win10 已自带.NET 4.6 以上，而 .NET 4.x 都支持 dynamic 对象。
+更低版本的 Windows 环境 .NET 4.x 也已经普及。
 */
 import dotNet.v4;
 var compiler = dotNet.createCompiler("C#"); //创建C#编译器
 
-//必须引入下面的几个 DLL
+//必须引入下面这几个 DLL
 compiler.Reference(
 	"System.Core.dll","Microsoft.CSharp.dll"
 );

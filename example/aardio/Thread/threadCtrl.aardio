@@ -1,0 +1,63 @@
+//线程控件 
+//web.view 范例: file://~/example/WebUI/web.view/OtherApps/threadCtrl.aardio
+import win.ui;
+/*DSG{{*/
+var mainForm = win.form(text="线程控件测试";right=846;bottom=497)
+mainForm.add(
+button={cls="button";text="加载线程控件";left=641;top=455;right=798;bottom=492;db=1;dr=1;z=1};
+edit={cls="edit";left=40;top=456;right=568;bottom=488;db=1;dl=1;dr=1;edge=1;z=2}
+)
+/*}}*/
+
+mainForm.button.oncommand = function(id,event){ 
+	mainForm.button.disabled = true;
+	
+	/*
+	线程控件类库用于自动创建新的线程并执行 loadForm 属性指定的代码以创建子窗口。
+
+	用法：
+	1. 拖一个自定义控件到窗体上,设置边框属性为 false ,将类名改为"thread"。
+	2. 将控件设计属性 loadForm 指定为可创建子窗口的代码文件路径。
+
+	在被加载的窗口代码中可使用 threadParent 属性访问父线程的父窗口。
+	
+	也可能直接在代码中创建线程控件，示例如下：
+	*/
+	mainForm.add(  
+		threadCtrl = { 
+			cls="thread"; //拖一个自定义控件到窗体上,设置边框属性为 false,将控件类名改为"thread"
+			bottom=437;right=840;left=8;top=12;
+			dr=1;dl=1;dt=1;db=1;//四个边都保持固定边距
+			loadForm = function(threadParent){
+				/*
+				loadForm 属性可指定创建窗体的函数（必须是纯函数）、代码（或代码文件路径）。
+				创建窗体的代码必须遵守多线程规则。
+				*/
+				import win.ui;
+				var winform = ..win.form( 
+					right=599;bottom=399;parent=threadParent
+				);
+				
+				import web.form;
+				var wb = web.form(winform); 
+				
+				//threadParent 或 winform.threadParent 都可以访问父窗口在当前线程的代理对象
+				wb.html =  `<!doctype html><html><meta charset="utf-8"><body>` 
+					+ winform.threadParent.text;  
+			
+				winform.show()
+			};
+		}
+	)
+	
+	mainForm.button.disabled = false;
+} 
+
+mainForm.modifyStyle(,0x2000000/*_WS_CLIPCHILDREN*/)
+mainForm.onEraseBkgnd  = function(hwnd,message,wParam,lParam){
+	mainForm.button.redraw();
+	mainForm.edit.redraw();
+} 
+
+mainForm.show();
+win.loopMessage();

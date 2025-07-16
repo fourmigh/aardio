@@ -1,5 +1,5 @@
 ﻿//jsonServer 服务端
-import web.json;
+import JSON;
 import string.aasdl;
 
 namespace web.rpc;
@@ -144,7 +144,7 @@ class jsonServer{
 				reqData = owner.beforeJsonParse(reqData);
 			}
 			 	
-			if(reqData) reqData = ..web.json.tryParse(reqData); 
+			if(reqData) reqData = ..JSON.tryParse(reqData); 
 			if( ! reqData  ){
 				owner._write({error = {
 					code = -32700;
@@ -179,7 +179,7 @@ class jsonServer{
 		_write = function(repData,response){
 			repData.jsonrpc =  "2.0";
 			
-			var jsonData = ..web.json.stringify(repData);
+			var jsonData = ..JSON.stringify(repData);
 			if( owner.afterJsonStringify ) {
 				jsonData = owner.afterJsonStringify(jsonData);
 				if(!jsonData) return true;

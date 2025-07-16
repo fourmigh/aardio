@@ -40,7 +40,7 @@ class thread {
 								cmd.onCreateThreadCtrl(null,"创建窗体失败")  
 							}
 							return winform;
-						},parent.hwnd
+						},parent
 					)
 					..win.loopMessage();
 				}
@@ -60,9 +60,6 @@ class thread {
 		cmd.close();
 		cmd = null;
 	};
-	_adjust = function(){  
-		::RedrawWindow(this[["hwnd"]],{},null,0x185/*_RDW_ALLCHILDREN | _RDW_INVALIDATE | _RDW_UPDATENOW  | _RDW_ERASE*/);
-	}; 
 	_onDestroy = function(){ 
 		 
 		if( !this.threadHandle ){
@@ -81,6 +78,47 @@ class thread {
 
 thread._metaProperty = metaProperty();
 
-/*intellisense()
-win.ui.ctrl.thread() = 线程控件\n!static.
-end intellisense*/
+//@guide [web.view 范例](doc://example/WebUI/web.view/OtherApps/threadCtrl.html) [线程控件范例](doc://example/aardio/Thread/threadCtrl.html) 
+
+/*****intellisense(!stdCtrlThread)
+loadForm = 只能在创建控件的参数中使用此字段（设计时属性）。\n用于指定要加载窗体的函数、代码（或者代码文件路径）。\n控件会创建新的线程执行 loadForm 指定的函数或代码，\n创建窗体的代码必须遵守线程规则，可使用 `...` 可使用 `...` 或第一个参数接收父窗口在当前线程的代理对象。
+cls = 设计时类名
+hwnd = 控件句柄
+isForm = 标准库 win.ui 创建的所有窗体与控件对象都拥有此属性。\nwin.form 创建的窗体对象返回 true,其他控件对象返回 false 。
+getForm() = 标准库 win.ui 创建的所有窗体与控件对象都拥有此属性。\nwin.form 创建的窗体对象返回自身，其他控件对象返回创建控件的容器窗口（ _parentForm 属性 ）
+_parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
+adjust = @.adjust = function( cx,cy,wParam ) {	 \n	__/*父窗口改变大小后会自动触发此事件函数。\n注意 onSize 是 adjust 事件的别名，作用相同。\n所有 win.form 创建的窗体和控件都支持 adjust 事件,\n重复赋值 adjust 会追加事件触发器而非替换原来的值。\n\ncx 参数为窗口客户区宽度,cy 参数为窗口客户区高度,\nwParam 参数来自 _WM_SIZE 消息的 wParam 参数，一般不用管。\n一般不建议添加一个 wndproc 仅仅是为了处理  _WM_SIZE 消息，\n定义 adjust 事件是更好的选择。\n\n如果主动调用此函数，则检查并执行所有之前添加的 adjust 事件函数。\n省略调用参数时 cx,cy 参数默认设为窗口大小*/  \n}; 
+preadjust = @.preadjust = function( cx,cy,wParam ) {	 \n	__/*窗口缩放后重绘前、触发 adjust 事件之前触发此事件。\n所有 win.form 创建的窗体和控件都支持此事件,\n与 adjust 事件不同，对 preadjust 重复赋值则覆盖而不是追加事件。 \n\ncx 参数为窗口宽度,cy 参数为窗口高度,\nwParam 为 _WM_SIZE 消息参数。*/  \n};
+autoResize = 是否允许跟随父窗体自动缩放
+hide = 当前控件窗口是否隐藏。\n仅检查当前窗口的可见性样式（窗口 是否移除了 _WS_VISIBLE 样式）。\n不考虑父窗口是否可见，不考虑是否被其他窗口遮挡。\n如果需要同时判断父窗口的可见性，应改用 win.isVisible 函数。\n\n以 `.` 前导的 `.hide()` 作为成员函数被调用时，\n作用等价于将 hide 属性设为 null 。
+left = 左侧坐标
+right = 右侧坐标
+top = 顶部坐标
+bottom = 底部坐标
+width = 宽度
+height = 高度
+redraw() = 刷新
+show(true__) = 显示控件
+getRect() = 控件区块位置(::RECT结构体)
+getRect(true) = 控件屏幕区块位置(::RECT结构体)  
+setRect(rc) = 设置控件区块位置(::RECT结构体)  
+setRect(rc,true) = 设置控件屏幕区块位置(::RECT结构体)
+getClientRect() =  控件客户区块位置(::RECT结构体)\n!rect.
+modifyStyle(.(remove,add,swpFlags) = 修改窗口样式,所有参数都是可选参数,\n@remove 用数值指定要移除的样式,可使用 _WS_ 前缀的常量\n@add 用数值指定要添加的样式,可使用 _WS_ 前缀的常量\n@swpFlags 可选用数值指定调整窗口选项,可使用 _SWP_ 前缀的常量\n如果指定了 @swpFlag ,则使用该参数调用::SetWindowPos\n细节请参考 win.modifyStyle 函数源码 
+modifyStyleEx(.(remove,add,swpFlags) = 修改窗口扩展样式,所有参数都是可选参数,\n@remove 用数值指定要移除的样式,可使用 _WS_EX_ 前缀的常量\n@add 用数值指定要添加的样式,可使用 _WS_EX_ 前缀的常量\n@swpFlags 可选用数值指定调整窗口选项,可使用 _SWP_ 前缀的常量\n如果指定了 @swpFlag ,则使用该参数调用::SetWindowPos\n细节请参考 win.modifyStyle 函数源码
+close() = 关闭控件窗口
+setFocus() = 设置焦点 
+setPos(.(x坐标,y坐标,宽,高,插入位置,参数) = 调整窗口位置或排序,所有参数可选\n同时指定x,y坐标则移动位置\n同时指定宽高则改变大小\n指定插入位置(句柄或_HWND前缀常量)则调整Z序
+getPos() = 返回相对父窗口客户区的坐标,宽,高,\n参数为true返回屏幕坐标,宽,高,\nx,y,cx,cy=win.getPos(hwnd)
+orphanWindow( = 如果当前是子窗口,\n移除窗口的WS_CHILD样式，使窗口孤立出来悬浮于原位置,\n悬浮窗口如影随形的跟随父窗口移动或改变大小,控件原来的固定边距等参数仍然有效
+orphanWindow(.(transparent,hwndBuddy,borderless) = 创建悬浮窗口。\n悬浮窗口是模仿子窗口外观效果的独立窗口，父窗口可自动调整子窗口到设定位置。\n可选参数 @transparent 为 true 则转换为分层透明窗口。\n可选利用 @hwndBuddy 参数指定外部进程窗口句柄的并附加在内部控件上以实现相同的效果。\n伙伴窗口总是会保持在悬浮窗口前面，并保持相同的大小、位置。\n可重复调用此函数更换伙伴窗口，旧的伙伴窗口必须自行关闭。\n可选指定 @borderless 参数 为 true 以移除 @hwndBuddy  的窗口边框。
+resize(.(宽度,高度) = 如果指定了参数则调整窗口大小,\n无论是否实际调整窗口大小,发送 _WM_SIZE 消息给窗口
+onDestroy = @.onDestroy = function(){\n	__/*窗口销毁前触发*/\n}
+valid = 窗口是否有效，\n窗口未关闭返回 true ，\n窗口已关闭或正在关闭返回 false
+end intellisense*****/
+
+/*****intellisense()
+?win.ui.ctrl.thread  = !stdCtrlThread.
+win.ui.ctrl.thread() = 线程控件\n!stdCtrlThread.
+win.ui.ctrl.thread = 多线程控件。\n此控件自动创建新的线程并在线程中创建窗口。\n创建控件的参数表中 cls 字段必须指定为 "thread"。\nloadForm 字段必须指定创建窗体（win.form 对象）的函数或代码（或代码文件路径）。\n创建窗体的代码必须遵守线程规则，可使用 `...` 或第一个参数接收父窗口在当前线程的代理对象。\n也可以使用创建的线程控件窗口的 threadParent 字段访问父窗口在当前线程的代理对象。
+end intellisense*****/

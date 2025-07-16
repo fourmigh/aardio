@@ -36,7 +36,7 @@ class viewForm{
 	this.btnAdd.oncommand = function(id,event){
 		var clr = ..color.parse(this.plusColor.text);
 		var colorName = this.plusColorName.text;
-		if( ..string.startWith(colorName,"参考色:") ){
+		if( ..string.startsWith(colorName,"参考色:") ){
 			colorName = ..string.replace(colorName,"参考色:","类");
 			colorName = ..string.replace(colorName,"%()","");
 		}
@@ -321,7 +321,7 @@ class viewForm{
 	
 	this.onDropFiles = function(files){
 		var path = files[1];
-		if(!..string.endWith(path,".colors")){
+		if(!..string.endsWith(path,".colors")){
 			return;
 		}
 		

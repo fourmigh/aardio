@@ -7,7 +7,7 @@ class chm {
 			htmlPath = chmPath;
 			chmPath = null;
 			
-			if(..string.startWith(htmlPath,"chm://",true)){
+			if(..string.startsWith(htmlPath,"chm://",true)){
 				htmlPath = ..string.right(htmlPath,-7);
 			}
 		}

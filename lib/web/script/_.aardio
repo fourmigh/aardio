@@ -1,6 +1,6 @@
 ﻿//script 系统脚本组件
 import com;
-import web.json;
+import JSON;
 import raw.apiHook;
 
 namespace web;
@@ -51,9 +51,9 @@ class script {
 			
 			var lang = ..string.lower(this.Language); 
 			if(__jsLangIds__[lang]){
-				return this.msc.eval(..web.json.stringify(v));
+				return this.msc.eval(..JSON.stringify(v));
 			}
-			return ..com.SafeArrayV(v)
+			return ..com.toSafeArray(v)
 		}
 
 		this.reset = function(){
@@ -81,7 +81,7 @@ class script {
 						return this.msc.CodeObject.jsConstructor( cls,...);
 					}
 
-					var js  = "jsConstructor.apply(null," + ..web.json.stringifyArray(args) + ")";
+					var js  = "jsConstructor.apply(null," + ..JSON.stringifyArray(args) + ")";
 					return owner.eval(js);
 				}
 				
@@ -107,17 +107,17 @@ class script {
 		this.json = {@{
 			_get = function(k,ownerCall){
 				if(ownerCall || type(k)=="string") return function(...){
-					var r = this.eval("JSON.stringify("+k+".apply(" + k + "," +..web.json.stringifyArray({...}) + "))");
-					return ..web.json.tryParse(r);
+					var r = this.eval("JSON.stringify("+k+".apply(" + k + "," +..JSON.stringifyArray({...}) + "))");
+					return ..JSON.tryParse(r);
 				} 
 			}; 
 			_call = function(obj){
 				if(..com.IsObject(obj)){
 					var r = this.script.JSON.stringify(obj);
-					return ..web.json.tryParse(r);
+					return ..JSON.tryParse(r);
 				}
 				else {
-					return this.eval( ..web.json.stringify(obj) );
+					return this.eval( ..JSON.stringify(obj) );
 				} 
 			};
 		}} 
@@ -134,7 +134,7 @@ script._meta = {
 	_set = function(k,v){ 
 		var t = type(v);
 		if( t == "table" ) {
-			if(  #v  && ..table.isArray(v) ){
+			if(  #v  && ..table.isArrayLike(v) ){
 				owner.msc[k] = owner.createArray(v); 
 			}
 			else {
@@ -152,7 +152,7 @@ script._meta = {
 	doScript = function(arg){
 		if( #arg <= 2048 ){
 			
-			if( ..string.startWith(arg,"http",true) 
+			if( ..string.startsWith(arg,"http",true) 
 				&& ..string.match(arg,"^\w+\:") && ..inet[["http"]] ){
 				arg = ..inet.http.get(arg);
 				if(!arg) return;

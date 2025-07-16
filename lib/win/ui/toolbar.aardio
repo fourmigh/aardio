@@ -340,7 +340,7 @@ theme = 外观主题,例如\nwinform.button.theme = "Explorer"\nwinform.button.t
 cls = 设计时类名
 className = 运行时类名
 hwnd = 控件句柄
-getForm() = 如果是窗体返回自身\n如果是控件则返回 _parentForm \n!winform.
+getForm() = 标准库 win.ui 创建的所有窗体与控件对象都拥有此属性。\nwin.form 创建的窗体对象返回自身，其他控件对象返回创建控件的容器窗口（ _parentForm 属性 ）。
 getParent() = 返回父窗口\n!winform.
 disabled = 是否禁用
 setExtended(.(exstyle) = 启用工具条指定扩展样式

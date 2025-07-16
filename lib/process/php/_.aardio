@@ -144,7 +144,7 @@ app = function(response,request,session){
 		var handler = httpHandle[request.path];
 		 
 		if(type.isString(handler)){
-			if(!..string.endWith(request.path,".aardio")){ 
+			if(!..string.endsWith(request.path,".aardio")){ 
 				response.contentType = ..fsys.mime.fromData(handler,request.url,"text/html"); 
 				return response.write(handler) 	
 			}
@@ -173,7 +173,7 @@ app = function(response,request,session){
 	}
 	
 	import process.php.cgi;
-	if( string.endWith(request.path,".php",true) ){
+	if( string.endsWith(request.path,".php",true) ){
 		
 		if(enableJsonRpcClientPath){
 			process.php.cgi(response,request,phpCgiPath,phpIniPath,"-d",`auto_prepend_file="` + enableJsonRpcClientPath + `"`);

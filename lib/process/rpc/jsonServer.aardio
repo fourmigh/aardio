@@ -1,5 +1,5 @@
 ﻿//jsonServer 服务端
-import web.json;
+import JSON;
 import string.aasdl;
 
 namespace process.rpc;
@@ -135,7 +135,7 @@ class jsonServer{
 				while( var json =  stdin.read() ) { 
 					owner.lastRequstData = json;
 					json = owner.beforeJsonParse(json);
-					reqData = ..web.json.tryParse(json);
+					reqData = ..JSON.tryParse(json);
 	    			if(reqData && type(reqData)=="table"){
 	    			    if(reqData[["id"]] || reqData[1][["id"]]) break; 
 	    			}
@@ -164,7 +164,7 @@ class jsonServer{
 						json = json ++ block ++ jsonEndStr;
 						
 						owner.lastRequstData = json;
-						reqData = ..web.json.tryParse(json);
+						reqData = ..JSON.tryParse(json);
 					
 	    				if(reqData[["id"]]
 	    					|| ( type(reqData)=="table" && reqData[1][["id"]]) ) {
@@ -211,7 +211,7 @@ class jsonServer{
 		_write = function(repData){
 			repData.jsonrpc =  "2.0";
 			
-			var jsonData = ..web.json.stringify(repData);
+			var jsonData = ..JSON.stringify(repData);
 			if( owner.afterJsonStringify ) {
 				jsonData = owner.afterJsonStringify(jsonData);
 				if(!jsonData) return true;

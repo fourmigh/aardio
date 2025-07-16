@@ -44,17 +44,17 @@ mainForm.btnSearch.oncommand = function(id,event){
     elseif(#str) {
         //支持模式匹配查找 
         var text = ed.text; 
-        var i1,j1 = ed.getsel();
+        var i1,j1 = ed.getSel();
         if(i1)i1 = string.bytes(text,i1);
         if(j1)j1 = string.bytes(text,j1);
         var i,j = string.find(text,str,j1 ? j1+1 : (i1:0),true);
         if( !i ) i,j = string.find(text,"<@@" + str + "@>",j1 ? j1+1 : (i1:0),true);
         
-        if( i && j ) ed.setsel(i,j);
+        if( i && j ) ed.setSel(i,j);
         else {
         	i,j = string.find(text,str,0,true);
         	if( !i ) i,j = string.find(text,"<@@" + str + "@>",0,true);
-        	if( i && j ) ed.setsel(i,j);
+        	if( i && j ) ed.setSel(i,j);
         }
         
         ide.showStatus("可以直接按回车键查找下一个")
@@ -76,19 +76,19 @@ mainForm.editWord.oncommand = function(id,event){
     elseif(#str) {
         var text = ed.text;
         
-        var i1,j1 = ed.getsel();
+        var i1,j1 = ed.getSel();
         if(i1)i1 = string.bytes(text,i1);
         var i,j = string.find(text,"<@@" + str + "@>",i1?i1-1:0,true);
         
-        if( i && j ) ed.setsel(i,j);
+        if( i && j ) ed.setSel(i,j);
         else { 
         	i,j = string.find(text,"<@@" + str + "@>",0,true);
-        	if( i && j ) ed.setsel(i,j);
+        	if( i && j ) ed.setSel(i,j);
         }
     }
     else {
-    	var i1,j1 = ed.getsel();
-    	ed.setsel(i1);
+    	var i1,j1 = ed.getSel();
+    	ed.setSel(i1);
     }
     
 }
@@ -161,8 +161,8 @@ mainForm.cmbFunctions.onEditChange  = win.debounce(function(){
 	if(!items) return;
 	
     var text = mainForm.cmbFunctions.text;
-    var items1 = table.filter( items, lambda(v) string.startWith(v,text,true) ); 
-    var items2 = table.filter( items, lambda(v) (!string.startWith(v,text,true) && string.find(v,"@@"+text)) ); 
+    var items1 = table.filter( items, lambda(v) string.startsWith(v,text,true) ); 
+    var items2 = table.filter( items, lambda(v) (!string.startsWith(v,text,true) && string.find(v,"@@"+text)) ); 
 
     mainForm.cmbFunctions.autoComplete( table.append(items1,items2),1) //更新下拉列表	
 },300)
@@ -205,7 +205,7 @@ mainForm.cmbFunctions.onOk = function(){
 	
 	if(!(i&&j))return;
 		
-    ed.setsel(i,j);
+    ed.setSel(i,j);
     ed.scrollCaret();  
 }
 

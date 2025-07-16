@@ -1,0 +1,84 @@
+﻿//otp 一次性密码
+import crypt.random;
+import crypt.hmac;
+import string.base32;
+import inet.url;
+
+namespace crypt.otp;
+
+generateSecret = function(length=20){
+    var randomBytes = ..crypt.random(length);
+    return ..string.base32.encode(randomBytes);
+}
+
+hotp = function(secret, counter, digits=6, algorithm="sha1"){
+
+    var key = ..string.base32.decode(secret);
+    if(!key) return null,"无效的 Base32 密钥";
+
+    var counterBuffer = ..raw.buffer({
+        LONG counter = ..math.size64(counter).swap();//指定大端字节序
+    });
+
+    var hmacFunc = ..crypt.hmac[..string.lower(algorithm)];
+    if(!hmacFunc) return null,"不支持的哈希算法";
+
+    var hmacResult = hmacFunc(key, counterBuffer).getValue();
+
+    var offset = hmacResult[#hmacResult] & 0xF;
+ 
+    var truncatedHashStruct = ..raw.convert(hmacResult, {INT value}, offset);
+
+    var truncatedHash = ..raw.swap(truncatedHashStruct.value, "INT");
+    
+    truncatedHash = truncatedHash & 0x7FFFFFFF;
+
+    var otp = truncatedHash % (10**digits);
+
+    return ..string.format("%0" ++ digits ++ "d", otp);
+}
+
+totp = function(secret, period=30, digits=6, algorithm="sha1", t0=0){
+    var currentTime = ..tonumber(..time());
+    var timeStep = ..math.floor( (currentTime - t0) / period );
+
+    return hotp(secret, timeStep, digits, algorithm);
+}
+
+getUri = function(secret, issuer, account, typ="totp", digits=6, period=30, algorithm="sha1", counter){
+
+    var label = ..inet.url.encode(issuer) + ":" + ..inet.url.encode(account);
+    var uri = "otpauth://" + typ + "/" + label;
+
+    var params = {
+        secret = secret;
+        issuer = issuer;
+        digits = digits;
+        algorithm = ..string.upper(algorithm);
+    }
+
+    if(typ == "totp"){
+        params.period = period;
+    }
+    elseif(typ == "hotp"){
+        if(counter === null) return null, "HOTP 类型必须提供初始计数器";
+        params.counter = counter;
+    }
+
+    return ..inet.url.appendExtraInfo(uri,params);
+}
+
+/*****intellisense()
+crypt.otp = 提供 HOTP (RFC 4226) 和 TOTP (RFC 6238) 一次性密码（One-Time Password）算法的生成与验证功能。\n支持 sha1, sha256, sha512 哈希算法。
+end intellisense*****/
+
+/*****intellisense(crypt.otp)
+generateSecret( = 生成一个密码学安全的 Base32 编码密钥。\nRFC 建议密钥长度至少为 16 字节（128位）
+generateSecret(.(length) = 可选使用参数 @length 指定密钥的字节长度，默认为 20。
+hotp( = 生成 HOTP (基于 HMAC 的一次性密码) - RFC 4226
+hotp(.(secret,counter,digits=6,algorithm="sha1") = 参数 @secret: Base32 编码的密钥。\n参数 @counter: 计数器值。\n参数 @digits: 密码位数，默认为 6。\n参数 @algorithm: 哈希算法，可选 "sha1", "sha256", "sha512"，默认为 "sha1"。
+totp( = 生成 TOTP (基于时间的一次性密码) - RFC 6238。
+totp(.(secret,period=30,digits=6,algorithm="sha1",t0=0) = 参数 @secret: Base32 编码的密钥。\n(period) 时间步长(秒)，默认为 30。\n参数 @digits: 密码位数，默认为 6。\n参数 @algorithm: 哈希算法，可选 "sha1", "sha256", "sha512"，默认为 "sha1"。\n参数 @t0: 起始时间戳(Unix time)，默认为 0。
+getUri( = 生成 otpauth:// 格式 URI，用于身份验证器应用扫描二维码。\n可使用 qrencode.bitmap 库转换为二维码图像。
+getUri(.(secret,issuer,account,typ,digits=6, period=30,algorithm="sha1",counter) = 参数 @secret: Base32 编码的密钥。\n参数 @issuer) 服务提供商名称。\n参数 @account) 用户账户名。\n参数 @typ OTP 类型，"totp" 或 "hotp"，默认为 "totp"。\n其他参数用法与 hotp/totp 函数相同。
+end intellisense*****/

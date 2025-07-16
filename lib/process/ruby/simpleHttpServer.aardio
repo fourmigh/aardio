@@ -25,7 +25,7 @@ startUrl = function(path,documentRoot,startPort){
 
 app = function(response,request,session){
 	import process.ruby.cgi;
-	if( string.endWith(request.path,".rb",true) ){
+	if( string.endsWith(request.path,".rb",true) ){
 		process.ruby.cgi(response,request,rubyCgiPath);		
 	}
 	else {

@@ -4,7 +4,7 @@ import win.ui;
 var winform = win.form(text="aardio 窗口显示 MATLAB 绘图";right=759;bottom=469;border="dialog frame";max=false;min=false)
 winform.add(
 button={cls="button";text="点这里调用 MATLAB 绘图";left=472;top=414;right=680;bottom=456;z=2};
-plus={cls="plus";left=18;top=15;right=739;bottom=397;bgcolor=16777215;z=1}
+plus={cls="plus";left=18;top=15;right=739;bottom=397;bgcolor=0xFFFFFF;z=1}
 )
 /*}}*/
 

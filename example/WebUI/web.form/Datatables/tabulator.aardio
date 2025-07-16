@@ -13,7 +13,7 @@ import web.form;
 var wb = web.form(winform.static);
 assert(wb,"仅支持 IE11") //注意 Win10/11 自带 IE11， Win7 已逐渐退出市场一般没必要再考虑
 
-import web.json;
+import JSON;
 wb.external = {
 	getReactiveData = function(event){
 		
@@ -26,6 +26,13 @@ wb.external = {
  				{id:5, name:"Margret Marmajuke", age:"16", col:"yellow", dob:"31/01/1999",enabled:false},
  			};
  				
+			/*
+			转换为纯 JS 对象。
+			只有 web.form 控件里才需要使用 wb.jsObject 以解决 IE 内核的 JSON 兼容问题。
+
+			web.view 控件里则可以直接返回 JSON.stringify(data) 并在网页中使用 JSON.parse(result) 转换为 JS 对象。
+			web.view 控件用 wb.export 导出的本地 aardio  函数则会自动使用 JSON 转换参数与返回值。
+			*/
  			owner.jsReactiveData = wb.jsObject(data,true);
  		}
  		

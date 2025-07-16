@@ -1,0 +1,10 @@
+﻿//init 窗口
+import console.int;
+console.init = console.int;
+console.open();
+
+/*****intellisense()
+console.init = 这个库会导入 console 与 console.int 库。\n然后自动调用 console.open 打开控制台窗口，\n并且退出线程时如果控制台\n仍在显示，则自动调用 console.pause 函数。\n\nconsole.init 同时会指向 console.int，用法相同。
+console.init(ctrlHandler,owner) = @.int(\n	function(ctrlType){\n		__/*控制台退出前是否触发此线程函数。\n可选用 @owner 指定线程函数的 owner 参数。\n\n使用前请先阅读多线程入门教程，了解线程函数基本规则。\n\nctrlType 为 null 表示控制台正常关闭，不可取消。\nctrlType 为 0 表示按下 Ctrl+ C。\nctrlType 为 1 表示按下 Ctrl + Break。\nctrlType 为 0 或 1 时返回 true 可阻止控制台退出。\n省略此函数时，则创建默认触发器并返回 true。\n\n在此函数内不应再使用任何控制台函数*/\n	}\n);	
+console.init() = !consoleInt.
+end intellisense*****/

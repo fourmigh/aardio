@@ -8,7 +8,7 @@
 
 `string.indexOf(str,substr [ , startPos [ , endPos ] ])  `
   
-查找第二个字符串参数 @substr 位于第一个字符串参数 @str 的位置，返回值按字节计数。 
+查找第二个字符串参数 @substr 位于第一个字符串参数 @str 的位置，找到字符串则返回开始位置与结可位置，返回值按字节计数。 
 
 此函数执行纯文本搜索，字符串如果包含 `'\0'` 则仅取`'\0'` 之前的文本。如果要搜索二进制数据，可以使用功能类似的 raw.indexOf 函数，
 
@@ -17,19 +17,14 @@
 可选用第四个参数 @endPos 指定结束查找的位置，默认为字符串长度。
   
 ```aardio
-import console;
-
-console.log( string.indexAny("abcdefg","cde") ) //显示3
-console.log( string.indexAny("abcdefg",'c'# ) ) //显示3
-
-console.pause(); 
+print( string.indexOf("abcdefg","cde") ) //显示 3,5
 ```  
 
 ### 二、禁用模式匹配反向查找字符串
 
 `string.lastIndexOf(str,substr [ , bytes]) ` 
   
-自后向前查找第二个字符串参数 @substr 位于第一个字符串参数 @str 的位置，返回值按字节计数。此函数执行二进制搜索，字符串可包含  `'\0'` 。
+自后向前查找第二个字符串参数 @substr 位于第一个字符串参数 @str 的位置，找到字符串则返回开始位置与结可位置，返回值按字节计数。 此函数执行二进制搜索，字符串可包含  `'\0'` 。
 
 可选用第三个参数 @bytes 指定要搜索的字节数，如果为正数则从左侧向右侧（尾部）按字节计数，如果为负数则自尾部反向按字节计数。
 
@@ -38,26 +33,24 @@ console.pause();
 示例：
   
 ```aardio
-import console;
-console.log( string.lastIndexAny("abcdefg","cde") ) //显示5
-console.pause(); 
+print( string.lastIndexOf("abcdefg","cde") ) //显示 3,5
 ```  
 
 ### 三、查找任意单字节字符
 
 `string.indexAny(str,bytes | bytecode [ , pos])  `
   
-查找第二个字符串参数 @bytes 中的任意一个单字节字符位于第一个字符串参数 @str 的位置。也可以在第二个参数指定一个字节码。第二个参数可包含  `'\0'` 或指定要搜索的字节码为 0。
+在第一个字符串参数 @str 中查找第二个字符串参数 @bytes 中的任意一个单字节字符置。也可以在第二个参数指定一个字节码。第二个参数可包含  `'\0'` 或指定要搜索的字节码为 0。
 
 可选用第三个参数 @pos 指定开始查找的位置，默认为 1。
 
-返回值按字节计数。
+找到字符则返回该字符所在位置，返回值按字节计数。
   
 ```aardio
 import console;
 
-console.log( string.indexAny("abcdefg","cde") ) //显示3
-console.log( string.indexAny("abcdefg",'c'# ) ) //显示3
+console.log( string.indexAny("abcdefg","cde") ) //显示 3
+console.log( string.indexAny("abcdefg",'c'# ) ) //显示 3
 
 console.pause(); 
 ```  
@@ -76,13 +69,13 @@ console.pause();
   
 ```aardio
 import console;
-console.log( string.lastIndexAny("abcdefg","cde") ) //显示5
+console.log( string.lastIndexAny("abcdefg","cde") ) //显示 5
 console.pause(); 
 ```  
 
 ### 五、检测是否以指定字符串开始
 
-`string.startWith(str,substr,是否忽略大小写=false)  `
+`string.startsWith(str,substr,是否忽略大小写=false)  `
   
 判断第二个字符串参数 @substr是否位于第一个字符串参数 @str 开始处。参数三为可选参数(默认为false)
 
@@ -90,14 +83,14 @@ console.pause();
 
 ```aardio
 import console;
-console.log( string.startWith("abcdefg","abc") ) //显示true
-console.log( string.startWith("abcdefg","efg") ) //显示false
+console.log( string.startsWith("abcdefg","abc") ) //显示 true
+console.log( string.startsWith("abcdefg","efg") ) //显示 false
 console.pause(); 
 ```  
 
 ### 六、检测是否以指定字符串结束
 
-`string.endWith(str,substr,是否忽略大小写=false)  `
+`string.endsWith(str,substr,是否忽略大小写=false)  `
   
 判断第二个字符串参数 @substr 是否位于第一个字符串参数 @str 结束处。可选参数三指定是否忽略大小写( 默认值为false )。
 
@@ -105,7 +98,7 @@ console.pause();
   
 ```aardio
 import console;
-console.log( string.endWith("abcdefg","abc") ) //显示false
-console.log( string.endWith("abcdefg","efg") ) //显示true
+console.log( string.endsWith("abcdefg","abc") ) //显示 false
+console.log( string.endsWith("abcdefg","efg") ) //显示 true
 console.pause(); 
 ```

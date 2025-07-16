@@ -16,7 +16,7 @@ hotkey._metaProperty = metaProperty(
 
 	value = {
 		_get = function(){
-			return { owner.gethotkey() };
+			return [ owner.gethotkey() ];
 		}
 		_set = function(v){
 			if( type(v) != "table" ) error("属性必须是一个数组",2);
@@ -44,7 +44,7 @@ hotkey._metaProperty = metaProperty(
 			owner.sethotkey(m,k);
 		}
 	};
-	gethotkey = function(){
+	gethotkey = function(){//@Deprecated
 		var hk = ::SendMessageInt(owner[["hwnd"]],   0x400/*_WM_USER*/+2 /*_HKM_GETHOTKEY*/,0,0) & 0xFFFF
 		var mod,vk = (hk >> 8) &0xFF,hk & 0xFF;
 		if   (mod   &  0x4/*_MOD_SHIFT*/   &&   mod   &   0x1/*_MOD_ALT*/) { 
@@ -59,7 +59,7 @@ hotkey._metaProperty = metaProperty(
 		}  
 		return mod,vk
 	}
-	sethotkey = function(mod,vk){
+	sethotkey = function(mod,vk){//@Deprecated
 		if   (mod   &  0x4/*_MOD_SHIFT*/   &&   mod   &   0x1/*_MOD_ALT*/) { 
 		} 
 		else   if   (mod   &   1) { 
@@ -84,7 +84,7 @@ hotkey._metaProperty = metaProperty(
 !hotkey.hwnd = 控件句柄
 !hotkey.id = 控件ID
 !hotkey.text = 表示控件热键的文本，\n使用此属性前必须导入标准库 key 。\n\n注意 Ctrl,Alt,Shift 必须大写首字母小写其他字母，\n键与键之间用 + 号分隔，忽略空格。\n无热键用空字符串表示。
-!hotkey._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!hotkey._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !hotkey.getParent() = 返回父窗口\n!static.
 !hotkey.setParent(__/*控件对象*/) = 改变父窗口 
 !hotkey.hide = 控件是否隐藏

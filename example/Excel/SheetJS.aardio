@@ -29,7 +29,7 @@ wb.html = /**
     <style type="text/css">
     html,body{ height:100%; margin:0; } 
     </style>
-    <script src="https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/xlsx/0.18.2/xlsx.full.min.js"></script>
     <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/handsontable/8.3.2/handsontable.full.min.js"></script>
     <link rel="stylesheet" href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/handsontable/8.3.2/handsontable.full.min.css" />
 </head>

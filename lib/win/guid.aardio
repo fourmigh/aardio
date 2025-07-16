@@ -55,8 +55,8 @@ namespace guid{
 			Rpcrt4.UuidCreate(owner);
 			return owner;
 		};
-		hex = function(){
-			return ..string.hex(..raw.buffer(owner));
+		hex = function(prefix){
+			return ..string.hex(..raw.buffer(owner),prefix);
 		};
 		fromString = function(progId){  
 			if(progId[1]=='{'# ){
@@ -86,6 +86,12 @@ namespace guid{
 		   		owner.Data4[5],owner.Data4[6],owner.Data4[7],owner.Data4[8]	
 		};
 		_json = lambda() owner.toString(,true);
+		_concat = function(b){
+			return tostring(owner) ++ tostring(b);
+		};
+		_add = function(b){
+			return tostring(owner) ++ tostring(b);
+		};
 	)
 	_metaProperty.toString = _metaProperty._tostring;
 	
@@ -113,7 +119,7 @@ namespace guid{
 
 /**intellisense()
 win.guid.create() = 创建 GUID 结构体并初始化为唯一值\n!win_guid.
-win.guid() = 创建 GUID 结构体,初始化为空值,\n此对象可以使用 tostring 函数转换为大写字符串,\ntostring 参数@2指定是否小写,参数@3指定是否添加大括号,\ntostring 参数@2 也可用字符串指定11个数值参数的格式化串,\n!win_guid.
+win.guid() = 创建 GUID 结构体,初始化为空值。\n\n可使用 win.guid.create 函数创建 GUID 结构体并初始化为唯一值。\n\n返回的 win.guid 对象通过 `++` 或 `+` 操作符连接时会自动转换为字符串。\n\nwin.guid 对象可以使用 tostring 函数转换为大写字符串。\ntostring 参数 @2 指定是否小写,参数@3指定是否添加大括号,\ntostring 参数@2 也可用字符串指定11个数值参数的格式化串,\n!win_guid.
 win.guid(.(数值,数值,数值,'\x00\x00\x00\x00\x00\x00\x00\x00') = 创建GUID结构体\n参数@4也可以改为包含8个字节数值的数组或者展开为8个数值参数
 win.guid(.("GUID、CLSID、ProgID等") =  字符串转换为 GUID,\n参数支持ProgID,CLSID,GUID,\n失败返回null空值
 win.guid.fromString("__/*可输入 ProgID,CLSID,GUID*/") = 字符串转换为 GUID\n参数支持ProgID,CLSID,GUID,\n失败返回null空值\n\n注意 win.guid 对象可以使用 tostring 函数转换为字符串,\ntostring 参数@1指定是否小写,参数@2指定是否添加大括号,\n!win_guid.
@@ -126,7 +132,7 @@ win.guid.fromString() = !win_guid.
 !win_guid.Data3 = WORD类型
 !win_guid.Data4 = 字符串值,也可以指定包含多个字节值的数组
 !win_guid.unpack() = 转换并返回 11 个数值
-!win_guid.hex() = 转换为16进制格式\n返回值可以置入单引号转义字符串内使用
+!win_guid.hex() = 转换为 16 进制格式字符串。\n可选使用参数 @1 自定义 16 进制前缀字符，默认为空字符串。
 !win_guid.isNull() = 是否等于GUID_NULL，也就是结构体内存的所有字节值为0
 !win_guid.create() = 初始化为唯一值，返回自身\n!win_guid.
 !win_guid.fromString("__/*请输入ProgID*/") = 字符串转换为 GUID 结构体,返回自身,\n也可以直接写到 win.guid 参数中,\n可使用 tostring 函数将 GUID 结构体重新转换为字符串\ntostring 参数@2指定是否小写,参数@3指定是否添加大括号,\ntostring 参数@2 也可用字符串指定11个数值参数的格式化串\n!win_guid.

@@ -1,0 +1,73 @@
+﻿
+namespace raw.asm;
+
+class cdecl{
+	ctor(sign,code,...){{
+		
+		var bin;
+		if((... === null) && type.isString(code)){
+			if(#code && (code[1] <= 'F'# )){
+				bin = []
+				for line in ..string.each(code,"\s*(<\x\x>< \x\x!\X>*)") {
+					line = ..string.unhex(line," ") 
+					..table.push(bin,line); 
+				} 
+			}
+			else{
+				bin = [code];
+			}
+			
+		}
+		else{
+			bin = [code,...]
+		}
+			
+		var pBuffer = ..raw.realloc(50);// 使用 string.builder 更简单一些
+		for(k,v in bin){
+			var t = type(v);
+			if( ( t == "string" ) || ( t == "buffer") ) {
+				pBuffer = ..raw.concat(pBuffer,v);
+			}
+			elseif( t == "table"  && v._struct ){
+				pBuffer = ..raw.concat(pBuffer,v);
+			} 
+			elseif( t == "number" && t = "pointer" ) {
+				pBuffer = ..raw.concat(pBuffer,{int v = tonumber(v) });
+			}
+			else {
+				pBuffer = ..raw.realloc(0,pBuffer);
+				return null,"机器码参数 @" + (k+1) + "类型错误";
+			} 
+		}  
+		
+		var size = ..raw.sizeof(pBuffer); 
+		bin = null;
+		
+		var pFunc = ::Kernel32.VirtualAllocExP(-1,0,size,0x1000,0x40)
+		..raw.copy(pFunc,pBuffer,size);
+		pBuffer = ..raw.realloc(0,pBuffer); 
+		
+		::Kernel32.VirtualProtectEx(-1,pFunc,size,0x10/*_PAGE_EXECUTE*/,0);
+		var r = sign ? _c.api(pFunc,sign) : _c[pFunc]; 
+		
+		_cache[r] = ..gcdata(
+			_gc = function(){
+				::Kernel32.VirtualFreeEx(-1,p,size,0x8000);
+			} 
+		)
+		
+		return r;
+	}}; 
+}
+
+namespace cdecl{
+	_cache = ..table.cache("k");//仅缓存`值`，不阻键`健`回收
+	_c = ..raw.module("cdecl");	
+}
+
+//@guide [范例](doc://example/aardio/Raw/asm.html)
+
+/*****intellisense()
+raw.asm.cdecl = 用于写入机器码并转换为 aardio 函数对象。
+raw.asm.cdecl(.(函数原型,任意多个机器码参数) = 写入机器码返回 cdecl 调用约定的原生函数对象。\n请参考: aardio 工具 » 其他 » 其他编译器 » INTEL汇编语言 » 汇编转机器码\n\n参数 @1 可选指定函数原型（与声明原生 API 的语法相同）。\n参数 @2 开始可用一个或多个参数指定机器码，机器码可以是字符串，buffer，结构体，数值或指针。\n\n如果仅在参数 @2 用一个字符串参数指定机器码，并且首个字节是大写的 16 进制字符，\n则逐行解析 16 进制编码的机器码，规则：\n\n- 忽略每一行前面的空白字符，忽略机器码之后的内容。\n- 每两个连续的大写 16 进制字等表示一个机器码，多个机器码之间必须用半角空格分开。\n\n例如 `55 push ebp ;分号后面写注释`。
+end intellisense*****/

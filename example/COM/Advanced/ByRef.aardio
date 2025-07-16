@@ -19,8 +19,7 @@ winform.show();
 如果使用了输出与引用参数，只要简单地在返回值接收输入参数就可以了。
 */
 
-var ret,outStr = vbCtrl.GetOutStr("");
-var ret,outStr = vbCtrl.GetOutStr(); //带类型库且不需要输入值时通常可以省略
+var ret,outStr = vbCtrl.GetOutStr(""); //输出参数需要指定同类型的值，不要省略。
 winform.edit.print("调用 VB 控件函数返回值:",ret, outStr );
 
 /*

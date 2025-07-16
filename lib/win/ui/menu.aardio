@@ -83,6 +83,7 @@ class menubase {
 		if( flag === null ) flag = 0;
     	var subMenu,bitmap,bmpUnchecked;
     	if( this.ownerDraw ) flag |= 0x100/*_MF_OWNERDRAW*/;
+    	var typProc = type(proc)
     	
      	if( type(label) == "table"){
      		bitmap = label.bitmap;
@@ -94,7 +95,7 @@ class menubase {
      		
      		label = label.text;
      	}
-     	else if( type(proc)==type.table ){
+     	else if( typProc==type.table ){
      		subMenu = proc;
      		proc = null;
      	}
@@ -120,20 +121,22 @@ class menubase {
          	return subMenu; 
     	}
     	else{
+    	    if( (typProc == "number") && (id === null)){
+    	    	id = proc;
+    	    	proc = null;
+    	    }
+    	    elseif( proc === null ) proc = this[["onMenuItemClick"]];
+    	    elseif( typProc!=type.function) { 
+    			error("参数二必须是一个回调函数",2	);
+    		}
+    			
     		if(!id){
-    			if(!this.parent@) error("该窗口不支持自动分配id",2);
+    			if(!this.parent@) error("父窗口不支持自动分配命令 ID",2);
     			id = this.parent._getFreeCommandId();
     			..table.push(this._createdCommandIds,id);
     		}
     		
-    		if(proc === null) proc = this[["onMenuItemClick"]];
-    		if(proc){
-    			if( type(proc)!=type.function) { 
-    				error("参数二必须是一个回调函数",2	);
-    			}
-    				
-    			this.parent._mapCommandProc[id] = proc; 
-    		}
+    		if(proc !== null) this.parent._mapCommandProc[id] = proc; 
     		
     		AppendMenu(this.handle,0/*_MF_STRING*/ | flag,id ,label );
     		if( bitmap || bitmapCheckd){
@@ -180,6 +183,7 @@ class menubase {
 		if( flag === null ) flag = 0x400/*_MF_BYPOSITION*/;
 		var subMenu,bitmap,bmpUnchecked;
 		if( this.ownerDraw ) flag |= 0x100/*_MF_OWNERDRAW*/;
+		var typProc = type(proc)
 		
      	if( type(position) == "table"){
      		bitmap = position.bitmap;
@@ -192,7 +196,7 @@ class menubase {
      		
      		position = position.position;
      	}
-     	else if( type(proc)==type.table ){
+     	else if( typProc==type.table ){
      		subMenu = proc;
      		proc = null;
      	}
@@ -220,17 +224,24 @@ class menubase {
          	this.saveSubMenu(subMenu); 
     	}
     	else{
-    		if( (proc!==null) ? type(proc)!=type.function)
-    			error("参数二必须是一个回调函数",2) ;
+    	    
+    	    if( (typProc == "number") && (id === null)){
+    	    	id = proc;
+    	    	proc = null;
+    	    }
+    	    elseif( proc === null ) proc = this[["onMenuItemClick"]];
+    	    elseif( typProc!=type.function) { 
+    			error("参数二必须是一个回调函数",2	);
+    		}
     			
     		if(!id){
-    			if(!this.parent@) error("该窗口不支持自动分配id",2);
-    			
+    			if(!this.parent@) error("父窗口不支持自动分配命令 ID",2);
     			id = this.parent._getFreeCommandId();
     			..table.push(this._createdCommandIds,id);
     		}
+    		
+    		if(proc !== null) this.parent._mapCommandProc[id] = proc; 
     	 
-    		this.parent._mapCommandProc[id] = proc : this.oncommand; 
     		InsertMenu(this.handle,position,0/*_MF_STRING*/ | flag,id ,label );
     		
     		if( bitmap || bitmapCheckd){
@@ -452,7 +463,7 @@ popmenu = class{
 	}  
  
 	popup = function(x,y,screen,flag){ 
-		if( flag === null ) flag = 2; 
+		if( flag === null ) flag = 2/*__TPM_RIGHTBUTTON*/; 
 		//在指定坐标(x,y)弹出菜单
 		if( type(x) == type.table ) {
 			y = x.y;
@@ -476,10 +487,11 @@ popmenu = class{
 		if(!screen){
 			::ClientToScreen( this.parent.hwnd,pt);
 		} 
+		
 		return TrackPopupMenu( this.handle,flag ,pt.x,pt.y , 0,this.parent.hwnd,null);
 	} 
 	popId = function(x,y,screen,flag){ 
-		if( flag === null ) flag = 2; 
+		if( flag === null ) flag = 2/*__TPM_RIGHTBUTTON*/; 
 		return this.popup(x,y,screen,flag | 0x0100/*_TPM_RETURNCMD*/)
 	}
 	fireId = function(id,hwnd,...){ 
@@ -502,14 +514,19 @@ namespace popmenu {
 /**intellisense()
 !menu.handle = 菜单句柄
 !menu.redraw() = 重绘菜单
-!menu.add() = 添加分隔线
-!menu.add("标题",__/*子菜单*/) = 添加子菜单\n返回添加的子菜单
-!menu.add("标题",回调函数) = @.add("菜单标题",function(){\n	__/*点击菜单项的回调函数，\n注意添加菜单项以后 add 函数返回菜单命令ID*/\n	\n})
-!menu.add(参数表) = @.add(\n	text = "标题";\n	bitmap = "位图句柄或路径、或图像数据,可选参数";\n	bitmapCheckd = "选中位图句柄或路径、或图像数据,可选参数";\n	proc = function(id){\n		__/*点击菜单项的回调函数，\n注意添加菜单项以后 add 函数返回菜单命令ID*/\n	};\n	id = 可选参数;\n	flag = 可选参数;\n);
+!menu.add( = 添加菜单项。
+!menu.add(.() = 添加分隔线
+!menu.add(.(title,subMenu) = 添加 @subMenu 参数指定的子菜单。\n@title 参数指定菜单项文本。\n返回添加的子菜单
+!menu.add(.(title,callback,flags,commandId) = @.add("菜单标题",function(){\n	__/*指定点击菜单项的回调函数。\n参数 @flags 可选用 _MF_ 前缀的常量自定义选项。\n可选用 @commandId 参数自定义命令 ID，不指定则自动注册空闲命令 ID。\n添加菜单项以后 add 方法返回注册的菜单项命令 ID*/\n	\n})
+!menu.add(.(title,commandId) = 添加菜单项。\n参数 @title 指定菜单项文本。\n参数 @commandId 指定绑定的命令 ID，不会触发默认回调函数 onMenuItemClick 。
+!menu.add(.(menuTable) = @.add(\n	text = "标题";\n	bitmap = "位图句柄或路径、或图像数据,可选参数";\n	bitmapCheckd = "选中位图句柄或路径、或图像数据,可选参数";\n	proc = function(id){\n		__/*点击菜单项的回调函数，\n注意添加菜单项以后 add 函数返回菜单命令ID*/\n	};\n	id = 可选参数;\n	flag = 可选参数;\n);
 !menu.addTable = @.addTable( {\n	{ "菜单文本";  function(id){\n		__/*菜单事件回调函数*/\n	} }; { /*分隔线*/ }\n	{ "退出程序"; function(id){  \n		winform.close() \n 	} };\n} )
-!menu.insert( 1__ ) = 在指定位置插入分隔线
-!menu.insert(位置,标题,回调函数) = @.insert(1,"菜单标题",function(){\n	__/*点击菜单项的回调函数，\n注意添加菜单项以后 insert 函数返回菜单命令ID*/\n	\n})
-!menu.insert(参数表) = @.insert(\n	position = 1;\n	text = "标题";\n	bitmap = "位图句柄或路径、或图像数据,可选参数";\n	bitmapCheckd = "选中位图句柄或路径、或图像数据,可选参数";\n	proc = function(id){\n		__/*点击菜单项的回调函数，\n注意添加菜单项以后 add 函数返回菜单命令ID*/\n	};\n	id = 可选参数;\n	flag = 可选参数;\n);
+!menu.insert( = 在指定位置插入菜单项。
+!menu.insert(.(position) = 在指定位置插入分隔线。\n@position 用数值指定位置序号。
+!menu.insert(.(position,title,subMenu) = 在指定位置插入 @subMenu 参数指定的子菜单。\n@title 参数指定菜单项文本。\n返回添加的子菜单
+!menu.insert(.(position,title,callback,flags,commandId) = @.insert(1,"菜单标题",function(){\n	__/*指定点击菜单项的回调函数。\n参数 @flags 可选用 _MF_ 前缀的常量自定义选项。\n可选用 @commandId 参数自定义命令 ID，不指定则自动注册空闲命令 ID。\n添加菜单项以后 add 方法返回注册的菜单项命令 ID*/\n	\n})
+!menu.insert(.(position,title,commandId) = 在指定位置插入菜单项。\n参数 @position 用数值指定位置序号。\n参数 @title 指定菜单项文本。\n参数 @commandId 指定绑定的命令 ID，不会触发默认回调函数 onMenuItemClick 。
+!menu.insert(.(menuTable) = @.insert(\n	position = 1;\n	text = "标题";\n	bitmap = "位图句柄或路径、或图像数据,可选参数";\n	bitmapCheckd = "选中位图句柄或路径、或图像数据,可选参数";\n	proc = function(id){\n		__/*点击菜单项的回调函数，\n注意添加菜单项以后 add 函数返回菜单命令ID*/\n	};\n	id = 可选参数;\n	flag = 可选参数;\n);
 !menu.delete( = 删除指定位置菜单项
 !menu.delete(.(菜单项序号) = 删除指定位置菜单项\n被移除的如果是子菜单则销毁,不可重用
 !menu.delete(.(菜单项命令ID,0/*_MF_BYCOMMAND*/) = 移除指定命令ID的菜单项\n被移除的如果是子菜单则销毁,不可重用
@@ -550,20 +567,25 @@ namespace popmenu {
 
 !menu.ownerDraw = 启用自绘\n系统菜单自绘没多大意义,建议使用弹出窗口模拟菜单即可
 !menu.onMenuItemClick = @.onMenuItemClick = function(id){
-	menuFile.selId = id;__/*指定默认菜单回调函数*/
+	__/*默认的菜单回调函数。\n如果添加菜单项时，回调函数指定为 null 则默认调用此函数。\n如果回调函数指定为命令 ID 则不触发此默认回调。*/
 }
 !menu.selIndex = 获取或修改当前选中项索引,单选模式
 !menu.selId = 获取或修改当前选中项命令ID,单选模式
 !menu.selText = 获取或修改当前选中项文本,单选模式
 !popmenu.handle = 菜单句柄
-!popmenu.add() = 添加分隔线
-!popmenu.add("标题",__/*子菜单*/) = 添加子菜单\n返回添加的子菜单
-!popmenu.add("标题",回调函数) = @.add("菜单标题",function(){\n	__/*点击菜单项的回调函数，\n注意添加菜单项以后 add 函数返回菜单命令ID*/\n	\n})
-!popmenu.add(参数表) = @.add(\n	text = "标题";\n	bitmap = "位图句柄或路径、或图像数据,可选参数";\n	bitmapCheckd = "选中位图句柄或路径、或图像数据,可选参数";\n	proc = function(id){\n		__/*点击菜单项的回调函数，\n注意添加菜单项以后 add 函数返回菜单命令ID*/\n	};\n	id = 可选参数;\n	flag = 可选参数;\n);
+!popmenu.add( = 添加菜单项。
+!popmenu.add(.() = 添加分隔线
+!popmenu.add(.(title,subMenu) = 添加 @subMenu 参数指定的子菜单。\n@title 参数指定菜单项文本。\n返回添加的子菜单
+!popmenu.add(.(title,callback,flags,commandId) = @.add("菜单标题",function(){\n	__/*指定点击菜单项的回调函数。\n参数 @flags 可选用 _MF_ 前缀的常量自定义选项。\n可选用 @commandId 参数自定义命令 ID，不指定则自动注册空闲命令 ID。\n添加菜单项以后 add 方法返回注册的菜单项命令 ID*/\n	\n})
+!popmenu.add(.(title,commandId) = 添加菜单项。\n参数 @title 指定菜单项文本。\n参数 @commandId 指定绑定的命令 ID，不会触发默认回调函数 onMenuItemClick 。\n可通过 popId 方法获取用户点选找菜单项 ID。
+!popmenu.add(.(menuTable) = @.add(\n	text = "标题";\n	bitmap = "位图句柄或路径、或图像数据,可选参数";\n	bitmapCheckd = "选中位图句柄或路径、或图像数据,可选参数";\n	proc = function(id){\n		__/*点击菜单项的回调函数，\n注意添加菜单项以后 add 函数返回菜单命令ID*/\n	};\n	id = 可选参数;\n	flag = 可选参数;\n);
 !popmenu.addTable = @.addTable( {\n	{ "菜单文本";  function(id){\n		__/*菜单事件回调函数*/\n	} }; { /*分隔线*/ }\n	{ "退出程序"; function(id){  \n		winform.close() \n 	} };\n} )
-!popmenu.insert( 1__ ) = 在指定位置插入分隔线
-!popmenu.insert(位置,标题,回调函数) = @.insert(1,"菜单标题",function(){\n	__/*点击菜单项的回调函数，\n注意添加菜单项以后 insert 函数返回菜单命令ID*/\n	\n})
-!popmenu.insert(参数表) = @.insert(\n	position = 1;\n	text = "标题";\n	bitmap = "位图句柄或路径、或图像数据,可选参数";\n	bitmapCheckd = "选中位图句柄或路径、或图像数据,可选参数";\n	proc = function(id){\n		__/*点击菜单项的回调函数，\n注意添加菜单项以后 add 函数返回菜单命令ID*/\n	};\n	id = 可选参数;\n	flag = 可选参数;\n);
+!popmenu.insert( = 在指定位置插入菜单项。
+!popmenu.insert(.(position) = 在指定位置插入分隔线。\n@position 用数值指定位置序号。
+!popmenu.insert(.(position,title,subMenu) = 在指定位置插入 @subMenu 参数指定的子菜单。\n@title 参数指定菜单项文本。\n返回添加的子菜单
+!popmenu.insert(.(position,title,callback,flags,commandId) = @.insert(1,"菜单标题",function(){\n	__/*指定点击菜单项的回调函数。\n参数 @flags 可选用 _MF_ 前缀的常量自定义选项。\n可选用 @commandId 参数自定义命令 ID，不指定则自动注册空闲命令 ID。\n添加菜单项以后 add 方法返回注册的菜单项命令 ID*/\n	\n})
+!popmenu.insert(.(position,title,commandId) = 在指定位置插入菜单项。\n参数 @position 用数值指定位置序号。\n参数 @title 指定菜单项文本。\n参数 @commandId 指定绑定的命令 ID，不会触发默认回调函数 onMenuItemClick 。
+!popmenu.insert(.(menuTable) = @.insert(\n	position = 1;\n	text = "标题";\n	bitmap = "位图句柄或路径、或图像数据,可选参数";\n	bitmapCheckd = "选中位图句柄或路径、或图像数据,可选参数";\n	proc = function(id){\n		__/*点击菜单项的回调函数，\n注意添加菜单项以后 add 函数返回菜单命令ID*/\n	};\n	id = 可选参数;\n	flag = 可选参数;\n);
 !popmenu.delete( = 删除指定位置菜单项
 !popmenu.delete(.(菜单项序号) = 删除指定位置菜单项\n被移除的如果是子菜单则销毁,不可重用
 !popmenu.delete(.(菜单项命令ID,0/*_MF_BYCOMMAND*/) = 移除指定命令ID的菜单项\n被移除的如果是子菜单则销毁,不可重用
@@ -582,7 +604,7 @@ namespace popmenu {
 !popmenu.reset( = 重设菜单回调函数
 !popmenu.reset(.(新的回调函数,菜单位置) = 重设菜单回调函数
 !popmenu.reset(.(新的回调函数,菜单ID,0/*_MF_BYCOMMAND*/) = 重设菜单回调函数
-!popmenu.fireId(.(id,hwnd) = 调用菜单回调函数\n可选指定接收命令的窗体句柄\n可添加任意个附加参数
+!popmenu.fireId(.(commandId,hwnd) = 调用 @commandId 指定的菜单项命令 ID 绑定的回调函数。\n可选指定接收命令的父窗体句柄。\n可添加任意个附加参数（转发给菜单项回调函数）。
 !popmenu.close() = 关闭菜单
 !popmenu.check( = 勾选或取消勾选菜单项
 !popmenu.check(.(菜单项序号,是否选中) = 勾选或取消勾选菜单项，参数@2默认为 true
@@ -601,11 +623,12 @@ namespace popmenu {
 !popmenu.setString(.(菜单项命令ID,字符串,0/*_MF_BYCOMMAND*/) = 设置菜单项文本，\n如果参数@3为0/*_MF_BYCOMMAND*/则参数@1为菜单命令ID
 !popmenu.setBitmap( = 设置菜单项位图
 !popmenu.setBitmap(.(菜单项序号,位图,选中位图) = 设置菜单项位图,\n选中位图为可选参数,\n图像可以是句柄指针,也可以是图像文件路径或数据
-!popmenu.setBitmap(.(菜单项命令ID,位图,选中位图,0/*_MF_BYCOMMAND*/) = 设置菜单项位图,\n选中位图为可选参数,\n图像可以是句柄指针,也可以是图像文件路径或数据，\n如果参数@4为0/*_MF_BYCOMMAND*/则参数@1为菜单命令ID
-!popmenu.popup( = 弹出菜单
-!popmenu.popup(.(x坐标,y坐标,是否屏幕坐标,选项) = 弹出菜单\n如果不指定坐标,则自动获取鼠标当前位置,\n可选用参数@4指定 _TPM_ 前缀的选项,\n例如 _TPM_BOTTOMALIGN 指定坐标 y 指定菜单底部位置
-!popmenu.popId( = 弹出菜单并返回用户点选ID
-!popmenu.popId(.(x坐标,y坐标,是否屏幕坐标,选项) = 弹出菜单\n并返回用户点选ID\n未选择或发生错误则返回零,\n如果不指定坐标,则自动获取鼠标当前位置,\n可选用参数@4指定 _TPM_ 前缀的选项,\n例如 _TPM_BOTTOMALIGN 指定坐标 y 指定菜单底部位置
+!popmenu.setBitmap(.(菜单项命令ID,位图,选中位图,0/*_MF_BYCOMMAND*/) = 设置菜单项位图,\n选中位图为可选参数,\n图像可以是句柄指针,也可以是图像文件路径或数据，\n如果参数 @4 为 `0/*_MF_BYCOMMAND*/` 则参数 @1 为菜单命令 ID
+!popmenu.popup( = 弹出菜单并自动触发菜单项绑定的回调函数。\n成功返回 true，失败返回 false。\n\n此函数不会返回触发菜单项绑定的命令 ID，\n改用 popId 方法可返回命令 ID 而不会自动触发回调。
+!popmenu.popup(.(x坐标,y坐标,是否屏幕坐标,选项) = 弹出菜单。\n如果不指定坐标,则自动获取鼠标当前位置。\n参数 @3 指定参数 @1,@2 是否为屏幕坐标，默认为 false。\n一般不需要指定坐标参数，由函数自动设定即可。\n可选用参数 @4 指定 _TPM_ 前缀的选项,\n例如 _TPM_BOTTOMALIGN 指定坐标 y 指定菜单底部位置
+!popmenu.popId( = 弹出菜单并返回用户点选的菜单项命令 ID。\n此方法仅返回命令 ID，不会自动触发命令 ID 绑定的回调函数。\n可用返回值作为参数调用 fireId 方法触发相应的回调函数。
+!popmenu.popId(.(x坐标,y坐标,是否屏幕坐标,选项) = 弹出菜单。\n并返回用户点选菜单项的命令 ID，不会自动触发菜单项绑定的回调函数。\n未选择或发生错误则返回零。弹出菜单。\n\n如果不指定坐标,则自动获取鼠标当前位置。\n参数 @3 指定参数 @1,@2 是否为屏幕坐标，默认为 false。\n一般不需要指定坐标参数，由函数自动设定即可。\n可选用参数 @4 指定 _TPM_ 前缀的选项，\n例如 _TPM_BOTTOMALIGN 指定坐标 y 指定菜单底部位置。
+
 _TPM_CENTERALIGN=@0x4/*_TPM_CENTERALIGN*/
 _TPM_LEFTALIGN=@0/*_TPM_LEFTALIGN*/
 _TPM_RIGHTALIGN=@0x8/*_TPM_RIGHTALIGN*/
@@ -615,7 +638,7 @@ _TPM_VCENTERALIGN=@0x10/*_TPM_VCENTERALIGN*/
 
 !popmenu.ownerDraw = 启用自绘\n系统菜单自绘没多大意义,建议使用弹出窗口模拟菜单即可
 !popmenu.onMenuItemClick = @.onMenuItemClick = function(id){
-	menuFile.selId = id;__/*指定默认菜单回调函数*/
+	__/*默认的菜单回调函数。\n如果添加菜单项时，回调函数指定为 null 则默认调用此函数。\n如果回调函数指定为命令 ID 则不触发此默认回调。*/
 }
 !popmenu.selIndex = 获取或修改当前选中项索引,单选模式
 !popmenu.selId = 获取或修改当前选中项命令ID,单选模式

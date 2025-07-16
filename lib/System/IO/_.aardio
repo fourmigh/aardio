@@ -96,6 +96,11 @@ System.IO.File.OpenWrite = function(path,...){
 	return OpenWrite(..io.fullpath(path),...);
 }
 
+var OpenWrite = System.IO.File.WriteAllBytes;
+System.IO.File.WriteAllBytes = function(path,...){
+	return OpenWrite(..io.fullpath(path),...);
+}
+
 System.IO.Ports = ..dotNet.import("System.IO.Ports","System");
 
 /**intellisense()
@@ -121,4 +126,5 @@ System.IO.FileMode.Append = 值为 6
 System.IO.FileAccess.Read = 值为 1
 System.IO.FileAccess.Write = 值为 2
 System.IO.FileAccess.ReadWrite = 值为 3
+System.IO.MemoryStream() = 创建 .NET 内存文件流，返回 System.IO.MemoryStream 对象。
 end intellisense**/

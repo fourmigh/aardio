@@ -5,5 +5,6 @@
 高级选项卡=~/doc/library-guide/std/win/ui/tabs/_.md
 HTTP 客户端=~/doc/library-guide/std/web/rest/client.md
 HTTP 服务端=web-server.md
-调用 AI 大模型=~/doc/example/AI/aiChat.aardio
+调用 AI 大模型=~/doc/library-guide/std/web/rest/aiChat.md
 超级热键入门=~/doc/library-guide/std/key/hotkey.md
+自动化=automation.md

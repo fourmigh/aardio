@@ -21,7 +21,7 @@ var data = http.post("http://eu.httpbin.org/post",{
 });
 ```
 
-更多例子请参考 **「aardio 自带范例 / 网络应用 / inet / http」** 。  
+更多例子请参考 **「aardio 自带范例 » 网络应用 » inet » http」** 。  
 
 可选用第一个构造参数指定 User Agent，可选用第二个构造参数指定代理服务器，请参考：[设置代理服务器](proxy.md)
   
@@ -201,17 +201,17 @@ http.post("http://eu.httpbin.org/post"
 如果要向服务器提交 JSON ，代码需要修改如下：  
 
 ```aardio
-import web.json;
+import JSON
 import inet.http;
  
 //发送 POST 请求 
 var http = inet.http(); 
 var data = http.post("http://eu.httpbin.org/post",
-  web.json.stringify({ username = "user"; password = "pwd" })
+  JSON.stringify({ username = "user"; password = "pwd" })
 );
 ```
 
-上面我们使用 web.json.stringify() 函数将表对象转换为了 JSON 字符串，http.post 如果检测到 POST 数据是 JSON ，并且 HTTP 请求头中不包含 Content-Type 的定义，就会自动添加以下请求头：  
+上面我们使用 JSON.stringify() 函数将表对象转换为了 JSON 字符串，http.post 如果检测到 POST 数据是 JSON ，并且 HTTP 请求头中不包含 Content-Type 的定义，就会自动添加以下请求头：  
 
 ```aardio
 Content-Type: application/json; charset=utf-8
@@ -237,7 +237,7 @@ web.rest.jsonClient 会将参数表自动转换为 JSON，并将服务器返回�
 如果 HTTP 请求不需要发送 JSON，而服务器响应数据是 JSON，这时候只要把上面的  web.rest.jsonClient 替换为 web.rest.jsonLiteClient 就可以了。  
 
   
-web.rest 非常重要，请参考「aardio 范例 / Web 应用 / REST」  
+web.rest 非常重要，请参考「aardio 范例 » Web 应用 » REST」  
   
 强烈推荐大家仔细看看 ：[《 web.rest 使用指南 》](../web/rest/client.md) 。不过还是先看完这篇文章再去看会更好。 
 
@@ -274,7 +274,7 @@ http.close();
 console.pause();
 ```
 
-可以使用「 **aardio 工具 / 网络 / HTTP 状态码检测**」查询 HTTP 错误代码（  上面的 errCode ）与 HTTP 状态码（ http.statusCode ）的详细信息：  
+可以使用「 **aardio 工具 » 网络 » HTTP 状态码检测**」查询 HTTP 错误代码（  上面的 errCode ）与 HTTP 状态码（ http.statusCode ）的详细信息：  
   
 
 ## 九、指定 HTTP 请求头
@@ -444,7 +444,7 @@ for(index,tagName,childCount,xNode in body[1].eachChild() ){
 console.pause()
 ```
 
-string.html 的更多用法请参考「范例 / Web 应用 / HTML 」  
+string.html 的更多用法请参考「范例 » Web 应用 » HTML 」  
   
 当然我们也可以使用 web.rest.htmlClient，一个简单的例子：  
 

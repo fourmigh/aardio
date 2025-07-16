@@ -8,11 +8,11 @@ class CrxFileHeader {
 		this = ..protobuf.message(reader);
 		
     	this.fieldTypes[2] = "..fsys.crx.AsymmetricKeyProof";
-    	this.fieldValues[2] = { @{_type="array"}};
+    	this.fieldValues[2] = [];
     	this.fieldNames[2] = "sha256WithRsa";
     	this.fieldIsArray[2] = true;
     	this.fieldTypes[3] = "..fsys.crx.AsymmetricKeyProof";
-    	this.fieldValues[3] = { @{_type="array"}};
+    	this.fieldValues[3] = [];
     	this.fieldNames[3] = "sha256WithEcdsa";
     	this.fieldIsArray[3] = true;
     	this.fieldTypes[10000] = "..protobuf.type.bytes";

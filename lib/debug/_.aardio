@@ -108,7 +108,7 @@ debug = function(){
 				} 
 				
 				var f,e = loadcode(code,"=(debug command)")
-				while(!f && ..string.endWith(e,"'<eof>'") ){ 
+				while(!f && ..string.endsWith(e,"'<eof>'") ){ 
 					code = code ++ ..console.getText();
 					f,e = loadcode(code,"=(debug command)")
 				}

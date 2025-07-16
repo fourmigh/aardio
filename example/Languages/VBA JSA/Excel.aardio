@@ -49,8 +49,8 @@ aardioObject.Invoke_Get("属性名");
 aardioObject.Invoke_Set("属性名","属性值"); 
 
 另外 aardio 里可以用 
-web.json.stringify( value ) 将对象转换为 JSON。
-也可以用 web.json.parse( json ) 方便地解析 JSON 为对象。
+JSON.stringify( value ) 将对象转换为 JSON。
+也可以用 JSON.parse( json ) 方便地解析 JSON 为对象。
 
 而 JS 使用 JSON.stringify( value ) 生成 JSON。
 使用 JSON.parse 解析 JSON。

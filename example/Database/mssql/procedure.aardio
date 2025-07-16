@@ -4,12 +4,12 @@ import console;
 import sqlServer;
 
 //打开数据库
-var db = sqlServer( 
+var db = sqlServer({
     ["Data Source"]= "IP地址,服务端口";
     ["Database"]= "数据库名";
     ["User ID"]  = "用户名";
     ["Password"]= "用户密码"; 
-)
+})
  
 //创建存储过程
 if( ! db.existsProcedure("proc_aardio_test2") ){

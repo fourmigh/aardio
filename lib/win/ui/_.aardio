@@ -3,29 +3,6 @@ import win.ui.background;
 import win.ui.ctrl; 
 import gdi;
 
-namespace win.ui{
-    
-	waitCursor = function(wait,hCur){
-		if( wait ){
-			if(hCur===null) hCur = ::User32.LoadCursor(null,0x7F02/*_IDC_WAIT*/);
-			::User32.SetCursor( hCur );
-			..win._form._defaultProc[0x20/*_WM_SETCURSOR*/] = function(this,hwnd, message, wParam, lParam){
-				::User32.SetCursor( hCur );
-				return true; 
-			} 
-			if( type(wait) = type.function ){
-				wait();
-				..win._form._defaultProc[0x20/*_WM_SETCURSOR*/] = null;
-			}
-		}
-		else {
-			..win._form._defaultProc[0x20/*_WM_SETCURSOR*/] = null;
-		} 
-	}
-	
-	self.NMHDR = ::NMHDR; //@Deprecated
-}
-
 class win.form {  
  
 	ctor( tParam ) begin   
@@ -199,7 +176,7 @@ class win.form {
     	 
         this@ = _metaProperty; 
         if( ( type( tParam.parent) == "table" )   ){
-			this.parent = tParam.parent;
+			if(tParam.parent[["_defClientRect"]]) this.parent = tParam.parent;
 			tParam.parent = tParam.parent.hwnd; 
 		} 
 		
@@ -413,7 +390,7 @@ namespace win.form{
        			var a = topointer(lParam);
        			if(struct=="JSON"&&..web[["json"]] ){ 
        				var json = unicode ? ..string.fromUtf16(a,,-1) : ..raw.str(a); 
-       				r = invoke(f,this,..table.unpack(..web.json.parse(json)) ); 
+       				r = invoke(f,this,..table.unpack(..JSON.parse(json)) ); 
        				if( this.onThreadCallBackReturn ){ r = this.onThreadCallBackReturn(r) };
        			}
        			else{
@@ -791,14 +768,12 @@ namespace win.form{
  	        }
  	        
  	        if(this[["(__continueModal)"]]){
- 	        	var hwndOwner = ..win.getOwner(this.hwnd);	
+				var hwndOwner = ..win.getOwner(this.hwnd);	
  	        	if(hwndOwner){
  	        		..win.enable(hwndOwner,1/*_TRUE*/); 
 					..win.setActive(hwndOwner);
  	        	}
- 	        }
- 	        
- 	        this[["(__continueModal)"]] = null;
+ 	        } 
  	   };
  	   [0x110/*_WM_INITDIALOG*/] = function(this,hwnd, message, wParam, lParam){
  	   		this.enableDpiScaling("init")
@@ -938,7 +913,19 @@ namespace win.form{
 			if( this[["_atomId"]] ){ 
 				this.atom(false);//释放实例占用原子
 			} 
-			this[["(__continueModal)"]] = null;//退出模态循环 
+			
+			if(this[["(__continueModal)"]]){
+				var hwndOwner = ..win.getOwner(this.hwnd);	
+ 	        	if(hwndOwner){
+ 	        		..win.enable(hwndOwner,1/*_TRUE*/); 
+					..win.setActive(hwndOwner);
+ 	        	}
+ 	        	
+				//退出模态循环，必须发送 _WM_NULL 退出 win.pumpMessage
+				this[["(__continueModal)"]] = null;
+				::User32.PostMessage(0,0/*_WM_NULL*/,0,0);
+ 	        } 
+			
 			
 			_forms[hwnd] = null;  
 			
@@ -1216,6 +1203,10 @@ namespace win.form{
  	   				var minMaxInfo = owner.getMinMaxInfo();
  	   				if(minMaxInfo) ..win.setPos(owner[["hwnd"]],,,minMaxInfo.maxSize.x,minMaxInfo.maxSize.y);  
  	   			}
+ 	   			
+ 	   			if(owner.hasDirectDrawBackground()){
+ 	   				owner.redrawBackground();
+ 	   			}
 			};
 			doModal = function(hwndOwner,swFlags){ 
 			
@@ -1241,8 +1232,9 @@ namespace win.form{
 					}
 				}
 				
-				while(owner[["(__continueModal)"]])   
+				while(owner[["(__continueModal)"]]){
 					..win.pumpMessage(); 
+				}
 				 
 				if( hwndOwner ) { 
 					..win.enable(hwndOwner,1/*_TRUE*/); 
@@ -1264,25 +1256,76 @@ namespace win.form{
 					return owner[["(__continueModal)"]];
 				} 
 			};
-			transparent = function( alpha,clr ){
-				if( alpha === false ){
+			transparent = {
+				_set = function(v){
+					if(!v){
+						owner.modifyStyleEx(0x80000/*_WS_EX_LAYERED*/);
+					}
+					else{
+						owner.modifyStyleEx(0,0x80000/*_WS_EX_LAYERED*/);
+					} 
+				}
+				_get = function(ownerCall){
+					if(ownerCall) return  owner.setLayered;//@Deprecated
+					return !!..win.getStyleEx(owner[["hwnd"]],0x80000/*_WS_EX_LAYERED*/)
+				}
+			};
+			transparentColor = {
+				_set = function(v){
+					if(v===null){
+						owner.modifyStyleEx(0x80000/*_WS_EX_LAYERED*/);
+					}
+					else{
+						owner.modifyStyleEx(0,0x80000/*_WS_EX_LAYERED*/);
+						::User32.SetLayeredWindowAttributes( owner[["hwnd"]],v,0,1);
+					}
+				}
+				_get = function(){
+					var c = {INT v};
+					var f = {INT v};
+					if(::User32.GetLayeredWindowAttributes(owner[["hwnd"]],c,,f)){
+						if(f.v===1) return c.v;
+					}
+				}
+			};
+			opacity = {
+				_set = function(v){
+					if(owner[["setOpacity"]]) return owner.setOpacity(v);
+
+					if(v===null){
+						owner.modifyStyleEx(0x80000/*_WS_EX_LAYERED*/);
+						if( owner._shadowWindow ) owner._shadowWindow.setOpacity(null); 
+					}
+					else{
+						owner.modifyStyleEx(0,0x80000/*_WS_EX_LAYERED*/);
+						if( owner._shadowWindow ) owner._shadowWindow.setOpacity(v); 
+	    				::User32.SetLayeredWindowAttributes( owner[["hwnd"]],0,v,2);
+					}
+				}
+				_get = function(){
+					if(owner[["getOpacity"]]) return owner.getOpacity();
+
+					var a = {BYTE v};
+					var f = {INT v};
+					if(::User32.GetLayeredWindowAttributes(owner[["hwnd"]],,a,f)){
+						if(f.v===2) return a.v;
+					}
+				}
+			};
+			setLayered = function(alpha,clr){//@Deprecated
+				if(alpha === true ){
+					owner.modifyStyleEx(0,0x80000/*_WS_EX_LAYERED*/);
+				}
+				elseif( alpha === false ){
 					owner.modifyStyleEx(0x80000/*_WS_EX_LAYERED*/);
-					if( owner._shadowWindow ) owner._shadowWindow.transparent(1); 
-					return;
 				}
-	    		owner.modifyStyleEx(0,0x80000/*_WS_EX_LAYERED*/);
-	    		if( alpha === true )
-	    			return;
-	    			
-	    		if( clr!==null || alpha !==null ){
-	    			if(clr ===null){  
-	    				if( owner._shadowWindow ) {
-	    					 owner._shadowWindow.transparent(alpha/255); 
-	    				}
-	    			}
-					::User32.SetLayeredWindowAttributes( owner[["hwnd"]],clr:0, alpha:0,clr!==null?1:2)
+				elseif( alpha !== null ){
+					owner.opacity = alpha;
 				}
-			}
+				elseif( clr !== null ){
+					owner.transparentColor = clr;
+				} 
+			};
 			bgcolor = {
 				_get = function(){ 
 					return owner.background.getColor();
@@ -1370,7 +1413,11 @@ namespace win.form{
 	    		}
 			};
 			setTimeout = function(code,elapse=0,...){
-				if( type(elapse) != "number" ) error("参数@2指定了错误的延时值",2);
+				if( type(elapse) != "number" ) {
+					code,elapse = elapse,code;
+					if( type(elapse) != "number" ) error("参数@2指定了错误的延时值",2);
+				}
+				
 				if( !code ) error("参数@1未指定回调函数",2);
 				
 				if( type(code)=="string" ) {
@@ -1732,13 +1779,23 @@ namespace win.form{
 				} 
       		}; 
       		remove = function(name){
-      			var ctrl = owner[name];
-      			if( ctrl ? ctrl.hwnd ? ctrl.close ){
-      				ctrl.close();
+      		    var ctrl = name;
+      		    if type(name)==="string" {
+      		    	ctrl = owner[name];
+      		    	owner[name] = null;
+      		    }
+
+      			if(ctrl){
+      				if( ctrl[["hwnd"]] ? ctrl.close ){
+      					ctrl.close();
+      				}
+      				elseif(ctrl[["onlyDirectDrawBackground"]]){
+      					var i = ..table.removeByValue(owner._onlyDirectDrawBackground,ctrl); 
+      				}	
       			}
-      			owner[name] = null;
       		};
       		this = lambda() owner;
+      		clear = function(){ for(h,c in owner.eachControlEx() ) c.close();};
 			add = function( tParam,parentCtrl ) {
 				var parent = parentCtrl : owner;
 				var dpiScaleX,dpiScaleY = (parent.dpiScaleX : 1) ,(parent.dpiScaleY : 1);
@@ -1780,7 +1837,8 @@ namespace win.form{
  	 			var result = {};
 				for(i=1;#zorder ){  
 		    		var name = zorder[i][1];
-		    		var opt = zorder[i][2];    
+		    		var opt = zorder[i][2]; 
+		    		if(opt.anchors) opt.dl,opt.dt,opt.dr,opt.db = opt.left,opt.top,opt.right,opt.bottom;   
 		    		
 		    		//计算位置参数
 		    		var width = opt.width;
@@ -1984,21 +2042,44 @@ namespace win.form{
 }
 
 win._form = win.form;
-win.ui.isForm = function(v){
-	return v@===..win.form._metaProperty;
+
+namespace win.ui{
+    
+	waitCursor = function(wait,hCur){
+		if( wait ){
+			if(hCur===null) hCur = ::User32.LoadCursor(null,0x7F02/*_IDC_WAIT*/);
+			::User32.SetCursor( hCur );
+			..win._form._defaultProc[0x20/*_WM_SETCURSOR*/] = function(this,hwnd, message, wParam, lParam){
+				::User32.SetCursor( hCur );
+				return true; 
+			} 
+			if( type(wait) = type.function ){
+				wait();
+				..win._form._defaultProc[0x20/*_WM_SETCURSOR*/] = null;
+			}
+		}
+		else {
+			..win._form._defaultProc[0x20/*_WM_SETCURSOR*/] = null;
+			::User32.SetCursor( ::User32.LoadCursor(null,0x7F00/*_IDC_ARROW*/) );
+		} 
+	}
+	
+	form = ..win.form;
+	isForm = lambda(v) v@===form._metaProperty;
 }
 
 /**intellisense()
 win.ui.waitCursor(__) = 参数为true显示等待光标,false取消,\n参数也可以仅传入一个函数,执行该函数并在执行期间显示等待光标\n可选使用参数@2指定其他光标句柄
 win.ui.isForm(__) = 检测输入参数是否win.form窗体对象
-win.form = 在标准库 win.ui 中定义的创建窗体的类，\n此类允许被动态替换以修改默认的构造函数,\n请使用 win._form 以保证能访问原始的 win.form\n\n窗体对象以及窗体创建的控件对象可作为参数传入其他线程，\n跨线程调用窗体对象的成员函数时将转发到创建窗口的线程执行。
-win._form = 指向原始的 win.form\n注意 win.loadForm 函数会暂时修改 win.form函数并注入代码修改默认行为,例如修改父窗口,\n如果在库里面希望创建原生窗口而不需要接受注入代码,\n建议使用win._form代替win.form
-win._form.getForm(__/*控件或窗口句柄*/) = 在上级父窗口或所有者窗口中查找最接近的form对象 
-win._form.getParentForm(__/*控件或窗口句柄*/) = 在上级父窗口中查找最接近的form对象 
-win._form._defaultProc  = @._defaultProc[__/*消息ID*/]  = function(this,hwnd, message, wParam, lParam){\n	\n}
-win._form.createWindowEx = @.createWindowEx = function(exStyle,className,windowName,style,x,y,width,height,hwndParent,hMenu,hlnstance,lpParam){
+win.form = 在标准库 win.ui 中定义的创建窗体的类，\n窗体对象以及窗体创建的控件对象可作为参数传入其他线程，\n跨线程调用窗体对象的成员函数时将转发到创建窗口的线程执行。
+win._form = 指向原始的 win.form。\n win.loadForm 函数会暂时修改 win.form函数 并注入代码修改默认行为,例如修改父窗口,\n非必要尽量不要替换 win.form，如果必须替换时请注意：\n替换 win.form 的类必须继承 win._form 对象的所有属性、方法、名字空间的静态成员。
+win.form.getForm(__/*控件或窗口句柄*/) = 在上级父窗口或所有者窗口中查找最接近的form对象 
+win.form.getParentForm(__/*控件或窗口句柄*/) = 在上级父窗口中查找最接近的form对象 
+win.form._defaultProc  = @._defaultProc[__/*消息ID*/]  = function(this,hwnd, message, wParam, lParam){\n	\n}
+win.form.createWindowEx = @.createWindowEx = function(exStyle,className,windowName,style,x,y,width,height,hwndParent,hMenu,hlnstance,lpParam){
     return ::CreateWindowEx(exStyle,className,windowName,style,x,y,width,height,hwndParent,hMenu,hlnstance,lpParam);
 }
+win.ui.form() = !winform. 
 win.form.loadForm() = !winform.
 ?.loadForm = !winform.
 ?.getForm = !winform.

@@ -11,7 +11,7 @@ namespace raw{
 		
 		if( !t[["_struct"]] ) a = toarray(l,t,"v" );
 		else{
-	    	a = toarray(l,"struct","v");a.v = {t};
+	    	a = toarray(l,"struct","v");a.v = [t];
 		} 
 		
 		return convert(p,a).v;
@@ -124,7 +124,7 @@ raw.explore = function(path,...){
 
 /**intellisense(raw)
 mixin(.(指针,结构体对象,任意个混入对象) = 混入新的值,支持任意个混入table对象,\n自动更新指针指向内存,并返回结构体对象
-convertArray(.(源内存指针,源数组长度,"数据类型") = 将指针指向的内存转换为普通数组,传入空指针返回空值\n数据类型参数可省略,默认为"pointer"\n类型类型也可以直接传入一个声明元素类型的结构体参数\n注意该函数不会检测内存溢出错误,调用该函数时必须保证数组长度是正确的值
+convertArray(.(源内存指针,源数组长度,"数据类型") = 将指针指向的内存转换为普通数组,传入空指针返回空值\n数据类型参数可省略,默认为"pointer"\n类型类型也可以直接传入一个结构体实例对象。\n注意该函数不会检测内存溢出错误,调用该函数时必须保证数组长度是正确的值
 dup(.(源句柄,源进程,目标进程,允许子进程继承) = 返回复制的系统句柄\n除参数1之外,其他参数可选\n默认仅在当前进程中复制句柄\n复制的句柄应使用raw.closehandle释放
 serializeDupHandle(.("类名",句柄) = 复制进程内有效句柄并序列化对象\n只能用于_serialize元方法，且必须kernelCall参数为真\n序列化类构造函数必须支持指针参数1为指针类型句柄,参数2为true的参数\n并负责在析构函数中调用 raw.closehandle 释放该句柄
 module() = !dllModule.
@@ -143,7 +143,7 @@ long(__) = 转换参数@1指定的数值为 long 类型数值（64位整数）�
 ulong(__) = 参数@1可传入数值或 math.size64 对象,\n返回适用于 LONG 类型数值（64位无符号整数）的包装对象,\n返回对象支持 tonumber tostring 等类型转换函数。\n\n用于调用非声明式原生 API 函数的参数,\n默认传值,参数@2为 true 则用于传址参数（传数值的指针）。\n\n用于 COM 函数参数则总是传值, COM 函数也可使用 com.ulong 函数,\n注意在原生类型中使用大写的 LONG 类型表示64位无符号整数
 execute( = 运行外部程序，成功返回 true。\n process.execute 函数提供类似的功能，区别可参考函数源码
 execute(.(file,param,operation,showCmd,workDir,hwnd) = 运行外部程序，成功返回 true。\n@file 指定要运行的程序路径，其他所有参数可省略，\n@param 字符串参数，可选指定启动参数。\n@operation 可选用一个字符串指定执行动词，省略则使用默认动词或 "open"。\n@showCmd 可选用 _SW_ 前缀常量指定显示选项，默认为 _SW_SHOW。\n@workDir 参数可选指定工作目录。\n@hwnd 可选指定所有窗口句柄，默认取当前线程活动窗口
-explore(.(path,args,->->->) = 使用资源管理器（Explorer.exe）打开文件或目录。\n第一个参数 @path 指定文件路径，可为空值（ null ）。\n注意 Explorer.exe 不解析标准的命令行参数转义符，这一点与其他程序不同。\n如参数 @path 尾部有双反斜杆`\\`则为无效路径并打开默认目录（打开我的文档，XP系统报错）。\n如参数 @path 指定为 ","或"file:" 则打开“此电脑（This PC）”。\n如参数 @path 使用`shell:::`前缀则可以指定特殊路径的 CLSID。\n\n可用第二个参数 @args 或更多参数指定 Explorer.exe 命令行选项，\n例如指定  "/select" 在资源管理器选择指定路径。\n注意 "/n" 等选项在新系统中是无意义的，Explorer 将总是打开新窗口。
+explore(.(path,args,->->->) = 使用资源管理器（Explorer.exe）打开文件或目录。\n第一个参数 @path 指定文件路径，可为空值（ null ）。\n注意 Explorer.exe 不解析标准的命令行参数转义符，这一点与其他程序不同。\n如参数 @path 尾部有双反斜杠`\\`则为无效路径并打开默认目录（打开我的文档，XP系统报错）。\n如参数 @path 指定为 ","或"file:" 则打开“此电脑（This PC）”。\n如参数 @path 使用`shell:::`前缀则可以指定特殊路径的 CLSID。\n\n可用第二个参数 @args 或更多参数指定 Explorer.exe 命令行选项，\n例如指定  "/select" 在资源管理器选择指定路径。\n注意 "/n" 等选项在新系统中是无意义的，Explorer 将总是打开新窗口。
 join(.(buffer数组,分隔字符串,起始索引,结束索引) = 拼接字符串或 buffer 数组，返回 buffer。\n如果拼接后长度为空，此函数返回 null。\n\n参数@1指定的数组可包含字符串或buffer，\n包含 buffer 的数组只能用 raw.join 拼接，不可使用 string.join 拼接\n参数 @2 可选指定一个间隔字符串。\n起始索引与结束索引为可选参数，可传入负数表示自数组尾部倒计数
 typeOfArray(__) = 如果参数是一个包含原生数组的结构体，\n返回原生类型名，以及数组字段名字。\n如果是其他对象则返回 null 。
 double() = !rawNumber.

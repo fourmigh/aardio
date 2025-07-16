@@ -1,9 +1,10 @@
-//列表框控件（listbox） - GDI+自绘
+//列表框控件（listbox） - GDI+ 自绘
+//窗口绘图基础: doc://library-guide/std/win/ui/drawing.html
 import win.ui;
 /*DSG{{*/
 winform = win.form(text="listbox 自绘演示(GDI+)";right=973;bottom=619)
 winform.add(
-listbox={cls="listbox";left=41;top=18;right=950;bottom=597;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;items={};ownerDraw=1;z=1}
+listbox={cls="listbox";left=41;top=18;right=950;bottom=597;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;items={};ownerDraw=1;z=1}
 )
 /*}}*/
 

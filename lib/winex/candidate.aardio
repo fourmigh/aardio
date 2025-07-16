@@ -107,7 +107,7 @@ list = function(visible){
 			}
 			else {
 				if( candidateWindows.rime != hwnd ){
-					if(..string.startWith(cls,"ATL:")){
+					if(..string.startsWith(cls,"ATL:")){
 						if(..win.getStyleEx(hwnd)&0x8080088 && title=="" && ..win.getOwner(hwnd)){ 
 							if(!layoutOrTips) layoutOrTips  =  ..sys.input.getEnabledLayoutOrTips(true);
 							if(layoutOrTips["0804:{A3F4CDED-B1E9-41EE-9CA6-7B4D0DE6CB0A}{3D02CAB6-2B8E-4781-BA20-1C9267529467}"]){

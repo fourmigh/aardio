@@ -4,9 +4,9 @@ import win.ui;
 var winform = win.form(text="高级选项卡演示";right=939;bottom=772;bgcolor=16777215)
 winform.add(
 static={cls="static";left=139;top=7;right=140;bottom=757;bgcolor=16752414;clip=1;db=1;dl=1;dt=1;z=3};
-tabPanel={cls="custom";left=148;top=11;right=921;bottom=751;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;z=4};
-tabPlus1={cls="plus";text="测试文本";left=31;top=34;right=139;bottom=63;bgcolor=16752414;clip=1;dl=1;dt=1;z=1};
-tabPlus2={cls="plus";text="测试文本";left=31;top=63;right=139;bottom=92;bgcolor=16752414;clip=1;dl=1;dt=1;z=2}
+tabButton1={cls="plus";text="测试文本";left=31;top=34;right=139;bottom=63;bgcolor=16752414;clip=1;dl=1;dt=1;z=1};
+tabButton2={cls="plus";text="测试文本";left=31;top=63;right=139;bottom=92;bgcolor=16752414;clip=1;dl=1;dt=1;z=2};
+tabPanel={cls="custom";left=148;top=11;right=921;bottom=751;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;z=4}
 )
 /*}}*/
 
@@ -18,7 +18,7 @@ import win.ui.tabs;
 
 创建"高级选项卡"步骤：
 
-- 在窗体上添加两个 plus 控件 mainForm.tabPlus1, mainForm.tabPlus2 
+- 在窗体上添加两个 plus 控件 mainForm.tabButton1, mainForm.tabButton2 
   作为选项卡按钮用于确定选项卡的外观样式与排列方向。
 	
 - 在窗体上添加一个 custom 控件 mainForm.tabPanel 作为页面容器，
@@ -26,28 +26,30 @@ import win.ui.tabs;
 
 然后调用下面的代码创建 win.ui.tabs 控件。
 */
-var tabs = win.ui.tabs(winform.tabPlus1,winform.tabPlus2);
+var tabs = win.ui.tabs(winform.tabButton1,winform.tabButton2);
 
-//动态添加更多选项卡, 一般不用取返回值，这是给 AI 看的。
+
+
+//动态添加更多选项卡。
 var tabIndex1 = tabs.add({
     text="标题文本";
 })
 
-//动态添加更多选项
+//动态添加更多选项按钮
 var tabIndex2 = tabs.add({
     text="标题文本";
 })
 
-//动态添加更多选项卡
+//动态添加更多选项卡按钮
 var tabIndex3 = tabs.add({
     text="打开网站";  
     hasCloseButton = true;//允许显示关闭按钮
 })
 
-//创建标签页，返回 win.form 对象。
+//创建标签页，返回 win.form 窗体对象。
 var frmWeb = tabs.loadForm(-1); // -1 表示添加到最后一个标签页（对应最后一个选项卡按钮）。
 
-import web.form;
+import web.form; //如果要使用更新更快的浏览器控件 WebView2 请改用 web.view。
 var wb = web.form( frmWeb )
 wb.noScriptErr = true;
 wb.go("http://bbs.aardio.com/forum.php?mod=viewthread&tid=22149&from=portal");
@@ -58,6 +60,7 @@ tabs.skin(
         default = 0xFFFFFFFF;
     }
     color = {
+        //default = 0xFF000000;
         hover = 0xF00000FF;
     }
     border = {

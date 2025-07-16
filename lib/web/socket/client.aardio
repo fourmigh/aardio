@@ -248,7 +248,7 @@ class client{
 	
 		var httpHeaders = ..string.split(responseHead,'<\r\n>');
 		var statusLine = httpHeaders[1] ? ..string.splitEx(httpHeaders[1],"\s+",3); 
-		if( ..string.startWith(statusLine[1],"HTTP/",true) ){
+		if( ..string.startsWith(statusLine[1],"HTTP/",true) ){
 			this.status = statusLine[2];
 			if( this.status == "101" ){
 				..table.shift(httpHeaders,1); 

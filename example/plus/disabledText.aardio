@@ -1,15 +1,17 @@
 //用 plus 控件创建动画文字图标
+//plus 控件使用指南: doc://library-guide/std/win/ui/ctrl/plus.md#disabledText
+//沙漏动画: file://~/example/plus/hourglass.aardio
 import fonts.fontAwesome
 import win.ui;
 /*DSG{{*/
 var winform = win.form(text="动画文字图标";right=589;bottom=429)
 winform.add(
-btnStop={cls="plus";text="停止动画";left=180;top=342;right=356;bottom=389;align="left";bgcolor=-5197169;color=3145728;disabled=1;font=LOGFONT(h=-19);iconStyle={align="left";font=LOGFONT(h=-19;name='FontAwesome');padding={left=28}};iconText='\uF04D';notify=1;textPadding={left=60};z=6};
+btnStop={cls="plus";text="停止动画";left=180;top=342;right=356;bottom=389;align="left";bgcolor=0xB0B28F;color=0x300000;disabled=1;font=LOGFONT(h=-19);iconStyle={align="left";font=LOGFONT(h=-19;name='FontAwesome');padding={left=28}};iconText='\uF04D';notify=1;textPadding={left=60};z=6};
 groupbox={cls="groupbox";text="纯文本动画";left=269;top=31;right=505;bottom=308;edge=1;transparent=1;z=1};
-plus={cls="plus";text="启 动";left=56;top=65;right=215;bottom=112;align="left";bgcolor=-5197169;color=3145728;font=LOGFONT(h=-19);iconStyle={align="left";font=LOGFONT(h=-19;name='FontAwesome');padding={left=28}};iconText='\uF04B ';notify=1;textPadding={left=60};z=2};
-plus1={cls="plus";text="启 动";left=307;top=65;right=466;bottom=112;bgcolor=-5197169;color=3145728;font=LOGFONT(h=-19);notify=1;z=3};
-plus2={cls="plus";text="启 动";left=306;top=139;right=465;bottom=186;bgcolor=-5197169;color=3145728;font=LOGFONT(h=-19);notify=1;z=4};
-plus3={cls="plus";text="启 动";left=306;top=219;right=465;bottom=266;bgcolor=-5197169;color=3145728;font=LOGFONT(h=-19);notify=1;z=5}
+plus={cls="plus";text="启 动";left=56;top=65;right=215;bottom=112;align="left";bgcolor=0xB0B28F;color=0x300000;font=LOGFONT(h=-19);iconStyle={align="left";font=LOGFONT(h=-19;name='FontAwesome');padding={left=28}};iconText='\uF04B ';notify=1;textPadding={left=60};z=2};
+plus1={cls="plus";text="启 动";left=307;top=65;right=466;bottom=112;bgcolor=0xB0B28F;color=0x300000;font=LOGFONT(h=-19);notify=1;z=3};
+plus2={cls="plus";text="启 动";left=306;top=139;right=465;bottom=186;bgcolor=0xB0B28F;color=0x300000;font=LOGFONT(h=-19);notify=1;z=4};
+plus3={cls="plus";text="启 动";left=306;top=219;right=465;bottom=266;bgcolor=0xB0B28F;color=0x300000;font=LOGFONT(h=-19);notify=1;z=5}
 )
 /*}}*/
 
@@ -23,6 +25,7 @@ plus3={cls="plus";text="启 动";left=306;top=219;right=465;bottom=266;bgcolor=-
 无边框按钮，或者字体长度变化不大的按钮。居中不如第一种方便，但字体显示效果好。
 */
 winform.plus.oncommand = function(id,event){
+	//禁用按钮并播放沙漏动画（循环显示数组中的 FontAwesome 字体图标）
 	winform.plus.disabledText =  {'\uF254';'\uF251';'\uF252';'\uF253';'\uF250';text="请稍候 ..."};
 	winform.btnStop.disabledText = null;
 }

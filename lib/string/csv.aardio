@@ -1,0 +1,219 @@
+//csv CSV
+namespace string;
+
+class csv{
+	ctor(separator,quote,cmtChar){
+		this.separator = separator : ",";
+		this.quote = quote : '"';
+		this.dataTable = {}; 
+		this.commentChar = cmtChar;
+	};
+	each = function(path){
+		var file,err = ..io.file(path,"rt");
+		if(!file) error(err,2);
+		
+		var next = ..io.lines(file);
+		return function(){
+			var line = next();
+			if(line) return this.parse(line)[[1]];
+		},function(){
+			file.close();
+		} 
+	};
+	parseComment = function(pattern){
+		if(this.comment){
+			var s = ..string.match(this.comment,pattern||"<\a+\:\s*>?(\N+)\s*$");
+			if(s){
+				return this.parse(s)[1];
+			}
+		}
+	};
+	parse = function(str){
+		var cmtChar = this.commentChar ? this.commentChar[1];
+		this.comment = null;
+		
+		var sep = this.separator[1] : '\t'#;
+		var q = this.quote ? this.quote[1];
+		
+		var push = ..table.push; 
+		var pack = ..string.pack;
+		
+		var dt = {};
+		var row = {};
+		var len = #str;
+		var chr;
+  
+		for(i=1;len){ 
+			chr = str[i];
+			if( chr == sep ) { push( row,""); continue;  }
+			if( chr == ' ' || chr == '\t') { continue;  }
+			
+			var col = {};
+			if( q ? chr == q ){
+				for(j=i+1;len;1){
+					i=j;
+					chr = str[j];
+				
+					if( chr = q ) {
+						if( str[j+1] = q ){  j++; };
+						else{ 
+							//关闭引用列
+							if(#col)push(row,pack(col)); 
+							else push(row,"");
+							
+							i++
+							if( chr == sep )  i++;
+							break;
+						}
+					}
+					push(col,chr);
+				}
+				
+				continue; 
+			}
+			
+			for(j=i;len){
+				i=j;
+				chr = str[j];
+			
+				if( chr = sep ) {
+					if(#col)push(row,pack(col)); 
+					else push(row,"");
+					continue 2;
+				}
+				
+				if( chr == '\r'# || chr == '\n'# ) { 
+					if(chr == '\r'#  && str[i+1]=='\n'#){i++;}
+					
+					if(#col)push(row,pack(col));else push(row,"");
+					if(#row){ push( dt,row ) }; 
+					row = {}; 
+					
+					continue 2; 
+				}
+				
+				if ( (chr == cmtChar) && !(#col || #row)  ){
+					var b = j;
+					do{
+						j++;
+						chr = str[j];
+						if( chr == '\r'# ){
+							if(str[j+1]=='\n'#) j++;
+							break;
+						}
+						elseif( chr == '\n'# ) break;
+					}while(j<=len) 
+					
+					i=j; 
+					
+					this.comment = ..string.concat(this.comment,..string.slice(str,b+1,j))
+					continue 3;
+				}
+				
+				push(col,chr);
+			}	
+			
+			if(#col)push(row,pack(col)); 
+		}  
+		
+		if(#row){ push( dt,row ) } 
+		
+		this.dataTable = dt;
+		return dt;
+	}
+	stringify = function(tab){ 
+		if(!tab){
+			tab = this.dataTable;
+		}
+		if( tab.fields ){
+			var fields = tab.fields;
+			var dt = { fields }
+			for(r=1;#tab;1){
+				var row = {};
+				for(i=1;#fields;1){
+					..table.push(row,tab[r][ fields[i] ] )
+				} 
+				..table.push(dt,row);
+			}
+			return this.stringify(dt);
+		}
+		
+		var q = this.quote;
+		var q2 = q ? ( q ++ q );
+		var dt = {};
+		for(r=1;#tab;1){
+			var row = tab[r];
+			var line = {};
+			for(c=1;#row;1){
+				var col = tostring(row[c]); 
+				if( q ){
+					if(  ..string.indexOf(col,this.separator )
+						|| (    ..string.indexOf(col,q ) ) ){
+						col = q ++ ..string.replace( col, "@@"+q, q2  ) ++ q; 
+					}
+				}
+				..table.push(line,col);
+			}
+			..table.push(dt,..string.join(line,this.separator) );
+		}
+		return ..string.join(dt,'\r\n');
+	}
+	stringifyA = function(tab){
+		return ..string.fromto(this.stringify(tab)); 
+	}
+	load = function(path,cp){
+		var s = ..string.load(path);
+		if( s[1] == 0xEF  && s[2] == 0xBB && s[3] == 0xBF ){
+			s = ..string.right(s,-4);
+		}
+		else {
+			if(!..string.isUtf8(s)){
+				s = ..string.fromto(s,cp:0,65001);
+			}
+		} 
+		return this.parse(s);
+	};
+	save = function(path,tab,append){
+		if(!append || !..io.getSize(path) ) ..string.save(path,'\xEF\xBB\xBF');
+		else ..string.save(path, '\r\n' ,true );
+		..string.save(path, this.stringify(tab) ,true );
+	};
+	saveA = function(path,tab,append){ 
+		if( append && ..io.getSize(path) )..string.save(path, '\r\n' ,true );
+		..string.save(path, this.stringifyA(tab),append  );
+	};
+	push = function(...){ 
+		if( type(...) == "table" ) ..table.push( this.dataTable,... );
+		else ..table.push( this.dataTable,{...} );
+	};  
+}
+
+/**intellisense()
+string.csv = 用于解析、读写 CSV（Comma Separated Values），TXT 格式数据库。\n注意文本数据规范不统一，不同的程序解析结果可能有差异。\n用法请参考：范例程序 / 数据库 / csv / string.csv
+string.csv( = 创建 TTXT，CSV  格式数据库对象。
+string.csv(.(columnSeparator,quote,commentChar) = 创建 TXT，CSV 格式数据库对象。\n参数 @columnSeparator 指定列分隔符，省略则默认使用逗号作为分隔符。\n参数 @quote 指定包含引用字段（含有列分隔符）的引号，省略则使用双引号。\n参数 @commentChar 指定注释符号，默认不指定并禁用注释。
+string.csv() = !stringCsv.
+!stringCsv.separator = 列分隔符，默认为逗号
+!stringCsv.quote = 指定用于包含列的引号，默认为双引号。\n仅在字段包含分隔符时才会将字段包含在引号内。
+!stringCsv.commentChar = 用于指定行注释开始标记，注释只在行首有效（避免与数据混淆）。\n一般都使用"#"符号，但不是所有 CSV 解析器都支持注释。\n默认值为 null，也就是不启用注释。
+!stringCsv.comment = 最后一次解析 CSV 读取的注释。\n需要在使用属性或构造参数 commentChar 先指定注释标记。 
+!stringCsv.dataTable = 对象本身存储的数据表。\nparse 函数解析得到的数组会赋值并替换此属性。\npush 函数则默认向此数据表添加数据。\nstringify,stringifyA 函数在不指定参数时使用此数据表作为参数
+!stringCsv.parse( = 解析数据并返回得到的数组
+!stringCsv.parse(.(文本) = 解析数据并返回得到的数组。\n对象的 dataTable 属性也会被赋值并替换为这里返回的数组
+!stringCsv.stringify( = 数据表转换为 UTF-8 文本
+!stringCsv.stringify(.(数据数组) = 数据表转换为 UTF8 文本\n如果不指定参数,则使用对象的 dataTable 属性作为参数
+!stringCsv.stringifyA( = 数据表转换为 ANSI 文本
+!stringCsv.stringifyA(.(数据数组) = 数据表转换为 ANSI 文本\n如果不指定参数,则使用对象的 dataTable 属性作为参数
+!stringCsv.push( = 添加数据到对象的 dataTable 属性指向的数据表
+!stringCsv.push(.(->->->) = 添加数据到对象的 dataTable 属性指向的数据表\n参数 @1 如果是表，则所有参数都作为数据行添加到 dataTable 数据表\n否则所有参数合并为一行数据并添加到 dataTable 数据表\n之后可以调用 stringify 函数生成文本
+!stringCsv.load( = 加载并解析文件
+!stringCsv.load(.(文件路径,代码页) = 加载并解析文件，返回数组,\n文件开头有 UTF-8 BOM 则以 UTF-8 编码读入内容,\n否则以参数 @2 指定的编码读入并转换为 UTF-8 编码，\n参数 @2 省略时默认值为 0，表示当前默认 ANSI 编码
+!stringCsv.save( = 以 UTF-8 编码写入文件
+!stringCsv.save(.(文件路径,数据数组,是否追加) = 在指定文件写入 UTF-8 BOM，\n然后将数据以 UTF-8 编码、CSV 格式写入文件。\n如果不指定数据数组参数，则使用之前调用 push 函数添加的数据。\n参数 @3 如果为 true 则保留原来的文件内容。
+!stringCsv.saveA( = 以 ANSI 编码写入文件
+!stringCsv.saveA(.(文件路径,数据数组,是否追加) = 将数据以 ANSI 编码、CSV 格式写入文件\n如果不指定数据数组参数，则使用之前调用 push 函数添加的数据。\n参数 @3 如果为 true 则保留原来的文件内容。
+!stringCsv.each(文件路径) = @for tab in ??.each("文件路径.csv") {
+	__/*逐行读取 CSV 文件，tab 为当前读取行解析后的列数组*/
+} 
+!stringCsv.parseComment(.(pattern) = 自注释中提取并解析字段声明。\n参数 pattern 使用模式匹配语法指定提出规则，\n默认为 `<\a+\:\s*>?(\N+)\s*$` ，也就是取最后一行注释。
+end intellisense**/

@@ -37,6 +37,8 @@ namespace inet.httpStatusCode;
 	[415]="客户端错误/不支持的媒体类型";
 	[416]="客户端错误/错误的字节区段";
 	[417]="客户端错误/预期结果失败";
+	[418]="客户端错误/无法满足请求";
+	[429]="客户端错误/请求数过多";
 	[451]="客户端错误/法律原因禁止访问";
 	[500]="服务器错误/内部错误";
 	[501]="服务器错误/未实现";
@@ -81,6 +83,8 @@ en = {
 	[415] = "Unsupported Media Type";
 	[416] = "Requested Range not satisfiable";
 	[417] = "Expectation failed";
+	[418] = "I'm a teapot"; 
+	[429] = "Too Many Requests";
 	[451] = "Unavailable For Legal Reason";
 	[500] = "Internal Server Error";
 	[501] = "Not Implemented";
@@ -93,7 +97,7 @@ en = {
 format = function(status){
 	if( type(status) == "string" ) return status;
 	status = ..math.floor(status);
-	return ..string.format("%d %s",status,en[status])
+	return ..string.format("%d %s",status,en[status]||"Error")
 }
 
 /**intellisense(inet.httpStatusCode) 

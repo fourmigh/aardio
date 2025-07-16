@@ -229,7 +229,7 @@ fromCharCode = function(chrs,...){
 	if(#ustr)return ..raw.str( {WORD bytes[] = ustr},true);
 }
 
-charCodeEx = function(ustr,b,e){
+toCharCodes = function(ustr,b,e){
 	var bytes = {};
 	ustr = ..string.toUtf16(ustr);
 	
@@ -258,8 +258,8 @@ charCodeEx = function(ustr,b,e){
 	return bytes;
 }
 
-charCode = function(ustr,b,e){
-	return ..table.unpack(charCodeEx(ustr,b,e));
+unpackCharCodes  = function(ustr,b,e){
+	return ..table.unpack(toCharCodes(ustr,b,e));
 }
 
 charCodeAt = function(str,i){
@@ -267,18 +267,20 @@ charCodeAt = function(str,i){
 	return ..string.charCodeAt(str,i); 
 }
 
-pack = fromCharCode;
-unpack = charCode;
+charCodeEx = toCharCodes; //@Deprecated
+pack = fromCharCode; //@Deprecated
+unpack = unpackCharCodes; //@Deprecated
+charCode = unpackCharCodes; //@Deprecated
+
 /**intellisense()
 ustring = UTF-16 字符串（ustring）函数库。\n用于操作 UTF-16 编码的 Unicode 字符串。\naardio 字符串默认为 UTF-8 编码。\naardio 字符串包含在单引号内并在尾部加小写 u 标记可创建 UTF-16 字符串（ustring）。
-::Msvcrt := VC6运行库,所有操作系统都自带的系统 DLL。\nconsole,ustring,string.builder 等标准库加载了此 DLL。\n!dllModule.
 end intellisense**/
 
 /**intellisense(ustring)
-fromCharCode(__) = 使用1个或多个 Unicode 编码值转换为 UTF-16 字符串（ustring）。\n参数可以指定 1 个或多个 Unicode 编码数值,也可以直接指定一个包含多个编码的数组参数。\n可指定大于 0x10000 的编码。
-charCodeEx(.(字符串,开始位置,结束位置) = 返回一个数组，包含每个字符的 Unicode 编码值。\nUnicode 代理对字符转换为大于 0x10000 的 Unicode 编码值。\n参数@1如果未标记为UTF16编码,会自动转换为 UTF-16 字符串（ustring）@2\n其他参数可省略。\n\n开始位置、结束位置按 UTF16 编码字符计数（每字符占2个字节）。\n可以使用负数表示尾部倒计数字符位置
-charCode(.(字符串,开始位置,结束位置) = 返回每个字符的 Unicode 编码值。\n参数 @1 如果未标记为 UTF16 编码,会自动转换为 UTF-16 字符串（ustring）。\n其他参数可省略\n\n开始位置、结束位置按UTF16编码字符计数（每字符占2个字节）@2\n可以使用负数表示尾部倒计数字符位置
-charCodeAt(.(字符串,位置) = 返回指定位置的 Unicode 编码值。\n位置按字符计数（无论字符占用几个字节,需要 4 字节编码的字符计数仍然为1）。
+fromCharCode(__) = 使用1个或多个 Unicode 码点转换为 UTF-16 字符串（ustring）。\n参数可以指定 1 个或多个 Unicode 码点（ char's code point ）,也可以直接指定一个包含多个码点的数组参数。\n支持大于 0x10000 的码点。
+toCharCodes(.(字符串,开始位置,结束位置) = 返回一个数组，包含每个字符的 Unicode 码点（ char's code points ）。\nUnicode 代理对字符转换为大于 0x10000 的 Unicode 码点。\n参数@1如果未标记为UTF16编码,会自动转换为 UTF-16 字符串（ustring）@2\n其他参数可省略。\n\n开始位置、结束位置按 UTF16 编码字符计数（每字符占2个字节）。\n可以使用负数表示尾部倒计数字符位置
+unpackCharCodes(.(字符串,开始位置,结束位置) = 返回每个字符的 Unicode 码点（ char's code point ）。\n参数 @1 如果未标记为 UTF16 编码,会自动转换为 UTF-16 字符串（ustring）。\n其他参数可省略\n\n开始位置、结束位置按 UTF16 编码字符计数（每字符占2个字节）\n参数 @2,@3 可以使用负数表示尾部倒计数字符位置
+charCodeAt(.(字符串,位置) = 返回指定位置字符的 Unicode 码点（ char's code point ）。\n位置按字符计数（无论字符占用几个字节,需要 4 字节编码的字符计数仍然为 1 ）。\n\n此函数功能与 string.charCodeAt 函数相同，\n区别是 ustring.charCodeAt 可以兼容 UTF-16 / UTF-8 编码的字符串参数。\n而 string.charCodeAt 仅支持 UTF-8 编码的字符串参数。
 len(.('字符串'u) = 计算文本字符串的字符数。\n如果字符串内包含文本终止符`'\u0000'`，则计数到该字节前停止。
 format(.('%s__'u,) = 格式化字符串
 left(.(str__,n) =  从字符串左侧截取 n 个字符\n按字符计数，汉字为一个字符。

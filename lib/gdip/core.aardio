@@ -74,10 +74,28 @@ namespace gdip{
 	
 	class ::RECTF{
 		ctor(x=0,y=0,width=0,height=0){
-  			this.x = x;
-  			this.y = y;
-  			this.width = width;
-  			this.height = height;
+			
+			if(type(x)==="table"){
+				var rc = x;
+				if(rc[["left"]]){
+					this.x = rc.left;
+  					this.y = rc.top;
+  					this.width = rc.right - rc.left;
+  					this.height = rc.bottom - rc.top; 
+				}
+				else{
+					this.x = rc.x;
+  					this.y = rc.y;
+  					this.width = rc.width;
+  					this.height = rc.height; 	
+				} 
+			}
+			else{
+  				this.x = x;
+  				this.y = y;
+  				this.width = width;
+  				this.height = height;
+  			}
 		} 
 		float x;
 		float y;
@@ -89,7 +107,7 @@ namespace gdip{
 	::RECTF._meta = {
 		_get = { 
 			ltrb = function(x,y,cx,cy){
-				if(x!==null){
+				if(x!==null){ //@Deprecated 废弃带参数的用法
 					owner.x = x;
 					owner.y = y;
 					owner.width = cx;
@@ -98,7 +116,7 @@ namespace gdip{
 				return owner.x,owner.y,owner.x + owner.width,owner.y + owner.height;
 			};
 			xywh = function(l,t,r,b){
-				if(l!==null){
+				if(l!==null){ //@Deprecated 废弃带参数的用法
 					owner.x = l;
 					owner.y = t;
 					owner.width = r - l;
@@ -106,7 +124,21 @@ namespace gdip{
 				}
 				return owner.x,owner.y,owner.width,owner.height; 
 			};
+			setPos = function(x,y,cx,cy){
+				if(x!==null)owner.x = x;
+				if(y!==null)owner.y = y;
+				if(cx!==null)owner.width = cx;
+				if(cx!==null)owner.height = cy;
+			};
+			copy = function(w,h){
+				return ::RECTF(owner.x,owner.y,w : owner.width,h : owner.height);
+			};
 		}
+	}
+	
+	with ::RECTF._meta._get{
+		getPos = xywh;
+		clone = copy;//@Deprecated
 	}
 	
 	class ::POINTF{
@@ -122,11 +154,6 @@ namespace gdip{
 }
  
 /**intellisense(gdip)
-RECTF(.(x,y,width,height) = 浮点格式区块
-RECTF() = !rectf.
-POINTF( = 浮点格式坐标
-POINTF(.(x,y) = 浮点格式坐标
-POINTF() = !point.
 open() = 初始化GDI+\n导入gdip时会默认执行此函数
 close() =  关闭GDI+\n在程序退出时会自动调用此函数\n一般不需要显示调用此函数
 errMsg[__] = 根据返回值取错误信息
@@ -141,8 +168,9 @@ end intellisense**/
 end intellisense**/
 
 /**intellisense(::)
-::RECTF(  = 浮点格式区块
-::RECTF(.(x,y,width,height) = 浮点格式区块
+::RECTF( = 创建表示浮点格式区块的结构体。\n由 GDI+ 基础支持库（gdip.core）加载。\ngdip.image, gdip.bitmap, gdip.graphics, plus 控件等都已经自动加载 gdip.core。
+::RECTF(.(x,y,width,height) = 创建表示浮点格式区块的结构体。\n可使用 4 个数值参数依次指定 x 坐标，y 坐标，宽度（width），高度（height）四个字段的初始值。 \n所有参数都是可选参数，未指定的字段则默认设为 0。
+::RECTF(.(rectObject) =  创建表示浮点格式区块的结构体。\n参数 rectObject 可以是其他 ::RECTF 或 ::RECT 结构体，\n或者直接包含 left,top,right,bottom 字段（可通过直接下标获取）的普通表，\n也可以指定支持 x,y,width,height 字段的任意对象（例如 .NET 的 System.Windows.Rect 对象）。\nectObject 可通过重载操作符返回 x,y,width,height 字段，\n\n返回新创建的 ::RECTF 结构体。
 ::POINTF( = 浮点格式坐标
 ::POINTF(.(x,y) = 浮点格式坐标
 ::RECTF() = !rectf.
@@ -157,10 +185,10 @@ x = x坐标
 y = y坐标
 width = 宽
 height = 高
-ltrb( = 用于将 x,y,width,height 转换为 left,top,right.bottom 并返回
-ltrb(.(x,y,width,height) = 使用传入参数修改左、上坐标,以及宽度、高度，\n转换并返回 left,top,right,bottom 等 4 个值
-ltrb(.() = 转换结构体的位置大小并返回为 left,top,right,bottom 等 4 个值
-xywh( = 用于 将left,top,right.bottom 转换为 x,y,width,height 并返回
-xywh(.(left,top,right,bottom) = 使用参数指定的左、上、右、下位置修改结构体存储的位置。\n返回结构体的左上角坐标 x,y 以及宽度 width,高度 height 等4个值
-xywh(.() = 返回结构体的左上角坐标 x,y 以及宽度 width,高度 height 等4个值
+ltrb() = 返回结构体的 left,top,right,bottom 等 4 个值。\n::RECT,::RECTF 结构体都有这个同名函数，作用一样。
+xywh() = 返回结构体的左上角坐标 x,y 以及宽度 width，高度 height 等4个值。\n::RECT,::RECTF 结构体都有这个同名函数，作用一样。
+getPos() = 此方法是 xywh 方法的别名。\n返回结构体的左上角坐标 x,y 以及宽度 width，高度 height 等4个值。\n::RECT,::RECTF 结构体都有这个同名函数，作用一样。
+setPos( = 重新调整坐标与大小，返回结构体自身。
+setPos(.(x,y,cx,cy) = 移动到 x，y 指定的坐标，\n可选用 cx，cy 重新指定宽度和高度，\n所有参数可选，不指定则保持旧值。\n::RECT,::RECTF 结构体都有这个同名函数，作用一样。
+setPos() = !rectf.
 end intellisense**/

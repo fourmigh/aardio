@@ -1,4 +1,5 @@
 //plus 控件 - 图像热点效果
+//plus 控件使用指南: doc://library-guide/std/win/ui/ctrl/plus.md
 import inet.http;
 import win.ui;
 /*DSG{{*/

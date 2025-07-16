@@ -1,29 +1,37 @@
-//原子窗体一例
-
 /*
-有时候进程需要禁止重复运行,但主窗体可能并不是最先启动的(例如登录界面、欢迎界面等等)
-这时候就不方便在第一个窗体使用原子窗体禁止重复启动,可以改用 process.mutex 创建互斥体来禁止进程重复启动。
-仍然可以通过原子窗体尝试查找主窗体,实现用户双击EXE激活已经启动的主窗体的效果。
-*/
+//用原子窗体禁止重复启用的前提条件是主窗体先启动，并保持显示。
+//如果首先会弹出登录欢迎窗口，可先用进程互斥体判断是否有相同的实例。
 
-//创建互斥体
 import process.mutex;
 var mutex = process.mutex("互斥体.唯一标识") 
 if( mutex.conflict ){
-    import win.ui.atom;
-    var atom,hwndConflict = win.ui.atom.find("原子窗体.唯一标识")
-    if( hwndConflict ) win.setForeground(hwndConflict);
-    return;
+    return mainForm.atom("请在这里输入唯一标识字符串");;
 } 
 
-import win.ui; 
+//如果直接显示主窗口，上面的代码可以省略。
+*/
+
+import win.ui;
+import win.ui.atom;
 /*DSG{{*/
-var winform = win.form( text="aardio form";right=349;bottom=249 )
-winform.add(  )
+mainForm = win.form(text="限制同一个窗口程序仅运行单个实例";)
+mainForm.add()
 /*}}*/
 
-import win.ui.atom 
-winform.atom("原子窗体.唯一标识"); 
+/*
+为窗口设置原子值可以避免一个程序重复运行多个实例。
+建议使用 [aardio 工具 » GUID 生成器]创建 GUID 字符串作为 mainForm.atom 的参数。
 
-winform.show() 
-win.loopMessage(); 
+如果成功则返回值 atom 为有效原子 ID，失败则 atom 为 0。
+如果失败则返回值 hwnd 为已经创建相同原子的冲突窗口句柄。
+*/
+var atom,hwnd = mainForm.atom("请在这里输入唯一标识字符串");
+if(!atom){
+	//mainForm.atom 会自动前置冲突的窗口。
+	//已经运行多个实例，退出当前程序。
+	win.quitMessage();	
+	return;
+}
+
+mainForm.show();
+return win.loopMessage();

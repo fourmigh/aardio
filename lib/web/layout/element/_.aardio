@@ -628,14 +628,14 @@ namespace element{
 				return caretParam.left,caretParam.top,caretParam.width,caretParam.height;
 			}
 		}; 
-		getsel = function(){
+		getSel = function(){
 			var param =  { INT methodID = 3/*_HL_TEXT_EDIT_GET_SELECTION*/;
 				 INT selStart;INT selEnd;};
 			if( owner._callMethod(param) ){
 				return param.selStart,param.selEnd;
 			}
 		}; 
-		setsel = function(a=0,b=-1){ 
+		setSel = function(a=0,b=-1){ 
 			return owner._callMethod({ INT methodID = 4/*_HL_TEXT_EDIT_SET_SELECTION*/;
 				 INT selStart=a;INT selEnd=b;} ) 
 		}; 
@@ -979,6 +979,9 @@ namespace element{
   			int file_line_no;  
   			pointer selector;  
 		} 
+ 
+		getsel = getSel;//Deprecated
+		setsel = setSel;//Deprecated
 	}; 
 	 
   	_insertAdjacentOption = {
@@ -1079,8 +1082,8 @@ web.layout.element() = !layoutEle.
 !layoutEle.getDataTable() = 返回节点data-table属性中的值,并序列化为table对象
 !layoutEle.setDataTable(.(tab对象) = 序列化table对象并设置为节点data-table属性
 !layoutEle.getCaretPos() = 返回光标相对于当前节点的客户区位置,\n返回值分别为:左坐标,顶坐标,宽度,高度
-!layoutEle.getsel() = 返回文本框控件文本选区,返回值:起始位置,结束位置
-!layoutEle.setsel(.(起始位置,结束位置) = 设置文本框控件文本选区 
+!layoutEle.getSel() = 返回文本框控件文本选区,返回值:起始位置,结束位置
+!layoutEle.setSel(.(起始位置,结束位置) = 设置文本框控件文本选区 
 !layoutEle.outerHTML = 节点HTML源码
 !layoutEle.innerHTML = 节点内部HTML源码
 !layoutEle.write(.(html,->->->) = 写入HTML并替换节点内部HTML,\n参数可以是数值,字符串
@@ -1190,8 +1193,8 @@ web.layout.element() = !layoutEle.
 !layoutEle.setTimer(.(延时毫秒值,ID) = 如果延时值为0,取消定时器,ID可省略\n在CSSS!脚本中可触发 timer! 事件
 !layoutEle.getHwnd(.(是否返回顶层窗口) = 返回窗口句柄,参数可省略,默认为false
 !layoutEle.updateWindow(.(是否顶层窗口) = 更新窗口\n参数可省略,默认为false
-!layoutEle.getForm() = 返回该节点所在窗体对象\n!winform.
-!layoutEle.getForm(false) = 返回节点所在窗口或控件对象\n!static.
+!layoutEle.getForm() = 返回该节点所在窗体对象（ win.form 对象）。\n如果节点所在的是控件窗口，则返回控件窗口的容器窗体。\n!winform.
+!layoutEle.getForm(false) = 返回节点所在窗口（窗体或控件对象）。\n!static.
 !layoutEle.getLayout() = 返回HTMLayout窗体对象\n非界面线程不可调用此函数\n!weblayout.
 !layoutEle.getCtrl() = 返回自定义控件对象\n!static.
 !layoutEle.adjustCtrl(.(cx,cy,wParam) = 调整控件使适合指定大小,参数可以省略

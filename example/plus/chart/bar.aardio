@@ -1,0 +1,24 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="plus 控件显示简单图表（柱状图）";right=759;bottom=469)
+winform.add(
+plus={cls="plus";left=40;top=36;right=718;bottom=430;bgcolor=0xF0FBFF;db=1;dl=1;dr=1;dt=1;forecolor=0xFFFFFF;iconColor=0x008000;iconStyle={align="left";font=LOGFONT(name='FontAwesome');padding={left=10;bottom=3};valign="bottom"};iconText="柱状图示例";notify=1;paddingBottom=22;paddingLeft=10;paddingRight=10;paddingTop=10;textPadding={bottom=-20};valign="bottom";z=1}
+)
+/*}}*/
+
+import gdip.chart.bar;
+var chartBar = gdip.chart.bar(winform.plus)
+
+// 准备图表数据集。如果控件已显示，修改数据集不会刷新，请调用控件的 redrawTransparent() 方法刷新
+chartBar.dataset = {
+	maxValue = 100; 	data = [65, 85, 45, 75, 95];
+	labels = ["第一季度", "第二季度", "第三季度", "第四季度", "预测"];
+	colors = [0xFF3498DB, 0xFF2ECC71, 0xFFE74C3C, 0xFFF1C40F, 0xFF9B59B6];
+	axisColor = 0xFFBDC3C7;
+};
+
+//Chart.js 图表（web.view） file://~/example/WebUI/web.view/OtherApps/Chart.js.aardio
+//Chart.js 图表（web.form） file://~/example/WebUI/web.form/Chart.js/QuickStart.aardio
+	
+winform.show();
+win.loopMessage();

@@ -179,11 +179,13 @@ namespace metaProperty {
 				}
 			};
 			hide = {
-				_get = function(){ 
+				_get = function(ownerCall){ 
+					if(ownerCall) return function() owner.show(0/*_SW_HIDE*/);
+					
 					return ! ..win.getStyle(owner[["hwnd"]],0x10000000/*_WS_VISIBLE*/ ) 
 				}
 				_set = function(v){ 
-					owner.show(!v ? true:0x0/*_SW_HIDE*/)
+					owner.show(!v ? true:0/*_SW_HIDE*/)
 				}
 			
 			};
@@ -716,8 +718,8 @@ namespace metaProperty {
 					return owner.add(param) ; 
 				
 				var ret = owner._parentForm.add(param,owner);
-				for(k,v in param){
-					if(v.oncommand){
+				for(k,v in ret){
+					if(v[["oncommand"]] || (k==="oncommand")){
 						owner.translateCommand();
 						break;
 					} 
@@ -972,14 +974,24 @@ namespace metaProperty {
 							..win.setWindowTheme(owner[["hwnd"]],v:" ",subid); 
 					}
 				}
-			}; 
-			rect = { //慎用/文档不记录，修改返回对象字段不会更新控件
-				_get = function(){ return owner.getRect(); } 
 			};
-			clientRect = { //慎用/文档不记录，修改返回对象字段不会更新控件
+			clientHeight = {
+				_get = function(){
+					return owner.getClientRect().height();
+				} 
+			};
+			clientWidth = {
+				_get = function(){ 
+					return owner.getClientRect().width();
+				} 
+			};
+			clientRect = { //@Deprecated
 				_get = function(){ return owner.getClientRect() }  
 			};
-			font = { //慎用/文档不记录，修改返回对象字段不会更新控件
+			rect = { //@Deprecated
+				_get = function(){ return owner.getRect(); } 
+			};
+			font = { //仅用于设计时属性，修改返回对象字段不会更新控件
 				_get = function(){ return owner.getFont() }
 				_set = function(v){ owner.setFont(v) }
 			}; 
@@ -1147,17 +1159,17 @@ namespace metaProperty {
     			if(ok) return obj;
     			return null,obj;
     		};
-			createEmbed = function(progId,embedObject,connet=true){
+			createEmbed = function(progId,embedObject,connet=true,pik){
 			
 				if(! ..com[["CreateEmbed"]] )
 					error("未导入com支持库!",2);
 					
 				embedObject := {};
-				var ok,err = call(..com.CreateEmbed,, embedObject ,owner,progId );
+				var ok,err = call(..com.CreateEmbed,, embedObject ,owner,progId,pik);
 				if(!ok) {
 					if(type(progId) != type.string ) error(err,2);
 					var ok,obj = call(..com.CreateObject,, progId );
-					if( ok ) ok,err = call(..com.CreateEmbed,, embedObject ,owner,obj );
+					if( ok ) ok,err = call(..com.CreateEmbed,, embedObject ,owner,obj,pik);
 					if( !ok ) error(err,2)
 				}
 				
@@ -1223,7 +1235,26 @@ namespace metaProperty {
 	};
 	
 	with _metaPrototype._get {
-		addtimer = setInterval; settimer = changeInterval; killtimer = clearInterval;
+		destroy=close; //@Deprecated
+		addtimer = setInterval; //@Deprecated
+		settimer = changeInterval; //@Deprecated 
+		killtimer = clearInterval; //@Deprecated
+		onSize = adjust; //@Deprecated
+		getText = text._get; //@Deprecated
+		setText = text._set; //@Deprecated
+		getTitle = getText; //@Deprecated
+		setTitle = setText; //@Deprecated
+		onClick = { _get = lambda () owner.oncommand;_set = function(v) owner.oncommand = v }; //@Deprecated
+		onclick = onClick; //@Deprecated
+		visible = { _get = lambda () !owner.hide;_set = function(v) owner.hide =!v };//@Deprecated
+		value = text;
+		add = addCtrl;
+		anchors = {
+			_get = lambda () {left=owner.dl,top=owner.dt,right=owner.dr,bottom=owner.db}
+			_set = function(v){
+				owner.dl,owner.dt,owner.dr,owner.db = tonumber(v[["left"]]),tonumber(v[["top"]]),tonumber(v[["right"]]),tonumber(v[["bottom"]])
+			}
+		};
 	}
 	
 	mixin = function(meta){

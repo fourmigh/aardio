@@ -7,7 +7,7 @@ namespace process{
 	class batch{
 		ctor( script,ownerArgs,workDir ){{
 			var err;
-			if(  (#script <  0x410/*_MAX_PATH_U8*/ ) && ..string.endWith(script,".aardio",true) ){
+			if(  (#script <  0x410/*_MAX_PATH_U8*/ ) && ..string.endsWith(script,".aardio",true) ){
 				script,err = ..string.loadcode( script ,ownerArgs);	
 			}
 			else {
@@ -16,7 +16,7 @@ namespace process{
 				}
 				
 				script = ..string.trim(script);
-				if(!..string.startWith(script,"?>")){
+				if(!..string.startsWith(script,"?>")){
 					script = "?>" + script;
 				}
 	

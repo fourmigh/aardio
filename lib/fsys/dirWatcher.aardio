@@ -5,10 +5,14 @@ import thread.command;
 namespace fsys;
 
 class dirWatcher{
-	ctor( dir ){
+	ctor( dir,onFileChanged,... ){
 		if( ! ..io.exist(dir) )
 			error("请指定正确的目录参数",2);
 			
+		if(type(onFileChanged)==="function"){
+			return ..fsys.dirWatcher.thread(onFileChanged,dir,...);
+		}
+		
 		this = ..fsys.file(dir,0x1/*_FILE_LIST_DIRECTORY*/
 			,7/*_FILE_SHARE_READ | _FILE_SHARE_WRITE | _FILE_SHARE_DELETE*/
 			,0x3/*_OPEN_EXISTING*/
@@ -40,7 +44,7 @@ class dirWatcher{
 			return changes;
 		}  	
 	}; 
-	eachChanges = function( flags,subTree){
+	eachChanges = function(flags,subTree){
 		var shift = ..table.remove; 
 		var changes = this.readDirectoryChanges();
 		var item,action;
@@ -64,16 +68,18 @@ namespace dirWatcher{
     	INT FileNameLength;
 	} 
 	
-    ACTION_TEXT = {
-		[ 1/*_FILE_ACTION_ADDED*/ ] = "添加文件";
-		[ 2/*_FILE_ACTION_REMOVED*/ ] = "移除文件";
-		[ 3/*_FILE_ACTION_MODIFIED*/ ] = "文件被修改";
-		[ 4/*_FILE_ACTION_RENAMED_OLD_NAME*/ ] = "重命名:原文件名";
-		[ 5/*_FILE_ACTION_RENAMED_NEW_NAME*/ ] = "重命名:新文件名";
-	}	
+	ACTION_TEXT = {
+		[ 1/*_FILE_ACTION_ADDED*/ ] = "added";
+		[ 2/*_FILE_ACTION_REMOVED*/ ] = "removed"; 
+		[ 3/*_FILE_ACTION_MODIFIED*/ ] = "modified";
+		[ 4/*_FILE_ACTION_RENAMED_OLD_NAME*/ ] = "renamed:old";
+		[ 5/*_FILE_ACTION_RENAMED_NEW_NAME*/ ] = "renamed:new";
+	}
 	
 	thread = class {
-		ctor( onFileChange,dir,flags,subTree){
+		ctor(onFileChange,dir,flags,subTree){
+			if(type(flags)=="boolean") subTree,flags = flags,subTree;
+			
 			this._dir = dir;
 			this.ptrStopKey =  ..raw.realloc(1);//构造一个进程唯一的指针地址
 			this.listener = ..thread.command();
@@ -112,21 +118,25 @@ namespace dirWatcher{
 
 /**intellisense()
 fsys.dirWatcher = 目录监视器
-fsys.dirWatcher("__/*目录路径*/") = 创建目录监视器
+fsys.dirWatcher(.(directoryPath) = 创建参数 @directoryPath 指定目录的同步监视器。\n此监视器会阻塞当前线程。
+fsys.dirWatcher(.(directoryPath,onFileChange,flags,subTree) = 创建目录变更异步监视器。\n1. 参数 @directoryPath 指定要监视的目录。\n2. 参数 @onFileChange 必须指定文件变更事件回调函数。\n\n	此参数则会调用 fsys.dirWatcher.thread 创建后台监视线程， \n	只能在界面线程创建目录的异步监视器，因为回调依赖窗口消息循环。\n	回调函数仍在当前界面线程内执行（因此不需要考虑跨线程规则）。\n\n	回调参数分别为: filename,action,actionText\n	\n	* 回调参数 filename 为发生变更的文件路径，\n	* 回调参数 action 为 _FILE_ACTION_ 前缀的常量数值，\n	* 回调参数 actionText 的值为 "added" "removed" "modified" "renamed:old-name" "renamed:new-name" 之一。\n\n3. 参数 @flags 可选用  _FILE_NOTIFY_CHANGE_ 前缀的常量数值指定选项。\n4. 参数 @subTree 可选指定是否监视子目录。
 fsys.dirWatcher() = !dirWatcher.
-!dirWatcher.eachChanges(选项,是否监视子目录) = @for( filename,action,actionText in ??.eachChanges() ){
-	io.print( filename,actionText,action & 0x10/*_FILE_NOTIFY_CHANGE_LAST_WRITE*/ ) 
+fsys.dirWatcher.thread(onFileChange,directoryPath,flags,subTree) = @.thread(\n	function(filename,action,actionText){\n		\n	},__/*\n创建目录变更异步监视器线程。\n\n1. 参数 @onFileChange 必须指定文件变更事件回调函数。\n	只能在界面线程创建目录的异步监视器，因为回调依赖窗口消息循环。\n	回调函数仍在当前界面线程内执行（因此不需要考虑跨线程规则）。\n\n	回调参数分别为: filename,action,actionText\n	\n	* 回调参数 filename 为发生变更的文件路径，\n	* 回调参数 action 为 _FILE_ACTION_ 前缀的常量数值，\n	* 回调参数 actionText 的值为 "added" "removed" "modified" "renamed:old-name" "renamed:new-name" 之一。\n	\n2. 参数 @directoryPath 指定要监视的目录。\n3. 参数 @flags 可选用  _FILE_NOTIFY_CHANGE_ 前缀的常量数值指定选项。\n4. 参数 @subTree 可选指定是否监视子目录。\n*/);
+fsys.dirWatcher.thread() = !fsys_dirWatcher_thread.
+!fsys_dirWatcher_thread.close() = 退出异步目录监视器线程。
+
+!dirWatcher.eachChanges(flags,subTree) = @for filename,action,actionText in ??.eachChanges(){
+	print( filename,actionText,action & 0x10/*_FILE_NOTIFY_CHANGE_LAST_WRITE*/ ) 
+	__/*同步目录监视器可使用此迭代器遍历文件变更事件。\n迭代变量 filename,action,actionText 用法与 onFileChange 回调函数相同。*/
 }
-!dirWatcher.readDirectoryChanges(.(选项,是否监视子目录) = 读取目录发生的变更\n返回值为数组,数组成员为一个table对象\nfilename字段表明变更的目录,action字段表明变更类型\naction为 _FILE_NOTIFY_CHANGE_ 前缀的常量标志
+!dirWatcher.readDirectoryChanges(.(选项,是否监视子目录) = 同步目录监视器可使用此函数读取目录发生的变更。\n返回值为数组,数组成员为一个table对象\nfilename字段表明变更的目录,action字段表明变更类型\naction为 _FILE_NOTIFY_CHANGE_ 前缀的常量标志
 !dirWatcher.readDirectoryChanges() = !dirWatcherEntry.
-!dirWatcher.close() = 关闭
+!dirWatcher.close() = 关闭同步目录监视器或者退出异步目录监视器线程。
 !dirWatcherEntry.filename = 文件名
 !dirWatcherEntry.filenameW = Unicode文件名
 !dirWatcherEntry.action = 变更类型
 !dirWatcherEntry.actionText = 变更类型说明
-fsys.dirWatcher.thread(回调函数,监视目录,选项) = @.thread(\n	function(filename,action,actionText){\n		\n	},__/*监视目录路径*/ );
-fsys.dirWatcher.thread() = !fsys_dirWatcher_thread.
-!fsys_dirWatcher_thread.close() = 关闭对象
+
 _FILE_ACTION_ADDED=@1/*_FILE_ACTION_ADDED*/
 _FILE_ACTION_REMOVED=@2/*_FILE_ACTION_REMOVED*/
 _FILE_ACTION_MODIFIED=@3/*_FILE_ACTION_MODIFIED*/

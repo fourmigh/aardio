@@ -1,10 +1,12 @@
 ﻿//wmi 客户端
 import com;
+import time.cim;
+
 namespace com;
 
 class wmi{
 	ctor(path,computer){
-		return ..com.TryGetObject("winmgmts:{impersonationLevel=Impersonate}!\\" + (computer:".") + (path || "\root\cimv2"))
+		return ..com.TryGetObject("winmgmts:{impersonationLevel=Impersonate}!\\" + (computer:".") + (path || `\root\cimv2`))
 	};
 }
 
@@ -18,12 +20,16 @@ namespace wmi{
 	
 	query = function(wql,path,...){ 
 		if(!wql) error("缺少 WQL 参数",2);
-		if(...){
+		
+		if(type(path)=="table"){
+			wql = formatWqlParameters(wql,path);
+			path = ...;
+		}
+		elseif(...){
 			wql = formatWqlParameters(wql,...);
 		}
-		elseif(type(path)=="table"){
-			wql = formatWqlParameters(wql,path);
-			path = null;
+		elseif( ..string.match(wql,"^[\a\d]+$") ){
+			wql = _alias[..string.lower(wql)] || ("Win32_" + wql);
 		}
 		
 		var srv = ..com.wmi(path);
@@ -39,12 +45,16 @@ namespace wmi{
 	
 	queryAsync = function(sink,wql,path,...){ 
 		if(!wql) error("缺少 WQL 参数",2);
-		if(...){
+		
+		if(type(path)=="table"){
+			wql = formatWqlParameters(wql,path);
+			path = ...;
+		}
+		elseif(...){
 			wql = formatWqlParameters(wql,...);
 		}
-		elseif(type(path)=="table"){
-			wql = formatWqlParameters(wql,path);
-			path = null;
+		elseif( ..string.match(wql,"^[\a\d]+$") ){
+			wql = _alias[..string.lower(wql)] || ("Win32_" + wql);
 		}
 		
 		if(!..com.IsObject(sink)){
@@ -64,12 +74,16 @@ namespace wmi{
 	
 	queryNotificationAsync = function(sink,wql,path,...){ 
 		if(!wql) error("缺少 WQL 参数",2);
-		if(...){
+		
+		if(type(path)=="table"){
+			wql = formatWqlParameters(wql,path);
+			path = ...;
+		}
+		elseif(...){
 			wql = formatWqlParameters(wql,...);
 		}
-		elseif(type(path)=="table"){
-			wql = formatWqlParameters(wql,path);
-			path = null;
+		elseif( ..string.match(wql,"^[\a\d]+$") ){
+			wql = _alias[..string.lower(wql)] || ("Win32_" + wql);
 		}
 		
 		if(!..com.IsObject(sink)){
@@ -89,12 +103,16 @@ namespace wmi{
 	
 	queryNotification = function(wql,path,...){ 
 		if(!wql) error("缺少 WQL 参数",2);
-		if(...){
+		
+		if(type(path)=="table"){
+			wql = formatWqlParameters(wql,path);
+			path = ...;
+		}
+		elseif(...){
 			wql = formatWqlParameters(wql,...);
 		}
-		elseif(type(path)=="table"){
-			wql = formatWqlParameters(wql,path);
-			path = null;
+		elseif( ..string.match(wql,"^[\a\d]+$") ){
+			wql = _alias[..string.lower(wql)] || ("Win32_" + wql);
 		}
 		
 		var srv = ..com.wmi(path);
@@ -109,12 +127,26 @@ namespace wmi{
 	}
 	
 	get = function(wql,property,path,...){
+		if(!wql) error("缺少 WQL 参数",2);
+		
 		var items;
-		if( type(property) == "table") {
-			items = query(wql,property); 
-			property = null;
+		if(type.isString(property) && ..string.match(property,"^\w+$") ){ 
+			if( ..string.match(wql,"^\w+$") ){
+				if(!..string.indexAny(wql,'_'#)) wql = _alias[..string.lower(wql)] || ("Win32_" + wql);
+				wql = "SELECT "+property+" FROM "+wql;
+			}
+			
+			items = query(wql,path,...); 	 
 		}
-		else items = query(wql,path,...); 
+		else{
+			if(property!==null){
+				items = query(wql,property/*表参数*/,path,...); 
+				property = null;
+			}
+			else{
+				items = query(wql,path/*也可能是表参数*/,...); 
+			} 
+		} 
 		
 		if( items ) {
 			var item = ..com.first(items);
@@ -122,6 +154,10 @@ namespace wmi{
 			
 			if(item && property) {
 				var ret = item[property];
+				if(type.isString(ret) && (#ret == 25) ){ 
+					var d = ..time.cim(ret); 
+					if(d) return d;
+				}
 				..com.Release(item);
 				return ret;
 			}
@@ -186,7 +222,7 @@ namespace wmi{
 				if(item) {
 					var r = getProperties(item);
 					..com.Release(item);
-					return r;
+					return r,i;
 				}
 			},free; 
 		}
@@ -194,7 +230,7 @@ namespace wmi{
 	}
 	
 	getTable = function(wql,path,...){
-		var tab = {};
+		var tab = [];
 		for item in eachProperties(wql,path,...){
 			..table.push(tab,item)
 		} 
@@ -216,11 +252,7 @@ namespace wmi{
 		}
 		elseif( t = "table" ) {
 			if(..time.istime(v)){
-				var f = v.format;
-				v.format = "%Y-%m-%d %H:%M:%S:000";
-				var ret  = "'" +  tostring(v) + "'";
-				v.format = f;
-				return ret;
+				return ..time.cim(v).format("!'%Y%m%d%H%M%S.000000+000'"); 
 			}
 		}
 			
@@ -245,37 +277,108 @@ namespace wmi{
 		}
 		return ..string.format(wql,...);
 	}
-		
+
+
+	_alias = {
+		alias="Msft_CliAlias";
+		bootconfig="Win32_BootConfiguration";
+		cdrom="Win32_CDROMDrive";
+		cpu="WIN32_PROCESSOR";
+		csproduct="Win32_ComputerSystemProduct";
+		datafile="CIM_DataFile";
+		dcomapp="WIN32_DCOMApplication";
+		desktop="WIN32_DESKTOP";
+		desktopmonitor="WIN32_DESKTOPMONITOR";
+		fsdir="Win32_Directory";
+		idecontroller="Win32_IDEController";
+		irq="Win32_IRQResource";
+		job="Win32_ScheduledJob";
+		loadorder="Win32_LoadOrderGroup";
+		logon="Win32_LogonSession";
+		memcache="WIN32_CACHEMEMORY";
+		memorychip="Win32_PhysicalMemory";
+		memphysical="Win32_PhysicalMemoryArray";
+		netclient="WIN32_NetworkClient";
+		netlogin="Win32_NetworkLoginProfile";
+		netprotocol="Win32_NetworkProtocol";
+		netuse="Win32_NetworkConnection";
+		nic="Win32_NetworkAdapter";
+		nicconfig="Win32_NetworkAdapterConfiguration";
+		ntdomain="Win32_NTDomain";
+		ntevent="Win32_NTLogEvent";
+		nteventlog="Win32_NTEventlogFile";
+		os="Win32_OperatingSystem";
+		pagefile="Win32_PageFileUsage";
+		pagefileset="Win32_PageFileSetting";
+		partition="Win32_DiskPartition";
+		port="Win32_PortResource";
+		printerconfig="Win32_PrinterConfiguration";
+		qfe="Win32_QuickFixEngineering";
+		rdaccount="Win32_TSAccount";
+		rdnic="Win32_TSNetworkAdapterSetting";
+		rdpermissions="Win32_TSPermissionsSetting";
+		rdtoggle="Win32_TerminalServiceSetting";
+		recoveros="Win32_OSRecoveryConfiguration";
+		scsicontroller="Win32_SCSIController";
+		server="Win32_PerfRawData_PerfNet_Server";
+		sounddev="WIN32_SoundDevice";
+		startup="Win32_StartupCommand";
+		sysaccount="Win32_SystemAccount";
+		sysdriver="Win32_SystemDriver";
+		temperature="Win32_TemperatureProbe";
+		ups="Win32_UninterruptiblePowerSupply";
+		voltage="Win32_VoltageProbe";
+		wmiset="Win32_WMISetting"
+	}
 }
+
+//@guide [💻 WMI 查询入门](doc://example/COM/WMI/query.aardio) [📈 WMI 事件回调](doc://example/COM/WMI/SWbemSink.aardio)
 	
 /**intellisense()
-com.wmi = WMI / Windows Management Instrumentation 客户端。\n用法也可可参考 com.monitor 库源码，以及『 范例 / COM 组件 / WMI 』。\n参考文档 https://docs.microsoft.com/en-us/windows/win32/wmisdk/wmi-reference
+com.wmi = WMI / Windows Management Instrumentation 客户端。\n用法也可可参考 com.monitor 库源码，以及『 范例 » COM 组件 » WMI 』。\n参考文档 https://docs.microsoft.com/en-us/windows/win32/wmisdk/wmi-reference
 com.wmi( = 创建 WMI 客户端对象,失败返回 null
-com.wmi(.(path,computer) = 创建并返回 WMI 客户端对象,失败返回 null,\n所有参数可省略,\n@path 默认为 "\root\cimv2"\n@computer 默认为"."
+com.wmi(.(path,computer) = 创建并返回 WMI 客户端对象,失败返回 null,\n所有参数可省略,\n@path 默认为 `\root\cimv2`\n@computer 默认为"."
 com.wmi() = !stdComObject.
+
+com.wmi._alias = 这是一个表对象指定了 WMI 类的别名。
+com.wmi 库函数的 WQL 参数在指定单个类名时可使用别名或省略 "Win32_"前缀。\n指定类名时忽略大小写，com.wmi._alias 中的键名则必须小写。\ncom.wmi._alias 的别名可用于 wmic，\n但这个表不包含仅省略"Win32_"前缀的别名（aardio 会自动加这个前缀）。
 com.wmi.sink(event) = @.sink(\n	OnCompleted = function(hResult,wbemErrorObject,wbemAsyncContext){\n		\n	};\n	OnObjectPut = function(wbemObjectPath,wbemAsyncContext){\n		\n	};\n	OnObjectReady = function(wbemObject,wbemAsyncContext){\n		\n	};\n	OnProgress = function(upperBound,current,message,wbemAsyncContext){\n		\n	};\n)
-com.wmi.query( = 执行 WQL 查询
-com.wmi.query(.(wql,path,->->->) =  参数 @wql 可输入 WQL 查询语句或类名,\n调用 ExecQuery 返回查询结果,\n可选用参数 @path 指定 WMI 路径,默认为 "\root\cimv2"\n可选用参数@3及后续参数指定格式化参数,\n如果格式化参数是表,则可省略 @path 且不用保留参数位置,\n参数表可格式化 @号 开头的命名参数或以 ? 号为占位符的数组参数,\n如果参数不是一个表,则调用 string.format 格式化
-com.wmi.queryAsync( = 执行异步 WQL 查询
-com.wmi.queryAsync(.(objSink,wql,path,->->->) =  参数 @objSink 可指定 com.wmi.sink 对象，或者创建该对象的参数表。\n参数 @wql 可输入 WQL 查询语句或类名,\n调用 ExecQuery 返回查询结果,\n可选用参数 @path 指定 WMI 路径,默认为 "\root\cimv2"\n可选用参数@3及后续参数指定格式化参数,\n如果格式化参数是表,则可省略 @path 且不用保留参数位置,\n参数表可格式化 @号 开头的命名参数或以 ? 号为占位符的数组参数,\n如果参数不是一个表,则调用 string.format 格式化
-com.wmi.queryNotificationAsync( = 执行异步 WQL 查询以接收事件
-com.wmi.queryNotificationAsync(.(objSink,wql,path,->->->) =  参数 @objSink 可指定 com.wmi.sink 对象，或者创建该对象的参数表。\n参数 @wql 可输入 WQL 查询语句或类名,\n调用 ExecQuery 返回查询结果,\n可选用参数 @path 指定 WMI 路径,默认为 "\root\cimv2"\n可选用参数@3及后续参数指定格式化参数,\n如果格式化参数是表,则可省略 @path 且不用保留参数位置,\n参数表可格式化 @号 开头的命名参数或以 ? 号为占位符的数组参数,\n如果参数不是一个表,则调用 string.format 格式化
-com.wmi.get( = 可输入WQL查询语句或类名,\n返回首个查询结果
-com.wmi.get(.(wql) =  参数 @wql 可输入WQL查询语句或类名,\n成功则返回首个查询结果,\n可选用参数@3指定 WMI 路径,默认为 "\root\cimv2"\n可选用参数@4及后续参数指定格式化参数,\n支持 @号 开头的命名参数或以 ? 号为占位符的匿名参数,\n如果参数不是一个表,则调用 string.format 格式化
-com.wmi.get(.(wql,property,path,->->->) =  参数 @wql 可输入WQL查询语句或类名,\n成功则返回首个查询结果中 @property 参数指定的属性值\n失败返回 null,\n可选用参数@path指定 WMI 路径,默认为 "\root\cimv2"\n可选用参数@4及后续参数指定格式化参数,\n如果格式化参数是表,则可省略 @property,@path 且不用保留参数位置,\n参数表可格式化 @号 开头的命名参数或以 ? 号为占位符的匿名参数,\n如果参数不是一个表,则调用 string.format 格式化
-com.wmi.getProperties( = 返回所有属性
-com.wmi.getProperties(.(wql,path,->->->) =  参数 @wql 可输入WQL查询语句或类名,\n可选用参数@path 指定 WMI 路径,默认为 "\root\cimv2",\n返回首个查询结果中所有属性组成的表,表以属性名为键,属性值为值,\n失败返回 null\n\n可选用参数@3及后续参数指定格式化参数,\n如果格式化参数是表,则可省略 @path 且不用保留参数位置,\n参数表可格式化 @号 开头的命名参数或以 ? 号为占位符的匿名参数,\n如果参数不是一个表,则调用 string.format 格式化 
-com.wmi.getProperties(.(wmiObject) =  参数 @wmiObject 可输入 WMI 对象,\n返回该对象所有属性组成的表,表以属性名为键,属性值为值,\n失败返回 null
-com.wmi.each(wql,path,->->->) =  @for index,item in com.wmi.each("__/*遍历 WMI 对象,\n可输入WQL查询语句或类名\n可选用参数@2指定 WMI 路径,默认为 "\root\cimv2"\n\n可选用参数@3及后续参数指定格式化参数,\n如果格式化参数是表,则可省略 @path 且不用保留参数位置,\n参数表可格式化 @号 开头的命名参数或以 ? 号为占位符的匿名参数,\n如果参数不是一个表,则调用 string.format 格式化*/") {
+com.wmi.query( = 调用 ExecQuery 执行 WQL 查询，返回查询结果。
+com.wmi.query(.(wql,parameters,path) =  参数 @wql 指定 WQL 查询语句。\n可选参数 @parameters 可使用一个表对象指定 WQL 参数值。\n- 表中的命名值指定 WQL 语句中 `@`号 开头的命名参数值。\n- 表中的数组值指定 WQL 语句中以 `?` 号为占位符的数组参数的值。\n可选用参数 @path 指定 WMI 路径,默认为 `\root\cimv2`。
+
+com.wmi.get( = 可输入 WQL 查询语句或类名，\n如果成功则返回查询结果中的第一个元素。
+com.wmi.get(.(wql) =  参数 @wql 可输入 WQL 查询语句或类名。\n仅指定类名时可省略 "Win32_"前缀。\n成功则返回查询结果的首个元素（ COM 对象 ）。\n要注意此函数返回的是单个元素，不一定是能用 com.each 遍历的集合对象。
+com.wmi.get(.(wql,property) =  参数 @wql 可输入 WQL 查询语句。\n可选用参数 @property 指定要取的属性名（只能包含字母、数字、下划线）。\n成功则返回查询结果的首个元素指定属性的值，失败返回 null。\n如果返回值为 CIM_DATETIME 格式的时间字符串，则转换为 time.cim 时间对象。\n\n可选用参数 @path 指定 WMI 路径，默认为 `\root\cimv2`。\n可选用参数 @3 及后续参数指定格式化参数。\n如果指定了格式化参数则调用 string.format 格式化参数 @wql 。
+com.wmi.get(.(className,property,path) =  参数 @className 指定 WMI 类名，可省略 "Win32_"前缀 。\n参数 @property 指定要取的属性名（只能包含字母、数字、下划线）。\n可选用参数 @path 指定 WMI 路径，默认为 `\root\cimv2`。\n\n成功则返回查询结果的首个元素指定属性的值，失败返回 null。\n如果返回值为 CIM_DATETIME 格式的时间字符串，则转换为 time.cim 时间对象。\n\n例如 aardio 代码 `com.wmi.get("diskdrive","serialnumber")`\n的返回的字符串值与执行 `wmic diskdrive get serialnumber` 命令输出的字符串相同。
+com.wmi.get(.(wql,parameters,path) =  \n参数 @wql 指定 WQL 查询语句\n可选参数 @parameters 可使用一个表对象指定 WQL 参数值。\n- 表中的命名值指定 WQL 语句中 `@`号 开头的命名参数值。\n- 表中的数组值指定 WQL 语句中以 `?` 号为占位符的数组参数的值。\n可选用参数 @path 指定 WMI 路径,默认为 `\root\cimv2`。\n成功则返回首个查询结果（返回 COM 对象），失败返回 null。\n要注意返回结果中的第一个元素如果不是集合则不能也不需要用 com.each 遍历。\n如果要返回纯 aardio 值可改用 com.wmi.getProperties 。
+
+com.wmi.getProperties( = 执行 WQL 查询并获取查询结果内的首个元素。\n成功返回包含查询结果内首个元素有效属性名值对的纯表对象（非 COM 对象）。 \n失败返回 null 值。
+com.wmi.getProperties(.(wql,parameters,path) =  参数 @wql 指定 WQL 查询语句。\n可选参数 @parameters 可使用一个表对象指定 WQL 参数值。\n- 表中的命名值指定 WQL 语句中 `@`号 开头的命名参数值。\n- 表中的数组值指定 WQL 语句中以 `?` 号为占位符的数组参数的值。\n可选用参数 @path 指定 WMI 路径,默认为 `\root\cimv2`。
+com.wmi.getProperties(.(wmiObject) =  将参数 @wmiObject 指定 WMI 对象转换为普通的表对象。\n返回包含该对象所有属性名值对的表对象。\n失败返回 null
+
+com.wmi.getTable( = 执行 WQL 查询并返回一个包含了所有查询结果的纯数组。\n数组元素为包含 WMI 对象所有属性名值对的属性表（纯值表，非 COM 对象）。\n失败返回 null 值。
+com.wmi.getTable(.(wql,parameters,path) =  参数 @wql 指定 WQL 查询语句。\n可选参数 @parameters 可使用一个表对象指定 WQL 参数值。\n- 表中的命名值指定 WQL 语句中 `@`号 开头的命名参数值。\n- 表中的数组值指定 WQL 语句中以 `?` 号为占位符的数组参数的值。\n可选用参数 @path 指定 WMI 路径,默认为 `\root\cimv2`。
+
+com.wmi.queryAsync( = 执行异步 WQL 查询。
+com.wmi.queryAsync(.(objSink,wql,parameters,path) =  参数 @objSink 可指定包含了回调事件的表对象或 com.wmi.sink 对象。\n参数 @wql 指定 WQL 查询语句。\n可选参数 @parameters 可使用一个表对象指定 WQL 参数值。\n- 表中的命名值指定 WQL 语句中 `@`号 开头的命名参数值。\n- 表中的数组值指定 WQL 语句中以 `?` 号为占位符的数组参数的值。\n可选用参数 @path 指定 WMI 路径,默认为 `\root\cimv2`。
+
+com.wmi.queryNotificationAsync( = 执行异步 WQL 查询以接收事件。
+com.wmi.queryNotificationAsync(.(objSink,wql) =  参数 @objSink 可指定包含了回调事件的表对象或 com.wmi.sink 对象。\n参数 @objSink 可指定 com.wmi.sink 对象或者指定了普通表对象。\n参数 @wql 可输入 WQL 查询语句或 WMI 类名。\n仅指定类名时可省略 "Win32_" 前缀或使用 com.wmi._alias 注册的别名。\n可选用参数 @path 指定 WMI 路径，默认为 `\root\cimv2`。
+com.wmi.queryNotificationAsync(.(objSink,wql,parameters,path) =  参数 @objSink 可指定包含了回调事件的表对象或 com.wmi.sink 对象。\n参数 @wql 指定 WQL 查询语句。\n可选参数 @parameters 可使用一个表对象指定 WQL 参数值。\n- 表中的命名值指定 WQL 语句中 `@`号 开头的命名参数值。\n- 表中的数组值指定 WQL 语句中以 `?` 号为占位符的数组参数的值。\n可选用参数 @path 指定 WMI 路径,默认为 `\root\cimv2`。
+
+
+com.wmi.each(wqlOrObject,parameters,path) =  @for index,item in com.wmi.each("__/*遍历参数  @wqlOrObject 指定的 WMI 对象。\n参数 @wqlOrObject 也可以指定 WQL 查询语句或 WMI 类名。\n可选用参数 @path 指定 WMI 路径，默认为 `\root\cimv2`\n\n可选用参数 @parameters 指定包含 WQL 参数值的表对象，\n包含 WQL 语句中 `@` 号开头的命名参数值或以 `?` 号为占位符的匿名参数值（数组成员） */") {
 	
 }
-com.wmi.eachNotification(wql,path,->->->) =  @for event,targetInstance in com.wmi.eachNotification("__/*遍历 WMI 查询事件通知，同步阻塞执行。\n可输入WQL查询语句或类名\n可选用参数@2指定 WMI 路径,默认为 "\root\cimv2"\n\n可选用参数@3及后续参数指定格式化参数,\n如果格式化参数是表,则可省略 @path 且不用保留参数位置,\n参数表可格式化 @号 开头的命名参数或以 ? 号为占位符的匿名参数,\n如果参数不是一个表,则调用 string.format 格式化*/") {
+
+com.wmi.eachNotification(wqlOrObject,parameters,path) =  @for event,targetInstance  in com.wmi.eachNotification("__/*遍历参数  @wqlOrObject 指定的查询事件通知，同步阻塞执行。\n参数 @wqlOrObject 也可以输入 WQL 查询语句或 WMI 类名。\n可选用参数 @path 指定 WMI 路径，默认为 `\root\cimv2`\n\n可选用参数 @parameters 指定包含 WQL 参数值的表对象，\n包含 WQL 语句中 `@` 号开头的命名参数值或以 `?` 号为占位符的匿名参数值（数组成员） */") {
 	
 }
-com.wmi.eachProperties(wql,path,->->->) =  @for item in com.wmi.eachProperties("__/*遍历 WMI 对象的属性表,\n可输入WQL查询语句或类名\n可选用参数@2指定 WMI 路径,默认为 "\root\cimv2"\n\n可选用参数@3及后续参数指定格式化参数,\n如果格式化参数是表,则可省略 @path 且不用保留参数位置,\n参数表可格式化 @号 开头的命名参数或以 ? 号为占位符的匿名参数,\n如果参数不是一个表,则调用 string.format 格式化*/") {
+
+com.wmi.eachProperties(wqlOrObject,parameters,path) =  @for item,index in com.wmi.eachProperties("__/*遍历参数  @wqlOrObject 指定的 WMI 对象的属性表。\n参数 @wqlOrObject 也可以输入 WQL 查询语句或 WMI 类名。\n可选用参数 @path 指定 WMI 路径，默认为 `\root\cimv2`\n\n可选用参数 @parameters 指定包含 WQL 参数值的表对象，\n包含 WQL 语句中 `@` 号开头的命名参数值或以 `?` 号为占位符的匿名参数值（数组成员） */") {
 	
-} 
-com.wmi.getTable(.(wql,path,->->->) =  查询并返回包含所有返回 WMI 对象的属性表的数组\n @wql 参数可输入WQL查询语句或类名,\n可选用参数@path 指定 WMI 路径,默认为 "\root\cimv2"\n\n可选用参数@3及后续参数指定格式化参数,\n如果格式化参数是表,则可省略 @path 且不用保留参数位置,\n参数表可格式化 @号 开头的命名参数或以 ? 号为占位符的匿名参数,\n如果参数不是一个表,则调用 string.format 格式化
+}
+
 com.wmi.formatWqlParameters(  = 格式化参数 @1 指定的 WQL 语句,\ncom.wmi.query 等函数调用此函数格式化 WQL 语句
 com.wmi.formatWqlParameters(.(wql,->->->) = 格式化参数 @1 指定的 WQL 语句,\n参数@2及后续参数指定格式化参数,\n支持 @号 开头的命名参数或以 ? 号为占位符的匿名参数,\n如果参数不是一个表,则调用 string.format 格式化
 com.wmi.each() = !SWbemObject.

@@ -12,31 +12,50 @@ aardio 提供以下库或函数用于检测输入法与键盘状态：
 
 我们先了解两个用于表示输入法状态的变量：  
 
-- opened: 活动窗口收到 WM_IME_CONTROL,IMC_GETOPENSTATUS 消息返回的值。
-- convMode: 活动窗口收到 WM_IME_CONTROL,IMC_GETCONVERSIONMODE 消息返回的值。
+- opened: 
 
-opened 用于表示当前是否打开输入法。  
-convMode 则用于指示输入法的转换模式（中、英、标点符号、全角、半角等）。
+	活动窗口收到 WM_IME_CONTROL, IMC_GETOPENSTATUS 消息返回的值。 用于表示当前是否打开中日韩等输入法。  
+- convMode: 
 
-基本规则：
+	活动窗口收到 WM_IME_CONTROL, IMC_GETCONVERSIONMODE 消息返回的值。用于指示输入法的转换模式（中、英、标点符号、全角、半角等）。
 
-- 输入法打开时，opened 应返回非零值（ 1 ），输入法关闭时 opened 则应返回 0 。输入法打开但是切换到英模式文时 opened 应当仍然返回 1，但 convMode 应当返回 0（IME_CMODE_ALPHANUMERIC）。
-- 输入法关闭时，opened 应当返回 0。
-但 convMode 可能等于 1（IME_CMODE_NATIVE），也可能等于 0（IME_CMODE_ALPHANUMERIC） 。
-对于中文输入法，只有 OpenStatus 为 1 并且 convMode & IME_CMODE_NATIVE 才表示中文输入状态。
-- 中文输入法打开以后，无论中英输入模式，键盘布局（ HKL ）的语言 ID 都应是 0x804， 这与操作系统输入法设置中，中文输入法只能自中文键盘中添加的规则一致。有些老旧的输入法会强行添加「简体中文美式键盘」，这是不妥的，安装这种输入法会导致输入状态与键盘布局错乱。实际上 Windows 10 开始已经移除了这个键盘，应改为「英文美式键盘」。
-- convMode  & 0/*IME_CMODE_ALPHANUMERI*/ 表示默认英文字母数字输入模式
-- opened 为 1 时，convMode  & 1/*IME_CMODE_NATIVE*/ 表示打开输入法，IME_CMODE_NATIVE 还有 IME_CMODE_CHINESE，IME_CMODE_JAPANESE，IME_CMODE_HANGUL 等别名。
-- opened 为 1 并且 onvMode  & 1/*IME_CMODE_NATIVE*/ 时，convMode  & 2/*IME_CMODE_KATAKANA*/ 表示日文片假名输入模式。
-- convMode  & 0x100/*IME_CMODE_NOCONVERSION*/ 表示关闭输入法，这时候即使 opened 为 1 仍然表示关闭输入法。这种用法比较罕见。
-- opened 为 1 并且 convMode  & 0x400/*IME_CMODE_SYMBOL*/ 为中文标点模式。
-- convMode & 8/*IME_CMODE_FULLSHAPE*/ 为英文全角标点。
+
+**1. 基本规则：**
+
+- 输入法打开时，opened 应返回非零值（ 1 ），输入法关闭时 opened 则应返回 0 。打开中日韩等输入法但仍属于英文输入模式则 opened 应当仍然返回 1，但 convMode 应当返回 `0/*_IME_CMODE_ALPHANUMERIC*/`。
+- 中日韩等输入法关闭时，opened 应当返回 0。但 convMode 可能等于 1（IME_CMODE_NATIVE），也可能等于 0（IME_CMODE_ALPHANUMERIC） 。
+
+	> 例如对于中文输入法，只有 OpenStatus 为 1 并且 `convMode & IME_CMODE_NATIVE` 才表示中文输入状态。
+
+**2. 中日韩文输入模式：**
+
+`convMode & 1/*_IME_CMODE_NATIVE*/` 表示开启中日韩文输入模式。_IME_CMODE_NATIVE 还有 _IME_CMODE_CHINESE，_IME_CMODE_JAPANESE，_IME_CMODE_HANGUL 等别名。如果没有这个标志位则表示 `0/*_IME_CMODE_ALPHANUMERIC*/` 这个标志位有效，也就是仍为英文输入模式。
+
+开启中日韩文输入模式后：
+
+- 如果同时 `convMode  & 2/*IME_CMODE_KATAKANA*/` 表示日文片假名输入模式。
+- 如果同时 `convMode  & 0x400/*IME_CMODE_SYMBOL*/` 表示中文标点模式。
+- `convMode  & 0x100/*IME_CMODE_NOCONVERSION*/ `表示关闭输入法，这时候即使 opened 为 1 仍然表示关闭输入法（ 英文输入模式 ）。这种用法比较罕见。 
+
+**3. 英文标点全半角状态：**
+- `convMode & 8/*IME_CMODE_FULLSHAPE*/` 为英文全角标点,反之则为英文半角状态。
 
 convMode 还有一些其他状态，中文输入法一般用不到。
 
+**4. 键盘布局语言：**
+
+如果键盘布局返回错误的语言 ID，则检测到的输入法状态也会是错误的。中文输入法打开以后，无论中英输入模式，键盘布局（ HKL ）的语言 ID 都应是 0x804， 这与操作系统输入法设置中，中文输入法只能自中文键盘中添加的规则一致。
+
+有些老旧的输入法会强行添加「简体中文美式键盘」，这是不妥的，安装这种输入法会导致输入状态与键盘布局错乱。实际上 Windows 10 开始已经移除了这个键盘，应改为「英文美式键盘」。
+
+
+<svg width="800" height="750">
+  <image xlink:href="https://www.aardio.com/zh-cn/doc/images/imtip.svg" src="https://www.aardio.com/zh-cn/doc/images/imtip.png" width="800" height="750"/>
+</svg>
+
 [ImTip 检测输入法的实现源码](#key-ime-state)
 
-## 二、输入法兼容性
+## 二、输入法状态检测兼容性
 
 - 操作系统自带的所有微软输入法都返回了正确的状态，与 ImTip 可以完美兼容。
 - 第三方输入法的实现各异，但在 [ImTip](https://imtip.aardio.com) 发布后主流输入法大多兼容了上述规则。

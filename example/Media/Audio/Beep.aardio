@@ -1,0 +1,27 @@
+//峰鸣器奏乐
+import sys.midiOut
+
+//将乐谱转换为频率数据
+var frequencyData = sys.midiOut.parseNotesToFrequency("
+	1__,2__,3__,1__
+	1__,2__,3__,1__
+	3__,4__,5__,__
+	3__,4__,5__,__
+	5_,6_,5_,4_,3__,1__
+	5_,6_,5_,4_,3__,1__
+	2__,'5__,1__,__
+","C4"/* 1=C */,250/* ♩=120 */)
+
+for(i,item in frequencyData){
+	//播放峰鸣声，Win7 以及之后系统使用默认声音设备（通常是声卡），早期系统使用主板峰鸣器。
+	::Kernel32.Beep(item.freq,item.duration);
+}
+ 
+//转换为代码
+var code = string.join(
+	table.map(frequencyData,lambda (v) "::Kernel32.Beep((" +v.freq + "," + v.duration + ");"),'\n'
+);
+print(code);
+
+//播放系统注册表预设的波形声音
+::User32.MessageBeep(0x30/*_MB_ICONWARNING*/)

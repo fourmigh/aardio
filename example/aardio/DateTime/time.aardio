@@ -35,8 +35,7 @@ console.log( time("2017-05-27T16:56:01Z") )
 
 解析时如果输入文本提前结束，但解析时间未完成则返回 null 。
 最后一个格式化标记解析成功以后如果还有剩余的字符串，
-首先跳过前面的空白字符，从前面取其他连续的非空白字符存入时间对象的endstr属性内。
-endstr可用于后续解析iso8601等格式的时区。 
+首先跳过前面的空白字符，其他尾部多余的字符存入时间对象的 endstr 属性内。 
 
 */
 var tm = time(str,"%Y年%m月%d日 %H时%M分%S秒","chs")
@@ -68,9 +67,15 @@ console.log( tm2.diffminute(tm) ,"相差分钟数")
 console.log( tm2.diffsecond(tm) ,"相差秒数")
 console.log( tonumber(tm) - tonumber(tm2) ,"相差秒数,作用同上")
 
+/*
+时间对象支持字符串连接操作符 ++，左右操作数都会转换字符串进行连接。
+如果其中一个操作数是 null 值，则等价于将时间对象与空字符串（ "" ）连接。
+*/
+console.log( "时间值" ++ tm2  )
+
 console.log('\n关系运算符,相等、不等')
 console.log( "tm2==tm", tm2 == tm  )
-console.log( "time.now()== time.now()", time.now()== time.now() )
+console.log( "time.now()== time.now()", time.now() == time.now() )
 
 console.log('\n关系运算符,大于、小于')
 console.log( "tm2>tm", tm2 > tm  )
@@ -81,30 +86,31 @@ console.log( "tm2 <= tm", tm2 <= tm  )
 console.log( "time.now() <= time.now()", time.now() <= time.now() )
 
 /*
-time.gmt() 创建一个time对象,并且设置HTTP协议协容的GMT时间格式,并将该对象的格式化语言设为英文
+time.gmt() 创建一个 time 对象,并且设置 HTTP 协议协容的 GMT 时间格式,并将该对象的格式化语言设为英文
 */
 console.log( time.gmt() )
-console.log( time.gmt( tm2.utc() ) ); //参数是其他time对象时,必须先转换为UTC时间
+console.log( time.gmt( tm2.utc() ) ); //参数是其他 time 对象时,必须先转换为 UTC 时间
 
-//HTTP时间RFC 1123格式，写错了空格这些自动修正
+//HTTP 时间RFC 1123 格式，写错了空格这些自动修正
 console.log(time.gmt("Sun,07Feb2016 081122 +7"))
 
 //兼容HTTP时间RFC 850格式，星期写错了自动修正
 console.log(time.gmt("Sunddddday, 07-Feb-16 08:11:22 +0700"))
 
-//支持iso8601省略分隔符的格式
+//支持 ISO8601 省略分隔符的格式
 console.log(time.iso8601("20170822 123623 +0700"))
 
-//支持iso8601省略分隔符的格式
+//支持 ISO8601 省略分隔符的格式
 console.log(time.iso8601("20170822 123623 +7"))
 
-//兼容iso8601省略分隔符的写法
+//兼容 ISO8601 省略分隔符的写法
 console.log(time("20170822 123623"))
 
-//省略分隔符的写法 14位数字
+//省略分隔符的写法 14 位数字
 console.log(time("20170822123623"))
 
-//省略分隔符的写法 12位数字
+//省略分隔符的写法 12 位数字
 console.log(time("170822123623"))
 
 console.pause()
+ 

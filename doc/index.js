@@ -13,12 +13,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 lookbehind: true
             },
             {
-                pattern: /(^|[^.]|\.\.\.\s*)\b(true|begin|end|false|true|if|lambda|λ|else|elseif|class|function|return|while|do|namespace|select|case|catch|try|for|in|this|global|self|owner|var|def|null|and|not|or|break|continue|import|with|ctor|try|catch|eval|import|type|assert|assertf|error|rget|callex|errput|loadcode|dumpcode|collectgarbage|call|invoke|tostring|topointer|tonumber|sleep|execute|setlocale|setprivilege|loadcodex|reduce)\b/,
+                pattern: /(^|[^.]|\.\.\.\s*)\b(true|begin|end|false|true|if|lambda|λ|else|elseif|class|function|return|while|do|namespace|select|case|catch|try|for|in|this|global|self|owner|var|def|null|and|not|or|break|continue|import|with|ctor|try|catch|eval|import|type|assert|assertf|error|rget|callex|errput|loadcode|dumpcode|collectgarbage|call|invoke|tostring|topointer|tonumber|sleep|execute|setlocale|setprivilege|loadcodex|reduce|switch)\b/,
                 lookbehind: true
             },
         ],
         'string': {
-            pattern: /"(?:[^"])*"|`(?:[^"])*`|'(?:[^'\\]|\\.)*'/,
+            pattern: /"(?:[^"]|"")*"|`(?:[^`]|``)*`|'(?:[^'\\]|\\.)*'/,
             greedy: true
         },
         'function': /(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*\()/,
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 inside: Prism.languages.aardio
             },
             {
-                pattern: /((?:\b|\s|^)(?!(?:true|begin|end|false|true|if|lambda|λ|else|elseif|class|function|return|while|do|namespace|select|case|catch|try|for|in|this|global|self|owner|var|def|null|and|not|or|break|continue|import|with|ctor|try|catch|eval|import|type|assert|assertf|error|rget|callex|errput|loadcode|dumpcode|collectgarbage|call|invoke|tostring|topointer|tonumber|sleep|execute|setlocale|setprivilege|loadcodex|reduce)(?![$\w\xA0-\uFFFF]))(?:(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*\s*)\(\s*|\]\s*\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\)\s*\{)/,
+                pattern: /((?:\b|\s|^)(?!(?:true|begin|end|false|true|if|lambda|λ|else|elseif|class|function|return|while|do|namespace|select|case|catch|try|for|in|this|global|self|owner|var|def|null|and|not|or|break|continue|import|with|ctor|try|catch|eval|import|type|assert|assertf|error|rget|callex|errput|loadcode|dumpcode|collectgarbage|call|invoke|tostring|topointer|tonumber|sleep|execute|setlocale|setprivilege|loadcodex|reduce|switch)(?![$\w\xA0-\uFFFF]))(?:(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*\s*)\(\s*|\]\s*\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\)\s*\{)/,
                 lookbehind: true,
                 inside: Prism.languages.aardio
             }

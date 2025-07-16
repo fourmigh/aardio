@@ -62,7 +62,7 @@ namespace ..LOGFONT {
 			owner.stripPoint(hdcIn,hwnd);
 		}
 		else { 
-			owner.h = -(..math.abs(owner.h)); 
+			owner.h = -(..math.abs(owner.size||owner.h)); 
 		}
 			
 		var handle = ::CreateFontIndirect( owner );
@@ -738,7 +738,7 @@ argbReverse(__/*颜色数值*/) = RGB 颜色数值转 ARGB 颜色数值,\nRGB �
 getRgb(__/*RGB颜色数值*/) = 此函数返回R(红),G（绿）,B（蓝）三个分量。\n函数名由 "get R,G,B " 组合而成，表示三个返回值的顺序。\n\n参数 @1 指定 RGB 颜色数值。\nRGB 颜色值一般用于GDI，传统控件。\nRGB 颜色值存储格式用字符串表示为 '\xRR\xGG\xBB'，\n用结构体表示  { BYTE r;BYTE g;BYTE b; } \n数值虽然也是低位存储在前（小端字节序），但书写数值时是高位在前，\n所以RGB 颜色数值写为 0xBBGGRR，这不叫『写反了』。\n纠结这个正反顺序，就好比纠结『东西』为什么不叫『西东』一样毫无意义
 getRgba(__/*ARGB颜色数值*/) = 返回R(红),G（绿）,B（蓝),A（透明度) 4个分量\n函数名由 "get R,G,B,A " 组合而成，表示四个返回值的顺序\n表示 Alpha 值的 A 分量范围为 0~0xFF，0 为完全透明。\n\nARGB 颜色值一般用于 GDI+,plus 控件等\nARGB 值内存格式用字符串表示就是 '\xBB\xGG\xRR\xAA'。\n用结构体表示就是 { BYTE b;BYTE g;BYTE r;BYTE a; }\n数值的书写顺序是反过来的，所以写为 0xAARRGGBB 。\n\n那么为什么叫 ARGB 颜色值，而不是 BGRA 颜色值呢？\n一定要找个理由就是念着顺口，GDI+ 头文件就是这样命名，约定俗成就是规则。\n纠结这个正反顺序，就好比纠结『东西』为什么不叫『西东』一样毫无意义
 colorParse(.("#FFFFFF") = 解析网页兼容的颜色代码\n支持 #RGB,#RRGGBB,#RRGGBBAA 三种格式,#号可省略,\n#RGB,#RRGGBB 返回 GDI 兼容的RGB值\n#RRGGBBAA 返回 GDI+ 兼容的 ARGB 格式颜色值\n失败返回null
-colorStringify(.(颜色数值,是否ARGB格式) = 生成网页兼容的文本\n如果是 ARGB 数值，返回 #RRGGBBAA 格式字符串\n#RRGGBBAA 可用于 HTMLayout,Sciter,以及新版的 Chrome 也可以支持
+colorStringify(.(颜色数值,是否ARGB格式) = 生成网页兼容的文本\n如果是 ARGB 数值，返回 #RRGGBBAA 格式字符串。
 selectBrush(callback,hdc,bgolor,color,width,style) = @.selectBrush(\n	function(hdc,pen,brush){\n		\n		::FillRect(hdc,::RECT(0,0,100,100),brush);\n		\n		var font = ::LOGFONT(weight=800;color=0x000000);\n		gdi.textOut(hdc,font,"TEST",0,0);\n			\n		__/*在指定绘图设备hdc选择新的笔刷和画笔\n参数bgolor指定笔刷颜色,参数color指定画笔颜色,如果不指定color则不创建画笔,\n注意GDI使用RGB格式的颜色值,用16进制数值可写为0xBBGGRR格式,\nwidth为可选参数用于指定画笔宽度,style为可选参数用于指定画笔样式\n回调参数中brush为新的笔刷,如果指定了color参数则回调参数pen为新的画笔\n此函数在回调函数执行完以后负责销毁笔刷、画笔并复原绘图设备*/\n	},hdc,0xFFFFFF,0x000000)
 selectPen(callback,hdc,color,width,style) = @.selectPen(\n	function(hdc,pen){\n		\n		gdi.drawLine(hdc,0,0,100,100)__/*在指定绘图设备hdc选择新的画笔,参数color指定画笔颜色,\n注意GDI使用RGB格式的颜色值,用16进制数值可写为0xBBGGRR格式,\nwidth为可选参数用于指定画笔宽度,style为可选参数用于指定画笔样式\n回调参数中pen为新的画笔\n此函数在回调函数执行完以后负责销毁画笔并复原绘图设备*/\n	},hdc,0xFFFFFF,0x000000)
 textOut(.(hdc,font,str,x,y) = 输出文本\nhdc参数指定绘图设备句柄,font参数指定LOGFONT字体对象,\n可选参数x,y指定输出坐标

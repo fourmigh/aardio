@@ -1,0 +1,31 @@
+//窗口事件 - 激活应用程序
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="onActivateApp 事件";right=412;bottom=198)
+winform.add(
+static={cls="static";left=23;top=63;right=360;bottom=146;ransparent=1;z=1}
+)
+/*}}*/
+
+import win.timer;
+var timer = win.timer( winform );
+timer.onTimer = function(hwnd,msg,id,tick){
+	winform.static.text = time();
+} 
+
+//应用程序得到或失去焦点时触发此事件
+winform.onActivateApp = function(activated,previousThreadId){
+	if(activated){
+		//用户切换到当前程序
+		timer.enable(1000)
+		winform.static.text = "用户正在当前软件窗口上操作"
+	}
+	else{
+		//用户切换到其他软件，当前程序失去焦点。
+		timer.disable()
+		winform.static.text = "已暂停，用户已切换到其他软件"
+	}
+}
+
+winform.show();
+win.loopMessage();

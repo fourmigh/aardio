@@ -1,5 +1,5 @@
 //log 日志文件
-import web.json;
+import JSON;
 import util.table;
 import process.mutex;
 
@@ -81,7 +81,7 @@ class log{
 			var file = ..io.file(this.path,"a+t");
 			
 			for(i=1;#args;1){ 
-				if( type(args[i]) == type.table ) file.write( ..web.json.stringify(args[i],#args==1),'\t')
+				if( type(args[i]) == type.table ) file.write( ..JSON.stringify(args[i],#args==1),'\t')
 				else file.write( tostring(args[i]),'\t')
 			}
 			file.write('\n');

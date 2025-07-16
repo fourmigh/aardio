@@ -35,7 +35,7 @@ console.pause();
 
 我们遇到的很多需要解析的文本都以是行为单位的。
 
-最常见的例如 CSV 格式，CSV 格式可以用 aardio 标准库中的 [string.database](../../../library-reference/string/database.md) 解析。
+最常见的例如 CSV 格式，CSV 格式可以用 aardio 标准库中的 [string.csv](../../../library-reference/string/csv.md) 解析。
 
 但是我们还会遇到很多其他格式的分行文本，这时候我们可以使用 string.lines 函数进行解析。
 
@@ -58,7 +58,7 @@ string.lines 实际上相当于调用并增强了 [splitEx](part.md#splitEx) 的
 
 - 模式串尾部有 `$` 符号，则捕获组放到上个拆分结果尾部。
 - 模式串头部有 `^` 符号，则捕获组放到下个拆分结果头部。
-- 模式串头部有 `^` 符号并且尾部有 `$` 符号， 则捕获组将由迭代器返回为单独的拆分结果，紧随其后的第二个返回值为 true 以表明该拆分结果是一个分隔符。调用代码格式为  `for line,isSeparator in string.lines(str,"^(分隔符)$"){ }` 这个特性被用于实现文本分句的 [string.sentences 库](../../../library-reference/string/sentences.md)。
+- 模式串头部有 `^` 符号并且尾部有 `$` 符号， 则捕获组将由迭代器返回为单独的拆分结果，紧随其后的第二个返回值为 true 以表明该拆分结果是一个分隔符。调用代码格式为  `for line,isSeparator in string.lines(str,"^(分隔符)$"){ }`。 这个特性被用于实现文本分句的 [string.sentences 库](../../../library-reference/string/sentences.md)。
 
 下面看一个简单的调用示例：
 
@@ -104,13 +104,17 @@ var array = table.array( , string.lines(str,,",") )
 属性名1: 属性值1
 属性名2: 属性值2
 属性名3: 属性值3
+array[]: 数组项1
+array[]: 数组项2
+array[]: 数组项3
 ```
 
 格式说明：
 
 - 每行为一个单位，属性值不能跨行，引号等仅作为字面值解析。
 - 名值对之间用 `:` 或 `=` 分隔，忽略分隔等前后的空白字符。
-- 某些程序里允许在行首用 `#` 标明一个需要被忽略的注释。 
+- 键名后可用空下标表示添加值到数组。
+- 某些程序里允许在行首用 `#` 或  `;` 标明一个需要被忽略的注释。 
 
 aardio 提供了 string.table 用于快速解析这样的文本并返回一个表对象。
 
@@ -123,6 +127,9 @@ var str = "
 属性名1: 属性值1
 属性名2: 属性值2
 属性名3: 属性值3
+array[]: 数组项1
+array[]: 数组项2
+array[]: 数组项3
 "
 
 //解析为表对象
@@ -137,29 +144,61 @@ console.pause();
 string.table 的函数原型为：
 
 ```aardio
-string.table(str,nameValueSeparator,lineDelimiter,commentChar) 
+string.table(str,nameValueSeparator,lineDelimiter,inlineComment) 
 ```
 
 除了第一个参数，其他参数都是可选的。  
-参数 nameValueSeparator 用于指定键值分隔符，已默认指定为 `\s*[\:=]\s*` 。  
-参数 lineDelimiter 用于指定识别行分隔符的模式串，已默认指定为 `<\r*\n>|\r` 。  
-参数 commentChar 指定行首注释符，这个参数仅支持字节码。默认未指定。如果指定为 `'#'#` 表示以 `#` 置于行首时则忽略该行。
+可选参数 nameValueSeparator 用于指定键值分隔符，已默认指定为 `\s*[\:=]\s*` 。  
+可选参数 lineDelimiter 用于指定识别行分隔符的模式串，已默认指定为 `<\r*\n>|\r` 。  
+可选参数 inlineComment 为 true 时允许在键值对后面以空白字符加 `#` 或  `;` 引导行内注释。
 
-string.table 仅支持以行为单位的字符串属性表。而标准库 string.list 则允许在属性值中用引号包含跨行的引用段，以及更多其他特性。
+string.table 仅支持以行为单位的字符串属性表。而标准库 [string.list](../../../library-reference/string/list.md)  则允许在属性值中用引号包含跨行的引用段（用引号或括号等包围的字符串值），以及更多其他特性。
 
-参考：
+实际上字符串属性表就是 INI 文件里的一个小节内部的格式。
+aardio 仅需数句代码就可以实现解析 INI 文件格式的功能，示例：<a id="ini" href="#ini">&#x23;</a>
 
-- [string.list 库参考](../../../library-reference/string/list.md)
 
-- [string.list 范例](../../../example/Text/list.aardio)
+```aardio
+var str  = /*
+; 这是注释
+[小节名]
+键 = 值
+数组[] = 数组值
+数组[] = 数组值2
+
+[.子节]
+键 = 值
+
+[小节名.子节2]
+键2 = 值2
+*/
+
+var tab = {}
+  
+var sectionName="";
+for line,isSectionName in string.lines(str,"^!\N\s*\[\s*(\N+?)\s*\]\s*<[#;]\N*>? *!\n$"){
+	if(isSectionName){ 
+		sectionName = line[1]=='.'#? (sectionName++line) : line;
+	}
+	elseif(#sectionName){
+		var section = string.table(line);
+		table.setByNamespace(sectionName,section,tab); 
+	}  
+} 
+	
+import console.int;
+console.dumpJson(tab)
+```
+
+以上就是标准库 [string.ini](../../../library-reference/string/ini.md)  解析 INI 文件的主要代码。
 
 ## 四、解析更多文本格式
 
 aardio 解析文本非常方便，标准库提供了很多解析各种格式的库，代码量都很少。
 
-- [web.json 库参考](../../../library-reference/web/json.md) JSON 格式。
+- [JSON 库参考](../../../library-reference/JSON/_.md) JSON 格式。
 
-- [string.database 库参考](../../../library-reference/string/database.md) CSV 格式。
+- [string.csv 库参考](../../../library-reference/string/csv.md) CSV 格式。
 
 - [string.xml 库参考](../../../library-reference/string/xml.md)  XML 格式。
 

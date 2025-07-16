@@ -1,28 +1,38 @@
-//控制台程序范例 - 自定义颜色
+//控制台程序范例 - 自定义颜色。
 
 import console;
 console.setTitle("自定义控制台颜色");
 
-//修改整个控制台的颜色
+/*
+临时修改输出文本的颜色，输出后恢复原来的颜色。
+颜色参数可指定 console.color 名字空间的颜色数值或颜色名称。
+*/
+console.writeColorText("文本","yellow","darkGray");
+
+//修改整个控制台窗口的颜色
 for(name,clr in console.color){
+	
+	//颜色参数可指定 console.color 名字空间的颜色数值或颜色名称。
 	console.setColor(0xF-clr, clr); 
     console.log("来来我是一个菠菜",name);
     sleep(100); 
 } 
 
 console.setColor();
-console.pause();
+console.more();
 
-//仅修改文本区的前景色与背景色
+//仅修改文本区的文本颜色与背景色。
 for(name,clr  in console.color){
-	console.setTextAttribute(0xF-clr, clr); 
+	
+	//颜色参数可指定 console.color 名字空间的颜色数值或颜色名称。
+	console.setTextColor(0xF-clr, clr); 
     console.log("来来我是一个菠菜",name);
     sleep(100);	
-
 } 
-console.setTextAttribute();
 
-//仅修改输出文本的颜色，并且恢复默认之前的颜色。
-console.writeColorText("文本",console.color.yellow,console.color.darkGray);
+//恢复默认颜色
+console.setTextColor();
+
+
  
 console.pause();

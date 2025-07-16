@@ -171,7 +171,7 @@ class grid{
 }
 
 /**intellisense()
-win.ui.grid(__) = 参数必须指定一个listview控件对象\n返回一个可编辑单元格的列表视图对象,\n\n鼠标左键单击单元格、或者按空格键开始编辑,\n回车完成编辑,ESC键撤消编辑,回车+上下方向键快速移动到其他项,\n用户完成编辑后会触发onEditChanged事件.\n!listview.
+win.ui.grid(__) = 参数必须指定一个 listview 控件对象。\n返回一个可编辑单元格的列表视图对象，返回对象继承了 listview 控件的所有属性与方法。\n\n鼠标左键单击单元格、或者按<kbd>空格键</kbd>开始编辑,\n按<kbd>回车</kbd>完成编辑,<kbd>ESC</kbd> 键撤消编辑,<kbd>回车+上下方向键</kbd>快速移动到其他项,\n用户完成编辑后会触发onEditChanged事件.\n!listview.
 win.ui.grid() = !win_ui_grid.
 !win_ui_grid.editBox = 实现编辑功能的edit控件\n此功能需要扩展listview并实现了编辑功能的的控件才能支持\n!edit.
 !win_ui_grid.onEditChanged(text,iItem,iSubItem) = @.onEditChanged = function(text,iItem,iSubItem){
@@ -187,6 +187,7 @@ win.ui.grid() = !win_ui_grid.
 !win_ui_grid.setTable( = 用 listview 控件显示数据表（包含名值对的对象或数组组成的数组）。\n此函数会自动清空控件之前的所有项。\n如果没有创建任何列，则自动创建标题列。\n如果要重新创建列，请先调用 clear 函数并指定参数为 true 以清空原来的列。
 !win_ui_grid.setTable(.(dataTable) =  参数 @dataTable 指定要加载的数据表。\n数据表应当包含行组成的数组。\n数据行可以是数组，也可以是名值，值用 tostring 转为文本显示。\n可选通过数据表的 fields 字段指定要显示的索引数组（键名或索引数值）。\n\n如果视图控件的标题列为空，则用显示键名（或数组值）创建标题列。\n如果数据行为数组，第一行填充到标题列以后，默认从第二行加载数据。\n\n可用 startIndex 属性或元属性自定义要加载的起始行。\n可用 length 属性自定义要加载的行数，默认加载所有行。\n\nsqlite,access,sqlServer 等数据库对象，\n提供的 getTable 函数可获取通过 fields 字段指定列名数组的数据表。
 !win_ui_grid.getTable(__) = 返回数据表。\n如果参数 @1 指定列名数组（被复制为返回表的 fields 字段），\n则返回的每行数据都是名值对，否则返回的每行数据都是文本数组。\n\n如果参数 @1 为 true，则返回的文本数组第一行为列标题文本数组。
+!win_ui_grid.columns = 读取或设置所有的列。\n值为由所有列配置信息的数组，每个列的配置也是一个数组。\n表示单个列的数组格式为 `[标题,列宽,对齐格式]`,\n写入列配置时对齐格式可省略。
 !win_ui_grid.setColumns(__) = 用一个字符串数组指定要显示的列\n如果参数为空则清空所有列
 !win_ui_grid.setReadonlyColumns(__) = 可以使用一个或多个参数指定要禁止编辑的列序号，\n也可以用一个数组参数指定多个列序号。\n\n如果参数为 -1，则禁止编辑所有列
 !win_ui_grid.setColumnText(.(位置,文本) = 设置指定列文本
@@ -199,6 +200,19 @@ win.ui.grid() = !win_ui_grid.
 !win_ui_grid.clear() = 清空所有行
 !win_ui_grid.clear(true) = 清空所有行,并且清空所有列
 !win_ui_grid.beginEdit(.(行,列) = 切换到编辑状态
+
+!win_ui_grid.selected = 获取或设置所有选中项，这是包含所有选中的项目行索引的数组。\n设为 null 或空表清除所有选中项。\n\n也可以使用 eachSelected 方法创建迭代器并且 for in 循环遍历所有选中项。
+!win_ui_grid.setSelected(__/*项索引*/) = 选中项,注意是选中列表项而不是勾选复选框
+!win_ui_grid.setSelected(__/*项索引*/,false) = 取消选中项,注意是选中而不是勾选复选框
+!win_ui_grid.getSelected(__/*项索引*/) = 指定项是否选中状态
+
+!win_ui_grid.each(起始索引,选项) = @for itemIndex in ??.each(){
+	__/*遍历所有项*/
+}
+!win_ui_grid.eachSelected(col) = @for item,value in ??.eachSelected(){
+	__/*从后向前倒序遍历所有选中项,\n迭代变量 item 为选中项目的行号。\n迭代变量 value 为  @col 参数所指定列的文本值\n@col 参数省略则默认为1。\n\n也可以使用 listview 控件的 selected 属性直接返回所有已选中的行号。*/
+}
+
 !win_ui_grid.onGetDispItem = @.onGetDispItem = function(item,row,col){
 	__/*处理 _LVN_GETDISPINFOW 通知消息\n参数 @item 为 LVITEM 结构体,@row 为当前行号,@col 为当前列号,\n返回 item 或包含 item 部分字段则更新 LVITEM 结构体*/
 	return {text="要显示的文本"}; 

@@ -275,10 +275,10 @@ clear() = 清除
 delete() = 删除
 formula = 公式，例如 "=$A$4+$A$10__" 
 Text =  获取或设置单元格集合的文本
-Value2 = 获取或设置单元格集合的值。\n一般应当用 Value2 而不是 Value，\n原因请查看：范例 / COM 组件 / Excel / 带能数属性。
+Value2 = 获取或设置单元格集合的值。\n一般应当用 Value2 而不是 Value，\n原因请查看：范例 » COM 组件 » Excel » 带能数属性。
 ? = 可在这里输入此对象提供的所有方法、属性。\n智能提示看不到，只要文档里有都可以使用。\n这个数量太大了 aardio 没办法都做进来。
-getValue2() = 读单元格值。\n一般应当用 getValue2 而不是 getValue，\n原因请查看：范例 / COM 组件 / Excel / 带能数属性。
-setValue2(__/*新值*/) = 写单元格值。\n一般应当用 setValue2 而不是 setValue，\n原因请查看：范例 / COM 组件 / Excel / 带能数属性。
+getValue2() = 读单元格值。\n一般应当用 getValue2 而不是 getValue，\n原因请查看：范例 » COM 组件 » Excel » 带能数属性。
+setValue2(__/*新值*/) = 写单元格值。\n一般应当用 setValue2 而不是 setValue，\n原因请查看：范例 » COM 组件 » Excel » 带参数属性。
 end intellisense*****/
 
 //@ENDDOCUMENT@//

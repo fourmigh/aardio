@@ -1,0 +1,321 @@
+﻿//pie 饼图/甜甜圈图
+namespace gdip.chart;
+
+class pie {
+    ctor(plusCtrl){
+
+        if(!plusCtrl[["hwnd"]]){
+            error("参数 @1 必须指定 plus 控件对象",2);
+        }
+
+        plusCtrl.onDrawContent = function(graphics,rc,txtColor,rcContent,foreColor,font){
+
+            var dataset = this.dataset;
+            if(!#dataset[["data"]]) {
+                return; 
+            }
+
+            var data = dataset.data;
+            var labels = dataset.labels : [];
+            var colors = dataset.colors : [0xFF3498DB,0xFF2ECC71,0xFFE74C3C,0xFFF1C40F,0xFF9B59B6, 0xFF8E44AD];
+
+            // 计算总值
+            var totalValue = 0;
+            for(i=1;#data;1){
+                totalValue += data[i];
+            }
+
+            if(totalValue <= 0){
+                return; // 没有有效数据则不绘制
+            }
+
+            // 获取 DPI 缩放像素大小
+            var dpiScaleX1,dpiScaleY1 = plusCtrl.dpiScale(1,1);
+
+            var brushBgChart = ..gdip.solidBrush(foreColor);
+            var textBrush = ..gdip.solidBrush(txtColor : 0xFF2C3E50);
+            var linePen = ..gdip.pen(txtColor : 0xFF2C3E50, 1 * dpiScaleX1);
+
+            var format = ..gdip.stringformat();
+            format.lineAlign = 1; // 垂直居中
+            format.align = 1; // 水平居中
+
+            graphics.fillRectangle(brushBgChart,rcContent);
+            graphics.smoothingMode = 4/*_GdipSmoothingModeAntiAlias*/;
+
+            var fontHeight = font.getHeight(graphics);
+
+            // 计算饼图的绘制区域（正圆形，居中显示）
+            var margin = 20 * dpiScaleX1; // 边距
+            var availableWidth = rcContent.width - 2 * margin;
+            var availableHeight = rcContent.height - 2 * margin;
+            var pieSize = ..math.min(availableWidth, availableHeight) * 0.8; // 留出空间给标签
+			if(pieSize<1){
+				return;
+			}
+			
+            var centerX = rcContent.left + rcContent.width / 2;
+            var centerY = rcContent.top + rcContent.height / 2;
+            
+            var pieRect = ::RECT(
+                x = centerX - pieSize / 2,
+                y = centerY - pieSize / 2,
+                width = pieSize, 
+                height = pieSize
+            );
+
+            var startAngle = -90.0; // 从顶部开始绘制
+            var labelInfos = {}; // 存储标签信息
+            
+            var radius = pieSize / 2;
+            var extendRadius = radius + 30 * dpiScaleX1;
+
+            // 绘制饼图扇区并计算标签位置
+            for(i=1; #data; 1) {
+                var sweepAngle = (data[i] / totalValue) * 360.0;
+
+                // 绘制饼图扇区
+                var sliceColor = colors[(i - 1) % #colors + 1]; 
+                var sliceBrush = ..gdip.solidBrush(sliceColor);
+                graphics.fillPie(sliceBrush, pieRect.left, pieRect.top, pieRect.width, pieRect.height, startAngle, sweepAngle);
+                sliceBrush.delete(); 
+
+                // 计算扇区中心角度
+                var midAngle = startAngle + sweepAngle / 2;
+                var radians = midAngle * ..math.pi / 180;
+
+                // 计算标签连线的起点（饼图边缘）
+                var lineStartX = centerX + ..math.cos(radians) * radius;
+                var lineStartY = centerY + ..math.sin(radians) * radius;
+
+                // 计算标签连线的终点（延伸到外部）
+                var lineEndX = centerX + ..math.cos(radians) * extendRadius;
+                var lineEndY = centerY + ..math.sin(radians) * extendRadius;
+                
+                var isRightSide = ..math.cos(radians) >= 0;
+                
+                //首尾优先躲避（考虑排序）
+                if(i===#data){ 
+                	 if( ( ( data[1] / totalValue ) > 0.25 )
+                	 	&& ( ( data[i] / totalValue ) < 0.15 ) ){
+                	 	isRightSide = true;
+                	 }
+                }
+                elseif(i===1){ 
+                    if( ( ( data[1] / totalValue ) < 0.15 )
+                	 	&& ( ( data[#data] / totalValue ) > 0.25 ) ){
+                	 	isRightSide = false;
+                	 }
+                }
+                 
+                // 计算标签文本
+                var labelText;
+                if(dataset.showPercentage){
+                	labelText =  ..math.round(data[i] / totalValue * 100, 1) + "%";
+                }
+                else{
+                    labelText = tostring(data[i]);
+                }
+               
+				if(labels[i]){
+					labelText = labels[i] + " " + labelText;
+				}
+				
+                // 测量文本大小
+                var textSize = graphics.measureString(labelText,font,::RECTF(0, 0,1000,1000), format);
+                
+                // 计算标签框的位置
+                var labelBoxWidth = textSize.width + 10 * dpiScaleX1;
+                var labelBoxHeight = textSize.height + 6 * dpiScaleY1;
+                
+                var labelBoxX, labelBoxY;
+                if(isRightSide) {
+                    labelBoxX = lineEndX + 5 * dpiScaleX1;
+                } else {
+                    labelBoxX = lineEndX - labelBoxWidth - 5 * dpiScaleX1;
+                }
+                labelBoxY = lineEndY - labelBoxHeight / 2;
+                
+                
+                // 确保标签框不超出控件边界
+                if(labelBoxX < rcContent.left) labelBoxX = rcContent.left;
+                if(labelBoxX + labelBoxWidth > rcContent.right) labelBoxX = rcContent.right - labelBoxWidth;
+                if(labelBoxY < rcContent.top) labelBoxY = rcContent.top;
+                if(labelBoxY + labelBoxHeight > rcContent.bottom) labelBoxY = rcContent.bottom - labelBoxHeight;
+
+                // 重新计算连线终点到标签框的连接点
+                var labelConnectX = isRightSide ? labelBoxX : (labelBoxX + labelBoxWidth);
+                var labelConnectY = labelBoxY + labelBoxHeight / 2;
+
+                // 存储标签信息
+                labelInfos[i] = {
+                    lineStartX = lineStartX,
+                    lineStartY = lineStartY,
+                    lineEndX = lineEndX,
+                    lineEndY = lineEndY,
+                    labelConnectX = labelConnectX,
+                    labelConnectY = labelConnectY,
+                    labelBoxX = labelBoxX,
+                    labelBoxY = labelBoxY,
+                    labelBoxWidth = labelBoxWidth,
+                    labelBoxHeight = labelBoxHeight,
+                    labelText = labelText,
+                    color = sliceColor,
+                    isRightSide = isRightSide
+                };
+
+                startAngle += sweepAngle;
+            }
+            
+            // 标签躲避开始
+			var leftLabels = {};
+			var rightLabels = {};
+			
+			for(i=1; #labelInfos; 1) {
+    			if(labelInfos[i].isRightSide) {
+        			..table.push(rightLabels, i);
+    			} else {
+        			..table.push(leftLabels, i);
+    			}
+			}
+			
+			// 右侧标签躲避
+			if(#rightLabels > 1) {
+    			// 按Y坐标排序
+    			..table.sort(rightLabels, function(b){
+        			return labelInfos[owner].labelBoxY < labelInfos[b].labelBoxY;
+    			});
+			
+    			// 从上到下检查重叠并调整
+    			for(j=2; #rightLabels; 1) {
+        			var prevIdx = rightLabels[j-1];
+        			var currIdx = rightLabels[j];
+        			var prevInfo = labelInfos[prevIdx];
+        			var currInfo = labelInfos[currIdx];
+			
+        			// 检查是否重叠
+        			var prevBottom = prevInfo.labelBoxY + prevInfo.labelBoxHeight;
+        			if(currInfo.labelBoxY < prevBottom + 5 * dpiScaleY1) {
+            			// 向下移动当前标签
+            			currInfo.labelBoxY = prevBottom + 5 * dpiScaleY1;
+            			currInfo.lineEndY = currInfo.labelBoxY + currInfo.labelBoxHeight / 2;
+            			
+            			// 重新计算标签的 X 坐标
+            			var dy = currInfo.lineEndY - centerY;
+            			var dx = ..math.sqrt( ..math.abs(extendRadius*extendRadius - dy*dy) );
+            			currInfo.labelBoxX = centerX + dx + 5 * dpiScaleX1; 
+            			currInfo.lineEndX = currInfo.labelBoxX;
+            			
+            			currInfo.labelConnectX = currInfo.labelBoxX;
+            			currInfo.labelConnectY = currInfo.labelBoxY + currInfo.labelBoxHeight / 2;
+        			}
+    			}
+			}
+			
+			// 左侧标签躲避
+			if(#leftLabels > 1) {
+    			// 按Y坐标排序
+    			..table.sort(leftLabels, function(b){
+        			return labelInfos[owner].labelBoxY < labelInfos[b].labelBoxY;
+    			});
+			
+    			// 从上到下检查重叠并调整
+    			for(j=2; #leftLabels; 1) {
+        			var prevIdx = leftLabels[j-1];
+        			var currIdx = leftLabels[j];
+        			var prevInfo = labelInfos[prevIdx];
+        			var currInfo = labelInfos[currIdx];
+			
+        			// 检查是否重叠
+        			var prevBottom = prevInfo.labelBoxY + prevInfo.labelBoxHeight;
+        			if(currInfo.labelBoxY < prevBottom + 5 * dpiScaleY1) {
+            			// 向下移动当前标签
+            			currInfo.labelBoxY = prevBottom + 5 * dpiScaleY1;
+            			currInfo.lineEndY = currInfo.labelBoxY + currInfo.labelBoxHeight / 2;
+          			
+            			// 重新计算标签的 X 坐标
+            			var dy = currInfo.lineEndY - centerY;
+            			var dx = ..math.sqrt( ..math.abs(extendRadius*extendRadius - dy*dy) );
+           				currInfo.labelBoxX = centerX - dx - currInfo.labelBoxWidth - 5 * dpiScaleX1;
+            			currInfo.lineEndX = currInfo.labelBoxX + currInfo.labelBoxWidth;
+            			
+            			currInfo.labelConnectX =  currInfo.labelBoxX + currInfo.labelBoxWidth;
+            			currInfo.labelConnectY = currInfo.labelBoxY + currInfo.labelBoxHeight / 2;
+        			}
+    			}
+			} 
+            
+            // 绘制连线和标签
+            for(i=1; #labelInfos; 1) {
+                var info = labelInfos[i];
+                
+                // 绘制连线（从饼图边缘到标签框）
+                graphics.drawLine(linePen, info.lineStartX, info.lineStartY, info.lineEndX, info.lineEndY);
+                graphics.drawLine(linePen, info.lineEndX, info.lineEndY, info.labelConnectX, info.labelConnectY);
+
+                // 绘制标签框背景
+                var labelBgBrush = ..gdip.solidBrush(0xF0FFFFFF); // 半透明白色背景
+                graphics.fillRectangle(labelBgBrush, info.labelBoxX, info.labelBoxY, info.labelBoxWidth, info.labelBoxHeight);
+                labelBgBrush.delete();
+
+                // 绘制标签框边框
+                var borderPen = ..gdip.pen(info.color, 1 * dpiScaleX1);
+                graphics.drawRectangle(borderPen, info.labelBoxX, info.labelBoxY, info.labelBoxWidth, info.labelBoxHeight);
+                borderPen.delete();
+
+                // 绘制标签文本
+                var textRect = ::RECTF(info.labelBoxX + 5 * dpiScaleX1, info.labelBoxY + 3 * dpiScaleY1, 
+                                     info.labelBoxWidth - 10 * dpiScaleX1, info.labelBoxHeight - 6 * dpiScaleY1);
+                graphics.drawString(info.labelText, font, textRect, format, textBrush);
+            }
+            
+                
+            //甜甜圈效果
+    		if(dataset.cutoutPercentage){
+    		    
+    			//切换为替换绘图模式
+    			graphics.compositingMode = 1/*_CompositingModeSourceCopy*/;
+    			
+    			//创建一个透明刷子
+				var brushTransparent = ..gdip.solidBrush();
+				
+				//计算要擦除的部分
+				var cutoutRadius = pieSize * dataset.cutoutPercentage / 100;
+				
+				//擦除中心圆（透明部分显示背景而不是前景色）
+				graphics.fillEllipse(brushTransparent 
+					, centerX - cutoutRadius / 2
+					, centerY - cutoutRadius / 2
+					, cutoutRadius
+				    , cutoutRadius
+				);
+				
+				brushTransparent.delete();	
+				
+				//恢复为叠加绘图模式
+				graphics.compositingMode = 0/*_CompositingModeSourceOver*/    	
+    		}
+
+            brushBgChart.delete();
+            textBrush.delete(); 
+            linePen.delete();
+            format.delete();
+
+            return true; // 返回 true 阻止 plus 控件继续绘制默认内容
+        }
+    };
+    redraw = function(){
+		plusCtrl.redrawTransparent();
+	};
+	draw = function(){ //@Deprecated
+		plusCtrl.redrawTransparent();
+	};
+}
+
+/*****intellisense()
+gdip.chart.pie = 基于 GDI+ 在 plus 控件内绘制简单饼图或环形图（甜甜圈图 / 面包圈图）。\n如果要实现更丰富的图表效果，请改用 web.view 等浏览器控件加载 chart.js 等图表组件。
+gdip.chart.pie(__) = 创建饼图对象，参数指定 plus 控件对象。\n此对象在 plus 控件自绘前景的 onDrawContent 事件内绘制饼图。\n饼图的绘制范围为 plus 控件的前景显示范围，前景边距也会成为饼图的边距。\nplus 控件的前景色将显示为饼图的背景色。\n控件设置的字体与字体颜色将用于显示饼图中的文字与图例。
+gdip.chart.pie() = !stdGdipChartPie.
+!stdGdipChartPie.dataset = @.dataset = {\n    data = [25, 35, 15, 10, 15];\n    labels = ["苹果", "香蕉", "橘子", "葡萄", "其他"]; \n    colors = [0xFFE74C3C, 0xFFF1C40F, 0xFFE67E22, 0xFF9B59B6, 0xFF3498DB];\n    showPercentage = true;\n    cutoutPercentage = 50;\n    __/*\n指定饼图配置，字段说明：\ndata: 数值数组，指定饼图数据。\nlabels: 字符串数组，用于指定图例中显示的标签，可选字段。\ncolors: 扇区颜色值数组（颜色格式 0xAARRGGBB），可选字段，数组长度可以小于 data 数组的长度。\nshowPercentage: 标签后是否显示百分比以取代数据值。\ncutoutPercentage: 可选大于 0 并小于 100 的整数指定要在中间擦除的中心圆大小（甜甜圈效果）。\n注意修改 dataset 并不会主动重绘控件，\n如果控件已显示，可调用控件的 redraw 或 redrawTransparent 函数刷新。*/\n};
+!stdGdipChartPie.redraw() = 重绘图表，等价于调用 plus 控件的 redrawTransparent 函数。
+end intellisense*****/

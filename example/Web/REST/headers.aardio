@@ -9,9 +9,9 @@ var http = web.rest.jsonLiteClient();
 http.addHeaders = { ["X-Auth-Token"] = "自定义 Token" }
 
 //如果 addHeaders 是表则添加所有请求都要添加的 HTTP 头，否则替换请求头。
-http.setHeaders(
+http.setHeaders({
 	["Test"] = "test"
-)
+})
 
 //使用默认的 Authorization 请求头指定 token 
 http.setAuthToken("token");
@@ -31,7 +31,7 @@ http.beforeRequestHeaders = function(params){
 	
 	//通过返回值设置本次请求的HTTP头, Content-Type不需要指定（会自动指定）
 	return {
-		["Authorization"] = crypt.encodeBin(web.json.stringify(authorization)) 
+		["Authorization"] = crypt.encodeBin(JSON.stringify(authorization)) 
 	}; 
 }
 

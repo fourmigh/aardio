@@ -14,12 +14,14 @@ System.Data.DataTable[["ctor"]] = function(this){
 	}
 	
 	this[["ExtractToArray"]] = function(){
+		var dt = DataTableUtil.ExtractToArray(this);
 		/*
-		aardio 会将 .NET object 数组封包为 DispatchableObject，
-		但这个数组里放的都是 aardio 可转换的值，不必要封包。
-		所以解包直接返回原始数组。
+		dt 是封包 .NET 对象 DispatchableObject 的 dotNet.object 对象，
+		dt 的原始 .NET 类型是 System.Object 数组。
+		如果这个数组实际存放的又是 aardio 可转换的值，
+		则可以使用 DispatchableObject 提供的 Value 字段直接解包并转换为 aardio 数组。
 		*/
-		return ..dotNet.getObject( DataTableUtil.ExtractToArray(this),true ); 
+		return dt.Value; 
 	}
 }
 

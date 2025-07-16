@@ -226,6 +226,10 @@ combobox._metaProperty = metaProperty(
 	}
 )
 
+with combobox._metaProperty{
+	value = items;
+}
+
 /***intellisense(!combobox)
 topIndex = 获取此属性返回首个可见项索引，\n设置此属性为项目索引则滚动到该项可见。\n项目起始索引为 1
 minVisible = 设置或获取下拉列表最小显示项目数，\n请在设计属性中启用垂直滚动条。\n\n如果不想多点一下，可如下改进此属性源码：\nutil.metaProperty.extend(win.ui.ctrl.combobox,{\n	minVisible = {\n		_set = function( v ){ \n			::SendMessageInt(owner.hwnd , 0x1701/*_CB_SETMINVISIBLE*/,v,0); 	\n		} 	\n	}\n})
@@ -256,10 +260,10 @@ clear() = 清除组合框所有内容
 delete() = 删除当前选中项
 hwnd = 控件句柄
 id = 控件ID
-_parentForm = 控件所在的父窗口(指win.form对象)\n!winform.
+_parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 getParent() = 返回父窗口\n!static.
 setParent(__/*控件对象*/) = 改变父窗口 
-hide = 控件是否隐藏
+hide = 当前控件窗口是否隐藏。\n仅检查当前窗口的可见性样式（窗口 是否移除了 _WS_VISIBLE 样式）。\n不考虑父窗口是否可见，不考虑是否被其他窗口遮挡。\n如果需要同时判断父窗口的可见性，应改用 win.isVisible 函数。\n\n以 `.` 前导的 `.hide()` 作为成员函数被调用时，\n作用等价于将 hide 属性设为 null 。
 disabled = 是否禁用
 left = 左侧坐标
 right = 右侧坐标
@@ -282,6 +286,8 @@ modifyStyle(.(remove,add,swpFlags) = 修改窗口样式,所有参数都是可选
 modifyStyleEx(.(remove,add,swpFlags) = 修改窗口扩展样式,所有参数都是可选参数,\n@remove 用数值指定要移除的样式,可使用 _WS_EX_ 前缀的常量\n@add 用数值指定要添加的样式,可使用 _WS_EX_ 前缀的常量\n@swpFlags 可选用数值指定调整窗口选项,可使用 _SWP_ 前缀的常量\n如果指定了 @swpFlag ,则使用该参数调用::SetWindowPos\n细节请参考 win.modifyStyle 函数源码
 capture = 是否捕获全局鼠标消息
 close() = 关闭控件窗口
+onSize = @.onSize = function( width,height,wParam ) {	 \n	__/*父窗口改变大小后会自动触发此事件函数。\n注意 onSize 是 adjust 事件的别名，作用相同\n所有 win.form 创建的窗体和控件都支持 onSize（或 adjust）事件,\n重复赋值 onSize（或 adjust）会追加事件触发器而非替换原来的值。\n\nwidth 参数为窗口客户区宽度,height 参数为窗口客户区高度,\nwParam 参数来自 _WM_SIZE 消息的 wParam 参数，一般不用管。\n一般不建议添加一个 wndproc 仅仅是为了处理  _WM_SIZE 消息，\n定义 onSize 事件是更好的选择。\n \n};*/ 
+adjust = @.adjust = function( cx,cy,wParam ) {	 \n	__/*父窗口改变大小后会自动触发此事件函数。\n注意 onSize 是 adjust 事件的别名，作用相同。\n所有 win.form 创建的窗体和控件都支持 adjust 事件,\n重复赋值 adjust 会追加事件触发器而非替换原来的值。\n\ncx 参数为窗口客户区宽度,cy 参数为窗口客户区高度,\nwParam 参数来自 _WM_SIZE 消息的 wParam 参数，一般不用管。\n一般不建议添加一个 wndproc 仅仅是为了处理  _WM_SIZE 消息，\n定义 adjust 事件是更好的选择。\n\n如果主动调用此函数，则检查并执行所有之前添加的 adjust 事件函数。\n省略调用参数时 cx,cy 参数默认设为窗口大小*/  \n}; 
 invalidate(__/*可选使用::RECT()对象指定客户区*/) = 使窗口绘图区无效
 invalidate(__/*可选使用::RECT()对象指定客户区*/,0) = 使窗口绘图区无效\n不刷新背景
 update() = 重绘invalidate函数指定的区块

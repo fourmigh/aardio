@@ -121,7 +121,7 @@
 
    调用 fiber.create() 创建并返回纤程对象。 纤程类似线程，但不是线程。纤程有独立的运行堆栈，并且也可以暂停或继续运行，但是纤程并不会创建新的线程，也不能同时运行多个纤程。
 
-   请参考《库函数文档》：[《内置库 / 纤程》](../../library-reference/fible/md) 
+   请参考 [库函数文档 » 内置库 » 纤程](../../library-reference/fible/md) 
 
 - cdata	内核对象，托管指针 <a id="cdata" href="#cdata">&#x23;</a>
 
@@ -203,7 +203,7 @@ var num = !!0;
 
 aardio 也允许数据类型自动转换，规则如下:
   
-1. 在逻辑运算中，非 0. 非 null、非 false 值为 true，反之为 false。  
+1. 在条件判断中，非 0. 非 null、非 false 值为 true，反之为 false。  
   
 2. 使用 [等式运算符](..\operator\equality.md) 比较 2 个值时：  
     - 任意值与 true,false 比较则先转换为布尔值。  

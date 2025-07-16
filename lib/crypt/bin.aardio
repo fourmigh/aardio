@@ -4,6 +4,8 @@ namespace crypt.bin;
    
 encode = ..crypt.encodeBin;
 decode = ..crypt.decodeBin;
+encodeUrlBase64 =  ..crypt.encodeUrlBase64;
+decodeUrlBase64 =  ..crypt.decodeUrlBase64;
 
 encodeBase64 = function(str,len,flags = 0x40000001/*_CRYPT_STRING_BASE64|_CRYPT_STRING_NOCRLF*/){
 	return encode(str,len,flags);
@@ -11,21 +13,6 @@ encodeBase64 = function(str,len,flags = 0x40000001/*_CRYPT_STRING_BASE64|_CRYPT_
 
 decodeBase64 = function(str,len,flags = 1/*_CRYPT_STRING_BASE64*/){
 	return decode(str,len,flags);
-}
-
-encodeUrlBase64 = function(str,len,padding){
-	var bin = encode(str,len,0x40000001/*_CRYPT_STRING_BASE64*/);
-	if(bin){
-		bin = ..string.replace(bin,"[\+/]",{["+"]="-";["/"]="_"} );
-    	return padding ? bin : ..string.trimright(bin,"=");
-	}
-}
-
-decodeUrlBase64 = function(str,len){
-    if(!str) return;
-    str = ..string.replace(str,"@-","+");
-    str = ..string.replace(str,"@_","/");
-	return decode(str,len,1/*_CRYPT_STRING_BASE64*/);
 }
 
 encodeHex = function(str,len,flags = 0x40000004/*_CRYPT_STRING_HEX*/){
@@ -43,8 +30,8 @@ base64DataUrl = function(str,mime){
 crypt.bin = BASE64加密解密。\n简单封装 crypt.encodeBin 以及 crypt.decodeBin 函数。\n相关库与函数： string.base32
 crypt.bin.encodeBase64(.(字符串,长度,选项) = Base64编码,\n字符串可以是指针,如果不是托管指针则应指定长度参数,\n否则长度参数可省略\n调用此函数不建议指定选项参数
 crypt.bin.decodeBase64(.(字符串,长度,选项) = Base64解码,\n字符串可以是指针,如果不是托管指针则应指定长度参数,\n否则长度参数可省略\n调用此函数不建议指定选项参数
-crypt.bin.encodeUrlBase64(.(字符串,长度,允许补等号) = UrlBase64编码,\n字符串可以是指针,如果不是托管指针则应指定长度参数,\n否则长度参数可省略\n\n返回字符串不包含用于尾部对齐的等号\n并且+替换为-,/替换为_，以保证作为URL参数可以安全传输
-crypt.bin.decodeUrlBase64(.(字符串,长度) = UrlBase64解码,\n字符串可以是指针,如果不是托管指针则应指定长度参数,\n否则长度参数可省略\n
+crypt.bin.encodeUrlBase64(.(字符串,长度,允许补等号) = UrlBase64 编码，crypt.encodeUrlBase64 函数的别名。\n参数 @1 可以指定字符串、buffer 或指针。\n如果参数 @1 是指针则应同时指定长度参数，否则长度参数可省略。\n\n返回字符串不包含用于尾部对齐的等号,\n并且 `+` 替换为`-`,`/`替换为`_`，\n以保证作为 URL参数安全传输。
+crypt.bin.decodeUrlBase64(.(字符串,长度) = UrlBase64 解码，crypt.decodeUrlBase64 函数的别名。\n参数 @1 可以指定字符串、buffer 或指针。\n如果参数 @1 是指针则应同时指定长度参数，否则长度参数可省略。
 crypt.bin.encodeHex(.(字符串,长度,选项) = 16进制编码,移除返回字符串尾部回车换行
 crypt.bin.decodeHex(.(字符串,长度,选项) = 16进制解码\n调用此函数不建议指定选项参数
 crypt.bin.base64DataUrl(.(字符串,MIME) = 返回 Base64 格式 Data URL

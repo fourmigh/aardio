@@ -14,12 +14,14 @@ ImTip 运行效果：
 
 ![ImTip 输入法提示效果图](https://imtip.aardio.com/screenshots/imtip.gif)
 
-## 1. 自定义显示规则 
+## 1. 自定义显示规则 <a id="filter" href="#filter">&#x23;</a>
+
 
 在 ImTip 的设置界面勾选『启用扩展规则』，然后再点击『编辑规则』按钮就可以在 aardio 开发环境中打开并使用 aardio 代码编写规则。
 
 - 在 aardio 中保存规则代码就可以在 ImTip 实时生效。
 - 规则代码在 ImTip 主界面线程运行，可以调用 aardio 开发环境的所有公共库。
+- 如果在在规则代码中导入 ide 库并不能启用自动安装扩展库的功能，而在超级热键中导入 ide 库则支持自动安装扩展库。
 
 在 ImTip 的规则文件中需要使用全局变量 imeBar 访问 key.ime.stateBar 对象。
 
@@ -71,7 +73,7 @@ IMTIP_DISABLED_APP = {
 }
 ```
 
-在指定的窗口使用自定义的获取光标函数，以替代默认的 `winex.caret.ge()` 函数:
+在指定的窗口使用自定义的获取光标函数，以替代默认的 `winex.caret.get()` 函数:
 
 ```aardio
 imeBar.onImeForegroundWindow = function(hwnd){ 
@@ -114,7 +116,7 @@ mainForm.onTrayMenu = function(menu){
 } 
 ```
 
-## 2. 自定义外观样式
+## 2. 自定义外观样式 
 
 key.ime.stateBar 基于 plus 控件，而 plus 控件自定义外观样式非常方便，key.ime.stateBar 也继承了这个优点。
 
@@ -159,5 +161,43 @@ valign="center"
 
 显示效果：  
 ![单图标方案显示效果](https://imtip.aardio.com/screenshots/imtip-dot.gif)
+
+## 3. 兼容窗口类名 <a id="editorClasses" href="#editorClasses">&#x23;</a>
+
+
+key.ime.stateBar 对象的 editorClasses 用于设置『兼容窗口类名』。
+
+key.ime.stateBar 源码中 editorClasses 的默认配置如下：
+
+```aardio
+namespace key.ime;
+class stateBar{
+	ctor(form){ 
+		this.editorClasses = {
+			["AVL_AVView"]=1;["ConsoleWindowClass"]=1;["@WeChatMainWndForPC"]=1;["@ChatWnd"]=1;["#EXCEL6"]=1;
+		};
+	}
+}
+```
+
+ImTip 输入法提示配置窗口的『兼容窗口类名』则是用分号分隔的字符串。
+
+key.ime.stateBar  使用了多种不同的接口获取输入位置，但少数任何接口都不支持的应用窗口会退化为取鼠标输入指针位置。对于前述方式都不支持的窗口，可在『兼容窗口类名』中添加窗口类名（可使用 aardio 工具中的提供的窗口探测软件查看类名）。兼容类名写法规则如下：
+
+- 如果兼容类名前面增加 `#` 字符则表示该窗口是一个较小的文本输入框，例如 `#EXCEL6`。
+- 如果兼容类名前面增加 `@` 字符则表示优先通过 MSAA 接口获取输入框位置，典型的例如微信 3.x 可指定兼容类名为 `@WeChatMainWndForPC`。 
+- 如果兼容类名前没有 `#` 或 `@` 字符，则退化为在鼠标指针位置显示输入状态提示。
+
+
+## 4. 支持 Java 程序自动化接口 <a id="jab" href="#jab">&#x23;</a>
+
+
+只要简单地提前导入 java.accessBridge 扩展库，
+key.ime.stateBar  就可以自动支持使用 Java 程序自动化接口定位光标插入点，不需要任何其他的步骤或操作。
+
+```aardio
+import java.accessBridge
+```
+
 
 <br>

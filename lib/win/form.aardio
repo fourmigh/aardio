@@ -1,0 +1,2 @@
+﻿//ui win.form
+import win.ui; ////请引用 win.ui 而不是 win.form 库。

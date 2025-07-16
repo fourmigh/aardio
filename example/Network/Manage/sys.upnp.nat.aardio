@@ -16,7 +16,7 @@ natUpnp.add(9973,"TCP",9973,,"添加端口映射测试")
 
 wb.external = {
 	getMappingCollection = function(){
-		return web.json.stringifyArray(natUpnp.getTable());
+		return JSON.stringifyArray(natUpnp.getTable());
 	};
 	deleteItem = function(externalPort,protocol){
 		return natUpnp.remove(externalPort,protocol)

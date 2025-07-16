@@ -1,28 +1,35 @@
 //FTP 入门
+import inet.ftp;
 import console;
-import inet.ftp
+console.showLoading("正在连接 FTP 服务器");
 
-console.log("正在创建ftp连接")
-var ftp = inet.ftp("ftp.sjtu.edu.cn");
+//连接 FTP 服务器。
+var ftp = inet.ftp("ftp.sjtu.edu.cn" //测试服务器： ftp.sjtu.edu.cn,ftp.scene.org,demo:password@test.rebex.net
+	,"anonymous","password" //用户名与密码参数，匿名登录时可省略
+);
 
-if(!ftp){
-	console.log( inet.lastResponse() );
-	console.pause();
-	return;
-} 
+if(!ftp) return console.errorPause( inet.lastResponse() );
+
+//调用方法，获取当前目录
+var curDir = ftp.getCurDir();
+console.log( curDir )
+
+//执行创建数据连接的命令会返回 FTP 文件对象（inet.ftp.file 对象），失败返回 null。
+var rspFile = ftp.command('LIST');
+console.log( rspFile.readAll() )
+ 
+//执行创建控制连接的命令，成功返回服务器响应数据（字符串）,失败返回 null 。
+var rspText = ftp.command('PWD');
+console.log( rspText );
 
 //列出目录下的文件
-for(dir,file,findData in ftp.eachDir("\")){
-	 console.log(  dir,file : "目录" ); 
-}
-
-for(dir,file,findData in ftp.eachDir("\arkhy")){
+for(dir,file,findData in ftp.eachDir("/")){
 	 console.log(  dir,file : "目录" ); 
 }
 
 //下载文件
-if( ftp.download("\本地文件.txt","\arkhy\updata.txt") ){
-	 console.log(  dir,file : "目录" ); 
+if( ftp.download("/本地文件.txt","/robots.txt") ){
+	 console.log(  "下载成功" ); 
 }
 
 ftp.close();

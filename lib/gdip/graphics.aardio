@@ -135,7 +135,7 @@ namespace graphics {
 		rotateRect = function(rc,angle,order){
 			var width,height = rc.right - rc.left,rc.bottom - rc.top; 
 			gdip.TranslateWorldTransform(owner[["pGraphics"]],rc.left+ width/2, rc.top+height/2,order:0);
-			gdip.RotateWorldTransform(owner[["pGraphics"]],angle,order:0);
+			gdip.RotateWorldTransform(owner[["pGraphics"]],angle||0,order:0);
 			gdip.TranslateWorldTransform(owner[["pGraphics"]], -(rc.left+width/2), -(rc.top+height/2),order:0);
 			return owner;
 		};
@@ -189,7 +189,7 @@ namespace graphics {
 			return owner;
 		};
 		setClipPath = function(path,combineMd){
-			if(!path[["pPath"]]) error("参数@1类型错误",2);
+			if(!path[["pPath"]]) error("参数 @1 类型错误",2);
 			gdip.assert2( gdip.SetClipPath(owner[["pGraphics"]],path[["pPath"]],combineMd : 0/*_GdipCombineModeReplace*/) );
 			return owner;
 		};
@@ -214,33 +214,44 @@ namespace graphics {
 			gdip.assert2( gdip.DrawString(owner[["pGraphics"]],str,-1, thefont, layoutRect,stringFormat,brush) ); 
 			return owner;
 		}; 
-		drawLine = function( pen,x1,y1,x2,y2){
+		drawLine = function(pen,x1,y1,x2,y2){
 			gdip.assert2( gdip.DrawLine(owner[["pGraphics"]], pen,x1,y1,x2,y2 ) ); 
 			return owner;
 		};
 		fillPolygon  = function( brush,fillMode,...){
-			var points = #(...) ? ... : {...}
-			gdip.assert2( ::Gdiplus.GdipFillPolygon(owner[["pGraphics"]], brush,{struct v[]=points},#points,fillMode) ); 
+			var points;
+			if( type(fillMode) ==="table") points,fillMode = fillMode,...
+			else points = ..table.isArrayLike(...) ? ... : [...]
+			
+			if(points[1][["_struct"]]) gdip.assert2( ::Gdiplus.GdipFillPolygon(owner[["pGraphics"]], brush,{struct v[]=points},#points,fillMode) ); 
+			else gdip.assert2( ::Gdiplus.GdipFillPolygon(owner[["pGraphics"]], brush,{float v[]=points},#points/2,fillMode) ); 
+			
 			return owner;
 		}; 
 		drawPolygon  = function( pen,...){
-			var points = #(...) ? ... : {...}
-			gdip.assert2( ::Gdiplus.GdipDrawPolygon(owner[["pGraphics"]], pen,{struct v[]=points},#points) ); 
+			var points = ..table.isArrayLike(...) ? ... : [...]
+			
+			if(points[1][["_struct"]]) gdip.assert2( ::Gdiplus.GdipDrawPolygon(owner[["pGraphics"]], pen,{struct v[]=points},#points) ); 
+			else gdip.assert2( ::Gdiplus.GdipDrawPolygon(owner[["pGraphics"]], pen,{float v[]=points},#points/2) ); 
 			return owner;
 		};
 		drawRectangle = function( pen,x1,y1,width,height){
+			if(x1[["_struct"]]) x1,y1,width,height = x1.xywh();
 			gdip.assert2( gdip.DrawRectangle(owner[["pGraphics"]], pen,x1,y1,width,height) ); 
 			return owner;
 		}; 
 		fillRectangle = function( brush,x1,y1,width,height){
+			if(x1[["_struct"]]) x1,y1,width,height = x1.xywh();
 			gdip.assert2( gdip.FillRectangle(owner[["pGraphics"]], brush,x1,y1,width,height) ); 
 			return owner;
 		}; 
 		fillEllipse = function( brush,x1,y1,width,height){
+			if(x1[["_struct"]]) x1,y1,width,height = x1.xywh();
 			gdip.assert2( gdip.FillEllipse(owner[["pGraphics"]], brush,x1,y1,width,height) ); 
 			return owner;
 		};  
 		drawEllipse = function( pen,x1,y1,width,height){
+			if(x1[["_struct"]]) x1,y1,width,height = x1.xywh();
 			gdip.assert2( gdip.DrawEllipse(owner[["pGraphics"]], pen,x1,y1,width,height) ); 
 			return owner;
 		}; 
@@ -261,11 +272,13 @@ namespace graphics {
 				gdip.DrawBezier( owner[["pGraphics"]],pen,x1,y1,x2,y2,x3,y3,x4,y4)
 			);
 		};
-		drawImageWithDpi = function( img,x1=0,y1=0 ){
-			gdip.assert2( gdip.DrawImage(owner[["pGraphics"]], img,x1,y1) ); 
+		drawImageWithDpi = function(img,x1=0,y1=0 ){
+			gdip.assert2( gdip.DrawImage(owner[["pGraphics"]],img,x1,y1) ); 
 			return owner;
 		}; 
-		drawImage = function( img,x1=0,y1=0,imgAttr){
+		drawImage = function(img,x1=0,y1=0,imgAttr,...){
+			if(type(imgAttr)=="number") return owner.drawImageRect(img,x1,y1,imgAttr,...);//@Deprecated
+			
 			var w,h = img.width,img.height;
 			gdip.assert2( gdip.DrawImageRectRect(owner[["pGraphics"]], img,x1,y1,w,h,0,0,w,h,2/*UnitPixel*/,imgAttr) ); 
 			return owner;
@@ -274,10 +287,6 @@ namespace graphics {
 			gdip.assert2( gdip.DrawImageRectRect(owner[["pGraphics"]], img,x1,y1,width,height,0,0,img.width,img.height,2/*UnitPixel*/,imgAttr) );
 			return owner;
 		};
-		drawImageStretch = function(img,rc,imgAttr){
-			gdip.assert2( gdip.DrawImageRectRect(owner[["pGraphics"]], img,rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top,0,0,img.width,img.height,2/*UnitPixel*/,imgAttr) );
-			return owner;
-		}; 
 		drawImageRectRect = function( img,dstX,dstY,dstWidth,dstHeight,srcx,srcy,srcwidth,srcheight,srcUnit=2/*UnitPixel*/,imgAttr,callback,callbackData){
 			gdip.assert2( gdip.DrawImageRectRect(owner[["pGraphics"]], img,dstX,dstY,dstWidth,dstHeight,srcx,srcy,srcwidth,srcheight,srcUnit,imgAttr ,callback,callbackData) ); 
 			return owner;
@@ -286,9 +295,13 @@ namespace graphics {
 			gdip.assert2( gdip.DrawImagePointRect(owner[["pGraphics"]], img ,dstX,dstY,srcx,srcy,srcwidth,srcheight,srcUnit  ) ); 
 			return owner;
 		};
+		drawImageStretch = function(img,rc,imgAttr){
+			gdip.assert2( gdip.DrawImageRectRect(owner[["pGraphics"]], img,rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top,0,0,img.width,img.height,2/*UnitPixel*/,imgAttr) );
+			return owner;
+		}; 
 		drawImageScale = function( img,rc,imgAttr){
 			var pImg = img[["pImage"]];
-			if( !pImg ) error("参数@1类型错误",2);
+			if( !pImg ) error("参数 @1 类型错误",2);
 			
 			var cxSrc = img.width;
 			var cySrc = img.height; 
@@ -308,7 +321,7 @@ namespace graphics {
 		drawImageCenter = function(img,rc,imgAttr,dpiScaleX,dpiScaleY){ 
 		 
 			var pImg = img[["pImage"]];
-			if( !pImg ) error("参数@1类型错误",2); 
+			if( !pImg ) error("参数 @1 类型错误",2); 
 			
 			var x,y,xDst,yDst = 0,0,rc.left,rc.top;
 			var cx,cy = rc.right - rc.left,rc.bottom-rc.top;  
@@ -343,7 +356,7 @@ namespace graphics {
 		};
 		drawBitmapTile = function(bmp,rc){ 
 			var pBmp = bmp[["pBitmap"]];
-			if( !pBmp ) error("参数@1类型错误",2); 
+			if( !pBmp ) error("参数 @1 类型错误",2); 
 			var pGrp = owner[["pGraphics"]];
 			
 			var e,cache = gdip.CreateCachedBitmap(pBmp,pGrp);
@@ -363,15 +376,17 @@ namespace graphics {
 			owner.resetClip();
 			return owner;
 		}; 
-		drawBitmapRepeatX = function( bmp,rc,t,r,b,l){ 
+		drawBitmapRepeatX = function( bmp,rc,t,r,b,l){
 			var pBmp = bmp[["pBitmap"]];
-			if( !pBmp ) error("参数@1类型错误",2); 
+			if( !pBmp ) error("参数 @1 类型错误",2); 
 			var pGrp = owner[["pGraphics"]];
 			
 			var e,cache = gdip.CreateCachedBitmap(pBmp,pGrp);
 			if( e ) return null,gdip.errMsg[e]; 
 		  	
 		  	var cxSrc,cySrc = bmp.width,bmp.height; 
+		  	
+		  	rc = ::RECT(rc);
 			if(r) { rc.right = rc.right - r };
 			if(l) rc.left =  rc.left + l; 
 			if(b) { rc.bottom = rc.bottom - b; rc.top = rc.bottom - cySrc; }
@@ -391,13 +406,15 @@ namespace graphics {
 		};
 		drawBitmapRepeatY = function( bmp,rc,t,r,b,l){ 
 			var pBmp = bmp[["pBitmap"]];
-			if( !pBmp ) error("参数@1类型错误",2); 
+			if( !pBmp ) error("参数 @1 类型错误",2); 
 			var pGrp = owner[["pGraphics"]];
 			
 			var e,cache = gdip.CreateCachedBitmap(pBmp,pGrp);
 			if( e ) return null,gdip.errMsg[e];
 			 
 			var cxSrc,cySrc = bmp.width,bmp.height; 
+			
+			rc = ::RECT(rc);
 			if(r) { rc.right = rc.right - r; rc.left = rc.right - cxSrc; }
 			else if(l) rc.left =  rc.left + l;
 			if(b) { rc.bottom = rc.bottom - b; }
@@ -419,7 +436,7 @@ namespace graphics {
 		drawImagePoint= function( bmp,rc,x=0,y=0,imgAttr,dpiScaleX,dpiScaleY){
 			var pGrp = owner[["pGraphics"]];
 			var pBmp = bmp[["pImage"]];
-			if( !pBmp ) error("参数@1类型错误",2); 
+			if( !pBmp ) error("参数 @1 类型错误",2); 
 			var cxSrc = bmp.origWidth;
 			var cySrc = bmp.origHeight;
 			if(dpiScaleX && dpiScaleY){
@@ -437,7 +454,7 @@ namespace graphics {
 		}
 		drawImageExpand = function(img,rc,t,r,b,l,imgAttr){
 			var pGrp = owner[["pGraphics"]];
-			var pImg = img[["pImage"]]; if(!pImg) error("参数@1类型错误",2) 
+			var pImg = img[["pImage"]]; if(!pImg) error("参数 @1 类型错误",2) 
 			var left,top,right,bottom = rc.left,rc.top,rc.right,rc.bottom;  
 			var width = right - left;
 			var height = bottom - top; 
@@ -467,7 +484,7 @@ namespace graphics {
 			return owner;
 		};
 		drawBackground = function(img,mode,rc,t,r,b,l,imgAttr,dpiScaleX,dpiScaleY){
-			if(!img[["pImage"]]) error("参数@1类型错误",2)  
+			if(!img[["pImage"]]) error("参数 @1 类型错误",2)  
 			 
 			if( mode == "auto" ){
 				mode = (img.origWidth> rc.right - rc.left || img.origHeight>rc.bottom-rc.top) ? "scale" : "center";
@@ -519,7 +536,7 @@ namespace graphics {
 		fastDrawBitmap = function(bmp,x=0,y=0){
 			var pGrp = owner[["pGraphics"]]
 			var pBmp = bmp[["pBitmap"]]; 
-			if(!pBmp) error("位图参数@1类型错误",2);
+			if(!pBmp) error("位图参数 @1 类型错误",2);
 			var e,cache = gdip.CreateCachedBitmap(pBmp,pGrp);
 			if( e ) return null,gdip.errMsg[e];
 			gdip.DrawCachedBitmap(pGrp,cache,x,y);
@@ -527,12 +544,12 @@ namespace graphics {
 			return owner;
 		}; 
 		drawCurve = function(pen,...){
-			var points = {...}
+			var points = type(...)=="table" ? ... : [...]
 			gdip.assert2( gdip.DrawCurve(owner[["pGraphics"]], pen ,{ float points[] = points },#points/2,0.5 ) ); 
 			return owner;
 		};
 		drawCurve2 = function(pen,tension,...){
-			var points = #(...) ? ... : {...}
+			var points = type(...)=="table" ? ... : [...]
 			gdip.assert2( gdip.DrawCurve(owner[["pGraphics"]], pen ,{ struct points[] = points },#points,tension ) ); 
 			return owner;
 		};
@@ -622,11 +639,11 @@ GetDpiY = $.api("GdipGetDpiY","int(PTR grph,float& dpi)")
 
 /**intellisense() 
 gdip.graphics.fromHwnd() = 使用指定的窗口创建画板
-gdip.graphics.fromImage() = 使用gdip.image对象创建画板
+gdip.graphics.fromImage() = 使用 gdip.image 对象创建画板
 gdip.graphics(.(hdc) =  使用GDI设备句柄创建画板
 gdip.graphics(.(winform) = 使用窗口或控件对象创建画板
-gdip.graphics(.(image) = 使用gdip.image对象创建画板
-gdip.graphics(.(bitmap) = 使用gdip.bitmap对象创建画板
+gdip.graphics(.(image) = 使用 gdip.image 对象创建画板
+gdip.graphics(.(bitmap) = 使用 gdip.bitmap 对象创建画板
 graphics = 该变量名仅适用于表示gdip.graphics对象\n!gdipgraphics.
 !gdipgraphics.pageUnit = @.pageUnit = _GdipUnit__/*页面单位,例如打印时指定_UnitPixel则使用像素作为单位*/ ;
 !gdipgraphics.compositingQuality = @.compositingQuality = _GdipCompositingQuality__/*合成图像质量*/ ;
@@ -635,10 +652,9 @@ graphics = 该变量名仅适用于表示gdip.graphics对象\n!gdipgraphics.
 !gdipgraphics.pixelOffsetMode = @.pixelOffsetMode = _GdipPixelOffsetMode__/*像素偏移模式*/;
 !gdipgraphics.smoothingMode = @.smoothingMode = _GdipSmoothingMode__/*平滑模式,可用于抗锯齿, 文本抗锯齿请使用textRenderingHint*/;
 !gdipgraphics.textRenderingHint = @.textRenderingHint = _GdipTextRenderingHint__/*文本的呈现模式,可用于抗锯齿*/;
-!gdipgraphics.width = 宽度
-!gdipgraphics._image = 创建画板时使用的gdip.image对象\n!gdipimage.
+!gdipgraphics._image = 创建画板时使用的 gdip.image 对象\n!gdipimage.
 !gdipgraphics._hwnd = 创建画板时使用的句柄
-!gdipgraphics._bitmap = 创建画板时使用的gdip.bitmap对象\n!gdipbitmap.
+!gdipgraphics._bitmap = 创建画板时使用的 gdip.bitmap 对象\n!gdipbitmap.
 !gdipgraphics._hdc = 创建画板时使用的设备上下文 
 gdip.graphics() = !gdipgraphics.
 gdip.graphics.fromHwnd() = !gdipgraphics.
@@ -688,44 +704,45 @@ gdip.graphics.fromImage() = !gdipgraphics.
 !gdipgraphics.deleteCachedBitmap(.(缓存位图) = 删除缓存位图
 !gdipgraphics.fastDrawBitmap(.(位图对象,x,y) = 快速绘图\nx,y为可选参数,默认为0\n返回自身
 !gdipgraphics.rotateRect( = 旋转画布
-!gdipgraphics.rotateRect(.(rect,angle,order) =  以 @rect 指定的区块中点为参考点旋转画布，\n@rect 参数可用 ::RECT 结构体指定区块位置。\n参数 @angle 为旋转角度\n参数 @3 可省略,选项默认为 _GdipMatrixOrderPrepend
+!gdipgraphics.rotateRect(.(rect,angle,order) =  以 @rect 指定的区块中点为参考点旋转画布，\n@rect 参数可用 ::RECT 结构体指定区块位置。\n参数 @angle 为旋转角度，省略或传 null 值则设为 0。\n参数 @order 可省略,选项默认为 _GdipMatrixOrderPrepend
 !gdipgraphics.rotate( = 旋转画布
-!gdipgraphics.rotate(.(旋转角度,选项) = 以左上角坐标为参考点旋转画布\n参数@2可省略,选项默认为 _GdipMatrixOrderPrepend
+!gdipgraphics.rotate(.(旋转角度,选项) = 以左上角坐标为参考点旋转画布\n参数 @2 可省略,选项默认为 _GdipMatrixOrderPrepend
 !gdipgraphics.scale( = 缩放画布
-!gdipgraphics.scale(.(宽度缩放比例,高度缩放比例,选项) = 缩放画布\n参数@3可省略,默认为 _GdipMatrixOrderPrepend
+!gdipgraphics.scale(.(宽度缩放比例,高度缩放比例,选项) = 缩放画布\n参数 @3 可省略,默认为 _GdipMatrixOrderPrepend
 !gdipgraphics.scaleRect( = 居中缩放画布
-!gdipgraphics.scaleRect(.(区块,宽度缩放比例,高度缩放比例,选项) = 在参数@1中使用::RECT结构体指定区块，并以该区块的中点为中心缩放画布\n参数@3可省略,默认为 _GdipMatrixOrderPrepend
+!gdipgraphics.scaleRect(.(区块,宽度缩放比例,高度缩放比例,选项) = 在参数 @1 中使用::RECT结构体指定区块，并以该区块的中点为中心缩放画布\n参数@3可省略,默认为 _GdipMatrixOrderPrepend
 !gdipgraphics.translate( = 水平偏移画布
-!gdipgraphics.translate(.(水平偏移像素,垂直偏移像素,选项) = 平移画布\n参数@3可省略,默认为 _GdipMatrixOrderPrepend
+!gdipgraphics.translate(.(水平偏移像素,垂直偏移像素,选项) = 平移画布\n参数 @3 可省略,默认为 _GdipMatrixOrderPrepend
 !gdipgraphics.resetTransform() = 重置所有画布变换\n用于恢复scale,rotate,translate等画布变换效果,\n!gdipgraphics.
 !gdipgraphics.transform() = !gdipgraphics.
 !gdipgraphics.transform(.(变换模式,图像,RECT区块,x,y) = 变换画布\n变换以后必须假定画布左上角坐标为0,画布大小为图像大小,\n变换模式为字符串参数,支持 point,stretch,center,scale,含义与 plus 控件相同\n模式为"expand"时转换为"stretch",传入其他模式忽略并返回null，\n否则执行变换并返回画布对像自身,\n\n如果指定了point模式,必须同时指定x,y参数,用法与plus控件相同。\n可用 ::RECT 结构体指定 RECT 区块参数
 !gdipgraphics.setClipRegion(.(region,combineMode) = 设置一块剪辑区域，用于限制绘图范围。\n参数 @region 指定 gdip.region 区域对象。\n参数 @combineMode 可指定为 _GdipCombineMode 前缀的常量
 !gdipgraphics.setClipRect(.(左,上,宽,高,选项) = 设置一块剪辑区域，用于限制绘图范围\n选项使用 _GdipCombineMode__ 前缀的常量指定
-!gdipgraphics.drawImage(.(图像,左,上,显示属性) = 绘图\n可使使用参数@2,参数@3指定输出坐标\n可选使用参数@4指定gdip.imageAttributes对象设置显示属性,\n注意此函数忽略原图DPI
-!gdipgraphics.drawImageWithDpi(.(图像,左,上) = 绘图\n可使使用参数@2,参数@3指定输出坐标\n注意该函数会受PNG,JPG的DPI设置影响输出大小
-!gdipgraphics.drawImageRect(.(图像,左,上,宽,高,显示属性) = 画图\n参数@2,@3,@4,@5指定目标区块,\n可选使用参数@6指定gdip.imageAttributes对象设置显示属性
-!gdipgraphics.drawImageRectRect(.(图像,输出左,输出上,输出宽,输出高,左,上,宽,高,显示属性) = 将图像的指定区块输出到指定区块\n参数@2,@3,@4,@5指定目标区块,\n参数@6,@7,@8,@9指定图像区块,\n可选使用参数@10指定gdip.imageAttributes对象设置显示属性
+!gdipgraphics.drawImage(.(图像,左,上,显示属性) = 绘图\n可使使用参数 @2 ,参数 @3 指定输出坐标\n可选使用参数 @4 指定 gdip.imageAttributes 对象设置显示属性,\n注意此函数忽略原图DPI
+!gdipgraphics.drawImageWithDpi(.(图像,左,上) = 绘图\n可使使用参数 @2 ,参数 @3 指定输出坐标\n注意该函数会因 PNG,JPG 图像文件的 DPI 设置影响输出大小
+!gdipgraphics.drawImageRect(.(图像,左,上,宽,高,显示属性) = 画图\n参数 @2 ,@3,@4,@5指定目标区块,\n可选使用参数@6指定 gdip.imageAttributes 对象设置显示属性
+!gdipgraphics.drawImageRectRect(.(图像,输出左,输出上,输出宽,输出高,左,上,宽,高,显示属性) = 将图像的指定区块输出到指定区块\n参数 @2 ,@3,@4,@5指定目标区块,\n参数@6,@7,@8,@9指定图像区块,\n可选使用 参数@10 指定 gdip.imageAttributes 对象设置显示属性
 !gdipgraphics.drawImagePointRect(.(图像, 输出左,输出上,左,上,宽,高) = 将图像的指定区块输出到指定坐标\n注意该函数会受PNG,JPG的DPI设置影响输出大小
-!gdipgraphics.drawImageScale(.(图像,RECT区块,显示属性) = 绘图\n保持比例缩放到合适大小。\n参数 @2 可用 ::RECT 结构体指定区块参数。\n可选使用参数@3指定gdip.imageAttributes对象设置显示属性
-!gdipgraphics.drawImageStretch(.(图像,RECT区块,显示属性) = 绘图，拉伸图片到区块大小。\n参数 @2 可用 ::RECT 结构体指定区块参数。\n可选使用参数@3指定gdip.imageAttributes对象设置显示属性
-!gdipgraphics.drawImageCenter(.(图像,RECT区块,显示属性) = 绘图，保持图片大小并绝对居中显示。\n参数 @2 可用 ::RECT 结构体指定区块参数。\n可选使用参数@3指定gdip.imageAttributes对象设置显示属性
+!gdipgraphics.drawImageScale(.(图像,RECT区块,显示属性) = 绘图\n保持比例缩放到合适大小。\n参数 @2 可用 ::RECT 结构体指定区块参数。\n可选使用参数 @3 指定 gdip.imageAttributes 对象设置显示属性
+!gdipgraphics.drawImageStretch(.(图像,RECT区块,显示属性) = 绘图，拉伸图片到区块大小。\n参数 @2 可用 ::RECT 结构体指定区块参数。\n可选使用参数 @3 指定 gdip.imageAttributes 对象设置显示属性
+!gdipgraphics.drawImageCenter(.(图像,RECT区块,显示属性) = 绘图，保持图片大小并绝对居中显示。\n参数 @2 可用 ::RECT 结构体指定区块参数。\n可选使用参数 @3 指定 gdip.imageAttributes 对象设置显示属性
 !gdipgraphics.drawBitmapTile(.(图像,RECT区块) = 绘图，重复平铺显示。\n参数 @2 可用 ::RECT 结构体指定区块参数。\n注意该函数会在执行时设置裁剪区域\n执行完重置裁剪区域
 !gdipgraphics.drawImagePoint(.(图像,RECT区块,x,y) = 绘图。\n参数 @2 可用 ::RECT 结构体指定区块参数。\nx,y指定偏移坐标\n如果为0到1之间的值则为剩余空间百分比\n如果为负数则为右下角坐标
-!gdipgraphics.drawBitmapRepeatY(.(图像,绘图RECT,上,右,下,左) = 垂直平铺\n参数@1 为gdip.bitmap对象。\n参数 @2 可用 ::RECT 结构体指定区块参数。\n最后的四个参数指定坐标\n如果指定了右坐标则忽略左坐标,\n如果指定了下坐标则忽略上坐标
-!gdipgraphics.drawBitmapRepeatX(.(图像,绘图RECT,上,右,下,左) = 水平平铺\n参数@1 为gdip.bitmap对象。\n参数 @2 可用 ::RECT 结构体指定区块参数。\n最后的四个参数指定坐标\n如果指定了右坐标则忽略左坐标,\n如果指定了下坐标则忽略上坐标
+!gdipgraphics.drawBitmapRepeatY(.(图像,绘图RECT,上,右,下,左) = 以垂直平铺的方式绘制图像。\n参数 @1 为 gdip.bitmap 对象。\n参数 @2 可用 ::RECT 结构体指定区块参数。\n可选用最后的四个参数指定输出边距。\n如果指定了右边距则忽略左边距。
+!gdipgraphics.drawBitmapRepeatX(.(图像,绘图RECT,上,右,下,左) = 以水平平铺的方式绘制图像。\n参数 @1 为 gdip.bitmap 对象。\n参数 @2 可用 ::RECT 结构体指定区块参数。\n最后的四个参数指定坐标指定输出边距。\n如果指定了下边距则忽略上边距。
 !gdipgraphics.drawImageExpand( = 九宫格绘图,九宫格切图后边角四格固定,中间五格拉伸\n该函数不会严格检查参数、并忽略执行错误,调用该函数前必须保证参数正确
-!gdipgraphics.drawImageExpand(.(图像,绘图RECT,上,右,下,左,显示属性) = 参数@1为gdip.image或gdip.bitmap对象\n参数@2使用::RECT结构体指定目标区块,\n参数@3,@4,@5,@6指定九宫格切图坐标\n可选使用参数@7指定gdip.imageAttributes对象设置显示属性
+!gdipgraphics.drawImageExpand(.(图像,绘图RECT,上,右,下,左,显示属性) = 参数 @1 为 gdip.image 或 gdip.bitmap 对象\n参数 @2 使用::RECT结构体指定目标区块,\n参数 @3 ,@4,@5,@6指定九宫格切图坐标\n可选使用参数@7指定 gdip.imageAttributes 对象设置显示属性
 !gdipgraphics.drawBackground( = 画背景图
-!gdipgraphics.drawBackground(.(位图对象,模式,绘图RECT,上,右,下,左) = 支持模式 auto,expand,stretch,center,scale,tile,repeat-x,repeat-y\n所有模式请参考 plus 控件背景模式属性说明，\nauto 模式指图像超过绘图区则居中，否则缩放。\n该函数不检查参数正确性,调用者有责任保证参数正确\n参数 @3 可用 ::RECT 结构体指定区块参数。\n可选使用参数@8指定 gdip.imageAttributes 对象设置显示属性\ntile,repeat-x,repeat-y 三种模式忽略显示属性,\n函数返回自身
-!gdipgraphics.drawCurve(.(画笔,任意个坐标数值参数) = 画曲线\n可添加任意个成对的数值参数指定曲线经过的坐标点
-!gdipgraphics.drawCurve2(.(画笔,曲线强度,任意个坐标参数) =  画曲线\n曲线强度为0画出来的就是直线，设为0.5则相当于调用drawCurve画出来的弯曲程度,\n参数@3开始可添加2个以上的::POINTF结构体参数指定曲线经过的坐标点，也可以在参数@3里用一个 ::POINTF 结构体数组替代\n\n注意drawCurve的参数是多个数值,而drawCurve2的参数是多个 ::POINTF 结构体,\n而且要注意是::POINTF，不是::POINT
+!gdipgraphics.drawBackground(.(位图对象,模式,绘图RECT,上,右,下,左,显示属性,dpiScaleX,dpiScaleY) = 支持模式 auto,expand,stretch,center,scale,tile,repeat-x,repeat-y。\n所有模式用法请参考 plus 控件背景模式属性说明，\nauto 模式指图像超过绘图区则居中，否则缩放。\nexpand 模式可选使用 上,右,下,左参数指定切图位置。\nrepeat-x,repeat-y 可选使用 上,右,下,左 指定输出边距。\n\n此函数不检查参数正确性,调用者有责任保证参数正确\n参数 @3 可用 ::RECT 结构体指定区块参数。\n可选使用参数 @8 指定 gdip.imageAttributes 对象设置显示属性\ntile,repeat-x,repeat-y 三种模式忽略显示属性,\n可选用 dpiScaleX,dpiScaleY 指定 DPI 缩放系数。\n函数返回自身
+!gdipgraphics.drawCurve(.(画笔,任意个坐标数值参数) = 画曲线。\n可添加任意个成对的数值参数指定曲线经过的坐标点。\n也可用参数 @2 指定一个数组，数组元素必须是数值，每一对数值表示一个坐标点 x,y 的值。
+!gdipgraphics.drawCurve2(.(画笔,曲线强度,任意个坐标参数) =  画曲线。\n曲线强度为0画出来的就是直线，设为0.5则相当于调用drawCurve画出来的弯曲程度,\n参数 @3 开始可添加2个以上的::POINTF结构体参数指定曲线经过的坐标点，也可以在参数 @3 里用一个 ::POINTF 结构体数组替代\n\n注意drawCurve的参数是多个数值,而drawCurve2的参数是多个 ::POINTF 结构体,\n而且要注意是::POINTF，不是::POINT
 !gdipgraphics.clear(0xFFFFFFFF__) = 用指定的颜色清空画板 
 !gdipgraphics.fillPath(.(brush,path) = 填充路径  \nbrush为画刷对象,path为gdip.path路径对象
 !gdipgraphics.fillPolygon( = 画多边形
-!gdipgraphics.fillPolygon(.(brush,fillMode,->->->) = 填充多边形\nbrush 为画刷对象,fillMode使用_gdipFillMode前缀的常量指定,可省略\n可使用一个数组，或多个参数指定多个绘图时经过的 ::POINTF 坐标对象
+!gdipgraphics.fillPolygon(.(brush,fillMode,->->->) = 填充多边形。\n参数 @brush 指定画刷对象。\n参数 @fillMode 可选使用 _gdipFillMode 前缀的数值常量指定填充方式，可省略。\n参数 @3 可指定一个数组指定表示绘图的坐标。\n如果参数 @3 不是数组，则将参数 @3 开始的所有参数合并为一个数组参数。\n数组元素可以是::POINTF 结构体，也可以是成对的数值，每对数值表示一个 x,y 坐标。
+!gdipgraphics.fillPolygon(.(brush,points,fillMode) = 填充多边形。\n- 参数 @points 指定一个数组，数组元素可以是表示绘图时坐标的 ::POINTF 结构体，\n也可以直接指定数值（每对数值表示一个坐标点），例如 `[x1,y1,y2,y2]`。\n- 参数 @fillMode 可选使用 _gdipFillMode 前缀的数值常量指定填充方式，可省略。
 !gdipgraphics.fillPolygon() = !gdipgraphics.
-!gdipgraphics.drawPolygon(.(pen,->->->) = 绘制多边形\npen 为画刷对象,\n可使用一个数组，或多个参数指定多个绘图时经过的 ::POINTF 坐标对象
+!gdipgraphics.drawPolygon(.(pen,->->->) = 绘制多边形。\npen 为画刷对象,\n可使用一个数组，或多个参数指定多个绘图时经过的 ::POINTF 坐标对象
 !gdipgraphics.drawPolygon() = !gdipgraphics.
 !gdipgraphics.drawPath( = 画路径 
 !gdipgraphics.drawPath(.(pen,path) = 画路径\n参数 @pen 为 gdip.pen 对象，\n参数 @path 为 gdip.path 对象
@@ -737,15 +754,19 @@ gdip.graphics.fromImage() = !gdipgraphics.
 !gdipgraphics.drawLine(.(pen,x1,y1,x2,y2) = 画线\n参数 @pen 为 gdip.pen 对象，\n参数 @x1,@y1,@x2,@y2 为坐标
 !gdipgraphics.drawRectangle( = 画方块
 !gdipgraphics.drawRectangle(.(pen,x1,y1,width,height) = 画方块\n参数 @pen 为 gdip.pen 对象，\n参数 @x1,@y1 为坐标，\n@width 为宽度，\n@height 为高度
+!gdipgraphics.drawRectangle(.(pen,rect) = 画方块\n参数 @pen 为 gdip.pen 对象，\n参数 @rect 可指定 ::RECT 或 RECTF 结构体。
 !gdipgraphics.fillRectangle( = 填充方块 
 !gdipgraphics.fillRectangle(.(brush,x1,y1,width,height) = 填充方块\n参数 @pen 为 gdip.pen 对象，\n参数 @x1,@y1 为坐标，\n@width 为宽度，\n@height 为高度 
+!gdipgraphics.fillRectangle(.(brush,rect) = 填充方块\n参数 @pen 为 gdip.pen 对象，\n参数 @rect 可指定 ::RECT 或 RECTF 结构体。
+!gdipgraphics.drawEllipse(.(pen,x,y,width,height) = 画圆形、或椭圆。\n参数 x,y 指定椭圆所在矩形的左上角，参数 width 指定宽度，参数 height 指定高度
+!gdipgraphics.fillEllipse(.(brush,rectt) = 填充圆形、或椭圆。\n参数 @rect 可指定 ::RECT 或 RECTF 结构体。
+!gdipgraphics.drawEllipse(.(pen,x,y,width,height) = 画圆形、或椭圆。\n参数 x,y 指定椭圆所在矩形的左上角，参数 width 指定宽度，参数 height 指定高度
+!gdipgraphics.fillEllipse(.(brush,rect) = 填充圆形、或椭圆。\n参数 @rect 可指定 ::RECT 或 RECTF 结构体。
 !gdipgraphics.drawBezier( = 画贝塞尔曲线
 !gdipgraphics.drawBezier(.(pen,x1,y1,x2,y2,x3,y3,x4,y4) = 画贝塞尔曲线\n4个坐标点分别为：起始锚点，起始控制点，结束锚点，结束控制点
 !gdipgraphics.drawArc(.(pen,x,y,width,height,startAngle,sweepAngle) = 画圆弧\nx,y指定椭圆所在矩形的左上角,width指定宽度,height指定高度,\nstartAngle:起始角度,以度为单位从X轴顺时针测量,水平线右侧为0度,\nsweepAngle:startAngle和弧线末尾之间的扫描角度
 !gdipgraphics.drawPie(.(pen,x,y,width,height,startAngle,sweepAngle) = 画扇形、或椭圆\nstartAngle:起始角度,以度为单位从X轴顺时针测量,水平线右侧为0度,\nsweepAngle:startAngle和弧线末尾之间的扫描角度
 !gdipgraphics.fillPie(.(brush,x,y,width,height,startAngle,sweepAngle) = 填充扇形、或椭圆\nstartAngle:起始角度,以度为单位从X轴顺时针测量,水平线右侧为0度,\nsweepAngle:startAngle和弧线末尾之间的扫描角度
-!gdipgraphics.drawEllipse(.(pen,x,y,width,height) = 画圆形、或椭圆 \nx,y指定椭圆所在矩形的左上角,width指定宽度,height指定高度
-!gdipgraphics.fillEllipse(.(brush,x,y,width,height) = 填充圆形、或椭圆\nx,y指定椭圆所在矩形的左上角,width指定宽度,height指定高度
 !gdipgraphics.getDc() = 返回GDI兼容设备句柄\n注意返回的句柄一定要调用releaseDc函数释放
 !gdipgraphics.releaseDc(__/*hdc*/) = 释放GDI兼容设备句柄
 end intellisense**/

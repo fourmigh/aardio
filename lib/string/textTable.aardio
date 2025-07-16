@@ -1,0 +1,280 @@
+﻿//textTable 文本化表格
+import string.padding;
+
+namespace string;
+
+class textTable {
+    ctor(fields,...){
+        if(fields && !..table.isArrayLike(fields) ){
+        	fields = [fields,...];
+        }
+        
+        this.fields = fields;
+        this.rows = [];
+        this.mode="simple" 
+    };
+
+    push = function(row,...){
+        if(!..table.isArrayLike(row)||...){
+        	row = [row,...]
+        }
+        ..table.push(this.rows, row);
+    };
+    
+    count = function(){
+        return #this.rows;
+    };
+
+    stringify = function(dataTable){
+        if(dataTable){ 
+            this.rows = [];
+            
+        	if(..table.isArrayLike(dataTable) && type(dataTable[1])=="table"){
+        	
+        	    if(!..table.isArrayLike(dataTable[1])){
+        	        if(!this.fields) {
+        	        	this.fields = dataTable.fields || ..table.keys(dataTable[1]);
+        	        	..table.sort(this.fields,function(next){
+        	        		return #tostring( dataTable[1][owner] ) < #tostring( dataTable[1][next] )
+        	        	}) 
+        	        }
+        	        
+        	        var fields = this.fields;
+        	        
+        			for(i=1;#dataTable;1){
+			
+            			var rowData = dataTable[i];
+            			var rowArray = [];
+            			for(j=1;#fields;1){
+                			var colName = fields[j];
+                			..table.push(rowArray, rowData[colName]);
+            			}
+            			this.push(rowArray);
+        			}
+
+        	    }
+        	    else{ 
+        	        var fields = []
+					for(i=1;#dataTable[1];1) { 
+						..table.push(fields,"");  
+					}
+					this.fields = fields;
+					
+					for(i=1;#dataTable;1){
+			
+            			var rowData = dataTable[i];
+            			var rowArray = [];
+            			for(j=1;#fields;1){
+                			..table.push(rowArray, rowData[j]);
+            			}
+            			this.push(rowArray);
+        			} 
+        	    }
+        	} 
+        	else{ 
+        	    if(!this.fields){ 
+        	        this.fields = ["",""]
+        	    	
+        	    	for(k,v in dataTable){
+        		 		this.push([k,v]);
+        			}	
+        	    }
+        	    else{
+        	    	var rows = []
+        	    	for(k,v in this.field){
+        	    		..table.push(rows,dataTable[v]);
+        	    	}
+        	    }
+        	    
+        		return this.stringify();
+        	} 
+        } 
+        
+
+		var result = []
+        var headers = this.fields;
+        if(!headers){ 
+            if(!#this.rows) return "";  
+        	return this.stringify(this.rows); 
+        }
+        
+        var dataRows = this.rows;
+        var numColumns = #headers;
+
+        var columnWidths = [];
+        for(i=1;numColumns;1){ 
+          
+            var headerWidth = ..string.padding.len(headers[i]); 
+            var maxWidth = headerWidth;
+            for(j=1;#dataRows;1){ 
+                var cellWidth = ..string.padding.len(dataRows[j][i]);
+                 
+                if(cellWidth > maxWidth){
+                    maxWidth = cellWidth;
+                }
+            }
+             
+            columnWidths[i] = maxWidth; 
+        }
+
+        var totalWidth = numColumns + 1; // 边框宽度
+        for(i=1;numColumns;1){
+            totalWidth += columnWidths[i];
+        }
+        
+        if( this.windowWidth  && (totalWidth > this.windowWidth) ) { 
+            
+            var maxIdx = 0;
+            maxWidth = 0;
+            for(i=1;numColumns;1){
+                 if(columnWidths[i]>maxWidth){
+                    maxIdx = i;
+                    maxWidth = columnWidths[i];
+                 }
+            }
+              
+            columnWidths[maxIdx]  =  this.windowWidth - (totalWidth - columnWidths[maxIdx])
+           
+        } 
+        
+        var printDivider = function(b,m,l,e){
+            var line = b;
+            for(i=1;numColumns-1;1){   
+                line ++= ..string.repeat(columnWidths[i] + 2,l) ++ m;
+            }
+            
+            line ++= ..string.repeat(columnWidths[numColumns] + 2,l) ++ e;
+            ..table.push(result,line);
+        }
+
+        var printRow = function(rowParts){
+            var vbar = this.mode="fancy"?"│":"|";
+            var line = vbar;
+            for(i=1;numColumns;1){  
+                var pad = ..string.padding(columnWidths[i]);
+             
+                if(type(rowParts[i]) == "number"){
+                     line = line + " " + pad.rjust(rowParts[i]) + " " + vbar;
+                }
+                else {
+                     line = line + " " + pad.ljust(rowParts[i]) + " " + vbar;
+                }
+            }
+            
+            ..table.push(result,line);
+        }
+
+		var showHeader = #..string.join(headers);
+		if(showHeader){
+            if( this.mode="simple" ){
+            	 printDivider("+","+","-","+");
+            	 printRow(headers);	
+            	 printDivider("+","+","-","+");
+            }
+            elseif( this.mode="fancy" ){
+                if(this.gridLines){
+                	printDivider("╒","╤","═","╕"); 
+            		printRow(headers);		
+            		printDivider("╞","╪","═","╡");	
+                }
+                else{
+                	printDivider("┌","┬","─","┐"); 
+            		printRow(headers);		
+            		printDivider("├","┼","─","┤");
+                } 
+            }
+            elseif( this.mode="markdown" ){ 
+            	 printRow(headers);	 
+            	 printDivider("|","|","-","|");
+            }
+            else{
+            	printRow(headers);	
+            } 
+		}  
+        else{
+            if( this.mode="simple" ){
+            	 printDivider("+","+","-","+");
+            }
+            elseif( this.mode="fancy" ){
+            	printDivider("┌","┬","─","┐");
+            } 
+            elseif( this.mode="markdown" ){ 
+            	 printRow(headers);	 
+            	 printDivider("|","|","-","|");
+            }
+        }
+        
+        for(i=1;#dataRows;1){ 
+            var dataRow = dataRows[i];
+            var wrappedCells = {};
+            var maxLines = 1;
+
+            for(j=1;numColumns;1){
+                var cellText = tostring(dataRow[j] : "");
+                wrappedCells[j] = ..string.padding(columnWidths[j]).wrap(cellText);
+                if(#wrappedCells[j] > maxLines){
+                    maxLines = #wrappedCells[j];
+                }
+            }
+
+            for(lineNum=1;maxLines;1){
+                var lineParts = {};
+                for(colNum=1;numColumns;1){
+                    lineParts[colNum] = wrappedCells[colNum][lineNum];
+                }
+                printRow(lineParts);
+            }
+            
+            if(this.gridLines && i<#dataRows){
+                if( this.mode="simple" ){
+                	printDivider("+","+","-","+");
+                }
+                elseif( this.mode="fancy" ){
+                	printDivider("├","┼","─","┤");
+                }
+            }
+        }
+        
+		if(showHeader){
+            if( this.mode="simple" ){
+            	 printDivider("+","+","-","+");
+            }
+            elseif( this.mode="fancy" ){
+                if(this.gridLines){
+                	printDivider("╘","╧","═","╛");	
+                }
+                else{
+                	printDivider("└","┴","─","┘");
+                } 
+            }
+		}  
+        else{
+            if( this.mode="simple" ){
+            	 printDivider("+","+","-","+");
+            }
+            elseif( this.mode="fancy" ){
+            	printDivider("└","┴","─","┘");
+            } 
+        }
+        
+        return ..string.join(result,'\n'); 
+    };	
+ }
+
+
+/*****intellisense()
+string.textTable = 用于生成文本化表格。\n主要用于 console.table 库。
+string.textTable(__) = 创建文本化表格。\n可选使用参数 @1 传入一个字符串数组以指定列名数组，如果所有列名为空则不显示列标题。\n也可以用多个字符串参数指定列名。
+string.textTable() = !stdStringTextTable.
+end intellisense*****/
+
+/*****intellisense(!stdStringTextTable)
+mode = 输出风格，可选值如下：\n"simple": 用 ASCII 字符输出表格线，兼容旧系统。\n"fancy": 用 Unicode 字符输出表格线，较美观。\n"markdown": 输出符合 Markdown 语法的表格。\n指定为其他值则仅保留最基本的坚线，不输出水平线与方框。
+fields = 可选用此属性指定列名数组。
+windowWidth = 可选指定最大显示宽度。\n单个非 ASCII 字符宽度为 2, ASCII 字符宽度为 1 。
+gridLines = 是否在所有单元格之间显示网络线。\n输出格式设为 markdown 时此属性无效。
+push(__) = 添加一行数据。\n可用参数 @1 指定一个数组，\n指定多个参数则自动合并为数组。
+count() = 返回已添加的行数。
+stringify(__) = 将表对象转换为文本化表格，返回字符串。 \n如果未指定参数则输出之前添加的所有数据。\n如果参数指定表对象，则先清空之前添加的所有行，然后转换并添加参数指定的表格数据。\n参数表可以是以下格式：\n- 数组的数组:第一层数组逐行输出，第二层数组逐列输出。\n- 键值对数组:逐行输出数组，输出列标题同名的字段值，\n未指定列标题则自动获取所有字段作为列标题。\n- 其他格式的表：逐行输出所有键值对。\n在函数返回后可用 count 函数获取实际输出的数据行总数。
+end intellisense*****/
+

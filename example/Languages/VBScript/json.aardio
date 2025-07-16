@@ -12,7 +12,7 @@ vm.external = {
 vm.script = /*
 Function TestFunction() 
 
-	'调用 aardio 兼容JSON，JSONP，JSON5，部分类 YAML 语法的 web.json.parse() 函数
+	'调用 aardio 兼容JSON，JSONP，JSON5，部分类 YAML 语法的 JSON.parse() 函数
 	Set jObject = JSON.parse("{name:{a:123:b:456,c:[1,2,3]}}" ) 
 	jObject.newKey = "测试"
 	

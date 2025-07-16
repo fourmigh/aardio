@@ -1,4 +1,6 @@
-//自动化
+//调用 CDP 自动化操作网页
+//参考调用 waitEle 自动化操作网页: doc://example/WebUI/web.view/waitEle.aardio
+
 import win.ui;
 /*DSG{{*/
 var winform = win.form(text="自动化 / CDP 协议";right=759;bottom=469;bgcolor=16777215)

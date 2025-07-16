@@ -6,10 +6,10 @@ import console;
 var phpCode =/* 
 	$ret = aardio("
 		import win;
-		import web.json;
+		import JSON;
 		
 		win.msgbox('我是 aardio 代码');
-		return web.json.stringify({a=123;b=456});
+		return JSON.stringify({a=123;b=456});
 	")
 */ 
 

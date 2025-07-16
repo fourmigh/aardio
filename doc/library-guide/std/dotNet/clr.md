@@ -1,6 +1,8 @@
 
 # .NET 运行时
 
+[✅ .NET 交互入门](_.md) [📄 调试 .NET 程序集](debug.md) 
+
 ## 创建 .NET 应用程序域 <a id="appDomain" href="#appDomain">&#x23;</a>
 
 
@@ -73,6 +75,9 @@ aardio 可以自动兼容 CLR 2.0 / CLR 4.0 编写的程序集。
 aardio + .NET 开发有更好的兼容性，对 .NET 版本没有严格要求，可以重用大量的 .NET 组件，
 并且可以编写出体积小、不依赖非系统 DLL 的独立 EXE 文件（也可以内存加载外部程序集）
 
+在 aardio 里 [调用 .NET 编译器](_.md#compiler) 只与 CLR 版本有关，与具体 .NET 版本没有直接关系。
+Win10 已自带 .NET 4.x （ CLR 4.0 ） ，而 CLR 2.0 编译器不支持 var ，lambda 这些语法。
+
 系统自带的都是 .NET Framework 。
 如果安装 NuGet 包时找不到 .NET Framework 的程序集，
 那么可以改用 NET Standard  2.0 的程序集。
@@ -81,7 +86,7 @@ aardio + .NET 开发有更好的兼容性，对 .NET 版本没有严格要求，
 自 .NET Framework 4.6.1 起支持 NET Standard  2.0，
 但实际上  NET Standard  2.0 推荐的最低版本是 .NET 4.7.2 。  
 
-### 各操作系统自带 .NET 版本
+### 各操作系统自带 .NET 版本 
 
 - Windows 7 自带 .NET 3.5.1，支持 lambda
 - Windows 8 自带 .NET 3.5.1 + .NET 4.5 

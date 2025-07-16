@@ -1,5 +1,5 @@
 //com.excel 
-//需要安装 Excel 或 WPS，更多用法请参考『范例 / COM 组件 / Excel』
+//需要安装 Excel 或 WPS，更多用法请参考『范例 » COM 组件 » Excel』
 import console;
 import com.excel; 
 
@@ -19,12 +19,15 @@ var book = excel.WorkBooks.Add(); //创建工作簿
 //book = excel.Open( "\test.xls" );
  
 var sheet = excel.ActiveWorkbook.Sheets(1);
-var cell = sheet.Cells(1,1);
+var cell = sheet.Cells(1,1); //访问指定的行列
+cell.Value2 = "haha"; //Value 或 Value2 都可以读写值 https://docs.microsoft.com/en-us/office/vba/api/excel.range.value2
 
-//https://docs.microsoft.com/en-us/office/vba/api/excel.range.value2
-cell.Value2 = "haha";   
- 
-console.log( cell.Text );
+//也可以使用多项索引获取单元格对象 doc://language-reference/operator/member-access.md#multiple-indexing
+var cell = sheet.Cells[1,1];
+
+//使用多项索引修改单元格的值
+sheet.Cells[1,1] = "新的值";//修改默认的 Value 属性
+sheet.Cells[1,1].Value = "新的值2";//这样写也行
 
 //遍列所有单元格
 for(i,values in excel.eachValue(1) ){ 

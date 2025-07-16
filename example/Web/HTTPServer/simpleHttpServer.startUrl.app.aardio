@@ -8,6 +8,7 @@ static={cls="static";text="Static";left=20;top=207;right=740;bottom=451;db=1;dl=
 )
 /*}}*/
 
+//HTTP 服务端开发指南: doc://guide/quickstart/web-server.md
 import wsock.tcp.simpleHttpServer;
 
 /*
@@ -30,7 +31,7 @@ var url = wsock.tcp.simpleHttpServer.startUrl(
 		
 		/*
 		如果想更高级一点，这里还可以来个 web.rpc.jsonServer,
-		参考「范例 / Web 应用 / JSON / HTTP-RPC-JSON 服务端 」
+		参考「范例 » Web 应用 » JSON » HTTP-RPC-JSON 服务端 」
 		*/
 	}
 );	

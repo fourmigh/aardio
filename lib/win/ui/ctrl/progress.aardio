@@ -107,6 +107,10 @@ progress._metaProperty =  metaProperty(
 	};
 )
 
+with progress._metaProperty{
+	value = pos;
+}
+
 /***intellisense()
 win.ui.ctrl.progress = 进度条控件
 win.ui.ctrl.progress() = 进度条控件\n!progress.
@@ -114,14 +118,15 @@ win.ui.ctrl.progress() = 进度条控件\n!progress.
 !progress.delta(.(偏移值) = 修改当前进度,参数指定相对于当前进度的偏移值
 !progress.stepIt() = 进度条前进一个增量，最出最大值时设为最小值。\n返回步进前位置
 !progress.step = 设置stepIt()函数的步进增量\n默认为10
-!progress.pos = 进度条当前值,不能大于0xFFFF,不要使用负数
+!progress.pos = 进度条当前值,不能大于 0xFFFF,不要使用负数
+!progress.value = 进度条当前值,不能大于 0xFFFF,不要使用负数
 !progress.setRange(.(最小值,最大值) = 设置进度条最大值,最小值\n注意值不能大于0xFFFF,不要使用负数
 !progress.hwnd = 控件句柄
 !progress.id = 控件ID
-!progress._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!progress._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !progress.getParent() = 返回父窗口\n!static.
 !progress.setParent(__/*控件对象*/) = 改变父窗口 
-!progress.hide = 控件是否隐藏
+!progress.hide = 当前控件窗口是否隐藏。\n仅检查当前窗口的可见性样式（窗口 是否移除了 _WS_VISIBLE 样式）。\n不考虑父窗口是否可见，不考虑是否被其他窗口遮挡。\n如果需要同时判断父窗口的可见性，应改用 win.isVisible 函数。\n\n以 `.` 前导的 `.hide()` 作为成员函数被调用时，\n作用等价于将 hide 属性设为 null 。
 !progress.disabled = 是否禁用
 !progress.left = 左侧坐标
 !progress.right = 右侧坐标

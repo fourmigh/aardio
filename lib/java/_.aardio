@@ -1,8 +1,10 @@
 ﻿import fsys;
 import raw.interface;
-import process.popen;
 import string.cmdline;
 import string.encoding;
+import process.popen;
+
+var __javaTable__ = ..java;
 
 class java{
 
@@ -71,45 +73,87 @@ class java{
 		self._jvm = this;
 		this.exceptionClear = function(){
 			if ( jniEnv.ExceptionCheck() == 1/*_JNI_TRUE*/ ) {
-            	jniEnv.ExceptionDescribe(); //打印错误信息
-        		jniEnv.ExceptionClear(); //清除异常
-        		return true; 
+            	 
+            	var err;
+            	var ex = jniEnv.ExceptionOccurred();
+            	
+            	//打印错误信息，之后就取不到 ExceptionOccurred
+            	jniEnv.ExceptionDescribe(); 
+            	
+            	//必须清除异常，不然所有 JNI 接口都无法使用
+            	jniEnv.ExceptionClear(); 
+            	
+            	if(ex){
+            		ex = ..java.object(this,ex);
+            		err = ex.getMessage();
+            		
+            		ex._jvm_deleteDeleteGlobalRef();
+            	}
+        		
+        		return true,err; 
         	} 
 		}; 
 		
 		this.interop = ..java.class(this,"aardio.interopServices.utility"
 			,this.__isMainThread ? $"~\lib\java\.interopServices\utility.class" : null ) 
-		this.fieldExists = this.interop.getMethod("getFieldValue","pointer(pointer[])");
+		this.fieldExists = this.interop.getMethod("fieldExists","bool(pointer[])");
 		this.getFieldValue__ = this.interop.getMethod("getFieldValue","pointer(pointer[])");
 		this.setFieldValue__ = this.interop.getMethod("setFieldValue","void(pointer[])");
 		this.invokeMethod__ = this.interop.getMethod("invokeMethod","pointer(pointer[])");
-		this.createInstance = this.interop.getMethod("createInstance","pointer(pointer[])");
+		this.new = this.interop.getMethod("createInstance","pointer(pointer[])");
 		this.objectIsNumber  = this.interop.getMethod("objectIsNumber","bool(pointer)");
 		this.objectIsString = this.interop.getMethod("objectIsString","bool(pointer)");
 		this.objectIsStringArray = this.interop.getMethod("objectIsStringArray","bool(pointer)");
 		this.objectIsNummberArray = this.interop.getMethod("objectIsNummberArray","bool(pointer)");
+		this.objectIsBuffer = this.interop.getMethod("objectIsByteArray","bool(pointer)");
+		this.objectIsHashMap = this.interop.getMethod("objectIsHashMap","bool(pointer)");
+		this.objectIsMap = this.interop.getMethod("objectIsMap","bool(pointer)");
+		this.objectIsCollection = this.interop.getMethod("objectIsCollection","bool(pointer)");
+		this.objectIsArrayList = this.interop.getMethod("objectIsArrayList","bool(pointer)");			
+				
 		this.object2Number  = this.interop.getMethod("object2Number","double(pointer)");
 		this.object2String = this.interop.getMethod("object2String","string(pointer)");
 		this.object2StringArray = this.interop.getMethod("object2StringArray","string[](pointer)");
 		this.object2NumberArray  = this.interop.getMethod("object2NumberArray","double[](pointer)");
+		this.object2Boolean = this.interop.getMethod("object2Boolean","bool(pointer)");
+		this.objectTypecode = this.interop.getMethod("objectTypecode","int(pointer)");
 		
 		this.invokeMethod = function(obj,...){
-			var obj = this.invokeMethod__(obj,...);
-			if( obj ) { 
-				if( this.objectIsString(obj) ) return this.object2String(obj);
-				if( this.objectIsNumber(obj) )  return this.object2Number(obj); 
-				if( this.objectIsStringArray(obj) ) return this.object2StringArray(obj); 
-				if( this.objectIsNummberArray(obj) ) return this.object2NumberArray(obj);
+			var obj,errMessage = this.invokeMethod__(obj,...);
+			if( obj ) {   
+				var t = this.objectTypecode(obj);
+				if( t == 1 ) return this.object2String(obj);
+				if( t == 2 ) return this.object2Number(obj); 
+				if( t == 3 ) return this.object2StringArray(obj); 
+				if( t == 4 ) return this.object2NumberArray(obj);
+				if( t == 5 ) return this.parseBuffer(obj);
+				if( t == 6 ) return this.object2Boolean(obj);
+				if( t == 7 ) return ..time( (obj.getTime()/1000) );
+				//8 为 Map , 9 为 Collection
+				
+				//调用程序请不要使用 $jvmTypeCode，后续可能会变更
+				obj[["$jvmTypeCode"]] = typecode;
+				return obj; 
 			}
-			return obj;
+			
+			return obj,errMessage;
 		}
 		this.getFieldValue = function(...){
 			var obj = this.getFieldValue__(...);
 			if( obj ) {
-				if( this.objectIsString(obj) ) return this.object2String(obj);
-				if( this.objectIsNumber(obj) ) return this.object2Number(obj);
-				if( this.objectIsStringArray(obj) ) return this.object2StringArray(obj);
-				if( this.objectIsNummberArray(obj) ) return this.object2NumberArray(obj);
+				 
+				var t = this.objectTypecode(obj);
+				if( t == 1 ) return this.object2String(obj);
+				if( t == 2 )  return this.object2Number(obj); 
+				if( t == 3 ) return this.object2StringArray(obj); 
+				if( t == 4 ) return this.object2NumberArray(obj);
+				if( t == 5 ) return this.parseBuffer(obj);
+				if( t == 6 ) return this.object2Boolean(obj);
+				if( t == 7 ) return ..time( (obj.getTime()/1000) );
+				
+				//调用程序请不要使用 $jvmTypeCode，后续可能会变更
+				obj[["$jvmTypeCode"]] = typecode;
+				return obj; 
 			}
 			return obj;
 		}
@@ -121,16 +165,19 @@ class java{
 			return ..java.class(this,classPath,clssBuffer,classLoader);	
 		};
 		
-		this.jObjectClass = this.import("java/lang/Object");
+		this.jObjectClass = this.import("java.lang.Object");
 		this.jBooleanClass = this.import("java.lang.Boolean");
 		this.jIntegerClass = this.import("java.lang.Integer");
 		this.jShortClass = this.import("java.lang.Short");
 		this.jCharacterClass = this.import("java.lang.Character");
+		this.jByteClass = this.import("java.lang.Byte");
 		this.jLongClass = this.import("java.lang.Long");
 		this.jFloatClass = this.import("java.lang.Float");
 		this.jDoubleClass = this.import("java.lang.Double");
-		this.jStringClass = this.import("java/lang/String"); 
+		this.jStringClass = this.import("java.lang.String"); 
 		this.jNetUrlClass = this.import( "java.net.URL");
+		this.jHashMapClass = this.import( "java.util.HashMap"); 
+		this.jDateClass = this.import( "java.util.Date");
 		
 		this.jFileInputStreamClass = this.import("java.io.FileInputStream");
 		this.jObjectInputStreamClass = this.import("java.io.ObjectInputStream");
@@ -147,52 +194,101 @@ class java{
 			}
 		} 
 	};
-	object = function(jInstance){
-		return ..java.object(this, jInstance );
-	};
 	string = function(str){
 		var jInstance = jniEnv.NewStringUTF((tostring(str)));
 		if (!jInstance) { 
             this.exceptionClear();
             return;
 		}
+		
 		return ..java.object(this, jInstance );
 	};
 	double = function(v){
-		return this.jDoubleClass.createInstanceEx("void(double)",v);
+		return this.jDoubleClass.new2("void(double)",v);
 	};
 	float = function(v){
-		return this.jFloatClass.createInstanceEx("void(float)",v);
+		return this.jFloatClass.new2("void(float)",v);
 	};
 	long = function(v){
-		return this.jLongClass.createInstanceEx("void(long)",v);
+		return this.jLongClass.new2("void(long)",v);
 	};
 	char = function(v){
-		return this.jCharacterClass.createInstanceEx("void(char)",v);
+		return this.jCharacterClass.new2("void(char)",v);
 	};
+	byte = function(v){
+		return this.jByteClass.new2("void(byte)",v);
+	}; 
 	short = function(v){
-		return this.jShortClass.createInstanceEx("void(short)",v);
+		return this.jShortClass.new2("void(short)",v);
 	};
 	int = function(v){
-		return this.jIntegerClass.createInstanceEx("void(int)",v);
+		return this.jIntegerClass.new2("void(int)",v);
 	};
 	boolean = function(v){
-		return this.jBooleanClass.createInstanceEx("void(boolean)",v);
+		return this.jBooleanClass.new2("void(boolean)",v);
 	};		
+	hashMap = function(tab){
+		var jMap = this.jHashMapClass.new()
+		for(k,v in tab){
+			jMap.put(k,v);
+		}
+		return jMap;
+	}; 
+	date = function(v){ 
+		return this.jDateClass.new2( "void(long)",(tonumber(v === null ?..time() : v))*1000) 
+	}
+	object = function(v){
+		var t = type(v);
+		if(t == "table"){
+			if(v@ && v@._topointer && (v.$jvmInstancePtr || v.$jvmClassPtr)){
+				return v;	
+			}
+			elseif( #v ) {
+				if(type(v[1]==="string")){ 
+					return this.stringArray(v);
+				}
+				else { 
+					return this.array("pointer",v);
+				} 
+			} 
+			elseif( ..table.isArray(v) ){
+				return this.array("pointer",{});
+			}
+			elseif(..time.istime(v)){
+				return this.date(v);
+			}
+			else{
+				return this.hashMap(v);
+			}
+		}
+		elseif(t == "string"){ 
+			return this.string(v); 
+		}
+		elseif(t == "number"){
+			return this.double(v);
+		}
+		elseif(t == "boolean"){
+			return this.boolean(v);
+		} 
+		elseif(t == "buffer"){ 
+			return this.buffer(v);
+		}	
+	};
 	array = function(atype,...){ 
-	 	var jtype = aardioTypToJava(atype)
-	 	
+		
 		var arr = ...
 		if(type(arr)!="table" || (arr@ ? arr@._topointer) ){
 			arr = {...}
 		} 
 		
-		if( jtype == "Object" ){
+		var jniResultType = signatureTypeToJniType(atype)
+		
+		if( jniResultType == "Object" ){
 			var t;
 			var jarr = jniEnv.NewObjectArray( #arr,this.jObjectClass); 
 			for(i=1;#arr;1){
 				t = type(arr[i]);
-				if(t == "string" || t == "buffer"){ 
+				if(t == "string"){ 
 					var jstr = this.string(arr[i]);
 					jniEnv.SetObjectArrayElement(jarr,i-1,jstr);
 				}
@@ -208,10 +304,15 @@ class java{
 							jniEnv.SetObjectArrayElement(jarr,i-1,this.array("pointer",arr[i]));
 						} 
 					} 
-					elseif( ..table.isArray(arr) || !..table.next(arr) ){
+					elseif( ..table.isArray(arr[i]) ){
 						jniEnv.SetObjectArrayElement(jarr,i-1,this.array("pointer",{}));
 					}
-					
+					elseif(..time.istime(arr[i])){ 
+						jniEnv.SetObjectArrayElement(jarr,i-1,this.date(arr[i]));
+					}
+					else{
+						jniEnv.SetObjectArrayElement(jarr,i-1,this.hashMap(v));
+					}
 				}
 				elseif(t == "number"){
 					jniEnv.SetObjectArrayElement(jarr,i-1,this.double(arr[i]));
@@ -219,18 +320,26 @@ class java{
 				elseif(t == "boolean"){
 					jniEnv.SetObjectArrayElement(jarr,i-1,this.boolean(arr[i]));
 				} 
+				elseif(t == "buffer"){ 
+					jniEnv.SetObjectArrayElement(jarr,i-1,this.buffer(arr[i]));
+				}
 			}
 			return ..java.object(this,jarr);
 		}
 		
-		var newArray = jniEnv[  ..string.format("New%sArray",jtype) ]
-		var setArray = jniEnv[  ..string.format("Set%sArrayRegion",jtype) ] 
+		var newArray = jniEnv[  ..string.format("New%sArray",jniResultType) ]
+		var setArray = jniEnv[  ..string.format("Set%sArrayRegion",jniResultType) ] 
 		if(! (newArray && setArray) )
 			error("错误的数组类型" + atype ,2)
 			
-		var jarr = newArray( #arr);
-		setArray(jarr,0,#arr-1,..raw.toarray( arr ,atype,"array" )) 
+		var jarr = newArray(#arr);
+		setArray(jarr,0,#arr,..raw.toarray( arr ,atype,"array" )) 
 		return ..java.object(this,jarr);
+	};
+	buffer = function(buf){
+		var jbytes = jniEnv.NewByteArray(#buf);
+		jniEnv.SetByteArrayRegion(jbytes,0,#buf,buf) 
+		return ..java.object(this,jbytes);	
 	};
 	stringArray = function(...){ 
 		var args = ...
@@ -256,6 +365,17 @@ class java{
 		}
 		return ..java.object(this,array);
 
+	}; 
+	parseBuffer = function(jbuffer){
+		 
+		var len = jniEnv.GetArrayLength(jbuffer)
+		if(!len) return null;
+	
+		var buffer = ..raw.buffer(len);
+		jniEnv.GetByteArrayRegion(jbuffer,0,len,buffer) 
+		
+		jniEnv.DeleteLocalRef(jbuffer);
+		return buffer;
 	};
 	parseString = function(jstr){
 		if(!jstr) return;
@@ -282,9 +402,9 @@ class java{
 			return {};
 		}
 	
-		var jtype = aardioTypToJava(atype) 
-		if( jtype == "Object" ){ 
-			var array = {};
+		var jniResultType = signatureTypeToJniType(atype) 
+		if( jniResultType == "Object" ){ 
+			var array = [];
 			for(i=1;len;1){
 				array[i] = ..java.object(this,jniEnv.GetObjectArrayElement(jarr,i-1));
 			} 
@@ -293,7 +413,7 @@ class java{
 			return array;
 		}
 		
-		var arrayGetter = jniEnv[  ..string.format("Get%sArrayRegion",jtype) ];
+		var arrayGetter = jniEnv[  ..string.format("Get%sArrayRegion",jniResultType) ];
 		if(! arrayGetter ){ 
 			jniEnv.DeleteLocalRef(jarr);
 			error("错误的数组类型" + atype ,2)
@@ -319,6 +439,9 @@ class java{
 		
 		jniEnv.DeleteLocalRef(jarr);
 		return array;
+	};
+	parseObject = function(jInstance){
+		return ..java.object(this, jInstance );
 	};
 	getClassLoader = function(){ 
 		if( this.version >= 0x90000/*_JNI_VERSION_9*/ ) return;
@@ -364,7 +487,7 @@ class java{
 			if( __globalClassLoadedPaths[path] ) { return; }
 			__globalClassLoadedPaths[path] = true;
 			
-			var url = this.jNetUrlClass.createInstanceEx("void(string)" ,path); 
+			var url = this.jNetUrlClass.new2("void(string)" ,path); 
 			addURL(url);//该java函数有自动去重功能(但不忽略大小写) 
 		};
 		classLoader[["addUrls"]] = function(urls,...){
@@ -385,14 +508,21 @@ class java{
 	};
 	reopen = function(funcName,filename){
 		var outstream = this.import( "java.io.FileOutputStream")( ..io.fullpath(filename) ); 
-		var printstream = this.import("java.io.PrintStream").createInstanceEx("void(java.io.OutputStream)",outstream)	 
+		var printstream = this.import("java.io.PrintStream").new2("void(java.io.OutputStream)",outstream)	 
 		var reset = this.import("java.lang.System").getMethod(funcName);	
 		reset(printstream);
 	};
 	__jvm_init__(this) and null;
 }
 
+if( __javaTable__ ) ..table.mix( java/*class*/,__javaTable__/*table*/);
+
 import java.path;
+/*
+import java.jdk.v8;
+import java.jre.v8;
+*/
+
 namespace java {  
 	encoding = "utf-8";
 	
@@ -457,6 +587,12 @@ namespace java {
  
 	//__globalClassLoadedPaths = null; 
 	__jvm_init__ = function(jvm){
+	
+		..subscribe("afterConsoleOpen",function(){
+		 	jvm.reopen("setErr","conerr$");
+			jvm.reopen("setOut","conout$");
+		} );
+		
 		if( jvm.__isMainThread ){
 			__globalClassLoadedPaths = __localClassPaths;
 			..thread.set("_std.java.vm.loadedPaths", __globalClassLoadedPaths);
@@ -661,8 +797,8 @@ namespace java {
 		pointer CallObjectMethodV = "pointer(POINTER obj,pointer methodID,struct args)";
 		pointer CallObjectMethodA = "pointer(POINTER obj,pointer methodID,struct args)";
 		pointer CallBooleanMethod ; //= "BYTE(POINTER obj,pointer methodID,...)";
-		pointer CallBooleanMethodV = "BYTE(POINTER obj,pointer methodID,struct args)";
-		pointer CallBooleanMethodA = "BYTE(POINTER obj,pointer methodID,struct args)";
+		pointer CallBooleanMethodV = "bool(POINTER obj,pointer methodID,struct args)";
+		pointer CallBooleanMethodA = "bool(POINTER obj,pointer methodID,struct args)";
 		pointer CallByteMethod ; //= "byte(POINTER obj,pointer methodID,...)";
 		pointer CallByteMethodV = "byte(POINTER obj,pointer methodID,struct args)";
 		pointer CallByteMethodA = "byte(POINTER obj,pointer methodID,struct args)";
@@ -740,9 +876,9 @@ namespace java {
 		pointer CallStaticObjectMethod ; //= "pointer(POINTER clazz,pointer methodID,...)";
 		pointer CallStaticObjectMethodV = "pointer(POINTER clazz,pointer methodID,struct args)";
 		pointer CallStaticObjectMethodA = "pointer(POINTER clazz,pointer methodID,struct jvalue)";
-		pointer CallStaticBooleanMethod ; //= "BYTE(POINTER clazz,pointer methodID,...)";
-		pointer CallStaticBooleanMethodV = "BYTE(POINTER clazz,pointer methodID,struct args)";
-		pointer CallStaticBooleanMethodA = "BYTE(POINTER clazz,pointer methodID,struct jvalue)";
+		pointer CallStaticBooleanMethod ; //= "bool(POINTER clazz,pointer methodID,...)";
+		pointer CallStaticBooleanMethodV = "bool(POINTER clazz,pointer methodID,struct args)";
+		pointer CallStaticBooleanMethodA = "bool(POINTER clazz,pointer methodID,struct jvalue)";
 		pointer CallStaticByteMethod ; //= "byte(POINTER clazz,pointer methodID,...)";
 		pointer CallStaticByteMethodV = "byte(POINTER clazz,pointer methodID,struct args)";
 		pointer CallStaticByteMethodA = "byte(POINTER clazz,pointer methodID,struct jvalue)";
@@ -823,7 +959,7 @@ namespace java {
 		pointer ReleaseFloatArrayElements = "void(POINTER array,pointer elems,int mode)";
 		pointer ReleaseDoubleArrayElements = "void(POINTER array,pointer elems,int mode)"; 
 		pointer GetBooleanArrayRegion = "void(POINTER array,int start,int l,struct &arrbuf)";
-		pointer GetByteArrayRegion = "void(POINTER array,int start,int len,struct &arrbuf)";
+		pointer GetByteArrayRegion = "void(POINTER array,int start,int len,ptr buf)";
 		pointer GetCharArrayRegion = "void(POINTER array,int start,int len,struct &arrbuf)";
 		pointer GetShortArrayRegion = "void(POINTER array,int start,int len,struct &arrbuf)";
 		pointer GetIntArrayRegion = "void(POINTER array,int start,int len,struct &arrbuf)";
@@ -831,7 +967,7 @@ namespace java {
 		pointer GetFloatArrayRegion = "void(POINTER array,int start,int len,struct &arrbuf)";
 		pointer GetDoubleArrayRegion = "void(POINTER array,int start,int len,struct &arrbuf)"; 
 		pointer SetBooleanArrayRegion = "void(POINTER array,int start,int l,struct buf)";
-		pointer SetByteArrayRegion = "void(POINTER array,int start,int len,struct buf)";
+		pointer SetByteArrayRegion = "void(POINTER array,int start,int len,pointer buf)";
 		pointer SetCharArrayRegion = "void(POINTER array,int start,int len,struct buf)";
 		pointer SetShortArrayRegion = "void(POINTER array,int start,int len,struct buf)";
 		pointer SetIntArrayRegion = "void(POINTER array,int start,int len,struct buf)";
@@ -851,18 +987,18 @@ namespace java {
 		pointer ReleaseStringCritical = "void(POINTER  string,pointer cstring)";
 		pointer NewWeakGlobalRef = "pointer(POINTER obj)";
 		pointer DeleteWeakGlobalRef = "void(POINTER ref)";
-		pointer ExceptionCheck = "BYTE()";
+		pointer ExceptionCheck = "bool()";
 		pointer NewDirectByteBuffer = "pointer(POINTER address,long capacity)";
 		pointer GetDirectBufferAddress = "pointer(POINTER buf)";
 		pointer GetDirectBufferCapacity = "long(POINTER buf)";
 		pointer GetObjectRefType = "int(POINTER obj)"
     }
     
-    var typename_a2j = {
+    var typename_signature2jni = {
 		pointer = "Object";
-		BOOL= "Boolean";
-		bool= "Boolean";
-		BYTE= "Boolean";
+		BOOL = "Boolean";
+		bool = "Boolean";
+		boolean = "Boolean";
 		CHAR = "Char";
 		char = "Char";
 		WORD = "Char";
@@ -874,13 +1010,21 @@ namespace java {
 		long = "Long";
 		LONG = "Long";
 		string = "Object";
+		BYTE= "Byte";
 		byte = "Byte";
 		float = "Float";
 		double = "Double";
 		void = "Void";
+		long64 = "Long";
+		float32 = "Float";
+		float64 = "Double";
+		int8 = "Byte";
+		int16 = "Short";
+		int32 = "Int";
+		int64 = "Long";
 	}
 	
-	var typename_j2a  = {
+	var typename_signature2canonical = {
 		Z = "BYTE";
 		B = "byte";
 		C = "WORD";
@@ -889,48 +1033,40 @@ namespace java {
 		J = "long";
 		D = "double";
 		F = "float"; 
+		["java.lang.String"] = "string"; 
+		["java/lang/String"] = "string"; 
 	}
 	
-	aardioTypToJava = function(t){
+	signatureTypeToJniType = function(t){
 		if(!#t) return "Void"; 
 		if( ..string.find(t,"\;") ) return "Object"; 
-		return typename_a2j[t] || "Object"
+		return typename_signature2jni[t] || "Object"
 	} 
 	
-	aardioTypeFromJava = function(t){
-		if( typename_a2j[t] ) return t;
-		t = typename_j2a[t];
+	signatureTypeToCanonicalType = function(t){
+		if( typename_signature2jni[t] ) return t;
+		t = typename_signature2canonical[t];
 		if( t ) return t;
 		return "pointer";
 	}
 	
-	getSignature = function(sign){
-		if( ..string.find(sign,"\s") ) error("java签名中仅可指定类型名称,不能包含空格或参数名字",2)
+	convertSignature = function(sign){
+		if( ..string.find(sign,"\s") ) error("Java 签名中仅可指定类型名称,不能包含空格或参数名字",2)
 		var replace = ..string.replace;
-		 
-		sign = replace(sign,"![\w]void![\W]","V");
-		sign = replace(sign,"![\w]BOOL![\W]","Z");
-		sign = replace(sign,"![\w]bool![\W]","Z"); 
-		sign = replace(sign,"![\w]BYTE![\W]","Z"); 
-		sign = replace(sign,"![\w]byte![\W]","B");
-		sign = replace(sign,"![\w]CHAR![\W]","C");
-		sign = replace(sign,"![\w]char![\W]","C");
-		sign = replace(sign,"![\w]WORD![\W]","C");
-		sign = replace(sign,"![\w]word![\W]","S");
-		sign = replace(sign,"![\w]SHORT![\W]","S");
-		sign = replace(sign,"![\w]short![\W]","S");
-		sign = replace(sign,"![\w]int![\W]","I");
-		sign = replace(sign,"![\w]INT![\W]","I"); 
-		sign = replace(sign,"![\w]long![\W]","J");
-		sign = replace(sign,"![\w]LONG![\W]","J"); 
-		sign = replace(sign,"![\w]float![\W]","F");
-		sign = replace(sign,"![\w]double![\W]","D");
-		sign = replace(sign,"![\w]long![\W]","J"); 
-		sign = replace(sign,"![\w]([\w\\/\.\$]+)\s*\[\s*\]","[\1"); //[数组 
-		sign = replace(sign,"![\w]string![\W]","java/lang/String"); 
-		sign = replace(sign,"![\w]STRING![\W]","java/lang/String"); 
-		sign = replace(sign,"![\w]pointer![\W]","java/lang/Object");
-		sign = replace(sign,"![\w]POINTER![\W]","java/lang/Object"); 
+		
+		sign = replace(sign,"![\w\./\\]void![\W]","V");
+		sign = replace(sign,"![\w\./\\]<bool>|<BOOL>|<boolean>![\W]","Z"); 
+		sign = replace(sign,"![\w\./\\]<byte>|<BYTE>|<int8>![\W]","B"); 
+		sign = replace(sign,"![\w\./\\]<char>|<CHAR>|<WORD>![\W]","C");
+		sign = replace(sign,"![\w\./\\]<short>|<SHORT>|<word>|<int16>![\W]","S");
+		sign = replace(sign,"![\w\./\\]<int>|<INT>|<int32>![\W]","I"); 
+		sign = replace(sign,"![\w\./\\]<long>|<LONG>|<int64>|<long64>![\W]","J");
+		sign = replace(sign,"![\w\./\\]<float>|<float32>![\W]","F");
+		sign = replace(sign,"![\w\./\\]<double>|<float64>![\W]","D");
+		sign = replace(sign,"![\w\./\\]([\w\\/\.\$]+)\s*\[\s*\]","[\1"); //[数组 
+		sign = replace(sign,"![\w\./\\]string![\W]","java/lang/String"); 
+		sign = replace(sign,"![\w\./\\]STRING![\W]","java/lang/String"); 
+		sign = replace(sign,"![\w\./\\]<pointer>|<POINTER>|<object>|<Object>![\W]","java/lang/Object"); 
 		sign = replace(sign,"![\w]([\w\\/\.\$]{2,})![\W]","L\1;"); //L+类名+;
 		
 		sign = replace(sign,"\\","/");
@@ -959,6 +1095,8 @@ namespace java {
 import java.class;
 import java.object;
 
+//@guide [📄 aardio + Java 开发指南](doc://library-guide/std/java/_.md)
+
 /**intellisense() 
 java( = 创建 JAVA 虚拟机,仅支持 32 位 JRE。\n改用 java.openProcess  函数可兼容 32位、64位 JRE。\n如果未找到可用的 JVM 运行库返回 null\n在每个进程第一次创建JAVA 虚拟机或初始化 JVM 路径之前,\n可调用 java.path.setJreHome 自定义搜索 JVM 的 JRE 运行时目录,\njar包搜索顺序为"\","\java\","~\java",\n可使用 java.addClassPath 函数添加搜索路径
 java(.(命令行参数,->->->) = n可指定一个或多个启动命令行参数,\n也可以把多个参数写到一个字符串参数或数组参数里,\n\n参数类似 "-D<propertyName>=value"\n在 JAVA 中可以使用 System.getProperty("propertyName") 得到value的值\n\n对于每个打开的进程,JAVA虚拟机仅创建一次实例,\n因此所有参数、搜索路径等仅在首次创建虚拟机时生效
@@ -978,27 +1116,33 @@ java.runtimeVersion(true) = 返回 Java 运行时版号，数值。\n版本号�
 !java.__isMainThread = 仅第一次创建java虚拟机时该值为true,\n随后创建的虚拟机都会返回false
 !java.addClassLoaderUrl( = 添加类搜索目录到 CLASSPATH,\n此函数仅支持 Java6~Java8 \nJava9 开始不再支持,可以改用 java.addClassPath,\n但 java.addClassPath 仅支持 ANSI编码路径,\naddClassLoaderUrl 函数支持 UTF-8 编码路径
 !java.addClassLoaderUrl(.("类搜索路径") = 添加jar包或文件目录到 CLASSPATH,\nJava 在 CLASSPATH 指定的目录或 jar 中搜索类,\n参数可以是一个数组,也可以是多个路径参数
-!java.import(.("类名","类文件路径") = 加载指定的类\n可选用参数@2指定类文件路径、或者自内存文件加载类\n如果类不存在或加载失败返回null空值 - 不会抛出异常
+!java.import( = 导入并返回 Java 类。
+!java.import(.("类名","类文件路径") = 导入 Java 类。\n可选用参数 @2 指定 *.class 文件路径（或指定文件数据并内存加载类）。\n导入成功则返回值为导入的 Java 类，可使用返回的类直接构造 Java 对象。\n如果类不存在或加载失败返回 null 空值 - 不会抛出异常。\n\n注意此函数需要通过返回值接收导入的 Java 类，\n并不会像 dotNet.import 那样自动导入外部名字空间。
 !java.exceptionClear() = 该函数如果检测到抛出的异常,并清除异常返回true\n如果未检测到异常返回空值
 !java.array("int",__) = 将一个或多个基本类型转换为java数组对象\n传入参数也可以是一个table类型字符串数组
 !java.stringArray(__) = 将一个或多个字符串转换为java字符串数组\n传入参数也可以是一个table类型字符串数组
 !java.string(__) = 将aardio字符串转换为java字符串对象\n返回对象指针
-!java.double(__) = 创建64位浮点数值-返回 Java 对象
-!java.float(__) = 创建32位浮点数值-返回 Java 对象
-!java.char(__) = 创建8位整型数值-返回 Java 对象
-!java.short(__) = 创建16位整型数值-返回 Java 对象
-!java.int(__) = 创建32位整型数值-返回 Java 对象
-!java.long(__) = 创建64位整型数值-返回 Java 对象
-!java.boolean(__) = 创建布尔值-返回 Java 对象
-!java.parseString(__) = 将Java字符串转换为 aardio 字符串\n注意:该函数会销毁传入的 Java 对象指针
+!java.hashMap(__) = 创建 java.util.HashMap 对象，返回 Java 对象（java.object）。\n参数可指定普通的 aardio 表对象。\n\n注意：在调用 java 函数时，\n除 java.object,纯数组,类数组,时间对象以外的表\n也会自动转换为 java.util.HashMap 对象。\n但 Java 返回的 HashMap 不会自动转换为 aardio 表，\n需要显式调用 java 对象的 parseValue 才会转换为 aardio 表。
+!java.buffer(__) = 创建 Java 字节数组，返回 Java 对象（java.object）。\n参数可指定 aardio 的 buffer 或字符串对象。
+!java.double(__) = 创建 64 位浮点数值，返回 Java 对象（java.object）。
+!java.float(__) = 创建 32 位浮点数值，返回 Java 对象（java.object）。
+!java.char(__) = 创建 16 位无符号整型数值（java.lang.Character），返回 Java 对象（java.object）。
+!java.byte(__) = 创建 8 位整型数值，返回 Java 对象（java.object）。
+!java.short(__) = 创建 16 位整型数值，返回 Java 对象（java.object）。
+!java.int(__) = 创建 32 位整型数值，返回 Java 对象（java.object）。
+!java.long(__) = 创建 64 位整型数值，返回 Java 对象（java.object）。
+!java.long(__) = 创建 64 位整型数值，返回 Java 对象（java.object）。
+!java.date(__) = 创建 java.util.Date 对象，返回 Java 对象（java.object）。\n参数可指定时间戳或 time,time.ole 对象。\n不指定参数时获取当前时间戳作为参数。\n\n在 aardio 中调用 Java 函数时，time,time.ole 对象会自动转换为 java.util.Date。\nJava 返回的 java.util.Date 也会自动转换为 aardio 的 time 对象。
+!java.parseString(__) = 将 Java 字符串转换为 aardio 字符串。\n注意:该函数会销毁传入的 Java 对象指针
 !java.parseStringArray(.(java数组) = 将 Java 对象指针转换为 aardio 数组对象\n注意:该函数会销毁传入的 Java 对象指针
 !java.parseArray(.("int",java数组)  = 将 Java 对象指针转换为 aardio 数组对象,参数一指定数组元素数据类型\n注意:该函数会销毁传入的 Java 对象指针
+!java.parseObject(.(jobject) = 将参数指定的 jobject 指针转换为 java.object 对象。\n支持转换的对象可调用 java.object 对象 parseValue 方法转换为纯 aardio 值。
 !java.invokeMethod(.(类或对象,其他调用参数->->->) = 调用Java函数,支持多个参数\n对于数值类型,aardio将会自动检测适用的数值类型\n也可以调用java.int,java.short,java.char,java.long等函数显式的声明数值类型
 !java.interop = aardio.interopServices.utility类
 !java.fieldExists(.(Java对象,"字段名") = 返回是否存在指定字段名
 !java.getFieldValue(.(Java对象,"字段名") = 返回字段值
 !java.setFieldValue(.(Java对象,"字段名",字段值) = 修改字段值
-!java.createInstance(.(java类对象,->->->) = 调用构造函数创建对象
+!java.new(.(java类对象,->->->) = 调用构造函数创建对象
 !java.objectIsNumber(__) = 返回参数指定的Java对象是否数值
 !java.objectIsString(__) = 返回参数指定的Java对象是否字符串
 !java.object2Number(__) = java数值对象转换为 aardio 数值
@@ -1008,16 +1152,16 @@ java.runtimeVersion(true) = 返回 Java 运行时版号，数值。\n版本号�
 !java.loadFileObject(__) = 自参数 @1 指定的文件路径反序化化 Java 对象
 !java.import() = !stdJavaClass.
 !stdJavaClass.registerNative(函数,函数名,签名) = @.registerNative(\n	function(env,jobject,jstring){\n		var str = owner.parseString(jstring)\n		\n		return owner.string( func() )\n	},"__/*函数名*/","string(string)"\n)
-!stdJavaClass.unregisterNatives() = 注销所有注册到Java类中的函数
-!stdJavaClass.getField(.("字段名","int") = 参数@2指定字段类型声明\n与函数原型使用的语法一致
-!stdJavaClass.getMethod(.("函数名","int(int)") = 返回静态函数，参数 @2 指定函数原型。\n注意 Java 区分大小写，参数只能指定单个参数或数组类型,\n如果需要使用多个参数或动态参数，请直接使用 对象.函数名 获取函数\n注意返回的是原生函数,调用时数值、布尔值不可以使用Java对象
-!stdJavaClass.createInstance(.(->->->) = 使用Java调用构造函数创建对象\n不限制参数个数以及类型,\n允许以类名本身替代此函数
-!stdJavaClass.createInstanceEx(.("void()"，->->->) = 使用 JNI 调用构造函数创建对象\n参数最多只能是一个参数,或者一个参数数组,\n用户应使用createInstance，该函数不限制参数个数以及类型
-!stdJavaClass.createInstanceEx() = !stdJavaObject.
+!stdJavaClass.unregisterNatives() = 注销所有注册到 Java 类中的函数
+!stdJavaClass.getField(.("字段名","int") = 参数 @2 指定字段类型声明\n与函数原型使用的语法一致
+!stdJavaClass.getMethod(.("函数名","int(int)") = 返回 Java 类的静态成员函数。\n参数 @2 指定[函数签名](doc://library-guide/std/java/_.md#signature)。\n\n不需要调用 getMethod 也可以直接调用类的静态成员函数。\n但指定签名可以直接获取指定函数并省略了自动匹配过程。
+!stdJavaClass.new(.(->->->) = 使用 Java 调用构造函数创建对象，可指定不定个数的参数。\nnew 方法是类的默认方法可以省略不写直接用 Java 类构造 Java 对象。\n\n改用 new2 函数构造对象可以用第 1 个参数显式指定构造函数签名。
+!stdJavaClass.new2(.("void()"->->->) = 使用 JNI 调用构造函数创建对象。\n参数 @1 指定[构造函数签名](doc://library-guide/std/java/_.md#signature)，签名里的返回值必须指定为 void 类型。\n参数 @2 开始可指定不定个数的构造参数（new2 名字后面的 2 指示这一要点）。\n此函数的实际返回值为构造的 Java 实例对象（不用管签名里的返回值）。\n\n使用类的 new 方法也可以构造 Java 对象。\n并且可以省略 new 是默认方法名可以省略，可直接用 Java 类构造 Java 对象。
+!stdJavaClass.new2() = !stdJavaObject.
+!stdJavaClass.? = Java 类的静态属性或方法。
 !stdJavaClass() = !stdJavaObject.
-!stdJavaObject.getMethod(.("函数名","int(int)") = 返回对象的成员函数，参数 @2 指定函数原型。\n注意 Java 区分大小写，参数只能指定单个参数或数组类型,\n如果需要使用多个参数或动态参数，请直接使用 对象.函数名 获取函数\n注意返回的是原生函数,调用时数值、布尔值不可以使用Java对象
-!stdJavaObject.getMethod(.("函数名") = 返回对象的成员函数。\n注意 Java 区分大小写，返回的函数支持任意个数参数。\n注意无论 Java 对象是否存在该函数都会返回一个函数对象
-!stdJavaObject.getField("字段名__","int") = 第二个参数指定字段类型声明\n与函数原型使用的语法一致
+!stdJavaObject.getMethod(.("函数名","int(int)") = 返回 Java 对象的成员函数。\n参数 @2 指定[函数签名](doc://library-guide/std/java/_.md#signature)。\n省略签名则默认设为 `"void()"`。\n注意 Java 区分大小写，返回的函数支持任意个数参数。\n\n不需要调用 getMethod 也可以直接调用类的静态成员函数。\n但指定签名可以直接获取指定函数并省略了自动匹配过程。
+!stdJavaObject.getField("字段名__","int") = 第二个参数指定字段类型声明。\n与函数[函数签名](doc://library-guide/std/java/_.md#signature)支持的类型相同。
 _JNI_VERSION_1_1=@0x10001/*_JNI_VERSION_1_1*/
 _JNI_VERSION_1_2=@0x10002/*_JNI_VERSION_1_2*/
 _JNI_VERSION_1_4=@0x10004/*_JNI_VERSION_1_4*/

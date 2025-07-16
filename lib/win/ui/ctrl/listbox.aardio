@@ -76,7 +76,7 @@ namespace listbox{
 		items = {
 			_get = function(){ 
 				var count = ::SendMessage(owner.hwnd, 0x18B/*_LB_GETCOUNT*/, null);
-				var tab = {};
+				var tab = [];
 				var push = ..table.push;
 				for(i=1;count) push(tab,owner.getItemText(i) );
 				return tab;
@@ -157,6 +157,7 @@ namespace listbox{
 	
 	namespace _metaProperty{ 
 		getAt = hitTest;//@Deprecated
+		value = items;
 	};
 }
 
@@ -178,7 +179,7 @@ win.ui.ctrl.listbox() = 列表框\nlistbox 默认会自动调整高度以对齐�
 !listbox.selText = 获取当前选项的文本\n或根据指定的文本查找并改变选项
 !listbox.hwnd = 控件句柄
 !listbox.id = 控件ID
-!listbox._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!listbox._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !listbox.getParent() = 返回父窗口\n!static.
 !listbox.setParent(__/*控件对象*/) = 改变父窗口 
 !listbox.addCtrl = @.addCtrl(\n\n	edit ={ cls="edit";left=0;top=0;right=50;bottom=50;autoResize=false ;hide=1;edge=1;  }\n)
@@ -190,6 +191,7 @@ win.ui.ctrl.listbox() = 列表框\nlistbox 默认会自动调整高度以对齐�
 !listbox.width = 宽度
 !listbox.height = 高度\nlistbox 默认会自动调整高度以对齐项目行高,\n在创建参数中添加 integralHeight = false 可禁止此特性
 !listbox.count = 列表项数目
+!listbox.hide = 当前控件窗口是否隐藏。\n仅检查当前窗口的可见性样式（窗口 是否移除了 _WS_VISIBLE 样式）。\n不考虑父窗口是否可见，不考虑是否被其他窗口遮挡。\n如果需要同时判断父窗口的可见性，应改用 win.isVisible 函数。\n\n以 `.` 前导的 `.hide()` 作为成员函数被调用时，\n作用等价于将 hide 属性设为 null 。
 !listbox.hitTest(.(x坐标,y坐标,是否屏幕坐标) = 该函数返回指定坐标的句柄,参数三可省略,默认为false.\n如果不指定任何参数,则自动获取当前消息坐标
 !listbox.selectRange(1,__) = 选中指定范围\n如果不指定任何参数,取消选区
 !listbox.setSelected(1__/*项索引*/) = 选中指定项,索引为0则选定全部\n该函数仅在开启控件多选模式下有效\n单选模式下请使用selIndex属性替代
@@ -199,13 +201,19 @@ win.ui.ctrl.listbox() = 列表框\nlistbox 默认会自动调整高度以对齐�
 !listbox.find(__/*请输入文本*/) = 在列表框里查找指定的项\n找不到返回0
 !listbox.addfile(__/*请输入路径*/) = 向列表框里增加一个文件(包括目录)
 !listbox.redraw() = 刷新
-!listbox.items = 列表项集合\ntable对象
+!listbox.items = 控件包含的所有列表项文本数组，\n纯数组对象。
+!listbox.items = 控件包含的所有列表项文本数组，\n纯数组对象。
 !listbox.show(true__) = 显示控件
 !listbox.getRect() = 控件区块位置(::RECT结构体)
 !listbox.getRect(true) = 控件屏幕区块位置(::RECT结构体)  
 !listbox.setRect(rc) = 设置控件区块位置(::RECT结构体)  
 !listbox.setRect(rc,true) = 设置控件屏幕区块位置(::RECT结构体)
 !listbox.getClientRect() =  控件客户区块位置(::RECT结构体)\n!rect.
+!listbox.dpiScaleX = 窗口当前使用的 DPI 横坐标缩放系数,\n该值由界面系统自动维护，任何情况下都不应手动修改,\n\n这是一个以小数表示百分比的数，例如 1.25 表示 125%,\n窗口未使用缩放或未完成缩放初始化时，值可能为 null，\n如果要获取屏幕缩放设置应改用 gdi.getDpiScale 函数
+!listbox.dpiScaleY = 窗口当前使用的 DPI 纵坐标缩放系数,\n该值由界面系统自动维护，任何情况下都不应手动修改,\n\n这是一个以小数表示百分比的数，例如 1.25 表示 125%,\n窗口未使用缩放或未完成缩放初始化时，值可能为 null，\n如果要获取屏幕缩放设置应改用 gdi.getDpiScale 函数
+!listbox.dpiScale(.(x,y) = 将 @x,@y 表示的像素值乘以窗体当前 DPI 缩放倍数并返回,\n省略 @y 参数时仅返回 @x 转换后的值
+!listbox.clientWidth = 控件窗口客户区宽度，只读属性。
+!listbox.clientHeight = 控件窗口客户区宽度，只读属性。
 !listbox.getFont() = 控件字体(::LOGFONT结构体)\n!logfont.
 !listbox.setFont(__/*指定字体*/) = 指定LOGFONT字体对象,或逻辑字体句柄 
 !listbox.setFont(混入字体属性) = @.setFont(point=10;name="宋体");

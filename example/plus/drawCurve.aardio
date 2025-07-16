@@ -1,0 +1,31 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="画曲线";right=759;bottom=469)
+winform.add(
+plus={cls="plus";left=0;top=0;right=759;bottom=469;db=1;dl=1;dr=1;dt=1;z=1}
+);
+/*}}*/
+
+//绘制前景时触发 onDrawContent 
+winform.plus.onDrawContent = function(graphics,rc,txtColor,rcContent,foregroundColor,font){
+	
+	//绘制曲线
+	
+    var pen = gdip.pen(0xFF0000FF, 5);
+    var points = [];
+    
+    var left,top,width,height = rc.xywh();
+
+    for(i=1;100;1){
+        var x = left + (i / 100) * width;
+        var y = top + (height / 2) + (height / 3) * math.sin(i * 0.1);
+        table.push(points,x,y);//每人成对的数值表示一个坐标点
+    }
+
+    //画曲线图示例
+    graphics.drawCurve(pen , points); 
+    pen.delete();
+}
+
+winform.show();
+win.loopMessage();

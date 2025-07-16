@@ -21,8 +21,8 @@ class chat{
 			}
 		} 
 	};
-	aardioSystem = function(prompt,isUserPrompt){ 
-		this.chatMessage.aardioSystem(prompt,isUserPrompt);
+	aardioSystem = function(prompt){ 
+		this.chatMessage.aardioSystem(prompt);
 	};
 	system = function(content){
 		this.pushMessage({ 
@@ -30,40 +30,97 @@ class chat{
         	content  = content;
     	});
 	};
-	prompt = function(content){
-		this.pushMessage({ 
-        	role = "user"; 
-        	content  = content;
-    	});
+	prompt = function(content,imageUrl){
+		
+		if(imageUrl){
+			content = {
+        		{
+        			"type": "text",
+        			"text": content
+      			},
+      			{
+        			"type": "image_url",
+        			"image_url": {
+          				"url": imageUrl
+        			}
+      			}
+        	} 
+		}
+		
+		if(content){
+			
+			if(type.isString(content)){
+				content = ..string.replace(content,
+					"^(<<```>?!.>+\N+)(```+)",'\\1\n\\2');
+					
+				content = ..string.replace(content,
+					"!\N[ \t]*(```+)[ \t]*(<<!\N[ \t]*```>?!\S>+<<```>?!.>*)$",'\\1\n\\2');				
+			}
+		}
+		
+		this.pushMessage(
+    		{ 
+        		role = "user"; 
+        		content  = content;
+    		}
+		);
 	};
 	assistant = function(content){
 		this.pushMessage(content);  
+	}; 
+	url = function(urlData){
+		this.chatMessage.url(urlData);
 	};
 	pushMessage = function(msg){ 
 	 
 		//加入聊天消息 
 		if(msg){
-			this.chatMessage.push(msg);
 			
 			if(type.isString(msg)){
-				this.writeDelta(msg); 
+				this.writeDelta(msg);
 			}
 			elseif(msg.role=="user"){ 
+				var lastastAssistant = this.lastAssistantMessage();
+				if(lastastAssistant[["content"]]){
+					lastastAssistant[["content"]] = ..string.replace(lastastAssistant[["content"]] ,"\<(<think>|<thought>)\>(.+?)\</\1\>","");
+				}
 				
-				if(..string.find(msg.content,"<#+\s+>|<!\N\s*[-+*]>|<!\N\s*\d+\.\s+>|<`>|<===>|<\-\-\->")){
+				var txtContent;
+				var content = msg.content;
+				if(..table.isArrayLike(content)){
+					txtContent = "";
+					for(i=1;#content;1){
+						var item = content[i];
+						if(item.type=="text"){
+							txtContent = ..string.concat(txtContent,item.text)
+						}
+						elseif(item.type=="image_url"){
+							txtContent = ..string.concat(txtContent,..string.concat("![](",item.image_url[["url"]],")") )
+						}
+					} 
+				}
+				else {
+					txtContent = content;
+				}
+				
+				if(..string.find(txtContent,"<#+\s+>|<!\N\s*[-+*]>|<!\N\s*\d+\.\s+>|<`>|<===>|<\-\-\->")){
 					this.writeDelta('\n\n<span class="chat-role user">我</span>\n
-    				<div class="chat-prompt">\n'+msg.content + '\n</div>\n\n<span class="chat-role assistant">AI</span>\n\n');
+    				<div class="chat-prompt">\n'+txtContent + '\n</div>\n\n<span class="chat-role assistant">AI</span>\n\n');
 				}
 				else{
     				this.writeDelta('\n\n<span class="chat-role user">我</span>\n
-    				<div class="chat-prompt">'+msg.content + '</div>\n\n<span class="chat-role assistant">AI</span>\n\n');
+    				<div class="chat-prompt">'+txtContent + '</div>\n\n<span class="chat-role assistant">AI</span>\n\n');
     			}
     				
     			this.showLoading("正在思考 ");
     		}
+    		
+    		this.chatMessage.push(msg);
+			
 		}
 		else{
 			this.writeDelta(null);  
+			this.chatMessage.push(null);
 		} 
 	}; 
 	lastMarkdown = function(){
@@ -105,11 +162,12 @@ started() = 是否已经发起对话。\n发起对话指的是消息队列中包
 clear() = 清除会话记录
 errorMessage(__/*错误信息*/) = 显示错误信息
 assistant(__/*增量文本*/) = 显示并记录 AI 接口返回的增量文本。\n参数必须是文本或者表示输出完成的 null 值。
-prompt(__/*提示词*/) = 添加并显示用户提示词
+prompt(.(content) = 添加用户提示词。\ncontent 可以是字符串，也可以是对象数组。\n请参考调用模型与接口的文档了解支持的对象格式。
+prompt(.(txtContent,imageUrl) = 添加并显示用户 @txtContent 参数指定的文本提示词。\n可选用 @imageUrl 指定图像网址，\n本地图像可调用 inet.urlData 转换为 Data URL（Base64) 格式。\n注意请参考接口文档了解调用模型是否支持图像。
 system(__/*提示词*/) = 添加并显示系统提示词
-aardioSystem( = 自动创建 aardio 编程助手系统提示词，\n并自动增加 aardio 语法速览文档。\n此函数可重复调用，不会重复添加相同的文档。\n除函数自带的基本的 aardio 助手提示词以外，EXE 目录下必须存在待添加的文档。
-aardioSystem(.(sysPrompt) =  增加基本的 aardio 编程助手提示词（如果已添加则忽略）。\n如果指定了参数 sysPrompt 则追加到系统提示词（不会检测之前是否已添加过 sysPrompt 的内容）。
-aardioSystem(.(userPrompt,true) = 如果用 userPrompt 指定稍后要发送的用户提示词。\n则分析 userPrompt 关键词附加关键的 aardio 文档（不会添加 userPrompt 本身）。\n附加规则请查看此函数源码。
+url(__) = 获取参数 @1 指定网址的内容并转换为 Markdown 格式或者文本格式提示词。\n参数 @1 也可以指定包含 url 字段的对象，或这样的对象数组。\n参数为 包含 url 字段的对象时如果同时包含 text 字段，则直接自 text 字段获取网页文本。\n如果参数 @1 指定数组参数，则将所有数组成员作为参数获取目标内容。\n如果参数为空数组、空字符串、null 则返回 null。\n成功返回添加的提示词，失败返回  null,错误信息 。\n\n如果提前导入 web.turndown 库则支持自动转换 HTML 为 Markdown 格式文本。
+aardioSystem( = 自动创建 aardio 编程助手系统提示词。\n除函数自带的基本的 aardio 助手提示词以外，EXE 目录下必须存在待添加的文档。
+aardioSystem(.(prompt) =  增加 aardio 编程助手提示词（如果已添加则忽略）。\n如果指定参数 prompt 则追加到系统提示词（不检测之前是否已添加过）
 findSystem(__/*模式串*/) = 使用模式匹配语法查找消息队列中是否存在指定的系统提示词
 chatMessage = 消息队列，用于发送到 chat/completions 聊天接口。\n!webRestChatMessage.
 lastMarkdown() = 获取最后一次 AI 回复的原始 Markdown 格式内容。
@@ -117,7 +175,7 @@ lastAssistantMessage() = AI 最后一次返回的消息，如果没有则返回 
 getMarkdown() = 返回输出到页面的所有 Markdown 格式内容。
 setMarkdown(__) = 输出 Markdown 格式内容到页面，覆盖控件存储的 Markdown。
 write(__) = 清空页面内容，解析并显示参数 @1 指定的 Markdown 为网页。\n控件仅解析与显示 Markdown，不会存储此 Markdown，\n也不会改变  getMarkdown 函数的返回值。
-writeDelta(__) = 向页面追加 Markdown 格式内容。\n解析、显示、并存储写入的 Markdown。
+writeDelta(__) = 向页面追加 Markdown 格式内容。\n解析、显示、并存储写入的 Markdown。\n\nAI 回复的消息应当调用 assistant 方法写入而不是调用 writeDelta 方法写入。\nwriteDelta 只会输出内容到页面，但不会添加到 chatMessage 属性保存的消息队列。
 onWriteEnd = @.onWriteEnd = function(){
 	__/*发出问题以后，AI 回复完成或出现错误回调此事件*/
 }
@@ -125,4 +183,8 @@ beforerWriteEnd = @.beforerWriteEnd = function(markdown){
 	__/*在输出完整回复以前，可在此回调中修改返回输出的全部 Markdown。\n错误输出不会触发此函数。*/
 }
 showLoading(.(title) = 显示加载动画，可选用 title 指定标题。
+showThinking(.(reasoning) = 显示推理过程，reasoning 参数指定 AI 返回的推理响应文本。
+doModal(.(ownerForm,showFlags) = 宿主窗口显示为模态对话框。\n可选用参数 @ownerForm 指定所有者窗口，\n参数 @showFlags 可选用 _SW_ 前缀常量指定显示选项。
+show(.(true) = 显示窗口
+show(.(false) = 隐藏窗口
 end intellisense*****/

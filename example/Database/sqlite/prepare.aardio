@@ -29,11 +29,11 @@ cmd.step(
 
 //上面的代码等价于下面的代码
 cmd.reset();
-cmd.bind.parameterAtNames( 
+cmd.bind.parameterAtNames({ 
 	["title"] = "标题";
 	["length"] = 4;
 	["year"] = time.now();
-);
+});
 cmd.step();
 
 /*

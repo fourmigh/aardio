@@ -1,6 +1,6 @@
 ﻿//ps PowerShell组件
 import dotNet; 
-import web.json;
+import JSON;
 
 namespace dotNet;
 
@@ -115,7 +115,7 @@ if ($PSVersionTable.PSVersion.Major -lt 3){
 	 
 		var ret,err = ..dotNet.ps(ps,...);
 		if(ret && !err){
-			return ..web.json.tryParse(ret) : ret;
+			return ..JSON.tryParse(ret) : ret;
 		}
 		return ret,err;
 	}

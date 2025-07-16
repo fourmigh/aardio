@@ -134,7 +134,7 @@ namespace layout {
 			uri[1] = ..string.unhex(uri[1],"%")
 			
 			var data,err;
-			if(..string.endWith(uri[1],".aardio",true) ){
+			if(..string.endsWith(uri[1],".aardio",true) ){
 				var lst = {};
 				if(uri[2]){
 					for p in ..string.lines(uri[2],"\&\s*") { 
@@ -308,7 +308,7 @@ namespace layout {
 			if ( ..io.localpath(filename) ) {
 				owner.localBaseDir = ..io.splitpath(filename).dir;
 				var data,err;
-				if(..string.endWith(filename,".aardio",true) ){
+				if(..string.endsWith(filename,".aardio",true) ){
 					var r = ..request;
 					if(type(charset) != "table" )charset={};
 					..request = { get = charset; }

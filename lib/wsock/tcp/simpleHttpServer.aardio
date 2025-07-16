@@ -37,7 +37,7 @@ class simpleHttpServer{
                     	return;
                 	}
                 	
-                	if( ! ..string.startWith(startRequestLine[3],"HTTP/") ){
+                	if( ! ..string.startsWith(startRequestLine[3],"HTTP/") ){
 						socketClient.close();
                     	return;
 					}
@@ -91,7 +91,7 @@ class simpleHttpServer{
 						PATH_INFO = ..string.replace(PATH_INFO,"\\","/");
 						PATH_TRANSLATED = ..string.replace(PATH_TRANSLATED,"/","\\");
 						
-						if( ..string.endWith(PATH_INFO,".aardio",true) ){
+						if( ..string.endsWith(PATH_INFO,".aardio",true) ){
 							SCRIPT_NAME =  PATH_INFO;
 							SCRIPT_FILENAME = PATH_TRANSLATED;
 						}
@@ -178,13 +178,13 @@ class simpleHttpServer{
 							if ( environ.CONTENT_TYPE 
 								&& ..string.find(environ.CONTENT_TYPE,"<@@text@>|<@@application@>/<@@json@>!\W") ) {
 								var data = owner.postData();
-								if(data) return ..web.json.tryParse(data);
+								if(data) return ..JSON.tryParse(data);
 							}
 						};
 						postFileData = function(){
 							if(! (environ.CONTENT_TYPE && environ.CONTENT_LENGTH ) ) return;
 							if( owner._raw_stdin_data || owner._raw_file_data ) return owner._raw_file_data;
-							if ( ..string.startWith(environ.CONTENT_TYPE,"multipart/form-data",true) ) {
+							if ( ..string.startsWith(environ.CONTENT_TYPE,"multipart/form-data",true) ) {
 								owner._raw_stdin_data = "";
 								
 								var boundary = ..string.match(environ.CONTENT_TYPE,"boundary\s*=\s*(\S+)");
@@ -298,8 +298,7 @@ class simpleHttpServer{
 							}
 							response.open();
 							socketClient.close();
-							
-							session.save();
+							 
 							owner.closed = true;
 							
 							if( request.tempUploadPath ) {
@@ -398,7 +397,7 @@ class simpleHttpServer{
 								if(s[["_struct"]]) {
 									if( s@[["_tostring"]] ) s = tostring(s); 
 								}
-								else s = ..web.json.stringify(s,owner.jsonPrettyPrint);
+								else s = ..JSON.stringify(s,owner.jsonPrettyPrint);
 							}
 							elseif( (ts != 'string') && (ts != 'buffer') ){
 								s = tostring(s);
@@ -417,7 +416,7 @@ class simpleHttpServer{
 								if(!..io.exist(request.path,4)){ 
 									var pathDoc =  ..io.joinpath(request.path,_SIMPLEHTTPSRV_DEFAULT_DOCUMENT);
 									if( ..io.exist(request.path,0) && ( ..io.exist(pathDoc,4) ) ){
-										if(!..string.endWith(request.path,"/") )request.path=request.path+"/";
+										if(!..string.endsWith(request.path,"/") )request.path=request.path+"/";
 									}
 								}
 								url=..inet.url.joinpath(request.scheme + "://"  + request.host  ++request.path,url);
@@ -431,7 +430,7 @@ class simpleHttpServer{
 							response.status = "500 Internal Server Error";
 							if( ! owner._headersWritten ) owner.open();
 							
-							if( type(s) == type.table ) s = ..web.json.stringify(s,true);
+							if( type(s) == type.table ) s = ..JSON.stringify(s,true);
 							else s = tostring(s);
 							socketClient.write(s);
 								
@@ -439,7 +438,7 @@ class simpleHttpServer{
 							return owner.error(...);
 						};
 						customErrors = _SIMPLEHTTPSRV_CUSTOM_ERRORS : {};
-						errorStatus = function(status,msg){
+						errorStatus = function(status,msg,continueRunning){
 							var handler = response.customErrors[status];
 							if( handler && !response["errorStatusHandled"] )  { 
 								response["errorStatusHandled"] = true;
@@ -452,7 +451,7 @@ class simpleHttpServer{
 								response.write(msg : response.status);
 							}
 							
-							response.close();
+							response.close(continueRunning);
 						};
 						loadcode = function(path,...){
 							if( request.method == "OPTIONS")return;
@@ -466,10 +465,10 @@ class simpleHttpServer{
 								var pathDoc =  ..io.joinpath(path,_SIMPLEHTTPSRV_DEFAULT_DOCUMENT);
 								if( ..io.exist(path,0) && ( ..io.exist(pathDoc,4) ) ){ 
 									path = pathDoc;
-									if(!..string.endWith(request.path,"/") )request.path=request.path+"/";
+									if(!..string.endsWith(request.path,"/") )request.path=request.path+"/";
 								}
 	 							else {
-	 								if( ! ..string.endWith(path,".aardio",true) ){
+	 								if( ! ..string.endsWith(path,".aardio",true) ){
 										if(!_exe_write_time){
 											var tmWrite = ..fsys.file.lastModified(..io._exepath); 
 											_exe_write_time = tmWrite ? tostring(tmWrite)
@@ -495,7 +494,7 @@ class simpleHttpServer{
 	 									strData = ..string.load(pathDoc);
 	 									if( strData ){
 	 										path = pathDoc;
-	 										if(!..string.endWith(request.path,"/") )request.path=request.path+"/";
+	 										if(!..string.endsWith(request.path,"/") )request.path=request.path+"/";
 	 									}
 	 								}
 	 								
@@ -505,7 +504,7 @@ class simpleHttpServer{
 	 								} 
 	 								
 	 								//资源文件
-	 								if( ! ..string.endWith(path,".aardio",true) ){
+	 								if( ! ..string.endsWith(path,".aardio",true) ){
 	 									response.headers["Last-Modified"] = tostring(_exe_write_time);
 										response.headers["Accept-Ranges"] = "none";
 										
@@ -526,7 +525,7 @@ class simpleHttpServer{
 	 							}
 							}
 							
-							if( ! ..string.endWith(path,".aardio",true) ){
+							if( ! ..string.endsWith(path,".aardio",true) ){
 								if(..string.cmp(path,"/" + ..io._exefile)==0 ){
 									return response.errorStatus(403);
 								}
@@ -634,10 +633,10 @@ class simpleHttpServer{
 					..response = response;
 					..request = request;
 					..session = session;
-					if( ..string.startWith( request.path,"/config/",true ) ) { 
+					if( ..string.startsWith( request.path,"/config/",true ) ) { 
 						return response.errorStatus(403);
 					}
-					elseif( ..string.startWith( request.path,"/lib/",true ) ) {
+					elseif( ..string.startsWith( request.path,"/lib/",true ) ) {
 						return response.errorStatus(403);
 					}
 					else{ 
@@ -649,6 +648,8 @@ class simpleHttpServer{
 							function(response,request,session){
 								var r,e = callex(,_SIMPLEHTTPSRV_APP ,,response,request,session);
 								if(!r) err = e; 
+								
+								session.save();
 							},request.documentRoot ); 
 						
 						..fiber.resume (f,response,request,session); 
@@ -676,7 +677,7 @@ class simpleHttpServer{
                 	import fsys.file;
                 	import fsys.path;
                 	import fsys.mime;
-                	import web.json;
+                	import JSON;
                 	import web;
                 	import crypt;
                 	import string.eventStream;
@@ -853,10 +854,12 @@ namespace simpleHttpServer{
 	getUrl = startUrl;
 }
 
+//@guide [HTTP 服务端开发指南](doc://guide/quickstart/web-server.md)
+
 /**intellisense()
 wsock.tcp.simpleHttpServer.documentRoot = 网站应用程序根目录,默认为"/",\n只能设置为硬盘上实际存在的目录,\n改变此目录,会同时改变\n服务端代码中的应用程序根目录以及用户库目录,\n如果只是相将所有请求路径转向某个目录,应当改用 documentBase 属性\n如果网站在嵌入资源目录中,应当改用 documentBase 属性
 wsock.tcp.simpleHttpServer.documentBase = 网站根目录,\n不会修改应用程序根目录,支持硬盘目录与资源目录,\n这个属性应当设置为应用程序根目录下的相对路径,\n例如 "/res/web/"\n\n注意： request.path 前面包含 documentBase 目录。\n而 request.pathInfo 忽略 documentBase 目录
-wsock.tcp.simpleHttpServer.defalutDocument = 默认文档，默认为"main.aardio",\n\n如果访问硬盘上存在的目录,request.path 尾部不加斜杠会自动跳转到以斜杆结束的路径\n\n如果访问嵌入资源目录,只有 request.path 以斜杆才会访问默认文档,\n对于访问嵌入资源文件,建议指定完整的文件路径,\n默认文档主要是用于硬盘上的网站
+wsock.tcp.simpleHttpServer.defalutDocument = 默认文档，默认为"main.aardio",\n\n如果访问硬盘上存在的目录,request.path 尾部不加斜杠会自动跳转到以斜杠结束的路径\n\n如果访问嵌入资源目录,只有 request.path 以斜杠才会访问默认文档,\n对于访问嵌入资源文件,建议指定完整的文件路径,\n默认文档主要是用于硬盘上的网站
 wsock.tcp.simpleHttpServer.mainThread(app) =  @.mainThread( \n    function(response,request,session){ \n         response.loadcode( request.path __/*可省略,可增加多个模板参数,\n在被调用文件的函数外部可使用owner参数获取首个模板参数,\n也可以使用...获取多个模板参数*/ );\n    } 	\n);
 wsock.tcp.simpleHttpServer.mainThread() = !stdHttpSimpleServerMain.
 wsock.tcp.simpleHttpServer.startUrl( =  查找可用端口创建 HTTP 服务器线程，返回返回完整 URL\n此服务端限制使用本机IP 127.0.0.1 访问,并随机分配端口不会出现端口冲突\n如果HTTP服务器已启动则直接返回URL而不是重复启动服务器,\n注意当前线程结束时,此服务器线程会自动退出
@@ -875,7 +878,7 @@ wsock.tcp.simpleHttpServer() = !stdHttpSimpleServer.
 !stdHttpSimpleServer.run( httpProc ) = @.run( \n    function(response,request,session){ \n         response.loadcode( request.path __/*可省略,可增加多个模板参数,\n在被调用文件的函数外部可使用owner参数获取首个模板参数,\n也可以使用...获取多个模板参数*/ );\n    } 	\n);
 !stdHttpSimpleServer.documentRoot = 网站应用程序根目录,默认为"/",\n在启动服务端之前设置才会生效,\n\n只能设置为硬盘上实际存在的目录,\n改变此目录,会同时改变\n服务端代码中的应用程序根目录以及用户库目录,\n如果只是相将所有请求路径转向某个目录,应当改用 documentBase 属性\n如果网站在嵌入资源目录中,应当改用 documentBase 属性
 !stdHttpSimpleServer.documentBase = 网站根目录,\n在启动服务端之前设置才会生效,\n不会修改应用程序根目录,支持硬盘目录与资源目录,\n这个属性应当设置为应用程序根目录下的相对路径,\n例如 "/res/web/"\n\n注意： request.path 前面包含 documentBase 目录。\n而 request.pathInfo 忽略 documentBase 目录
-!stdHttpSimpleServer.defalutDocument = 默认文档，默认为"main.aardio",\n在启动服务端之前设置才会生效,\n\n如果访问硬盘上存在的目录,request.path 尾部不加斜杠会自动跳转到以斜杆结束的路径\n\n如果访问嵌入资源目录,只有 request.path 以斜杆才会访问默认文档,\n对于访问嵌入资源文件,建议指定完整的文件路径,\n默认文档主要是用于硬盘上的网站
+!stdHttpSimpleServer.defalutDocument = 默认文档，默认为"main.aardio",\n在启动服务端之前设置才会生效,\n\n如果访问硬盘上存在的目录,request.path 尾部不加斜杠会自动跳转到以斜杠结束的路径\n\n如果访问嵌入资源目录,只有 request.path 以斜杠才会访问默认文档,\n对于访问嵌入资源文件,建议指定完整的文件路径,\n默认文档主要是用于硬盘上的网站
 !stdHttpSimpleServer.onThreadCreated() = @.onThreadCreated = function(documentRoot,urlRoot){
 	__/*一个HTTP服务监听线程准备就绪时触发此事件*/
 }
@@ -895,7 +898,7 @@ end intellisense**/
 /**intellisense(!stdHttpSimpleServerMain)
 documentRoot = 网站应用程序根目录,默认为"/",\n只能设置为硬盘上实际存在的目录,\n改变此目录,会同时改变\n服务端代码中的应用程序根目录以及用户库目录,\n如果只是相将所有请求路径转向某个目录,应当改用 documentBase 属性\n如果网站在嵌入资源目录中,应当改用 documentBase 属性
 documentBase = 网站根目录,\n不会修改应用程序根目录,支持硬盘目录与资源目录,\n这个属性应当设置为应用程序根目录下的相对路径,\n例如 "/res/web/",\n\n注意： request.path 前面包含 documentBase 目录。\n而 request.pathInfo 忽略 documentBase 目录
-defalutDocument = 默认文档，默认为"main.aardio",\n\n如果访问硬盘上存在的目录,request.path 尾部不加斜杠会自动跳转到以斜杆结束的路径\n\n如果访问嵌入资源目录,只有 request.path 以斜杆才会访问默认文档,\n对于访问嵌入资源文件,建议指定完整的文件路径,\n默认文档主要是用于硬盘上的网站
+defalutDocument = 默认文档，默认为"main.aardio",\n\n如果访问硬盘上存在的目录,request.path 尾部不加斜杠会自动跳转到以斜杠结束的路径\n\n如果访问嵌入资源目录,只有 request.path 以斜杠才会访问默认文档,\n对于访问嵌入资源文件,建议指定完整的文件路径,\n默认文档主要是用于硬盘上的网站
 onThreadCreated() = @.onThreadCreated = function(documentRoot,urlRoot){
 	__/*一个HTTP服务监听线程准备就绪时触发此事件*/
 }

@@ -1,11 +1,14 @@
 //获取文本
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="按超级热键获取外部编辑器文本";left=-2;right=333;bottom=333;bgcolor=16777215;topmost=1)
+var winform = win.form(text="按超级热键获取外部编辑器文本";left=-2;right=333;bottom=333;bgcolor=0xFFFFFF;topmost=1)
 winform.add(
 edit={cls="richedit";left=8;top=7;right=325;bottom=317;edge=1;limit=-1;multiline=1;vscroll=1;z=1}
 )
 /*}}*/
+
+//只要提前调用 import java.accessBridge，
+// winex.editor, winex.selection, key.ime.stateBar 将自动支持 Java 自动化接口（JAB）。
 
 import key.hotkey; 
 var superHotkey = key.hotkey(); 

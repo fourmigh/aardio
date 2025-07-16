@@ -58,16 +58,24 @@ updateData = function(d,p,...){
 var tmpdir =  ..string.expand("%TMP%") : appData("Temp") ;
 ..string.setenv("TMP",tmpdir);
 
+var tempId,tempTick = 0;
 tmpname = function(p,e){
 	d = joinpath(tmpdir,"\");
 	
-	var t = ..string.format("%s$%X$%X$",p:"",..thread.getId(),..time.tick());
+	var tk = ..time.tick();
+	if(tk == tempTick) tempId++;
+	else{
+		tempId = 0;
+		tempTick = tk; 
+	}
+	
+	var t = ..string.format("%s$%X$%X",(p:"") ++ (tempId:""),..thread.getId(),tk);
 	if(!e) e = "";
 	
 	var r;
 	var i = 0;
 	do{
-		r= ..io.joinpath(d, t ++ i ++ e)
+		r = ..io.joinpath(d, t ++ (i||"") ++ e)
 		i++;
 	}while(exist(r))
 	
@@ -82,6 +90,23 @@ if(_WIN10_LATER) {
 	} 
 }
 
+file.write = function(p,...){
+	var f,e,c,r = file(p,"w+b");
+	if(f){
+		r,e,c = f.write(...);
+		f.close(); 
+	}
+	
+	return r,e,c;
+}
+
+file.read = ..string.load;
+ 
+writeFile = file.write;//@Deprecated
+write = writeFile; //@Deprecated
+readFile = file.read; //@Deprecated
+read = readFile; //@Deprecated
+
 /**intellisense(io)
 getSpecial(_CSIDL__) = 获取特殊文件夹,\n参数@1使用 _CSIDL 开头的常量指定特殊文件夹的 CSIDL,\n不指定参数@1则默认值为 _CSIDL_DESKTOP,\n可选增加任意个拼接到目录后的子路径参数\n这个函数与fsys.getSpecial函数用法接近,\n但支持不定个数子路径参数, 不支持返回PIDL\n\nfsys.knownFolder 可用于获取更多已知的特殊文件夹
 appData( = 获取  %LocalAppData% 目录下的绝对路径。\n可选使用指定需要存入的数据
@@ -93,8 +118,10 @@ getSize(__) = 获取参数@1指定路径的文件字节长度,\n返回数值
 curDir( = 获取或修改当前目录
 curDir(.() = 无参数获取当前目录
 curDir(.(dir) = 将 @dir 参数指定的目录路径转换为完整路径并设为当前目录\n成功返回 true
-tmpname( = 生成系统临时文件目录下的临时文件路径
+tmpname( = 生成系统临时文件目录下的临时文件路径。\n此函数不会生成实际的文件，即使密集调用也不会生成相同的文件名。
 tmpname(.(prefix,ext) = 生成临时文件路径，\n可选用 @prefix 参数指定前缀名，\n可选用 @ext 参数指定后缀名，后缀名应包含点
+file.write(.(path,->->->) = 以二进制模式创建或打开文件并写入数据（清空原数据）。\n\n参数 @1 指定要写入的文件路径。\n其他一个或多个参数指定要写入的数据（可指定字符串，数值，buffer，或结构体）。\n成功返回 true，失败返回 null,错误信息,错误代码。\n\nstring.save 函数作用类似但仅支持单个参数（只能是字符串或 buffer 类型）。\n另外，string.save 将参数 @2 设为 true 可以追加而不清空数据。
+file.read(__/*文件路径*/) = string.load 函数的别名。\n以二进制模式读取文件或内嵌资源文件，返回普通字符串。\n\n路径开始可用单斜杠（或单反斜杠）表示应用程序根目录，前面再加`~`表示 EXE 根目录。\n如果`~\`或`~/`开头的EXE根目录路径不存在，自动转换为应用程序根目录下的路径重试。
 end intellisense**/
 
 /**intellisense(::)

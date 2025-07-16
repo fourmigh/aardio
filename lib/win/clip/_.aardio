@@ -23,7 +23,9 @@ read = function(){
 }
 
 write = function(str,rep){ 
-	str = (str===null) ? "" : tostring(str);
+	if( type(str) == "table" && !(str@ ? str@._tostring)) str = ..table.tostring(str);
+	else str = (str===null) ? "" : tostring(str);
+	
 	str = ..string.toUtf16(str);
 	if(!str) return;
 	

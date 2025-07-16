@@ -54,6 +54,7 @@ var fs = System.IO.File.Create( "/.testStream.txt" );
 //也可以这样写，支持 aardio 兼容的读写模式
 //var fs = System.IO.FileStream("/.testStream.txt","w+");
  
+ //将字符串转换为二进制字节数组（buffer 类型）
 //buffer 相当于 .NET 中的字节数组
 var buf = raw.buffer("测试一下");
 fs.Write(buf,0,#buf);
@@ -61,3 +62,16 @@ fs.Close();
 
 import win.dlg.message;
 win.dlg.message().doModal(string.load("/.testStream.txt"));
+
+//创建内存文件流
+var memoryStream = System.IO.MemoryStream();
+ 
+//调用 .NET 函数，写入二进制数据
+var bytes = raw.buffer('dd\0d');
+memoryStream.Write(bytes, 0, #bytes);
+
+//重置流的位置到开头
+memoryStream.Seek(0, System.IO.SeekOrigin.Begin);
+
+//读取全部数据到字节数组（
+var buffer = memoryStream.GetBuffer()

@@ -4,7 +4,7 @@ import win.ui;
 var winform = win.form(text="多线程多文件断点续传下载";right=765;bottom=399)
 winform.add(
 button={cls="button";text="多线程多文件断点续传下载";left=478;top=356;right=703;bottom=392;db=1;dr=1;z=2};
-listview={cls="listview";left=10;top=16;right=757;bottom=346;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;edge=1;z=1}
+listview={cls="listview";left=10;top=16;right=757;bottom=346;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;edge=1;z=1}
 )
 /*}}*/
 

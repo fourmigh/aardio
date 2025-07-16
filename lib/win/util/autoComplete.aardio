@@ -11,6 +11,8 @@ namespace autoComplete{
 	::Shlwapi := ..raw.loadDll("Shlwapi.dll")
 	SHAutoComplete = ::Shlwapi.api("SHAutoComplete","int(int hwndEdit,int dwFlags)")  
 }
+
+//@guide [edit,richedit 已自带 autoComplete 方法](doc://library-reference/win/ui/ctrl/edit.md#editObject.autoComplete)
  
 /**intellisense(win.util)
 autoComplete = 控件自动完成支持库

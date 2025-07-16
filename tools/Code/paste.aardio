@@ -2,17 +2,17 @@
 import fonts.fontAwesome;
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="aardio源代码临时上传代码工具";right=939;bottom=731;bgcolor=16777215)
+var winform = win.form(text="aardio源代码临时上传代码工具";right=939;bottom=731;bgcolor=0xFFFFFF)
 winform.add(
-tabPanel={cls="custom";left=148;top=11;right=921;bottom=653;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;z=4};
-plusCopyLink={cls="plus";text="复制链接";left=559;top=683;right=651;bottom=714;border={color=-4144960;width=1};db=1;dr=1;font=LOGFONT(h=-15;name='FontAwesome');notify=1;z=7};
-plusOpenLink={cls="plus";text="打开链接";left=459;top=683;right=551;bottom=714;border={color=-4144960;width=1};db=1;disabled=1;dr=1;font=LOGFONT(h=-15;name='FontAwesome');notify=1;z=9};
-plusPost={cls="plus";text="上传并转换为HTML";left=758;top=683;right=928;bottom=714;border={color=-4144960;width=1};db=1;dr=1;font=LOGFONT(h=-15;name='FontAwesome');notify=1;z=6};
-plusUrl={cls="plus";left=47;top=694;right=450;bottom=714;border={bottom=1;color=-16744448};dl=1;dr=1;editable=1;z=5};
-plusUrlDelete={cls="plus";text="删除链接";left=658;top=683;right=750;bottom=714;border={color=-4144960;width=1};db=1;dr=1;font=LOGFONT(h=-15;name='FontAwesome');notify=1;z=8};
-static={cls="static";left=139;top=7;right=140;bottom=653;bgcolor=16752414;clip=1;db=1;dl=1;dt=1;z=3};
-tabPlus1={cls="plus";text="测试文本";left=31;top=34;right=139;bottom=63;bgcolor=16752414;clip=1;dl=1;dt=1;z=1};
-tabPlus2={cls="plus";text="测试文本";left=31;top=63;right=139;bottom=92;bgcolor=16752414;clip=1;dl=1;dt=1;z=2}
+plusCopyLink={cls="plus";text="复制链接";left=559;top=683;right=651;bottom=714;border={color=0xFFC0C0C0;width=1};db=1;dr=1;font=LOGFONT(h=-15;name='FontAwesome');notify=1;z=7};
+plusOpenLink={cls="plus";text="打开链接";left=459;top=683;right=551;bottom=714;border={color=0xFFC0C0C0;width=1};db=1;disabled=1;dr=1;font=LOGFONT(h=-15;name='FontAwesome');notify=1;z=9};
+plusPost={cls="plus";text="上传并转换为HTML";left=758;top=683;right=928;bottom=714;border={color=0xFFC0C0C0;width=1};db=1;dr=1;font=LOGFONT(h=-15;name='FontAwesome');notify=1;z=6};
+plusUrl={cls="plus";left=47;top=694;right=450;bottom=714;border={bottom=1;color=0xFF008000};dl=1;dr=1;editable=1;z=5};
+plusUrlDelete={cls="plus";text="删除链接";left=658;top=683;right=750;bottom=714;border={color=0xFFC0C0C0;width=1};db=1;dr=1;font=LOGFONT(h=-15;name='FontAwesome');notify=1;z=8};
+static={cls="static";left=139;top=7;right=140;bottom=653;bgcolor=0xFF9F1E;clip=1;db=1;dl=1;dt=1;z=3};
+tabPanel={cls="custom";left=148;top=11;right=921;bottom=653;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;z=4};
+tabPlus1={cls="plus";text="测试文本";left=31;top=34;right=139;bottom=63;bgcolor=0xFF9F1E;clip=1;dl=1;dt=1;z=1};
+tabPlus2={cls="plus";text="测试文本";left=31;top=63;right=139;bottom=92;bgcolor=0xFF9F1E;clip=1;dl=1;dt=1;z=2}
 )
 /*}}*/
 
@@ -100,7 +100,7 @@ tbs.add({
 
 tbs.selIndex = 1;
 
-tbs.onSelchange = function(idx,strip,form){
+tbs.onSelChange = function(idx,strip,form){
 	if( strip.text == "预览HTML"){
 		wb.html = "
 		<!doctype html>

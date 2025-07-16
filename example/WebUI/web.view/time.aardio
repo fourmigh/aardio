@@ -1,0 +1,47 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="web.view（ WebView2 ）网页下 aardio 时间对象转换";right=757;bottom=467)
+winform.add()
+/*}}*/
+
+import web.view;
+var wb = web.view(winform);
+	
+wb.external = {
+	testDate = function(jsDateTime){   
+		
+		/* 
+		网页 JavaScript 的时间对象传到 aardio 里，
+		aardio 会在格式化串属性里将其标注为 UTC 时间（也就是在 format 属性的第一个字符加上 `!`符号）, 
+		时间对象通过这个标识可自动区分本地时间与 UTC 时间，
+		并且可以必要时自动或手动转换本地时间与标准时间，UTC 格式标注也可以避免重复或不必要的转换操作。
+		   
+		*/
+		jsDateTime.local() //可选转换为本地时间，如果参数不为 true 则不修改自身并返回新的修改后的对象。
+		
+		winform.text = jsDateTime;
+	
+		/* 
+		ardio 的时间对象总是转换为 UTC 标准时间传给网页 JavaScript，这不会改变原来的时间对象，
+		如果 aardio 提供的时间对象已经是 UTC 时间则不作转换。   
+		*/
+		return jsDateTime;//这个时间传到 aardio 又传回 JS，可自动保持原来的正确时间值与时区。
+	};
+}
+
+wb.html = /***
+<script>
+
+(async()=>{
+	// 与本地函数交互时，统一使用 UTC 时间。
+	var date= await aardio.testDate(new Date());  
+	
+	// JS 显示本地时间以及时区 
+	alert( date );
+})() 
+
+</script>
+***/
+
+winform.show();
+win.loopMessage();

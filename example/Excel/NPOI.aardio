@@ -1,12 +1,9 @@
-//NPOI
+//NPOI- 开源 Excel，Word 组件
+//NPOI 扩展库文档与增强检索工具: https://www.aardio.com/zh-cn/doc/library-guide/ext/NPOI/
 import NPOI;
 import console.int; 
 
 /*
-用法请直接参考 .NET 代码，没太大区别
-https://github.com/nissl-lab/npoi
-https://github.com/nissl-lab/npoi-examples
-
 要求 .NET 4.7.2 以上（ Win10 1809 开始自带）。
 开源免费，携带 22 个 DLL 文件（ 全部内存加载，生成独立 EXE )。
 不依赖 Office，不需要安装 Excel，Word 。

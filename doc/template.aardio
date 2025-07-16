@@ -3,18 +3,18 @@ import string.markdown;
 var markdown = string.markdown();
 
 var htmlTitle,htmlBody;
-if(string.endWith(request.path,".html",true)){
+if(string.endsWith(request.path,".html",true)){
 	request.path = string.left(request.path,-6) + ".md"
 }
 
-if(string.endWith(request.path,".md",true)){
+if(string.endsWith(request.path,".md",true)){
 	if(request.path == "/search-results.md"){
 		var md = thread.get("doc://search-results.html") : "搜索结果为空！";
 		
 		htmlTitle = string.match(md,"\n\s*\#\s+(\N+)") ||  string.match(md,"\n\s*\#\#\s+(\N+)") || "aardio 文档" ;
 		htmlBody = markdown.render(md);
 	}
-	elseif( string.startWith(request.path,"/library-reference/") ){
+	elseif( string.startsWith(request.path,"/library-reference/") ){
 		var libPath = string.replace(request.path,"^/library-reference/","~/lib/");
 		libPath = fsys.path.replaceExt(libPath,".aardio");
 		
@@ -30,7 +30,7 @@ if(string.endWith(request.path,".md",true)){
 			htmlBody = markdown.render(md); 		
 		} 
 	}
-	elseif( string.startWith(request.path,"/example/") ){ 
+	elseif( string.startsWith(request.path,"/example/") ){ 
 		request.path = string.left(request.path,-4) + ".aardio" 
 		 
 		htmlTitle = "范例"
@@ -73,7 +73,7 @@ if(string.endWith(request.path,".md",true)){
 		}
 	}  
 } 
-elseif( string.startWith(request.path,"/example/") ){ 
+elseif( string.startsWith(request.path,"/example/") ){ 
 	htmlTitle = "范例"
 	var code = string.load("~"+request.path ); 
 	if(code){  
@@ -103,6 +103,49 @@ elseif( string.startWith(request.path,"/example/") ){
 		htmlBody = htmlBody	++ markdown.renderCode(code,"aardio");  
 			
 	} 
+}
+
+htmlBody = string.replace(htmlBody
+	,"\<code\>(<@@Ctrl@>|<@@Shift@>|<@@Alt@>|<Fn>|<[Ff]\d>!\W.*?)\</code\>"
+	,function(kbd){
+		var items = string.splitEx(kbd,"\s*\+\s*"); 
+		for(i,v in items){
+			items[i] = "<kbd>"+v+"</kbd>"
+		} 
+		
+		return string.join(items,"+");
+	}
+)	
+
+if(request.path == "/guide/ide/ai.md"){
+	var js = /****
+<script>
+ (function() {
+
+    var letters = document.getElementById("ai-animation-container").children; 
+    var nonRedLetters = [];
+    
+    for (var i = 0; i < letters.length; i++) {
+        if (letters[i].style.color !== 'red') {
+            nonRedLetters.push(letters[i]);
+        }
+    }
+    
+    nonRedLetters.sort(function() { return 0.5 - Math.random(); });
+    function easeOutQuad(t) {return t * (2 - t);}
+    for (var j = 0; j < nonRedLetters.length; j++) {
+        (function(letter, index) {
+            var delay = 300 + easeOutQuad(index / nonRedLetters.length) * 700;
+            setTimeout(function() {
+                letter.style.display = 'none';
+            }, delay);
+        })(nonRedLetters[j], j);
+    }
+})();   
+</script>
+****/
+	htmlBody = string.replace(htmlBody,"@<h1>AI 编程指南</h1>",`<h1><span id="ai-animation-container"><span style="color:red">A</span><span>A</span><span>R</span><span>D</span><span style="color:red">I</span><span>O</span></span> 编程指南</h1>`);
+	htmlBody = htmlBody ++ js;
 }
 
 ?>

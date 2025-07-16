@@ -39,7 +39,7 @@ namespace cookies{
 		parseLine = function(line){
 			var httpOnly;
 			if(line[1]=='#'# ){
-				if( ..string.startWith(line,"#HttpOnly_") ){
+				if( ..string.startsWith(line,"#HttpOnly_") ){
             		line = ..string.slice(line,11);
             		httpOnly = true;
         		}
@@ -178,8 +178,8 @@ namespace cookies{
 			var s = {@{_readonly=false}};
 			for(i=1;#owner;1){
 				if( type(owner[i]) != type.table) continue;
-				if(..string.endWith(domain,owner[i].domain,true)){
-					if( ..string.startWith(path,owner[i].path,true) ){
+				if(..string.endsWith(domain,owner[i].domain,true)){
+					if( ..string.startsWith(path,owner[i].path,true) ){
 						var pre =  s[owner[i].name];
 						if(!pre || (#pre.path < #owner[i].path) ) s[owner[i].name] = owner[i];
 					}

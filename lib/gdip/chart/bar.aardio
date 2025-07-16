@@ -1,0 +1,97 @@
+﻿//bar 柱状图
+namespace gdip.chart;
+
+class bar{
+	ctor(plusCtrl){
+		
+		if(!plusCtrl[["hwnd"]]){
+			error("参数 @1 必须指定 plus 控件对象",2);
+		}
+		
+		plusCtrl.onDrawContent = function(graphics,rc,txtColor,rcContent,foreColor,font){
+
+			var dataset = this.dataset;
+        	if(!#dataset[["data"]]) {
+            	return; 
+        	}
+	
+        	var data = dataset.data;
+        	var labels = dataset.labels : [];
+        	var colors = dataset.colors : [0xFF3498DB,0xFF2ECC71,0xFFE74C3C,0xFFF39C12,0xFFF8F9FA];
+        	var maxValue = dataset.maxValue; 
+        	
+        	if( maxValue === null ) maxValue = reduce(data, function (a, b) {
+				if a > b return a;
+				return b;
+			})
+	
+			//获取 DPI 缩放像素大小
+			var dpiScaleX1,dpiScaleY1 = plusCtrl.dpiScale(1,1);
+			
+        	var brushBgChart = ..gdip.solidBrush(foreColor);
+        	var pen = ..gdip.pen(dataset.axisColor : txtColor : 0xFFDEE2E6,dpiScaleY1);
+        	var textBrush = ..gdip.solidBrush(txtColor : 0xFF2C3E50);
+         
+        	var format = ..gdip.stringformat();
+        	format.align = 1; // 水平居中
+        	 
+        	graphics.fillRectangle(brushBgChart,rcContent);
+        	
+        	var fontHeight = font.getHeight(graphics)
+        	var fontMargionTop = fontHeight+dpiScaleY1*1;
+        	
+        	//预留底部文字高度+上边距+下边距+x轴宽度
+        	rcContent.bottom = rcContent.bottom - (fontHeight+11*dpiScaleY1);
+        	rcContent.top = rc.top + fontMargionTop;//预留顶部文字位置
+        	
+			var bottom,right = rcContent.bottom, rcContent.right;
+        	var left,top = rcContent.left, rcContent.left;
+        	var width,height = rcContent.width, rcContent.height;
+        	
+        	var barWidth = width / #data;
+        	graphics.drawLine(pen, left, bottom, right, bottom); // X 轴
+        	graphics.drawLine(pen, left, top, left, bottom); // Y 轴
+	
+        	for(i=1; #data; 1) {
+            	var barHeight = (data[i] / maxValue) * height;
+            	var x = left + (i - 1) * barWidth;
+            	var y = bottom - barHeight;
+            	var w = barWidth * 0.6; // 柱子宽度为间隔的 60%
+            	var barX = x + barWidth * 0.2; // 柱子在间隔内居中
+	
+            	var barColor = colors[(i - 1) % #colors + 1]; 
+            	var barBrush = ..gdip.solidBrush(barColor);
+            	graphics.fillRectangle(barBrush, barX, y, w, barHeight);
+            	barBrush.delete(); 
+            	
+            	var valueLabel = tostring(data[i]);
+            	graphics.drawString(valueLabel, font, ::RECTF(barX, y - fontMargionTop, w, fontHeight), format, textBrush); 
+            	
+            	// 绘制类别标签（在X轴下方）
+            	var categoryLabel = labels[i] : "";
+            	graphics.drawString(categoryLabel, font, ::RECTF(barX, bottom + (dpiScaleY1*5), w, fontHeight), format, textBrush); 
+        	}
+	
+        	brushBgChart.delete();
+        	pen.delete();
+        	textBrush.delete(); 
+        	format.delete();
+        	
+        	return true; 
+		}
+	};
+	redraw = function(){
+		plusCtrl.redrawTransparent();
+	};
+	draw = function(){ //@Deprecated
+		plusCtrl.redrawTransparent();
+	};
+}
+
+/*****intellisense()
+gdip.chart.bar = 基于 GDI+ 在 plus 控件内绘制简单柱状图。\n如果要实现更丰富的图表效果，请改用 web.view 等浏览器控件加载 chart.js 等图表组件。
+gdip.chart.bar(__) = 创建柱状图对象，参数指定 plus 控件对象。\n此对象在 plus 控件自绘前景的 onDrawContent 事件内绘制柱状图。\n柱状图的绘制范围为 plus 控件的前景显示范围，前景边距也会成为柱状图的边距。\nplus 控件的前景色将显示为柱状图的背景色。\n控件设置的字体与字体颜色将用于显示柱状图中的文字。\n控件如果设置了文本或图标文本、边框等仍然按设置的样式显示。
+gdip.chart.bar() = !stdGdipChartBar.
+!stdGdipChartBar.dataset = @.dataset = {\n	maxValue = 100; //可选指定 Y 轴最大值 \n	data = [65, 85, 45, 75, 95];\n	labels = ["第一季度", "第二季度", "第三季度", "第四季度", "预测"];\n	colors = [0xFF3498DB, 0xFF2ECC71, 0xFFE74C3C, 0xFFF1C40F, 0xFF9B59B6];\n	axisColor = 0xFFBDC3C7;__/*\n指定柱状图配置，字段说明：\nmaxValue: 可选字段，指定 Y 轴最大值。\ndata: 数值数组，指定柱状图数据。\nlabels: 字符串数组，用于指定所有柱子下面显示的标签。\ncolors: 柱子颜色值数组（颜色格式 0xAARRGGBB），可选字段，数组长度可以小于 data 数组的长度。\naxisColor: 坐标轴颜色（颜色格式 0xAARRGGBB），可选字段。\n注意修改 dataset 并不会主动重绘控件，\n如果控件已显示，可调用控件的 redraw 或 redrawTransparent 函数刷新。*/\n};
+!stdGdipChartPie.redraw() = 重绘图表，等价于调用 plus 控件的 redrawTransparent 函数。
+end intellisense*****/

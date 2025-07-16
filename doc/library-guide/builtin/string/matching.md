@@ -222,7 +222,72 @@ console.pause();
 
 注意在替换函数中 onwer 参数指向原始字符串。
 
-## 五、在不匹配模式的部分进行替换 <a id="replaceUnmatched" href="#replaceUnmatched">&#x23;</a>
+## 五、连续匹配字符串 <a id="reduce" href="#reduce">&#x23;</a>
+
+string.reduce 函数可通过连续地模式匹配逐步缩短并简化需要用匹配的字符串。
+
+函数原型：
+
+`string.reduce(str,pattern1,pattern2,...,pattern-n)` 
+
+参数 @str 是需要处理的字符串。
+参数 @pattern1 到 @pattern-n 用于指定 1 到 n 个 pattern 参数。   
+也可以将所有模式参数包含到一个数组里作为参数 @2 传入。
+
+string.reduce 对上一次模式匹配的结果应用下一个模式串参数进行匹配并返回最终匹配的结果。
+如果在模式串中指定了捕获组，则仅提取第一个捕获组作为下一次的匹配结果。  
+
+例如像 `%()` 这样无法拆分的 [对称匹配](patterns.md#balanced-strings) ，
+通过 string.reduce 就可以再次细分匹配结果，并再次应用一个新的模式串对其局部使用模式匹配。
+
+示例：
+
+```aardio
+var str = string.reduce("print(a,(1+2))",
+	"\w+(%())",//先用 `%()`匹配对称的括号
+	"^\((.+)\)$",//丢弃首尾括号，进一步细分字符串
+	"(\d)\)" //可增加更多模式串参数
+);
+
+print(str)
+```
+
+string.reduce 每次匹配下一个模式串时，
+都可以缩短与精简字符串，模式匹配参数也可以逐步简化。
+
+## 六、连续匹配并替换 <a id="reduceReplace" href="#reduceReplace">&#x23;</a>
+
+string.reduceReplace 函数可通过连续地模式匹配逐步缩短并简化需要用匹配的字符串，并替换最终匹配的部分。
+
+函数原型：
+
+`string.reduceReplace(str,pattern1,pattern2,...,pattern-n,repl)` 
+
+参数 @str 是需要处理的字符串。
+参数 @pattern1 到 @pattern-n 用于指定 1 到 n 个 pattern 参数。 
+
+此函数对上一次模式匹配的结果应用下一个模式串参数进行匹配。
+如果在模式串中指定了捕获组，则仅提取第一个捕获组作为下一次的匹配结果。  
+
+最后一次模式匹配将使用最后的 @repl 参数替换最终的匹配结果。
+@repl 可以指定字符串、函数、表等替换对象，与 string.replace 函数的 @repl 参数用法相同。
+请参考：[string.replace 的函数说明](#replace)  
+
+此函数的第一个返回值为替换后的字符串，第二个返回值为首个模式匹匹配成功的次数。如果要获取成功替换的次数，请指定 @repl 参数为函数对象，并在替换函数内部统计替换计数。
+
+示例：
+
+```aardio
+var str = string.reduceReplace("print(a,(1+2))",
+	"\w+(%())",//用 %() 对称匹配外层括号包围的部分
+	"\((.+)\)",//获取括号中间的部分
+	"\1" //替换为捕获组 1
+);
+
+print(str)
+```
+
+## 七、在不匹配模式的部分进行替换 <a id="replaceUnmatched" href="#replaceUnmatched">&#x23;</a>
 
 如果我们希望在匹配指定模式的部分进行替换这很容易。
 

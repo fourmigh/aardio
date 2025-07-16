@@ -6,7 +6,7 @@ namespace fonts;
 class httpFamily{
 	ctor(url,fontName){
 		
-		if(..string.startWith(url,"//")) {
+		if(..string.startsWith(url,"//")) {
 			url = "http:" + url;
 		}
 		

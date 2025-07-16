@@ -1,0 +1,29 @@
+//aardio 调用 Java: doc://library-guide/std/java/_.md#call-java
+import java;
+import console;
+
+var jvm = java();
+ArrayList = jvm.import("java.util.ArrayList");
+
+//创建 ArrayList 对象
+var arrayList = ArrayList();
+
+//调用 Java 对象的方法
+arrayList.add(jvm.int(123));
+arrayList.add(2.2);
+
+//可使用数值下标读写 List 对象
+arrayList[0] = 12345;
+
+//在控制台打印 Java 对象的类型与值
+console.dump( arrayList );
+
+//调用 Java 迭代器遍历对象
+for item in arrayList.each(){
+	console.log(item);
+}
+
+//转换为纯 aardio 值
+var array = arrayList.parseValue()
+console.log( array );
+console.pause();

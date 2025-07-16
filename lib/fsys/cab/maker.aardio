@@ -92,7 +92,7 @@ compress = function(path,targetPath,CompressionType="LZX"){
 	else {
 		targetPath = ..io.fullpath(targetPath)
 	}
-	if(! ..string.endWith( targetPath,".cab",true) ){
+	if(! ..string.endsWith( targetPath,".cab",true) ){
 		return "cab文件存储路径错误"; 
 	}
 	..fsys.delete(targetPath)

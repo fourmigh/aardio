@@ -1,5 +1,5 @@
 ﻿import win.reg;
-import web.json;
+import JSON;
 import fsys.crx;
 import fsys;
 
@@ -18,8 +18,8 @@ class install{
 		var allowed_origins2 = {};
 		allowed_origins = param.allowed_origins;
 		for(k,v in allowed_origins){
-			 if(!..string.startWith(v,"chrome-extension://",true) ){
-			 	if(..string.endWith(v,".pem",true)){
+			 if(!..string.startsWith(v,"chrome-extension://",true) ){
+			 	if(..string.endsWith(v,".pem",true)){
 			 		if(! ..io.exist(v) ) continue;
 			 		var k,id = ..fsys.crx.key(v);
 			 		v = id;
@@ -39,7 +39,7 @@ class install{
 		param.allowed_origins = allowed_origins2;
 		
 		if(!param.path) param.path = ..io._exepath; 
-		var json = ..web.json.stringify(param,true,true);
+		var json = ..JSON.stringify(param,true,true);
 		var jsonPath = ..io.getSpecial(0x1a /*_CSIDL_APPDATA*/,"/aardio/chrome/nativeMessaging/" +param.name +"-manifest.json")
 		..string.save(jsonPath,json)
 		

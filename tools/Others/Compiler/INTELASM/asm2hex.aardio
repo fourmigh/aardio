@@ -3,18 +3,19 @@ import win.ui;
 import process
 import fsys;
 /*DSG{{*/
-var winform = win.form(text="汇编转 aardio 函数 ( 使用 raw.fasm 扩展库 )";right=499;bottom=492;parent=...)
+var winform = win.form(text="汇编转 aardio 函数";right=563;bottom=492)
 winform.add(
-btnDown={cls="button";text="下载头文件";left=332;top=465;right=418;bottom=490;db=1;dr=1;z=8};
-btnEdit={cls="button";text="转换到编辑器";left=346;top=4;right=494;bottom=29;dr=1;dt=1;z=4};
-btnGen={cls="button";text="生成文件";left=422;top=465;right=494;bottom=490;db=1;dr=1;z=7};
-btnInstruction={cls="button";text="x86 指令集";left=134;top=465;right=212;bottom=490;db=1;dr=1;z=10};
-btnPdf={cls="button";text="FASM 用户手册";left=216;top=465;right=328;bottom=490;db=1;dr=1;z=9};
-button={cls="button";text="转换";left=278;top=4;right=335;bottom=29;dr=1;dt=1;z=1};
-chkAtt={cls="checkbox";text="用AT&&T语法注释";left=18;top=469;right=132;bottom=489;db=1;dr=1;z=11};
-editAsm={cls="edit";left=15;top=33;right=494;bottom=233;ah=1;dl=1;dr=1;dt=1;edge=1;hscroll=1;multiline=1;vscroll=1;z=2};
-editByteCode={cls="edit";left=15;top=239;right=494;bottom=462;db=1;dl=1;dr=1;edge=1;hscroll=1;multiline=1;vscroll=1;z=3};
-editParams={cls="edit";text="void( INT id, struct & cpuid )";left=77;top=5;right=264;bottom=28;align="right";dl=1;dr=1;dt=1;edge=1;multiline=1;z=6};
+btnDown={cls="button";text="下载头文件";left=390;top=465;right=476;bottom=490;db=1;dr=1;z=8};
+btnEdit={cls="button";text="转换到编辑器";left=404;top=4;right=552;bottom=29;dr=1;dt=1;z=4};
+btnGen={cls="button";text="生成文件";left=480;top=465;right=552;bottom=490;db=1;dr=1;z=7};
+btnInstruction={cls="button";text="x86 指令集";left=192;top=465;right=270;bottom=490;db=1;dr=1;z=10};
+btnPdf={cls="button";text="FASM 用户手册";left=274;top=465;right=386;bottom=490;db=1;dr=1;z=9};
+button={cls="button";text="转换";left=337;top=4;right=394;bottom=29;dr=1;dt=1;z=1};
+chkAtt={cls="checkbox";text="AT&&T注释";left=18;top=469;right=102;bottom=489;db=1;dr=1;z=11};
+chkHex={cls="checkbox";text="HEX 格式";left=106;top=469;right=183;bottom=489;db=1;dr=1;z=13};
+editAsm={cls="edit";left=15;top=33;right=557;bottom=233;ah=1;dl=1;dr=1;dt=1;edge=1;hscroll=1;multiline=1;vscroll=1;z=2};
+editByteCode={cls="edit";left=15;top=239;right=554;bottom=462;db=1;dl=1;dr=1;edge=1;hscroll=1;multiline=1;vscroll=1;z=3};
+editParams={cls="edit";text="void( INT id, struct & cpuid )";left=77;top=5;right=334;bottom=28;align="right";dl=1;dr=1;dt=1;edge=1;multiline=1;z=6};
 splitter={cls="splitter";left=15;top=232;right=462;bottom=237;dl=1;dr=1;horz=1;z=5};
 static={cls="static";text="函数原型:";left=18;top=9;right=75;bottom=25;dl=1;dt=1;transparent=1;z=12}
 )
@@ -49,14 +50,22 @@ ret
 import string.template; 
 var templateCode = string.template();
 templateCode.template = /***
-import process;
-var app = process();//打开目标进程,可在参数中指定程序路径
+import raw.asm.cdecl;
 
 //写入机器码,并返回函数对象
-var func = app.asmCdecl(
-	"${PARAMS}",
+var func = raw.asm.cdecl("${PARAMS}",
 	${ASM_CODE}
 )
+***/
+
+var hexTemplateCode = string.template();
+hexTemplateCode.template = /***
+import raw.asm.cdecl;
+
+//写入机器码,并返回函数对象
+var func = raw.asm.cdecl("${PARAMS}","
+${ASM_CODE}
+")
 ***/
 
 import udis86;
@@ -83,22 +92,46 @@ winform.button.oncommand = function(id,event){
 	}
 	ud.setInputBuffer(binCode); //输入机器码
 	
-	while( ud.disassemble() ){ 
-		var byteCode = string.replace( ud.byteCode() ,".",
-			function(x){ 
-				return string.format("\x%02X",x[1] );
-				
-			}
-		); 
-		table.push(tAsmCode,string.format("	'%s', //%s",byteCode, ud.asm) );
-	}  
+	if(winform.chkHex.checked){
+		while( ud.disassemble() ){ 
+			var byteCode = string.replace( ud.byteCode() ,".",
+				function(x){ 
+					return string.format("%02X ",x[1] );
+				}
+			); 
+			
+			table.push(tAsmCode,string.format("	%s %s",byteCode, ud.asm) );
+		}  	
+		
+		asmCode = string.join(tAsmCode,'\r\n');  
+		
+		winform.editByteCode.text = hexTemplateCode.format(
+			ASM_CODE = asmCode;
+			PARAMS = winform.editParams.text
+		)	
+	}
+	else{
+		while( ud.disassemble() ){ 
+			var byteCode = string.replace( ud.byteCode() ,".",
+				function(x){ 
+					return string.format("\x%02X",x[1] );
+					
+				}
+			); 
+			table.push(tAsmCode,string.format("	'%s', // %s",byteCode, ud.asm) );
+		} 
+		
+		asmCode = string.join(tAsmCode,'\r\n');  
+		
+			
+		winform.editByteCode.text = templateCode.format(
+			ASM_CODE = string.trim( asmCode );
+			PARAMS = winform.editParams.text
+		) 
+	}
 	
-	asmCode = string.join(tAsmCode,'\r\n');  
 	
-	winform.editByteCode.text = templateCode.format(
-		ASM_CODE = string.trim( asmCode );
-		PARAMS = winform.editParams.text
-	)
+
 	
 	if( winform.editParams.text = "void( INT id, struct & cpuid )" ){
 		winform.editByteCode.text = winform.editByteCode.text + ('\r\n\r\n

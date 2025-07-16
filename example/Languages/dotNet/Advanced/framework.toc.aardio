@@ -60,7 +60,7 @@ winform.button.oncommand = function(id,event){
 					if( moniker && string.find(moniker,"netframework-"+netVersion)){
 						if(ele.dd[1]){
 							assembly = ele.dd[1].innerText() 
-							if(..string.endWith(assembly,".dll")){
+							if(..string.endsWith(assembly,".dll")){
 								break;
 							} 
 						}
@@ -78,8 +78,8 @@ winform.button.oncommand = function(id,event){
 				table.push(map[assembly],apiName);
 			}
 			
-			import web.json;
-			winform.edit.text = web.json.stringify(map,true);
+			import JSON;
+			winform.edit.text = JSON.stringify(map,true);
 			winform.button.disabledText = null;
 			
 		},winform,winform.editNameSpace.text,winform.editNetVersion.text

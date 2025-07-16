@@ -42,7 +42,7 @@ frmPage2.button.oncommand = function(id,event){
 } 
 
 //切换选项卡时触发此事件
-mainForm.tab.onSelchange = function(idx,form){
+mainForm.tab.onSelChange = function(idx,form){
 	mainForm.msgbox("切换选项卡，当前索引：" + idx)
 } 
 

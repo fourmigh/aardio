@@ -71,7 +71,7 @@ class appDomain{
 				var obj,err = asm.__createInstanceTest(null,typeName,...);
 
 				if(obj) return obj;
-				if(!..string.startWith(typeName,asm.Name +".") && !(..string.indexOf(typeName,".")) )
+				if(!..string.startsWith(typeName,asm.Name +".") && !(..string.indexOf(typeName,".")) )
 					return asm.__createInstanceTest(null,asm.Name +"."+ typeName,...);
 					
 				return null,err;
@@ -145,9 +145,24 @@ class appDomain{
 				else{
 					nspace = ..table.namespace(..string.replace(typeName,"@+",".")); 
 					if(!nspace) {
-						error("Name conflict for namespace '"+typeName+"'",2);
+						var typeName1,genericName = ..string.match(typeName,"(.+)\.(\a\w*`\d+%\[\])");
+ 
+						if( typeName1 && genericName){ 
+							nspace = ..table.namespace(..string.replace(typeName1,"@+",".")); 
+						
+							if(!nspace) error("Name conflict for namespace '"+typeName+"'",2);
+							
+							if(nspace[[genericName]] === null ) nspace[[genericName]] = {} 
+							
+							nspace = nspace[[genericName]];
+							if(type(nspace)!="table")error("Name conflict for namespace '"+typeName+"'",2);
+						}
+						else{
+							error("Name conflict for namespace '"+typeName+"'",2);
+						} 
 					}
-					elseif(nspace@) nspace = {_dotNetObject = objType};
+					
+					if(nspace@) nspace = {_dotNetObject = objType};
 					elseif(!nspace[["_dotNetObject"]]) {
 						nspace[["_dotNetObject"]] = objType;
 						nspace[["_dotNetAppDomain"]] = this;
@@ -353,6 +368,16 @@ class appDomain{
 				return nspace;
 			} 
 			
+			asm[["getType"]] = function(name,throwOnError){
+				if(name===null) return this.wrapObject( asm.GetType() );
+				if(throwOnError!==null) return this.wrapObject( asm.GetType_3(name,throwOnError) );
+				return asm.import(name);
+			}
+			
+			asm[["getName"]] = function(copiedName){
+				return this.wrapObject( asm.GetName_2(!!copiedName) );
+			}
+			
 			return asm,...;
 		}
 		
@@ -383,8 +408,10 @@ class appDomain{
 			}; 
 			
 			this[["_assemblies"]] = {};
-			this.load = function( name,data ){  
+			this.load = function(name,data ){  
 				if(!name) error("请指定程序集名称",2);  
+				if(name[#name-3]=='.'#) name = ..string.replace(name,"^([^\\/]+)\.<dll>|<DLL>$","\1");
+	
 				if(data) this.reference(name,data);
 				
 				var a = this[["_assemblies"]][name];
@@ -407,7 +434,7 @@ class appDomain{
 				 	error("加载程序集失败：" + (path:nspace));
 				} 
 			};
-			 
+			
 			this.interop = this.loadFile($"~\lib\dotNet\.res\bin\Release\aardio.Interop.dll");  
 			//this.interop = this.loadFile( "~\lib\dotNet\.res\bin\Debug\aardio.Interop.dll" ,"~\lib\dotNet\.res\bin\Debug\aardio.Interop.pdb" ); 
 			
@@ -480,6 +507,14 @@ class appDomain{
 		else {
 			this[["(referencePaths)"]][path] = data;
 		} 
+	};
+	color = function(v,ref){
+		v = this.utility.CreateColorObject(v,ref);
+		return { _dotNetObject = v; _dotNetAppDomain = this; @_objectMeta; 	} 
+	};
+	char = function(v,ref){
+		v = this.utility.CreateCharObject(v,ref);
+		return { _dotNetObject = v; _dotNetAppDomain = this; @_objectMeta; 	} 
 	};
 	object = function(v,ref){
 		if(v[["_dotNetObject"]] && !ref) return v;
@@ -616,13 +651,6 @@ class appDomain{
 		
 		return this.wrapObject(result);
 	};
-	setItem = function(target,...){
-		var arrlist = this.rawCreateArrayList({...});
-		var ok,result  = call(this.utility.getInvokeObjectMember,this.utility,unwrapObject(target),"Item"  
-			,16 | 4 | 8192 /*SetProperty*/ ,arrlist);
-		if( !ok ) return null,result;
-		return true;
-	};
 	getItem = function(target,...){
 		var arrlist = this.rawCreateArrayList({...})
 		var ok,result  = call(this.utility.getInvokeObjectMember,this.utility,unwrapObject(target),"Item" 
@@ -630,6 +658,20 @@ class appDomain{
 		if( !ok ) return null,result;
 		
 		return this.wrapObject(result);
+	};
+	setItem = function(target,...){
+		var arrlist = this.rawCreateArrayList({...});
+		var ok,result  = call(this.utility.getInvokeObjectMember,this.utility,unwrapObject(target),"Item"  
+			,16 | 4 | 8192 /*SetProperty*/ ,arrlist);
+		if( !ok ) return null,result;
+		return true;
+	};
+	setItemByParams = function(target,params){ 
+		var arrlist = this.rawCreateArrayList(params);
+		var ok,result  = call(this.utility.getInvokeObjectMember,this.utility,unwrapObject(target),"Item"  
+			,16 | 4 | 8192 /*SetProperty*/ ,arrlist);
+		if( !ok ) return null,result;
+		return true;
 	};
 	invokeStaticMember = function(assemblyName,typeName,...){
 		var typeName,methodName = ..string.match(typeName,"(.+)\.([^.]+)$"); 
@@ -709,7 +751,7 @@ class appDomain{
 					return owner._Reference( ..io.joinpath(path,...) );
 				}
 				
-				if(!(..string.endWith(path,".dll",true) || ..io.exist(path) ) ){
+				if(!(..string.endsWith(path,".dll",true) || ..io.exist(path) ) ){
 					var location;
 					var asms = appDomain.GetAssemblies();
 					for(i,asm in asms){
@@ -755,7 +797,7 @@ class appDomain{
 				
 				if(dllPath){
 					compiler.Parameters.OutputAssembly  =  ..io.fullpath(dllPath)
-					compiler.Parameters.GenerateExecutable =  !..string.endWith(dllPath,".dll",true);
+					compiler.Parameters.GenerateExecutable =  !..string.endsWith(dllPath,".dll",true);
 					compiler.Parameters.GenerateInMemory =  false;	
 				}
 				elseif(!compiler.Parameters.GenerateInMemory) {
@@ -954,7 +996,7 @@ namespace appDomain{
 		_eq = __equals;
 	}
 	
-	var __reservedProperties = {_struct=1;Item=1;setItem=1;getItem=1;byRef=1}
+	var __reservedProperties = {_struct=1;Item=1;setItem=1;getItem=1;byRef=1,each=1}
 	_objectMeta = {
 		
 		_get = function(k,ownerCall){
@@ -962,11 +1004,17 @@ namespace appDomain{
 			var appDomain = owner._dotNetAppDomain;
 			
 			if(ownerCall===null/*下标（索引）操作符*/){
-				if(type(k)==="number"){
+				var tk = type(k);
+				if(tk==="number"){
 					var obj,err = appDomain.wrapObject( appDomain.getItem(object,k-1) );
 					if(err && obj===null) error(err,2);
 					return obj;
 		 		} 
+		 		elseif(tk === "table" && ..table.isArray(k)){
+		 			var obj,err = appDomain.wrapObject( appDomain.getItem(object,..table.unpackArgs(k) ) );
+					if(err && obj===null) error(err,2);
+					return obj;
+		 		}  
 		 		
 		 		var obj,err = appDomain.wrapObject( appDomain.getItem(object,k) ); 
 		 		if(err && obj===null ){
@@ -997,6 +1045,10 @@ namespace appDomain{
 						if(!ok && err) error(err,2);
 					} 
 					return owner[["setItem"]];
+				}
+				elseif(k=="each" && ownerCall) {
+					var each = appDomain.each(owner)
+					return lambda () each; 
 				}
 				elseif(k=="byRef" && ownerCall) {
 					if( ..com.IsNetObject(object) === 2 ) {
@@ -1062,11 +1114,20 @@ namespace appDomain{
 			var object = owner[["_dotNetObject"]];
 
 			if(!ownerAttr){
-				if(type(k)==="number"){
+				var tk = type(k);
+				if(tk === "number"){
 					var ok,err = app.setItem(owner[["_dotNetObject"]],k-1,v);
 					if(!ok && err) error(err,2);
 					return;
 		 		} 
+		 		elseif(tk === "table" && ..table.isArray(k)){
+		 			..table.push(k,v);
+		 			var obj,err = app.setItemByParams(owner[["_dotNetObject"]],k );
+		 			..table.pop(k);
+		 			
+					if(err && obj===null) error(err,2);
+					return obj;
+		 		}  
 		 		
 		 		var ok,err = app.setItem(owner[["_dotNetObject"]],k,v);
 		 		if(!ok && err) {
@@ -1270,10 +1331,10 @@ Drawing = System.Drawing
 Array = System.Array
 dict( = 将非空表转换为 .NET 字典。\n如果要创建空字典，调用返回对象的 Clear 函数清空即可。\n返回对象支持用下标操作符访问键值对。\n可用 dotNet.each 遍历字典。
 dict(.(tab,byRef) = 将非空表转换为 .NET 字典（Dictionary）对象。\n\n如果传入空表或 null 返回 null 值。\n否则必须传入非空表，表中所有的键必须是相同类型。\n表中所有的值必须是相同类型。\n\n参数 @byRef 为可选参数，如果 @byRef 为 true，\n则返回对象可作为 .NET 输出与引用参数使用
-dict() = !stdNetDictionary.
+dict() = !stdDotNetDictionary.
 end intellisense**/
 
-/*****intellisense(!stdNetDictionary)
+/*****intellisense(!stdDotNetDictionary)
 Add(.(key,value) = 添加键值
 Clear() = 清空字典
 ContainsKey(.(key) = 是否包含参数 @key 指定键的值
@@ -1318,15 +1379,20 @@ import() = !dotNetNameSpace.
 end intellisense****/
 
 /**intellisense(!dotNetCrlAssembly)
-appDomain = 加载此程序集的应用程序域\n!dotNetAppDomain.
-Location = 获取完整路径
-FullName = 获取程序集的全名
+appDomain = 加载此程序集的应用程序域。\n!dotNetAppDomain.
+Location = 用于获取完整路径。
+FullName = 用于获取程序集的全名。
 import( = 将 .NET 类名或名字空间导入 aardio 全局名字空间。\n在当前应用程序域 import,load 等函数不会导入重复的程序集，\n在同一程序集中不会重复导入名字空间。\n\n如果程序集用其他函数加载，则有可能重复导入名字空间,\n重复导入 .NET 名字空间不会修改已存在的全局名字空间，\n但此函数总是会返回当前调用实际创建的名字空间
 import(.(netNamespace) = 将参数@1 指定的 .NET 类名或名字空间导入 aardio 全局名字空间，\n必须指定完整名字空间。\n参数 @1 可指定名字空间也可以指定要导入的名字空间数组。\n不传入参数则默认指定参数为程序集名称。\n\n返回名字空间可作为类构造函数调用并创建对象\n也可以用成员操作符返回静态成员，或调用静态函数。\n\n重复导入 .NET 名字空间不会修改已存在的全局名字空间，\n但此函数总是会返回当前调用实际创建的名字空间
 import(.(netNamespace,->->->) = 参数@1 指定要导入的 .NET 类名。\n如果再指定一个或多个类型参数时则导入泛型类。\n类型参数可以是导入的 .NET 类、类名全称、System.Type.GetType 获取的类型对象。\n对导入的 .NET 类使用下标 ["<>"] 也可以返回一个创建泛型类的函数。\n泛型类不会缓存，也不会设为 aardio 全局名字空间
 new(.("类名",->->-> ) = 创建对象实例,\n可添加不定个数构造参数\n失败返回空值,以及错误信息
 invokeStaticMember(.("类名->方法名",->->-> ) = 调用类的静态方法,\n可添加不定个数调用参数\n失败返回空值,以及错误信息
 getStaticMember(.("类名->字段名") = 获取字段或属性值、或枚举值
+getType(.() = 获取程序集本身的类型
+getType(.(name,throwOnError) = 自程序集获取 name 指定的 .NET 类型，\nthrowOnError 必须指定为 true，否则失败会退出进程。
+getType(.(name) = 仅指定 name 参数时等价于调用程序集的 import 方法。\n这将导入 .NET 类型，如果类型不存在则作为 .NET 名字空间导入。
+getType() = !dotNetNameSpace.
+getName(.(copiedName) = 返回 .NET 的 System.Reflection.AssemblyName 对象。\n可选参数 copiedName 为 false 时返回对象的 CodeBase 属性指向原始位置（默认值）
 end intellisense**/
 
 /**intellisense(!dotNetDelegate)

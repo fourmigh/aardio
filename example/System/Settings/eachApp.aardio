@@ -6,7 +6,7 @@ import fonts.fontAwesome;
 var winform = win.form(text="UWP 应用 - 查看工具";right=1150;bottom=666;bgcolor=16777215)
 winform.add(
 editCode={cls="plus";left=10;top=624;right=969;bottom=654;align="right";autohscroll=false;autovscroll=false;border={bottom=1;color=-4144960};dr=1;dt=1;editable="edit";font=LOGFONT(h=-13);textPadding={top=10;bottom=3};z=5};
-listview={cls="listview";left=8;top=41;right=1138;bottom=617;acceptfiles=1;asel=false;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;edge=1;font=LOGFONT(name='SimSun');fullRow=1;gridLines=1;hide=1;vscroll=1;z=1};
+listview={cls="listview";left=8;top=41;right=1138;bottom=617;acceptfiles=1;asel=false;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;edge=1;font=LOGFONT(name='SimSun');fullRow=1;gridLines=1;hide=1;vscroll=1;z=1};
 openMicrosoftStore={cls="plus";text="打开应用商店";left=974;top=625;right=1110;bottom=657;color=8388608;db=1;dr=1;notify=1;textPadding={left=5};z=4};
 plusLoading={cls="plus";left=368;top=195;right=739;bottom=457;color=15780518;db=1;dl=1;dr=1;dt=1;font=LOGFONT(h=-96;name='FontAwesome');iconStyle={font=LOGFONT(h=-96;name='FontAwesome')};iconText='\uF254';z=2};
 plusSearch={cls="plus";left=727;top=3;right=1136;bottom=33;align="right";autohscroll=false;autovscroll=false;border={bottom=1;color=-4144960};dr=1;dt=1;editable=1;font=LOGFONT(h=-13);hide=1;textPadding={top=10;bottom=3};valign="top";z=3}

@@ -67,9 +67,9 @@ namespace msxml{
 			return ..web.form.query( tab );
 		} 
 		load = function(url,...){
-			owner.url = ..web.form.mapurl(url);
-			owner.filename = owner.url;
-			return owner.document.load(owner.url,...);
+			owner[["(url)"]] = ..web.form.mapurl(url);
+			owner[["(filepath)"]] = owner[["(url)"]];
+			return owner.document.load(owner[["(url)"]],...);
 		}
 		transformNode = function(url){ 
 			var xsl = ..com.CreateObject("MSXML2.DOMDocument");
@@ -91,15 +91,20 @@ namespace msxml{
 		}
 		save = function(path,...){
 			if( path ){
-				owner.url = ..io.fullpath(path);
-				owner.filename = owner.url;
+				owner[["(url)"]] = ..io.fullpath(path);
+				owner[["(filepath)"]] = owner[["(url)"]];
 			}
-			return owner.document.save(owner.url,...);
+			return owner.document.save(owner[["(url)"]],...);
 		}
 		loadXml = function(xml,cp){
 			if(cp!==null) xml = ..string.fromto(xml,cp);
 			owner.document.loadXML(xml)
 		}
+		filepath = {
+			_get = function(){
+				return owner[["(filepath)"]]
+			} 
+		} 
 		xml = {
 			_get = function(){
 				return owner.document.getxml()
@@ -112,7 +117,19 @@ namespace msxml{
 			
 		} 
 		get = function(k){
-			return owner.document[k] or owner.document.getElementsByTagName(k)
+			if(!type.isString(k)) return;
+			
+			var r  = owner.document[k] ;
+			if( r === null ) r = owner.document.getElementsByTagName(k);
+			return r; 
+		}
+		set = function(k,v){
+			if(!type.isString(k) || (k[1]=='_'#) ) {
+				owner[[k]] = v;
+			}
+			else{
+				owner.document[k] = v;
+			}
 		}
 	);
 }
@@ -126,11 +143,12 @@ web.msxml() = 创建 XML 文档对象,可选在参数中指定 URL 或 XML 文�
 !msxml.queryNodes() = !msXmlNode.
 !msxml.load(.(URL) = 载入XML文档,参数可以是网址或本地路径
 !msxml.save("__->xml") = 保存XML文档
-!msxml.loadXml(__) = 从字符串载入XML文档,可选使用参数2指定内码
+!msxml.loadXml(__) = 从字符串载入 XML 文档，参数 @2 可选使用一个数值指定代码页（ codepage ）。
 !msxml.transformNode(.(XSL网址) = 应用XSL样式
-!msxml.url = XML文件路径
+!msxml.url = XML 文件 URL，只读属性。
+!msxml.filepath = XML 文件 路径，只读属性。
 !msxml.documentElement = !msXmlNode.
-!msxml.document = XML文档对象\n!msXmlDoc.
+!msxml.document = XML 文档对象（MSXML2.DOMDocument 对象），这是一个 COM 对象。\n!msXmlDoc.
 !msxml.getElementsByTagName("*__/*tagName*/") = 根据标签名返回节点
 !msxml.getElementsByTagName() = !msXmlNode.
 !msxml.nodeFromId("__/*ID*/") = 根据ID返回节点
@@ -167,7 +185,7 @@ end intellisense**/
 /**intellisense(!msXmlNode)
 attributes().nodeValue = 属性值
 text = 文本
-xml = xml源码
+xml = XML 源码
 nodeName = 获取特定节点类型的名称
 nodeType = 获取所需节点的类型
 nodeValue = 设置或获取节点的文本值 

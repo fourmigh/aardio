@@ -17,7 +17,7 @@ class win.ui.ctrl.delphiForm{
 		所有结构体(传址)、字符串、字节数组(raw.buffer)、不大于32位的整数、64位无符号整数（math.size64）
 		都可以直接作为调用参数，不需要指定类型，更可通过尾标语法指定返回值的类型以及是否对字符串进行 UTF-16 自动转换。
 		
-		相关范例：「 aardio 范例 / 调用其他语言 / C语言 」
+		相关范例：「 aardio 范例 » 调用其他语言 » C语言 」
 		相关文档： doc://library-guide/builtin/raw/directCall.md
 		*/
 		this.hwnd = delphiDll.CreateForm(parent.hwnd);
@@ -32,7 +32,7 @@ edit={cls="edit";text="请先用 Delphi 打开此目录下的 DLL 源码工程�
 )
 /*}}*/
 
-import web.json;
+import JSON;
 winform.onTest = function(delphiStructParam){ 
 	winform.edit.print("Delphi 调用了aardio 函数,参数如下:");
 	winform.edit.print(delphiStructParam);

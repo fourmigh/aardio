@@ -1,0 +1,43 @@
+﻿//table 文本化表格
+import console;
+import string.textTable;
+
+namespace console{
+	
+	class table{
+		ctor(...){
+			this = ..string.textTable(...);
+			this.mode = ..io.utf8 ? "fancy" : "simple";
+		}; 
+		write = function(...){
+			..console.open();
+			this.windowWidth = ..console.getSize()-10;
+			
+			..console.log( this.stringify(...) );
+			..console.log( " Count: " + this.count() );
+		};
+	}
+	
+	table.write = function(...){
+		table().write(...);
+	}
+	
+}
+
+/*****intellisense()
+console.table = 用于在控制台输出文本化表格。\n基于 string.textTable 库。
+console.table.write(__) = 在控制台输出文本化表格，如果未打开控制台窗口则自动打开。\n如果未指定参数则忽略不操作。\n如果参数指定以下格式的表对象，则输出表格数据：\n- 数组的数组:第一层数组逐行输出，第二层数组逐列输出。\n- 键值对数组:逐行输出数组，输出列标题同名的字段值，\n未指定列标题则自动获取所有字段作为列标题。\n- 其他格式的表：逐行输出所有键值对。
+console.table(__) = 创建文本化表格。\n可选使用参数 @1 传入一个字符串数组以指定列名数组，如果所有列名为空则不显示列标题。
+console.table() = !stdStringTextTable.
+end intellisense*****/
+
+/*****intellisense(!stdStringTextTable)
+mode = 用一个字符串指定表格线的输出格式。\n可选值如下：\n"simple": 用 ASCII 字符输出表格线，兼容旧系统。\n"fancy": 用 Unicode 字符输出表格线，较美观。\n"markdown": 输出符合 Markdown 语法的表格。\n\n在控制台编码为 UTF-8 编码时默认使用 "fancy" 格式，否则默认使用 "simple" 格式。\n在 Windows 10 1709 以及之后的操作系统的 aardio 控制台默认设为 UTF-8 编码。
+fields = 可选用此属性指定列名数组。
+windowWidth = 可选指定最大显示宽度。\n单个非 ASCII 字符宽度为 2, ASCII 字符宽度为 1 。
+gridLines = 是否在所有单元格之间显示网络线。\n输出格式设为 markdown 时此属性无效。
+push(__) = 添加一行数据。\n可用参数 @1 指定一个数组，\n指定多个参数则自动合并为数组。
+count() = 返回已添加的行数。
+stringify(__) = 将表对象转换为文本化表格，返回字符串。 \n如果未指定参数则输出之前添加的所有数据。\n如果参数指定表对象，则先清空之前添加的所有行，然后转换并添加参数指定的表格数据。\n在函数返回后可用 count 函数获取实际输出的数据行总数。
+write(__) = 在控制台输出文本化表格，如果未打开控制台窗口则自动打开。\n如果未指定参数则输出之前添加的所有数据。\n如果参数指定表对象，则先清空之前添加的所有行，然后输出参数指定的表格数据。\n\n参数表可以是以下格式：\n- 数组的数组:第一层数组逐行输出，第二层数组逐列输出。\n- 键值对数组:逐行输出数组，输出列标题同名的字段值，\n未指定列标题则自动获取所有字段作为列标题。\n- 其他格式的表：逐行输出所有键值对。\n在函数返回后可用 count 函数获取实际输出的数据行总数。
+end intellisense*****/

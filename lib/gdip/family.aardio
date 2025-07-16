@@ -10,7 +10,7 @@ class family {
 		}
 		
 		if(type(name) == type.string){ 
-			var e,f = gdip.CreateFontFamilyFromName ( ..string.toUtf16(name),collection) ;
+			var e,f = gdip.CreateFontFamilyFromName (name,collection) ;
 			if( e ) return null,gdip.errMsg[e];
 			this.pFamily = f;  
 			this.name = name; 
@@ -60,7 +60,7 @@ namespace family {
 	 	
 		delete = function(){
 			if( owner[["pFamily"]]  ){
-				gdip.DeleteFontFamily(owner[["pFamily"]])
+				::Gdiplus.GdipDeleteFontFamily(owner[["pFamily"]])
 				owner[["pFamily"]] = null;
 			}
 		};
@@ -74,8 +74,7 @@ namespace family {
 
 var $ = _dll; 
 /*intellisense(gdip)*/ 
-CreateFontFamilyFromName = $.api("GdipCreateFontFamilyFromName","int(string name,ptr fontColl,pointer& fontFamily)")
-DeleteFontFamily = $.api("GdipDeleteFontFamily","int(PTR family)") 
+CreateFontFamilyFromName := $.api("GdipCreateFontFamilyFromName","int(ustring name,ptr fontColl,pointer& fontFamily)") 
 /*end intellisense*/
  
 /**intellisense()

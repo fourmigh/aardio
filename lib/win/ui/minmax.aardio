@@ -18,92 +18,99 @@ class minmax{
 			argsMinCy = rc.height(); 
 		}
 		
-		this.argsMin = { cx=argsMinCx;cy=argsMinCy}
-		this.argsMax = { cx=argsMaxCx;cy=argsMaxCy}
-		
-		this.dpiScaleX = winform.dpiScaleX : 1;
-		this.dpiScaleY = winform.dpiScaleY : 1;
+		this.argsMin = {x=argsMinCx;y=argsMinCy}
+		this.argsMax = {x=argsMaxCx;y=argsMaxCy}
 		
 		this.updateMinMaxInfo = function(){
-			var x,y,cx,cy = 0,0,this.argsMax.cx,this.argsMax.cy;
-			if(winform.dpiScaleX && winform.dpiScaleY){
-				if(cx!==null) cx = cx / this.dpiScaleX * winform.dpiScaleX;
-				if(cy!==null) cy = cy / this.dpiScaleY * winform.dpiScaleY;	
-			} 
 			
+			var minWidth,minHeight,maxWidth,maxHeight = this.argsMin.x,this.argsMin.y,this.argsMax.x,this.argsMax.y;
+			
+			//DPI 缩放
+			var dpiX1,dpiY1 = winform.dpiScale(1,1);
+			minWidth = minWidth * dpiX1;
+			minHeight = minHeight * dpiY1;
+			if(maxWidth!==null) maxWidth = maxWidth * dpiX1;
+			if(maxHeight!==null) maxHeight = maxHeight * dpiY1;	
+			
+			//计算边框与标题栏高度
 			if(..win.getStyle(winform.hwnd,0x800000/*_WS_BORDER*/)) { 
-				if(cx!==null) this.maxTrackSize.x = cx; 
-				if(cy!==null) this.maxTrackSize.y = cy;
-				return;
+				var style,styleEx = ..win.getStyle(winform.hwnd),..win.getStyleEx(winform.hwnd);
+				var bMenu = !!winform[["menu"]];
+				
+				var rc = ::RECT(0,0,minWidth,minHeight);
+				::User32.AdjustWindowRectEx(rc, style,bMenu,styleEx);//left,top 会变为负数
+				minWidth,minHeight = rc.width,rc.height;
+				
+				rc.setPos(0,0,maxWidth,maxHeight);
+				::User32.AdjustWindowRectEx(rc, style,bMenu,styleEx);//left,top 会变为负数
+				
+				if(maxWidth!==null) maxWidth = rc.width;
+				if(maxHeight!==null) maxHeight = rc.height;	
 			}
 			
-			var maxX,maxY = 0,0;
-			var monitorInfo = ..win.getMonitorInfo(winform.hwnd);
+			var x,y = 0,0;
 			
+			//获取当前显示器位置
+			var monitorInfo = ..win.getMonitorInfo(winform.hwnd);
 			if( monitorInfo){
-				if(!cx) cx = monitorInfo.rcWork.right - monitorInfo.rcWork.left; 
-				if(!cy) cy = monitorInfo.rcWork.bottom - monitorInfo.rcWork.top;
+				if(!maxWidth) maxWidth = monitorInfo.rcWork.right - monitorInfo.rcWork.left; 
+				if(!maxHeight) maxHeight = monitorInfo.rcWork.bottom - monitorInfo.rcWork.top;
 				x = monitorInfo.rcWork.left - monitorInfo.rcMonitor.left;
 				y = monitorInfo.rcWork.top - monitorInfo.rcMonitor.top; 
 			}
 			else{
 				var rcWork = ..win.getWorkArea();
-				if(!cx) cx = rcWork.width();
-				if(!cy) cy = rcWork.height(); 
+				if(!maxWidth) maxWidth = rcWork.width();
+				if(!maxHeight) maxHeight = rcWork.height(); 
       			x = rcWork.left;
       			y = rcWork.top; 
       		};
 
+			//计算系统任务栏大小
       		var taskBar =  ..win.appBar.getTaskBar();
       		if( taskBar ? taskBar.state == 1/*_ABS_AUTOHIDE*/){
       			var edgeY = ::GetSystemMetrics(46/*_SM_CYEDGE*/);
       			var edgeX = ::GetSystemMetrics(46/*_SM_CYEDGE*/);
       		
       			if( taskBar.uEdge == 0x3/*_ABE_BOTTOM*/ ){
-					cy -= edgeY;
+					maxHeight -= edgeY;
 				}
 				elseif( taskBar.uEdge == 0x2/*_ABE_RIGHT*/ ){
-					cx -= edgeX;
+					maxWidth -= edgeX;
 				}
 				elseif( taskBar.uEdge == 0x1/*_ABE_TOP*/ ){
 					y += edgeY;
-					cy -= edgeY;
+					maxHeight -= edgeY;
 				}
 				elseif( taskBar.uEdge == 0x0/*_ABE_LEFT*/ ){
 					x += edgeX;
-					cx -= edgeX;
+					maxWidth -= edgeX;
 				}
 			}
-			
-			if( this.minTrackSize.x >  cx ){
-				this.minTrackSize.x = cx;
+
+			if( minWidth >  maxWidth ){
+				minWidth = maxWidth;
 			}
-			if( this.minTrackSize.y >  cy ){
-				this.minTrackSize.y = cy;
+			if( minHeight >  maxHeight ){
+				minHeight = maxHeight;
 			}
 			
-      		this.maxSize.x = cx;
-      		this.maxSize.y = cy;
-      		this.maxTrackSize.x = cx;
-      		this.maxTrackSize.y = cy;
-      		this.maxPosition.x = x;
+			this.maxPosition.x = x;
       		this.maxPosition.y = y;
+      		this.maxSize.x = maxWidth;
+      		this.maxSize.y = maxHeight;
+      		this.maxTrackSize.x = maxWidth;
+      		this.maxTrackSize.y = maxHeight;
+      		this.minTrackSize.x = minWidth;
+			this.minTrackSize.y = minHeight;
       		
       		return this;
 		}
+		
 		winform.getMinMaxInfo = this.updateMinMaxInfo;
 		winform.onGetMinMaxInfo = function(hwnd, message, wParam, lParam){ 
 			..raw.convert(lParam,this); 
 			 
-			if(winform.dpiScaleX && winform.dpiScaleY){
-				this.minTrackSize.x = this.argsMin.cx / this.dpiScaleX * winform.dpiScaleX;
-				this.minTrackSize.y = this.argsMin.cy / this.dpiScaleY * winform.dpiScaleY;	
-			}
-			else {
-				this.minTrackSize.x = this.argsMin.cx;
-				this.minTrackSize.y = this.argsMin.cy;
-			} 
-			
 			this.updateMinMaxInfo(); 
 			..raw.copy(lParam,this); 
 			return 0;
@@ -112,14 +119,21 @@ class minmax{
 		winform._minmaxSetting = this; 
 	};  
 	struct reserved = ::POINT();
-	struct maxSize = ::POINT(argsMaxCx,argsMaxCy);
+	struct maxSize = ::POINT();
 	struct maxPosition = ::POINT();
-	struct minTrackSize = ::POINT(argsMinCx,argsMinCy);
-	struct maxTrackSize = ::POINT(argsMaxCx,argsMaxCy); 
+	struct minTrackSize = ::POINT();
+	struct maxTrackSize = ::POINT(); 
 } 
 
+import win.ui.ctrl.metaProperty;
+..win.ui.ctrl.metaProperty.mixin({
+	minmax = function(...){
+		return ..win.ui.minmax(owner,...); 
+	} 
+})
+
 /**intellisense()
-win.ui.minmax = 窗口缩放范围设置器\n一个窗口只能
+win.ui.minmax = 窗口缩放范围设置器。\n一个窗口只能
 win.ui.minmax( = 创建窗口缩放范围设置器\n一个窗口只能创建一次,重复调用将重用并返回第一次创建的设置器
 win.ui.minmax(.(winform,最小宽度,最小高度,最大宽度,最大高度) = 除第一个参数以外,其他参数可选\n默认最小为当前窗口大小,最大为最大化大小
 win.ui.minmax() = !minmaxSetting.
@@ -128,6 +142,6 @@ win.ui.minmax() = !minmaxSetting.
 !minmaxSetting.maxPosition = 自动维护此属性请不要修改,应修改 argsMax\n!point.
 !minmaxSetting.minTrackSize = 自动维护此属性请不要修改,应修改 argsMin\n!point.
 !minmaxSetting.maxTrackSize = 自动维护此属性请不要修改,应修改 argsMax\n!point.
-!minmaxSetting.argsMin = 用于限制窗口最小宽高,\n修改此属性与修改 win.ui.minmax 的构造参数作用一样\n!size.
-!minmaxSetting.argsMax = 用于限制窗口最大宽高,\n修改此属性与修改 win.ui.minmax 的构造参数作用一样\n\n!size.
+!minmaxSetting.argsMin = 可指定包含 x,y 字段的表对象，用于限制窗口最小宽高。\n修改此属性与修改 win.ui.minmax 的构造参数作用一样\n!size.
+!minmaxSetting.argsMax = 可指定包含 x,y 字段的表对象，用于限制窗口最大宽高。\n修改此属性与修改 win.ui.minmax 的构造参数作用一样\n\n!size.
 end intellisense**/

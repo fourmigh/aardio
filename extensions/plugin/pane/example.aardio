@@ -1,13 +1,13 @@
 //树形文件视图
+import win.ui.explorer;
 import win.ui;
 /*DSG{{*/
-mainForm = win.form(text="范例";right=270;bottom=534;bgcolor=16777215;border="none";exmode="none";mode="child";parent=...)
+mainForm = win.form(text="范例";right=270;bottom=534;bgcolor=0xFFFFFF;border="none";exmode="none";mode="child";parent=...)
 mainForm.add(
-treeview={cls="treeview";left=0;top=0;right=270;bottom=532;asel=false;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;edge=1;z=1}
+treeview={cls="treeview";left=0;top=0;right=270;bottom=532;asel=false;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;edge=1;z=1}
 )
 /*}}*/
 
-import win.ui.explorer;
 var explorer = win.ui.explorer( mainForm.treeview );//自动检测顶部的 combobox 并转换为驱动器下拉列表
 explorer.dirFirst = false;
 
@@ -77,6 +77,10 @@ explorer.onDoubleClick = function(filePath,hItem){
     if( !fsys.isDir( filePath ) ) { 
 
 	var code = string.load(filePath);
+	if(!code){
+		return mainForm.msgboxErr("文件路径错误:"+filePath)
+	} 
+	
 	var url = string.match(code,"^<//>?\s*(doc\://\S+)\s*$");
 	if(url){
 		ide.openDocument(url)
@@ -117,7 +121,7 @@ explorer.onRightClick = function(filePath,hItem,x,y){
             		var newPath = frmSnippet.doModal();
             		
             		if(newPath){
-            			if(string.endWith(newPath,".aardio")){
+            			if(string.endsWith(newPath,".aardio")){
             				ide.openDocument(newPath);
             			}
             			

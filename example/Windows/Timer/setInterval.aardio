@@ -1,0 +1,39 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="窗口延时与定时器";right=759;bottom=469)
+winform.add(
+edit={cls="edit";left=18;top=18;right=740;bottom=441;edge=1;multiline=1;z=1}
+)
+/*}}*/
+
+//延时执行函数，返回延时器 ID 
+winform.setTimeout( 
+	function(){
+		winform.edit.print("延时 1000 毫秒（1 秒）执行");
+	},1000)
+
+//定时执行函数，返回定时器 ID 	
+timerId = winform.setInterval( 
+	function(){
+		winform.edit.print("每隔 1000 毫秒（1 秒）执行一次");
+		
+		//返回 false,0 等可转换为数值 0 的值停止定时器，
+		//返回其他非 0 数值则修改定时器时间间隔为返回值指定的毫秒数。
+		//return 0;
+	},1000
+)
+
+//停止定时器，setTimeout 实际也是由 setInterval 实现，所以定时器 ID 与 延时器 ID 是一回事。 
+winform.clearInterval(timerId);
+
+/*
+所有窗口与控件都有 setTimeout 与 setInterval 方法。
+但控件的 setTimeout 与 setInterval 实际是调用父窗口（win.form 对象）的同名方法。
+因此关闭控件不会阻止执行定时与延时函数，
+但窗体（win.form 对象）关闭会取消所有属于该窗体的延时与定时器。
+
+调用 win.setTimeout 也会创建一个默认的 messageOnly 窗体并延时执行函数。
+*/
+
+winform.show();
+win.loopMessage();

@@ -126,7 +126,9 @@ namespace version{
 				copyright = queryStringInfo(verInfo,translation,"LegalCopyright");
 				language = translation.translation;
 				codePage = translation.codePage;
+				@{_get = lambda (k) (type(k)==="string"?owner[[..string.replace(k,"^[A-Z]",..string.lower)]]:null)};//@Deprecated
 			}
+			
 			return v;
 		}  
 	} 
@@ -159,11 +161,6 @@ fsys.version.getInfo() =  !fsys_version_info.
 !fsys_version_info.originalFileName = 原始文件名
 !fsys_version_info.internalName = 内部名
 !fsys_version_info.companyName = 公司名
-!fsys_version_info.productNameUnicode = 产品名称,Unicode编码
-!fsys_version_info.fileDescriptionUnicode = 文件描述,Unicode编码
-!fsys_version_info.originalFileNameUnicode = 原始文件名,Unicode编码
-!fsys_version_info.internalNameUnicode = 内部名,Unicode编码
-!fsys_version_info.companyNameUnicode = 公司名,Unicode编码
 !fsys_version_info.language = 语言代码
 !fsys_version_info.codePage = 代码页
 end intellisense**/

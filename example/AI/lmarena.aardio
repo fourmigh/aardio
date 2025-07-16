@@ -1,46 +1,74 @@
-/*
-web.view 快速入门指南: doc://library-guide/std/web/view/_.html
-高级选项卡操作浏览器控件: doc://example/tabs/web.view.aardio
-*/
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="lmarena.ai";right=818;bottom=507)
-winform.add()
+var winform = win.form(text="lmarena.ai")
 /*}}*/
 
 import web.view; 
 var wb = web.view(winform);
 winform.show(3/*_SW_SHOWMAXIMIZED*/);
- 
-wb.cdp("Page.enable");
-wb.cdpSubscribe("Page.javascriptDialogOpening",function(dlg){  
-	
-	//返回的函数会在 CDP 事件退出后延迟异步执行，这样可以避免 CDP 阻塞。
-	return function(){
-		wb.cdp("Page.handleJavaScriptDialog",{accept=true})
-		wb.doScript(`document.documentElement.scrollTop = document.documentElement.scrollHeight;`);
-	} 
-})
- 
-wb.go("https://lmarena.ai/?model=claude-3-5-sonnet-20241022");
 
-//wb.waitEle2 可跨网页等待，网址变更不会退出。
-wb.waitEle2("#notice_markdown");
-wb.doScript(`document.querySelectorAll("#notice_markdown").forEach(node => {
-    node.style.display = "none";
-});`);
+wb.external = {
+    sendEnter = function(){
+        import key
+        key.press("BACK")
+        key.press("ENTER")  
+    } 
+    getSystemPrompt = function(){
+        return string.load("~\doc\guide\ide\system-prompt.md")
+        +'\n\n------\n\n' 
+        + string.load("~\doc\guide\language\syntax-quick-ref.md")
+        +'\n\n------\n\n' 
+    } 
+}
 
-//wb.waitEle 限制在单个网页内有效，打开其他网页则会取消等待。
-wb.waitEle("#leaderboard_markdown",`
-document.querySelectorAll("#leaderboard_markdown").forEach(node => {
-    node.style.display = "none";
-});`); 
+wb.go("https://lmarena.ai/?mode=direct");
+
+//跨页面等待指定节点
+wb.waitEle2(`button[role="combobox"][data-sentry-source-file="select-model.tsx"]`);
+
+//稍等 1 秒
+thread.delay(1000)
+
+//找到节点并模拟点击之
+wb.waitEle(`button[role="combobox"][data-sentry-source-file="select-model.tsx"]`,`
+this.click()`)
  
-wb.waitEle("#ack_markdown",`
-document.querySelectorAll("#ack_markdown").forEach(node => {
-    node.style.display = "none";
-});`);
+//让网页获得输入焦点
+wb.focus()
 
-wb.waitEle("footer","this.style.display='none'");
+//获取弹出的 React 下拉框，模拟输入并改变 React 状态值。
+wb.waitEle(`input[placeholder="Search models"]`,`
+  
+var previousValue = this.value;
+this.value = "claude-sonnet-4-20250514";
+if(this._valueTracker)this._valueTracker.setValue(previousValue);
+
+//发送事件
+this.dispatchEvent(new Event('change', { bubbles: true })); 
+
+//这个一直不关的提醒还是删掉吧
+document.querySelector('div[data-sentry-source-file="nag-bar.tsx"]').outerHTML = "";
+
+//调用本地代码发送回车
+aardio.sendEnter();`); 
+
+wb.waitEle(`textarea[placeholder="Ask anything…"]`,`
+var previousValue = this.value;
+
+aardio.getSystemPrompt().then(
+    prompt => {
+        this.value = prompt;
+        if(this._valueTracker)this._valueTracker.setValue(previousValue);
+        this.dispatchEvent(new Event('click', { bubbles: true }));
+        this.dispatchEvent(new Event('mouseup', { bubbles: true }));
+        this.dispatchEvent(new Event('focus', { bubbles: true }));  
+        this.dispatchEvent(new Event('input', { bubbles: true })); 
+        this.dispatchEvent(new Event('change', { bubbles: true })); 
+        this.dispatchEvent(new Event('click', { bubbles: true }));
+        this.dispatchEvent(new Event('mouseup', { bubbles: true }));
+        this.dispatchEvent(new Event('blur', { bubbles: true })); 
+        this.scrollTop = this.scrollHeight; 
+    }
+) `); 
 
 win.loopMessage();

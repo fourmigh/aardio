@@ -1,1 +1,7 @@
+﻿延时与定时器=setInterval.aardio
 定时管理器=timer.aardio
+沙漏动画=~/example/plus/hourglass.aardio
+按钮等待动画=~/example/plus/disabledText.aardio
+倒计时按钮=~/example/plus/countdown.aardio
+倒计时消息框=msgCountdown.aardio
+液晶倒计时=lcdClock.aardio

@@ -143,12 +143,17 @@ namespace spin{
 			} 	
 		}
 	)
+	
+	with _metaProperty{
+		value = pos;
+	} 
 }
 
 /***intellisense() 
 !spinbutton.inc = 设置步长
 !spinbutton.buddy = 设置、获取伙伴窗口。\n伙伴窗口必须是 edit 控件（自动启用限制输入数字）。\nspin 控件可放在 edit 控件内部或外部左侧、右侧。\n调整窗口大小时，spin 控件会自动吸附于 edit 控件左侧或右侧。\n\n如果 spin 控件在 edit 控件左侧，建议添加 align="left" 属性，\n如果 spin 控件在 edit 控件右侧，建议添加 align="right" 属性\n!edit.
 !spinbutton.pos = 当前位置数值
+!spinbutton.value = 当前位置数值
 !spinbutton.base = 显示数值进制基数,10或16
 !spinbutton.setRange(.(最小值,最大值) = 设置数值范围\n同时修改pos属性为最小值
 !spinbutton.cls = 设计时类名
@@ -156,7 +161,7 @@ namespace spin{
 !spinbutton.hwnd = 控件句柄
 !spinbutton.id = 控件ID
 !spinbutton.text = 控件文本
-!spinbutton._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!spinbutton._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !spinbutton.getParent() = 返回父窗口\n!spinbutton.
 !spinbutton.setParent(__/*控件对象*/) = 改变父窗口 
 !spinbutton.addCtrl = @.addCtrl(\n	button={ cls="button";text="button";left=33;top=32;right=126;bottom=81;autoResize=false }  \n)

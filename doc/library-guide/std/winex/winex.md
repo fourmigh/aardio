@@ -252,7 +252,7 @@ winex 库主要扩展 win 库的功能，并提供管理外部进程窗口的函
 ## 枚举窗口 <a id="enum" href="#enum">&#x23;</a>
 
 
-请参考： [枚举与遍历](../../../language-reference/function/enum-and-each.md)
+请参考： [枚举与迭代](../../../language-reference/function/enum-and-each.md)
 
 1. 函数原型：   
 
@@ -289,7 +289,7 @@ winex 库主要扩展 win 库的功能，并提供管理外部进程窗口的函
 ## 枚举顶层窗口 <a id="enumTop" href="#enumTop">&#x23;</a>
 
 
-请参考： [枚举与遍历](../../../language-reference/function/enum-and-each.md)
+请参考： [枚举与迭代](../../../language-reference/function/enum-and-each.md)
 
 1. 函数原型：   
 
@@ -328,7 +328,7 @@ winex 库主要扩展 win 库的功能，并提供管理外部进程窗口的函
 ## 遍历窗口 <a id="each" href="#each">&#x23;</a>
 
 
-请参考： [枚举与遍历](../../../language-reference/function/enum-and-each.md)
+请参考： [枚举与迭代](../../../language-reference/function/enum-and-each.md)
 
 1. 函数原型：   
 

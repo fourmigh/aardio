@@ -146,7 +146,10 @@ class sockaddr_in {
 					if(!ip)return;
 				}
 				
-				this.sin_addr.S_un.S_addr = ..wsock.inet_addr( ip );
+				this.sin_addr.S_un.S_addr = ..wsock.inet_addr( ip ); 
+				if( (this.sin_addr.S_un.S_addr == 0xFFFFFFFF)  && (ip != "255.255.255.255") ){
+					return null,"错误的 IP 地址";
+				}
 			}
 			elseif( t == "number" ){
 				this.sin_addr.S_un.S_addr = ip;
@@ -276,11 +279,18 @@ acceptAddr = function(sock){
 	return { sock = topointer( h ); sad = sad; sadLen = sadLen.len; }
 } 
 
-inet_ntoaApi  = Ws2_32.api("inet_ntoa","string(INT in_addr )" ); 
+inet_ntoaApi  = Ws2_32.api("inet_ntoa","string(INT in_addr)" ); 
 inet_ntoa = function(addr){
 	if( addr[["_struct"]] ) addr = ..raw.convert(addr,{INT S_addr}).S_addr
 	return inet_ntoaApi(addr)
 }
+ntoa = inet_ntoa;
+
+inet_aton = function(ip){
+	var s = sockaddr_in(ip);
+	if(s) return tonumber(s);
+}
+aton = inet_aton;
 
 getFreePort = function(ip,t=1,p=6){
 	var port;
@@ -309,28 +319,57 @@ hostent = class{
 	pointer h_addr_list;
 };  
 
-getIpAddr = function(domain) { 
- 
+getIpAddr6 = function(domain) { 
+	if(!openCount) error("调用此函数前必须先调用 wsock.open 函数",2 );
+	 
 	var h = gethostbyname(domain);
 	if(!h){return;}; 
 	
 	var entity = ..raw.convert(h,hostent());
 	select( entity.h_addrtype ) { 
-		case 2/*_AF_INET*/,23/*_AF_INET6 */ begin  
-			var outAddrList = {};
+		case 23/*_AF_INET6 */ begin  
+		
+			var outAddrList = [];
 	    	var addrlist =  ..raw.convertArray(entity.h_addr_list,entity.h_length);
 	     
 	    	for(i=1;entity.h_length;1){
 	       		var int_addr_ptr = addrlist[i];
 	       		if(!int_addr_ptr) break ;  
 	       		 
-	       		var int_addr = ..raw.convert( int_addr_ptr, entity.h_addrtype == 2/*_AF_INET*/ ? in_addr() : in6_addr() );
+	       		var int_addr = ..raw.convert( int_addr_ptr,in6_addr() );
 	       		..table.push( outAddrList ,int_addr );
 	    	} 
-	    	return outAddrList,entity.h_addrtype;
+	    	return outAddrList;
 		end;
 	} 
 }
+
+getIpAddr = function(domain) { 
+	if(!openCount) error("调用此函数前必须先调用 wsock.open 函数",2 );
+	
+	var h = gethostbyname(domain);
+	if(!h){return;}; 
+	
+	var entity = ..raw.convert(h,hostent());
+	
+	select( entity.h_addrtype ) { 
+		case 2/*_AF_INET*/ begin  
+			
+			var outAddrList = [];
+	    	var addrlist =  ..raw.convertArray(entity.h_addr_list,entity.h_length);
+	     
+	    	for(i=1;entity.h_length;1){
+	       		var int_addr_ptr = addrlist[i];
+	       		if(!int_addr_ptr) break ;  
+	       		 
+	       		var int_addr = ..raw.convert( int_addr_ptr, in_addr() );
+	       		..table.push( outAddrList ,int_addr );
+	    	} 
+	    	return outAddrList;
+		end;
+	} 
+}
+
 
 getIp = function(domain) { 
 	self.open();
@@ -347,25 +386,27 @@ getIp = function(domain) {
 
 getLocalIp = function(){
 	var ips = { getIp() };  
-	var ips2 = ..table.filter(ips,lambda(v) ..string.startWith(v,"192.168.1.") );
-	if(!#ips2) ips2 = ..table.filter(ips,lambda(v) ..string.startWith(v,"192.168.") );
-	if(!#ips2)  ips2 = ..table.filter(ips,lambda(v) ..string.startWith(v,"10.") );
-	if(!#ips2)  ips2 = ..table.filter(ips,lambda(v) ..string.startWith(v,"172.") );
-	if(!#ips2)  ips2 = ..table.filter(ips,lambda(v) !..string.startWith(v,"169.254.") );
+	var ips2 = ..table.filter(ips,lambda(v) ..string.startsWith(v,"192.168.1.") );
+	if(!#ips2) ips2 = ..table.filter(ips,lambda(v) ..string.startsWith(v,"192.168.") );
+	if(!#ips2)  ips2 = ..table.filter(ips,lambda(v) ..string.startsWith(v,"10.") );
+	if(!#ips2)  ips2 = ..table.filter(ips,lambda(v) ..string.startsWith(v,"172.") );
+	if(!#ips2)  ips2 = ..table.filter(ips,lambda(v) !..string.startsWith(v,"169.254.") );
 	return #ips2 ? ips2[1] : ips[1];
 }
 
 /**intellisense(wsock)
-open() = 使用wsock库其他函数以前必须调用此函数
+open() = 使用 wsock 库其他函数以前必须调用此函数。\n调用 wsock.getIp, wsock.getLocalIp , wsock.getFreePort 函数不需要额外调用 wsock.open，\n因为这 3 个函数在被调用时会自动调用 wsock.open 函数，并在函数返回前会时自动调用 wsock.close 函数。 
 close() = 与wsock.open()配对使用,\n使用wsock库以后必须调用此函数释放资源,\n如果忘记配对调用此函数,在线程结束时将自动调用
 getFreePort(.(ip,套接字类型,协议类型)  =  获取空闲服务端口，\n可选在参数中指定IP地址,其他参数不必指定\n\n分配的端口即使没有马上使用，\n系统下次分配的空闲端口仍然是递增分配下一个端口号，\n动态分配空闲端口为49152到65535之间的值，\nXP系统则为 1025到5000之间的值，\n命令行输入 netsh int ipv4 show dynamicport tcp 看动态端口范围，\n安装 Hyper-V 会导致动态起始端口变为 1024 导致常用端口冲突
-versionRequired = 支持的版本,\n用于在open函数中WSAStartup的第一个参数
+versionRequired = 支持的版本,\n用于在open函数中 WSAStartup 的第一个参数
 accept(__/*套接字句柄*/) = 创建一个新的套接字来与客户套接字创建连接通道,\n如果连接成功,就返回新创建的套接字句柄
 select(.(nfds,readfds,writefds,exceptfds,tv_sec,tv_usec) = 所有参数可选,\n成功返回套接字数目,超时返回0,出错返回-1/*_SOCKET_ERROR*/
-inet_ntoa(__/*in_addr*/) = in_addr 结构体或数值转换为字符串格式 IP 地址
-getIp("__/*请输入域名*/") = 解析域名,可返回一个或多个IP\n如果不指定任何参数,返回内网IP,\n\n优先取192.168.1 开头的IP,请改用 wsock.getLocalIp 函数,\n\n如果要更优先获取当前上网卡的本机IP,\n请改用 wsock.tcp.client.getLocalIp 函数
-getIpAddr(__/*请输入域名*/) = 解析域名,\n返回in_addr或in_addr结构体数组\n返回值2为AF_INET或AF_INET6
-getLocalIp() = 返回内网IP，优先取192.168.1 开头的IP,\n\n如果要更优先获取当前上网卡的本机IP,\n请改用 wsock.tcp.client.getLocalIp 函数
+ntoa(__/*数值*/) = 将参数指定的 in_addr 结构体或表示 IPv4 的 32 位数值转换为字符串格式的 IP 地址。
+aton(__/*IPv4 地址*/) = 将参数指定的 IPv4 地址（或域名）转换为 32 位数值。\n失败返回 null 。
+getIp("__/*请输入域名*/") = 获取参数 @1 指定主机名称的 IP v4 地址。\n可返回一个或多个 IP 地址，所有返回值都是字符串。\n\n如果不指定任何参数（可指定空字符串），则返回本机 IP 。\n改用 wsock.getLocalIp 函数获取本机 IP 可优先返回最常用的局域网 IP。\n\n如果希望获到联网的网卡本机 IP（在用 IP），\n请改用 wsock.udp.client.getLocalIp 函数（不需要发起连接）或者\nwsock.tcp.client.getLocalIp 函数（需要发起连接）。
+getIpAddr(__/*请输入域名*/) = 获取主机名对应的 IPv4 地址（使用此函数前必须调用 wsock.open 函数）。\n参数可指定域名，省略参数或指定空字符串返回本地 IPv4 地址。\n此函数返回一个 in_addr 结构体数组，注意返回值不是字符串。\n改用 wsock.getIp 函数获取字符串格式的 IP 地址。\n\n此函数执行失败返回 null 值。
+getIpAddr6(__/*请输入域名*/) = 获取主机名对应的 IPv6 地址（使用此函数前必须调用 wsock.open 函数）。\n参数可指定域名，省略参数或指定空字符串返回本地 IPv6 地址。\n此函数返回一个 in_addr 结构体数组，注意返回值不是字符串。\n改用 wsock.getIp 函数获取字符串格式的 IP 地址。\n\n此函数执行失败返回 null 值。
+getLocalIp() = 返回本机 IP ，成功则返回值为单个字符串。\n\n\n此函数会按下面的前后优先顺序优先返回指定前缀的 IP 地址：\n"192.168.1."，"192.168."，"10."，"172."，"169.254."\n\n如果要更优先获取当前上网卡的本机 IP（在用 IP），\n请改用 wsock.udp.client.getLocalIp 函数（不需要发起连接）或者\nwsock.tcp.client.getLocalIp 函数（需要发起连接）。
 hostent = 记录主机信息的结构体
 sockaddrStringify( = sockaddr 指针或结构体转字符串
 sockaddrStringify(.(sockaddr,size,protocolInfo) = sockaddr 转字符串。\n@sockaddr 可指定sockaddr 指针或结构体。\nsize 指定参数 @1 指向的内存长度。\n@protocolInfo 不必指定
@@ -656,6 +697,7 @@ htonl(__)=htonl
 htonll(__)=htonll
 inet_addr(__)=inet_addr
 inet_ntoa(__)=inet_ntoa
+inet_aton(__)=inet_aton
 InetNtop(__)=InetNtop
 InetPton(__)=InetPton
 ioctlsocket(__)=ioctlsocket

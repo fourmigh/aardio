@@ -4,7 +4,7 @@ import win.ui;
 var winform = win.form(text="aardio 窗口显示 R 绘图";right=759;bottom=469;border="dialog frame";max=false;min=false)
 winform.add(
 button={cls="button";text="点这里调用 R 绘图";left=472;top=414;right=680;bottom=456;z=2};
-plus={cls="plus";left=18;top=15;right=739;bottom=397;bgcolor=16777215;z=1}
+plus={cls="plus";left=18;top=15;right=739;bottom=397;bgcolor=0xFFFFFF;z=1}
 )
 /*}}*/
 
@@ -54,7 +54,7 @@ winform.button.oncommand = function(id,event){
 			params = params.result;
 			  
 			//显示图像，先读取到内存，不占用文件，让 R 函数可以自由写文件。 
-			winform.plus.background = string.load("/test2.png"); 
+			winform.plus.background = string.loadBuffer("/test2.png"); 
 			
 		},80
 	)

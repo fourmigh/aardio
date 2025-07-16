@@ -358,7 +358,7 @@ process库提供进程管理函数。
     
     [模式查找语法](../../builtin/string/patterns.md)
 
-    [枚举与遍历的区别](../../../language-reference/function/enum-and-each.md) 
+    [枚举与迭代的区别](../../../language-reference/function/enum-and-each.md) 
     
     [迭代器](../../../language-reference/statements/iterator.md)
 

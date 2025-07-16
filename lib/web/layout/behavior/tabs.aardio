@@ -214,7 +214,7 @@ sinking = {
     	var href =  ltTarget.href; 
     	if( ! ( href && ltTarget.target && ltTarget.title ) ) return;
         
-        if( ..string.startWith(href,"tabs://") ){
+        if( ..string.startsWith(href,"tabs://") ){
         	 open( ltOwner,ltTarget.title ,..string.right(href,-8),ltTarget.target)
         	 return true;//取消默认行为
         }

@@ -1,4 +1,5 @@
 //plus 控件 - 图标动态配色
+//plus 控件使用指南: doc://library-guide/std/win/ui/ctrl/plus.md
 import fonts.fontAwesome;
 import win.ui;
 /*DSG{{*/

@@ -290,8 +290,7 @@ winform.picturebox.wndproc = function (hwnd,message,wParam,lParam){
 }
 
 //开启自动完成
-::Shlwapi := ..raw.loadDll("Shlwapi.dll") 
-::Shlwapi.SHAutoComplete( winform.editUrl.hwnd,0/*_SHACF_DEFAULT*/);
+winform.editUrl.autoComplete(6/*_SHACF_URLALL*/)
 
 var template = /**
 import win.ui;

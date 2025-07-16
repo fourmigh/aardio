@@ -249,6 +249,8 @@ class asynServer{
 	};
 }
 
+//@guide [HTTP 服务端开发指南](doc://guide/quickstart/web-server.md)
+
 /**intellisense()
 wsock.tcp.asynServer() = 创建单线程异步TCP服务端\n!stdtcpasynServer.
 end intellisense**/

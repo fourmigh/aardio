@@ -1,5 +1,5 @@
 //jsonClient 客户端
-import web.json;
+import JSON;
 import web.rest.client;
 namespace web.rest; 
 
@@ -13,16 +13,16 @@ class jsonClient{
 
 			if(t){  
 				if( this._http.ndjsonStream && !streamChunk  ) { 
-					return ..web.json.ndParse(s,true);
+					return ..JSON.ndParse(s,true);
 				} 
 				
-				if( ..string.match( t,"[\w\/]*<@@json@>![\W]"  ) ) return ..web.json.parse(s,true); 
+				if( ..string.match( t,"[\w\/]*<@@json@>![\W]"  ) ) return ..JSON.parse(s,true); 
 				
 				if(t=="application/x-www-form-urlencoded"){
 					var r = ..inet.url.splitParameters(s);
 					for(k,v in r){
 						if(v[1]=='{'# || v[1]=='['#){
-							r[k] = ..web.json.tryParse(v,true) : v;
+							r[k] = ..JSON.tryParse(v,true) : v;
 						}
 					} 
 					return r;
@@ -31,18 +31,19 @@ class jsonClient{
 			
 			s = ..string.trim(s);
 			if( s[1] == '{'# || s[1] == '['# ){
-				return  ..web.json.tryParse(s,true);
+				return  ..JSON.tryParse(s,true);
 			}
 			
 			if( s[1]  == '<'# ) return s; 
 			
 			if(this.strictParsing) return s;
-			return  ..web.json.tryParse(s,true) : s;
+			return  ..JSON.tryParse(s,true) : s;
 		}
 		
 		this.contentType = "application/json";  
 		this.defaultContentType = "application/json";
 		this.acceptType = "application/json,text/json,*/*";
+		this._http.tryParseJsonStreamData = ..JSON.tryParse;
 	}; 
 	lastResponse = function(){
 		var s = this.lastResponseData;
@@ -51,8 +52,8 @@ class jsonClient{
 			 
 		 	if( (..string.match( this._http.responseContentType,"[\w\/]*<@@json@>![\W]"  ) 
 		 		|| s[1] == '{'# || s[1] == '['#) && (!this._http.lastReadErrCode ) ){
-		 			var jObject = ..web.json.parse(s,true);
-		 			if(jObject) s = ..web.json.stringify(jObject,true);
+		 			var jObject = ..JSON.parse(s,true);
+		 			if(jObject) s = ..JSON.stringify(jObject,true);
 		 	}
 		 	if( ..console && _STUDIO_INVOKED ) ..console.log(s) else ..io.print(s);
 		 	return s;
@@ -62,7 +63,7 @@ class jsonClient{
 
 namespace jsonClient {
 
-	var stringify = ..web.json.stringify;
+	var stringify = ..JSON.stringify;
 	stringifyRequestParameters = function(param/*,codepage*/){
 		param = stringify(param,false,true); //转换为UNICODE
 		return param;
@@ -70,8 +71,22 @@ namespace jsonClient {
 }
 
 /**intellisense()
-web.rest.jsonClient = REST 客户端。\n请求数据，返回数据都使用 JSON 格式
+web.rest.jsonClient = REST 客户端。\n请求数据，返回数据都使用 JSON 格式。\n\n调用 HTTP 接口时如果指定回调函数则自动支持 SSE,NDJSON,JSONL 流式输出，\n并自动支持标准 JSON 对象数组格式的流式输出，规则为：\n- Content-Type 响应头必须指定了 JSON 格式，例如 `application/json`。\n- 服务器响应的完整输出必须是一个对象数组，第一个字符必须是 `[`，最后一个字符必须是 `]`。\n- 每个块必须是一个使用 `{}` 包围的 JSON 对象，对象之间必须以 `,` 分隔。
 web.rest.jsonClient( = 创建 REST 客户端。\n请求数据，返回数据都使用 JSON 格式
 web.rest.jsonClient(.("UserAgent","代理服务器","绕过代理的主机",连接选项) = 创建 REST 客户端，所有参数可选。\nUserAgent 用于自定义 User-Agent 请求标头，用于服务器识别请求程序特征。\nHTTP 代理服务器请指定为 "代理服务器地址:端口" 格式，\n\nSOCKS 代理服务器请指定为 "socks=代理服务器地址:端口" 格式 \n└──  [代理格式说明](doc://library-guide/std/inet/proxy.md)\n\n"绕过代理的主机" 用法参考 inet.setProxy 源码的示例，一般不需要指定。\n连接选项可用一个数值参数指定打开会话的选项，一般不需要指定。
 web.rest.jsonClient() = !web_restClient.
 end intellisense**/
+
+/**details(流式输出)
+web.rest.jsonClient 客户端在调用 HTTP 接口时如果指定回调函数则自动支持 SSE,NDJSON,JSONL 流式输出，
+并自动支持标准 JSON 对象数组格式的流式输出。
+
+SSE,NDJSON,JSONL 流式输出请参考范例：
+doc://example/Web/REST/sse.html
+
+标准 JSON 对象数组格式的流式输出规则为：
+
+- Content-Type 响应头必须指定了 JSON 格式，例如 `application/json`。
+- 服务器响应的完整输出必须是一个对象数组，第一个字符必须是 `[`，最后一个字符必须是 `]`。
+- 每个块必须是一个使用 `{}` 包围的 JSON 对象，对象之间必须以 `,` 分隔。
+end details**/

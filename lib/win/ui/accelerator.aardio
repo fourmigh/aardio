@@ -78,10 +78,12 @@ namespace accelerator {
 	TranslateAccelerator = ::User32.api("TranslateAccelerator", "bool(int hWnd, pointer hAccTable, struct& lpMsg)");
 }
 
+//@guide [范例](doc://example/Windows/Hotkey/accelerator.html)
+
 /**intellisense()
-win.ui.accelerator = 快捷键\n在绑定的窗体范围内有效
-win.ui.accelerator(accTable,winform) = @//每个窗体仅能绑定快捷键表一次，\n//绑定后将会重定义窗体的preTranslateAccelerator事件用于响应快捷键\nwin.ui.accelerator({\n	{ ctrl = true; vkey = 'N'#; oncommand = function(id,event){ } } \n	{ ctrl = true; vkey = 'O'#; cmd = __/*可以用cmd指定消息ID，或使用oncommand指定一个消息处理函数*/ } \n},winform);
+win.ui.accelerator = 快捷键，在绑定的窗体范围内有效。
+win.ui.accelerator(accTable,winform) = @//每个窗体仅能绑定快捷键表一次，\n//绑定后将会重定义窗体的preTranslateAccelerator事件用于响应快捷键\nwin.ui.accelerator({\n	{ ctrl = true; vkey = 'N'#; oncommand = function(id,event){ } } \n	{ ctrl = true; vkey = 'O'#; cmd = __/*可以用 cmd 字段指定消息ID，或使用 oncommand 字段指定一个消息处理函数*/ } \n},winform);
 win.ui.accelerator() = !win_ui_accelerator.
-!win_ui_accelerator.translate(.(msg.hwnd) = 可用于重定义窗体的preTranslateAccelerator事件时响应快捷键使之生效\nmsg为preTranslateAccelerator事件的消息参数,hwnd一般应该省略\n也可以在子窗体中响应父窗体的快捷键
-!win_ui_accelerator.destroy() = 删除此快捷键对象\n此函数在窗体关闭时将被自动调用
+!win_ui_accelerator.translate(.(msg.hwnd) = 可用于重定义窗体的 preTranslateAccelerator 事件时响应快捷键使之生效。\nmsg 为 preTranslateAccelerator 事件的消息参数，hwnd 一般应该省略，\n也可以在子窗体中响应父窗体的快捷键。
+!win_ui_accelerator.destroy() = 删除此快捷键对象。\n此函数在窗体关闭时将被自动调用。
 end intellisense**/

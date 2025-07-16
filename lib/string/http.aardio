@@ -1,6 +1,6 @@
 ﻿//http 消息格式
 import web;
-import web.json;
+import JSON;
 
 namespace string;
 
@@ -26,7 +26,7 @@ class http{
 					header["Content-Type"] = "application/json; charset=utf-8"
 				}
 				
-				args[bodyIndex] = ..web.json.stringify(args[bodyIndex]);
+				args[bodyIndex] = ..JSON.stringify(args[bodyIndex]);
 			}
 		}
 	
@@ -59,7 +59,7 @@ http.parse = function(respData){
 	
 	if(!#headers) return headers,body;
 	
-	if(..string.startWith(headers[1],"HTTP")){
+	if(..string.startsWith(headers[1],"HTTP")){
 		headers[0] = ..table.shift(headers,1);
 	}
 	

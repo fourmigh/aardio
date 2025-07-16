@@ -16,9 +16,9 @@ formData.add("username","用户名");
 formData.add("password","密码");
 formData.add("file1","@/test.txt") 
 
-//httpbin.org总是会返回JSON,用FileDownload事件取消JSON下载
+//httpbin.org 总是会返回 JSON ,用 FileDownload 事件取消 JSON 下载
 wb.FileDownload = function( activeDocument, cancel) {if( !activeDocument ) return true;} 
-wb.post("http://eu.httpbin.org/post"
+wb.post("https://httpbin.org/post"
 	, formData.readAll() //上传数据包 
 	, formData.contentHeader()  //要添加的HTTP头
 	);
@@ -28,7 +28,7 @@ winform.show()
 import inet.http;
 import string.html;
 var http = inet.http(wb.script.navigator.userAgent);
-var json = http.post("http://eu.httpbin.org/post" 
+var json = http.post("http://httpbin.org/post" 
 	, formData.readAll() //上传数据包 
 	, formData.contentHeader()  //要添加的HTTP头
 	);

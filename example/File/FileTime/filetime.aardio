@@ -1,3 +1,8 @@
+import fsys;
+//直接获取文件或目录的时间
+var fileTime = fsys.getTime("C:\Windows");
+print("Windows 系统目录创建时间（本地）:", fileTime.creation);
+
 //读写文件时间
 import fsys.file;
 import console;
@@ -12,8 +17,8 @@ console.log(tm);
 //打开文件
 var file = fsys.file(filePath,"r");
 
-//显示前12个字节的内容
-console.log( file.read(12) ); 
+//以 16 进制显示前 12 个字节的内容
+console.hex( file.read(12) ); 
 
 //返回文件时间，返回对象为一个表，包含 write, creation, access 三个字段
 var tms = file.getTime(); 
@@ -21,7 +26,7 @@ var tms = file.getTime();
 //显示文件创建时间（time 对象）
 console.log( tms.write );  
 
-//创建时间增加48小时
+//创建时间增加 48 小时
 tms.write.addhour(48); 
 
 //修改文件时间 

@@ -67,10 +67,11 @@ namespace stringformat {
 				owner[["pStringFormat"]] = null;
 			}
 		};
-		//自动转换为API指针
+		setAlignment = function(v) { owner.align = v }; //@Deprecated
+
 		_topointer = function(){
 			return owner[["pStringFormat"]];
-		}
+		};
 	) 
 	
 	genericTypographic = function(){

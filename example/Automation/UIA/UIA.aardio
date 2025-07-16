@@ -1,5 +1,6 @@
 //UIA 入门
 //UIA 探测工具： file://~/tools/Spy/inspect.aardio
+//教程: doc://guide/quickstart/automation.html#uia
 
 //导入 .NET 类  
 import System.Windows.Automation;

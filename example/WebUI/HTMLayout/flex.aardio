@@ -136,11 +136,11 @@ div.section > * {
     </head>
     <body>
 
-<h1>浏览器 <code>display:flex</code> 与 HTMLayout/Sciter 布局语法 <code>flow/flex</code> 对比</h1>
+<h1>浏览器 <code>display:flex</code> 与 HTMLayout 布局语法 <code>flow/flex</code> 对比</h1>
 <a href="http://bbs.aardio.com/forum.php?mod=viewthread&tid=7159">参考：HTMLayout布局教程</a>
 <div .section id="header">
   <div>浏览器: Flexbox </div>
-  <div>HTMLayout/Sciter: flow/flex</div>
+  <div>HTMLayout: flow/flex</div>
   <div>演示</div>
 </div>
 

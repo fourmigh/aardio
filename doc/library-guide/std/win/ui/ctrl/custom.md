@@ -212,7 +212,7 @@ win.loopMessage();
 
 在 aardio 中我们还可以对任何一个窗口、或窗口上的子窗件进行扩展，这种用法在 aardio 中被大量使用，例如让窗口嵌入浏览器控件，以增加显示网页的功能。
 
-这样的库非常多，例如 web.form,web.view,web.sysView,web.layout,web.sciter,chrome.app ……
+这样的库非常多，例如 web.form,web.view,web.sysView,web.layout,chrome.app ……
 
 示例：
 

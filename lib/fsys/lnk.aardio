@@ -144,7 +144,7 @@ lnk._metaProperty = ..util.metaProperty(
 		}
 		_set = function( value ){ 
 			if( value ){
-				if( !..string.endWith(value,owner.$defaultExt,true) ) 
+				if( !..string.endsWith(value,owner.$defaultExt,true) ) 
 					value = value + owner.$defaultExt;
 			}
 			owner[["filename"]] = value;
@@ -388,9 +388,9 @@ end intellisense**/
 !lnkfile.arguments = 参数
 !lnkfile.path = 目标路径,设置该属性时:\n如果workDir为空则设workDir为目标路径所在目录\n如果description为空则设为版本信息中的文件描述
 !lnkfile.workDir = 工作目录
-!lnkfile.hotkey = 热键
+!lnkfile.hotkey = 启动热键。\n16 位数值，低位字节为 虚拟键码 (virtual key code)。\n高位字节表示一个或多个修饰键的组合值：\n\n* _HOTKEYF_SHIFT (1): 表示 SHIFT 键。\n* _HOTKEYF_CONTROL (2): 表示 CTRL 键。\n* _HOTKEYF_ALT (4): 表示 ALT 键。\n* _HOTKEYF_EXT (8): 表示 扩展键。\n\n> 注意 _HOTKEYF_SHIFT，_HOTKEYF_ALT 与 _MOD_SHIFT,_MOD_ALT 的值刚好反过来。
 !lnkfile.showCmd = 显示参数
-!lnkfile.getIcon() = 返回图标文件路径,以及图标索引
+!lnkfile.getIcon() = 返回图标文件路径,以及图标索引。
 !lnkfile.setIcon(.(文件路径,图标索引) = 设置图标文件路径\n可以指定ico文件路径,也可指定EXE文件路径用于获取EXE图标\n图标索引可省略,默认为0
 !lnkfile.load(__/*lnk文件路径*/) = 载入快捷方式,返回fsys.lnk对象自身
 !lnkfile.load() = !lnkfile.

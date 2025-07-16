@@ -1,2 +1,3 @@
-存储过程=procedure.aardio
+﻿存储过程=procedure.aardio
 增、删、改、查=crud.aardio
+插入二进制图像=~/example/Database/access/binary.aardio

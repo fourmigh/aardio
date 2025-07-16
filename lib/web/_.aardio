@@ -32,11 +32,11 @@ joinHeaders = function(h,...){
 		} 
 	}
 	elseif( #h ) {
-		if( ..string.startWith(h,'\r\n') ){
+		if( ..string.startsWith(h,'\r\n') ){
 			h = ..string.right(h,-3);
 		}
 		
-		if( ! ..string.endWith(h,'\r\n')  ){
+		if( ! ..string.endsWith(h,'\r\n')  ){
 			h = h + '\r\n';
 		}
 	}

@@ -1,0 +1,56 @@
+import console.table;
+
+// 准备一些示例数据，用于生成文本化表格
+var data = [
+    {
+        id = 1;
+        name = "aardio";
+        description = "一种动态、易学、高效的编程语言,特别适合 Windows 桌面应用开发。";
+        version = "v40";
+    };
+    {
+        id = 2;
+        name = "JavaScript";
+        description = "一种广泛用于 Web 开发的脚本语言,功能强大,生态丰富。";
+        version = "ES2023";
+    };
+    {
+        id = 3;
+        name = "超长测试";
+        description = "这是一个非常非常非常非常非常非常非常非常非常非常非常非常非常非常长的描述,目的是为了测试在控制台表格中的自动换行功能是否能够正常工作。";
+        version = "1.0.0";
+    };
+    {
+        id = 4;
+        name = "Python";
+        description = "一种通用的高级编程语言,以其简洁的语法而闻名。";
+        version = "3.11";
+    };
+]
+ 
+/*
+调用 console.table.write 函数直接打印对象数组，
+自动提取数组中第一个表对象的所字段名作为列标题
+*/
+console.table.write(data);
+
+//直接输出数组、嵌套数组，或者其他格式的表
+//console.table.write([123,456]);
+
+//创建控制台表格生成工具
+var tabulator = console.table("id","标题列 2","标题列 3");
+
+//自动定义显风格
+tabulator.mode = "simple"
+
+//显示网络线
+tabulator.gridLines = true;
+
+//循环添加数据
+for(i=1;5;1){
+	tabulator.push(i, "你好", "hello")
+}
+
+//tabulator.write( );
+
+console.pause();

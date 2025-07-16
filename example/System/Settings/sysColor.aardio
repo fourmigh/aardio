@@ -2,9 +2,9 @@
 import win.ui;
 import win.ui.ctrl.pick;
 /*DSG{{*/
-var winform = win.form(text="系统窗口背景色设置工具";right=742;bottom=472;bgcolor=16777215;border="thin";composited=1;exmode="toolwindow";max=false;min=false)
+var winform = win.form(text="系统窗口背景色设置工具";right=742;bottom=472;bgcolor=0xFFFFFF;border="thin";composited=1;exmode="toolwindow";max=false;min=false)
 winform.add(
-chkSaveReg={cls="checkbox";text="在注册表中保存窗口背景色设置，以避免重启或注销后失效";left=20;top=9;right=386;bottom=31;bgcolor=16777215;z=2};
+chkSaveReg={cls="checkbox";text="在注册表中保存窗口背景色设置，以避免重启或注销后失效";left=20;top=9;right=386;bottom=31;bgcolor=0xFFFFFF;z=2};
 colorPick={cls="pick";text="自定义控件";left=17;top=47;right=718;bottom=450;z=1}
 )
 /*}}*/

@@ -4,7 +4,7 @@ import win.ui;
 var winform = win.form(text="aardio form";right=759;bottom=469)
 winform.add(
 edit={cls="edit";left=301;top=8;right=734;bottom=443;edge=1;multiline=1;z=2};
-treeview={cls="treeview";left=18;top=8;right=276;bottom=443;asel=false;bgcolor=16777215;edge=1;z=1}
+treeview={cls="treeview";left=18;top=8;right=276;bottom=443;asel=false;bgcolor=0xFFFFFF;edge=1;z=1}
 )
 /*}}*/
 

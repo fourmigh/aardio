@@ -1,9 +1,12 @@
 //文本框 - 校验输入文本
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="文本框限制输入金额";right=759;bottom=469)
+var winform = win.form(text="限制文本框输入指定类型的字符，输入文本校验";right=759;bottom=469)
 winform.add(
-edit={cls="edit";left=140;top=136;right=483;bottom=163;align="right";edge=1;z=1}
+edit={cls="edit";left=140;top=136;right=483;bottom=163;align="right";edge=1;z=1};
+edit2={cls="edit";left=140;top=213;right=483;bottom=240;align="right";edge=1;z=2};
+edit3={cls="edit";left=140;top=260;right=483;bottom=287;align="right";edge=1;z=3};
+edit4={cls="edit";left=138;top=308;right=481;bottom=335;align="right";edge=1;z=4}
 )
 /*}}*/
 
@@ -16,6 +19,9 @@ winform.edit.setCueBannerText("请输入金额");
 //控件文本变更时触发 onChange 事件 
 winform.edit.onChange = function(){  
 	
+	//如果未修改文本退出事件，避免修改 text 属性重入此事件
+	if(!owner.modified) return;
+	
 	/*
 	下面的函数用于限制编辑框只能输入数值，并且只能是表示货币金额的数值。
 	如果输入错误则自动修正输入文本，并将输入光标移动到文本尾部并在编辑框内用气泡提示显示错误文本。
@@ -27,8 +33,39 @@ winform.edit.onChange = function(){
 		"不能接受的字符","只能在此输入金额，小数点后不能超过 2 位!"); 
 }
 
-//显示窗体
-winform.show();
+winform.edit.setCueBannerText("请输入金额");
 
-//启动界面线程消息循环
+// 自定义公共校验函数，使用隐式传递的 owner 参数获取当前触发事件的控件
+function validateInput() {
+
+	//如果未修改文本退出事件，避免修改 text 属性重入此事件
+	if(!owner.modified) return;
+		
+    // 获取当前文本
+    var text = owner.text;
+    
+    // 使用模式匹配检查是否只包含数字、字母或下划线
+    if(!string.match(text, "^[\w]+$")) {
+        
+        // 清除非法字符
+        owner.text = string.replace(text, "[^\w]", "");
+
+        // 设置焦点并移动光标到末尾
+        owner.setFocus();
+        
+        // 显示错误提示
+        owner.showErrorTip("输入类型错误", "只能输入数字、字母或下划线");
+    }
+}
+
+// 为多个 edit 控件绑定相同的 onChange 事件
+winform.edit2.onChange = validateInput;
+winform.edit3.onChange = validateInput;
+winform.edit4.onChange = validateInput;
+
+winform.edit2.setCueBannerText("请输入数字、字母或下划线");
+winform.edit3.setCueBannerText("请输入数字、字母或下划线");
+winform.edit4.setCueBannerText("请输入数字、字母或下划线");
+
+winform.show();
 win.loopMessage();

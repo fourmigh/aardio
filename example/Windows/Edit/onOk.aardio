@@ -1,6 +1,6 @@
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="richedit 处理回车事件，自动缩放高度。";right=756;bottom=469)
+var winform = win.form(text="richedit 处理回车事件，自动缩放编辑框高度。";right=756;bottom=469)
 winform.add(
 richedit={cls="richedit";left=5;top=314;right=749;bottom=461;db=1;dl=1;dr=1;edge=1;hscroll=1;multiline=1;vscroll=1;z=1};
 splitter={cls="splitter";left=5;top=305;right=749;bottom=310;db=1;dl=1;dr=1;frame=1;horz=1;z=3};
@@ -8,7 +8,7 @@ wndBrowser={cls="custom";text="自定义控件";left=3;top=6;right=747;bottom=30
 )
 /*}}*/
 
-//拆分界面
+//拆分界面: doc://library-guide/std/win/ui/ctrl/splitter.html
 winform.splitter.split(winform.wndBrowser,winform.richedit);
 
 //创建 Markdown 渲染窗口

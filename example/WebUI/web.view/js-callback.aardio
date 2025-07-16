@@ -1,0 +1,47 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="web.view 回调 JS 函数对象";right=757;bottom=467)
+winform.add()
+/*}}*/
+
+import web.view;
+var wb = web.view(winform);
+	
+wb.external = {
+	test = function(jsCallback){ 
+		/*
+		JS 函数对象在 aardio 中可以直接使用。
+		但只能是异步调用，不能等待返回值。
+		
+		使用 wb.xcall 函数杂可以调用 JS 函数并获取返回值。
+		但要注意 wb.xcall 内部是执行 JS 代码并使用 JSON 序列化交换参数与返回值。
+		
+		使用 wb.external 与 JavaScript 交互则是基于 COM 接口。
+		除了字符串、数值、布尔值、时间值、buffer 这些基于传值的类型可以兼容以外，
+		其他需要传址的 JS 对象（例如 JS 函数）在 aardio 中则是 COM 对象。
+		COM 对象可以保持对原 JS 对象的引用，作为参数传回 JS 仍然会是原来的 JS 对象。
+		*/
+		jsCallback("回调 JavaScript 函数的参数",jsCallback);
+	};
+}
+
+wb.html = /********
+<!doctype html>
+<html><head>
+	<meta charset="utf-8">
+	<style type="text/css">html,body{ height:100%; margin:0; } </style>
+	<script> 
+	(async()=>{
+			await aardio.test(
+				function(str){
+					alert(str);
+				} 
+			); 
+	})()
+	</script>
+</head>
+<body></body></html>
+********/
+
+winform.show();
+win.loopMessage();

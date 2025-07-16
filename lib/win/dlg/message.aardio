@@ -52,7 +52,7 @@ class message{
 			}	
 		}
 
-		var winform = ..win.form(text="info";right=831;bottom=679;bgcolor=this.bgcolor;border="none";exmode="toolwindow";min=false;parent=parentForm)
+		var winform = ..win.form(text=..win.title;right=831;bottom=679;bgcolor=this.bgcolor;border="none";exmode="toolwindow";min=false;parent=parentForm)
 		if(!winform){
 			return;
 		}
@@ -134,19 +134,22 @@ class message{
 		return winform;	
 	}
 	show = function(msg,sw){
+		f(msg) msg = tostring(msg);
 		if(!#msg) error("文本不能为空",2);
 		var dlg = this.create(msg);
 		if(dlg) return dlg.show(sw);
 	}
 	doModal = function(msg,showButtons,timeOut){
+		if(msg) msg = tostring(msg);
 		if(!#msg) error("文本不能为空",2);
 		var dlg = this.create(msg,showButtons);
 		if(!dlg) return;
 
-		if(timeOut){ 
+		if(type(timeOut)==="number"){ 
 			if(this.fadeInterval)timeOut=timeOut+this.fadeDuration;
 			dlg.setTimeout(	lambda() dlg.endModal(),timeOut)
 		}
+		
 		return dlg.doModal();
 	}
 	info = function(msg,timeOut,...){
@@ -249,15 +252,15 @@ create() = !winDlgMessageForm.
 create(.(显示信息,是否显示按钮,是否显示进度条) =  创建信息框,返回窗体对象,\n如果选择显示按钮则不会同时显示进度条\n所有参数都是可选参数
 doModal(.(显示信息,是否显示按钮) = 创建信息框,并显示为模态窗口
 show(.(显示信息) = = 创建信息框,并显示为非模态窗口
-info(__) = 显示提示框,\n可选使用参数@2指定延时自动关闭提示框的毫秒数\n\n如果指定参数@3或更多参数,\n则使用这些参数调用 string.format 格式化参数@1
-warn(__) = 显示警告提示框,\n可选使用参数@2指定延时自动关闭提示框的毫秒数
-ok(__) = 显示正确提示框,\n可选使用参数@2指定延时自动关闭提示框的毫秒数
-err(__) = 显示错误提示框,\n可选使用参数@2指定延时自动关闭提示框的毫秒数
-great(__) = 显示竖大拇指图标提示框,\n可选使用参数@2指定延时自动关闭提示框的毫秒数
-sorry(__) = 显示倒竖大拇指图标提示框,\n可选使用参数@2指定延时自动关闭提示框的毫秒数 
-smile(__) = 显示微笑图标提示框,\n可选使用参数@2指定延时自动关闭提示框的毫秒数 
-frown(__) = 显示皱眉图标提示框,\n可选使用参数@2指定延时自动关闭提示框的毫秒数 
-ask(__) = 显示询问提示框\n用户按确定或回车返回true，其他返回false或null
+info(.(text,timeout,->->->) = 显示提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @2 指定延时自动关闭提示框的毫秒数\n\n如果指定参数 @3 或更多参数,\n则使用这些参数调用 string.format 格式化参数 @1 
+warn(.(text,timeout) = 显示警告提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @2 指定延时自动关闭提示框的毫秒数
+ok(.(text,timeout) = 显示正确提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @2 指定延时自动关闭提示框的毫秒数
+err(.(text,timeout) = 显示错误提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @2 指定延时自动关闭提示框的毫秒数
+great(.(text,timeout) = 显示竖大拇指图标提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @2 指定延时自动关闭提示框的毫秒数
+sorry(.(text,timeout) = 显示倒竖大拇指图标提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @2 指定延时自动关闭提示框的毫秒数 
+smile(.(text,timeout) = 显示微笑图标提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @2 指定延时自动关闭提示框的毫秒数 
+frown(.(text,timeout) = 显示皱眉图标提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @2 指定延时自动关闭提示框的毫秒数 
+ask(.(text) = 显示询问提示框。\n参数 @text 指定要显示的文本信息。\n用户按确定或回车返回 true ，其他返回 false 或 null
 buttonStyle = @.buttonStyle = { 
 	color = {  
 		hover = 0xF0FFFFFF;
@@ -301,5 +304,5 @@ bgcolor = 背景颜色
 close() = 关闭窗口 
 doModal(__/*请指定所有者窗口\n可省略此参数*/) = 此函数弹出模态对话框
 endModal(__/*请指定模态对话框返回值*/) = 关闭模态对话框，\n调用endModal()函数的参数会被设置为 doModal()函数的返回值。
-setInterval(回调函数,延时毫秒数,->->->) = @.setInterval( \n	function(){\n		__/*参数@1指定执行函数,参数@2指定执行间隔，\n可选指定一个或多个回调参数，不指定回调参数则默认为:\n hwnd,message,timerId,tick,\n\n如果在定时器中执行了win.delay等继续消息循环的代码，\n在定时器退出前不会再触发同一定时器（重入）。\n\n定时器回调函数返回数值可修改时间间隔,\n返回false取消该定时器*/\n	},1000 \n)
+setInterval(回调函数,延时毫秒数,->->->) = @.setInterval( \n	function(){\n		__/*参数 @1 指定执行函数,参数 @2 指定执行间隔，\n可选指定一个或多个回调参数，不指定回调参数则默认为:\n hwnd,message,timerId,tick,\n\n如果在定时器中执行了win.delay等继续消息循环的代码，\n在定时器退出前不会再触发同一定时器（重入）。\n\n定时器回调函数返回数值可修改时间间隔,\n返回false取消该定时器*/\n	},1000 \n)
 end intellisense**/

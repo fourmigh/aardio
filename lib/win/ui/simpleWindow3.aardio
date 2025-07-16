@@ -27,6 +27,8 @@ class simpleWindow3{
 			frmTitleBar.close();
 			this = ..win.ui.simpleWindow(winform,fontSize,width,height,theight);  
 		}
+		
+		this.skin(..win.ui.simpleWindow.lightStyle)
 	};
 }
 
@@ -35,11 +37,13 @@ win.ui.simpleWindow3 = 简单初始化无边框窗口,并创建渐变背景的�
 win.ui.simpleWindow3(.(窗体对象,字体大小,按钮宽度,按钮高度,标题栏高度,背景色,前景色) = 为参数@1指定的无边框窗口添加渐变背景的标题栏,\n可选使用参数@2指定标题栏按钮字体大小,以像素为单位,\n可选用参数@3,@4指定关闭等按钮宽度,高度\n标题栏高度为可选参数,\n背景色、前景色用于指定渐变顶部、底部颜色,都是可选参数
 win.ui.simpleWindow3() = !win_ui_simpleWindow3.
 !win_ui_simpleWindow3.skin(style) = @.skin(\n	background = { \n		hover = 0xff99ffcc;\n		active = 0xffff6666; \n		default = 0x00000000; \n	}\n	color = { \n		hover = 0xff666666;\n		active = 0xffffffff; \n		default = 0xffffffff; __/*自定义标题栏关闭、最大化、最小化按钮样式\n用法与plus控件的skin函数相同*/\n	}\n)
-!win_ui_simpleWindow3.titlebarMin = 最小化按钮,plus控件\n如果窗体设置了禁用最小化按钮则不创建此控件\n!ui_ctrl_plus.
-!win_ui_simpleWindow3.titlebarMax = 最大化按钮,plus控件\n如果窗体设置了禁用最大化按钮则不创建此控件,并且不添加拖动边框\n!ui_ctrl_plus.
-!win_ui_simpleWindow3.titlebarClose = 关闭按钮,plus控件\n!ui_ctrl_plus.
+!win_ui_simpleWindow3.titlebarMin = 标题栏最小化按钮，plus控件。\n如果窗体设置了禁用最小化按钮则不创建此控件。\n!ui_ctrl_plus.
+!win_ui_simpleWindow3.titlebarMax = 标题栏最大化按钮，plus控件。\n如果窗体设置了禁用最大化按钮则不创建此控件，并且不允许拖动边框改变窗口大小。\n!ui_ctrl_plus.
+!win_ui_simpleWindow3.titlebarClose = 标题栏关闭按钮，plus控件。\n调用此控件的 skin 函数可单独修改关闭按钮的样式，\n所有界面组件的 skin 函数的都是用于 plus 控件，用法都一样。\n!ui_ctrl_plus.
 !win_ui_simpleWindow3.titlebar = 标题栏,static控件\n!static.
-!win_ui_simpleWindow3.background = 可用ARGB格式颜色数值指定窗口线性渐变使用的顶部颜色
-!win_ui_simpleWindow3.foreground = 可用ARGB格式颜色数值指定窗口线性渐变使用的底部颜色
-!win_ui_simpleWindow3._form = 标题栏所在窗口\n!winform.
+!win_ui_simpleWindow._form = 标题栏窗口。\n!winform.
+!win_ui_simpleWindow.targetForm = 要控制的目标窗口。\n!winform.
+!win_ui_simpleWindow3.targetForm = 要控制的目标窗口。\n!winform.
+!win_ui_simpleWindow3.background = 可用 ARGB 格式颜色数值指定窗口线性渐变使用的顶部颜色
+!win_ui_simpleWindow3.foreground = 可用 ARGB 格式颜色数值指定窗口线性渐变使用的底部颜色
 end intellisense**/

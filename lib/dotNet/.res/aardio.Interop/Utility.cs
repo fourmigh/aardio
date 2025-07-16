@@ -100,6 +100,7 @@ namespace aardio.Interop
         static Type ColorType = typeof(System.Drawing.Color);
         static Type IntPtrType = typeof(System.IntPtr);
         static Type UIntPtrType = typeof(System.UIntPtr);
+        static Type CharType = typeof(System.Char);
 
         public static object WrapNonPrimitiveValueToAnyObjectRef(object ret)
         {
@@ -168,6 +169,75 @@ namespace aardio.Interop
         {
             return new DispatchableObject(v, byRef);
         }
+
+        public object CreateCharObject(object v, bool byRef = false)
+        {
+            var argType = v.GetType();
+            if (argType == DispatchableObjectType)
+            {
+                DispatchableObject dv = (v as DispatchableObject);
+                v = dv.Value;
+                argType = v.GetType();
+            }
+
+            var argTypeCode = Type.GetTypeCode(argType); 
+             
+
+            if (argType.IsArray)
+            {
+                var tEle = argType.GetElementType();
+                var eleTypeCode = Type.GetTypeCode(tEle);
+
+                if (eleTypeCode == TypeCode.Double) {
+                    var srcArr = (v as double[]);
+                    var dstArr = Array.CreateInstance(CharType, srcArr.Length);
+                    for (int n = 0; n < srcArr.Length; n++)
+                    {
+                        dstArr.SetValue(Convert.ToChar(Convert.ToUInt16(srcArr[n])), n);
+                    }
+
+                    return new DispatchableObject(dstArr, byRef);
+                }
+                else {
+                    var srcArr = (v as ushort[]);
+                    var dstArr = Array.CreateInstance(CharType, srcArr.Length);
+                    for (int n = 0; n < srcArr.Length; n++)
+                    {
+                        dstArr.SetValue(Convert.ToChar(srcArr[n]), n);
+                    }
+
+                    return new DispatchableObject(dstArr, byRef);
+                }
+            }
+            else if(argTypeCode == TypeCode.String)
+            {
+                return new DispatchableObject((v as string).ToCharArray(), byRef);
+            }
+
+            return new DispatchableObject(Convert.ToChar(v), byRef);
+        }
+
+        public object CreateColorObject(object v, bool byRef = false)
+        {
+            var argType = v.GetType();
+            if (argType == DispatchableObjectType)
+            {
+                DispatchableObject dv = (v as DispatchableObject);
+                v = dv.Value;
+                argType = v.GetType();
+            }
+
+            var argTypeCode = Type.GetTypeCode(argType);
+            if (IsNumericType(argType))
+            { 
+                return new DispatchableObject(ConvertNumToColor(v, argTypeCode), byRef);
+            }
+
+            if(argType == ColorType) return new DispatchableObject(v, byRef);
+
+            return null;
+        }
+
 
         private void setOutValue(object[] outArgs, object[] invokeArgs2)
         {
@@ -631,28 +701,75 @@ namespace aardio.Interop
                 if((((BindingFlags)invokeAttr & BindingFlags.InvokeMethod)!= BindingFlags.InvokeMethod) && (methodName == "Value") )
                 {
                     Type tEle = tAny;
-                    if (tAny.IsArray) tEle = tAny.GetElementType();
+                    if (tAny.IsArray)
+                    {
+                        tEle = tAny.GetElementType();
 
-                    if (tEle.IsPrimitive || tEle.IsEnum || tEle.IsArray || (tEle == typeof(string) )   ){
-                        if (((BindingFlags)invokeAttr & BindingFlags.GetField) == BindingFlags.GetField)
+                        if (tEle == typeof(object))
                         {
-                            return target;
-                        }
-                        else if (((BindingFlags)invokeAttr & BindingFlags.SetField) == BindingFlags.SetField)
-                        {
-                            if (argArrayList[0].GetType().Equals(tAny)) dispObj.Value = argArrayList[0];
-                            else dispObj.Value = Convert.ChangeType(argArrayList[0], tAny); 
-                            return null;
+                            if (((BindingFlags)invokeAttr & BindingFlags.GetField) == BindingFlags.GetField)
+                            {
+                                return target;
+                            }
+                            else if (((BindingFlags)invokeAttr & BindingFlags.SetField) == BindingFlags.SetField)
+                            {
+                                dispObj.Value = argArrayList[0];
+                                return null;
+                            }
                         }
                     }
+
+                    if (tEle.IsPrimitive || tEle.IsEnum || tEle.IsArray || (tEle == typeof(string)))
+                        {
+                            if (((BindingFlags)invokeAttr & BindingFlags.GetField) == BindingFlags.GetField)
+                            {
+                                return target;
+                            }
+                            else if (((BindingFlags)invokeAttr & BindingFlags.SetField) == BindingFlags.SetField)
+                            {
+                                if (argArrayList[0].GetType().Equals(tAny)) dispObj.Value = argArrayList[0];
+                                else dispObj.Value = Convert.ChangeType(argArrayList[0], tAny);
+                                return null;
+                            }
+                        }
                 }
             }
-             
-            if ((argArrayList == null) || (argArrayList.Count == 0) )
+
+            if ((argArrayList == null) )
             {
                 //不需要匹配参数类型，不需要自动转换。
                 return WrapNonPrimitiveValueToAnyObjectRef(tAny.InvokeMember(methodName, (BindingFlags)invokeAttr | BindingFlags.IgnoreReturn, null, target, null));
             }
+
+            //if ((argArrayList == null) || (argArrayList.Count == 0) )
+            if (argArrayList == null)
+            {
+                //不需要匹配参数类型，不需要自动转换。
+                return WrapNonPrimitiveValueToAnyObjectRef(tAny.InvokeMember(methodName, (BindingFlags)invokeAttr | BindingFlags.IgnoreReturn, null, target, null));
+            }
+
+            if (argArrayList.Count == 0)
+            {
+                MethodInfo m = null;
+
+                try
+                {
+                    m = tAny.GetMethod(methodName, (BindingFlags)invokeAttr | BindingFlags.IgnoreReturn, null, new Type[0] { }, null);
+                }
+                catch (SystemException)
+                {
+
+                }
+
+
+                if (m != null)
+                {
+                    object ret2 = WrapNonPrimitiveValueToAnyObjectRef(m.Invoke(target, null)); 
+                    return ret2;
+                }
+            }
+
+
 
             if (((BindingFlags)invokeAttr & BindingFlags.InvokeMethod) == BindingFlags.InvokeMethod)
             {
@@ -706,7 +823,56 @@ namespace aardio.Interop
                     return ret;
                 } 
             }
-            
+
+
+            if (((BindingFlags)invokeAttr & BindingFlags.GetProperty) == BindingFlags.GetProperty)
+            {
+                for (int i = 0; i < argArrayList.Count; i++)
+                {
+                    if (argArrayList[i] is DispatchableObject v)
+                    {
+                        argArrayList[i] = v.Value;
+                    }
+                }
+
+                ArrayList methodList = new ArrayList();
+                try
+                {
+                    PropertyInfo prop = tAny.GetProperty(methodName, (BindingFlags)(invokeAttr & ~(int)BindingFlags.GetField));
+                    if(prop!=null) methodList.Add(prop.GetGetMethod());
+                }
+                catch (AmbiguousMatchException)
+                {
+                    PropertyInfo[] props = tAny.GetProperties((BindingFlags)(invokeAttr & ~(int)BindingFlags.GetField));
+
+                    for (int i = 0; i < props.Length; i++)
+                    {
+                        if (props[i].Name == methodName)
+                        {
+                            methodList.Add(props[i].GetGetMethod());
+                        }
+                    }
+                }
+
+                if (methodList.Count > 0)
+                {
+
+                    MethodInfo[] ms = new MethodInfo[methodList.Count];
+                    for (int i = 0; i < ms.Length; i++)
+                    {
+                        ms[i] = methodList[i] as MethodInfo;
+                    }
+
+                    bool failed = true;
+                    object[] invokeArgs2 = null;
+                    object  ret2 = InvokeMemberBaseMethodInfo(ms[0].Name, ms, argArrayList, ref failed, target, invokeAttr & ~(int)BindingFlags.GetField, ref invokeArgs2);
+                    if (!failed)
+                    {
+                        return WrapNonPrimitiveValueToAnyObjectRef(ret2);
+                    }
+                }
+            }
+
             if (((BindingFlags)invokeAttr & BindingFlags.SetProperty) == BindingFlags.SetProperty)
             { 
                 for (int i = 0; i < argArrayList.Count; i++)
@@ -833,6 +999,17 @@ namespace aardio.Interop
 
                                         argArrayList[lastIndex] = dstArr;
                                     }
+                                    else if ((argEleTypeCode == TypeCode.UInt16) && (paramEleType == CharType))
+                                    {
+                                        var srcArr = (argArrayList[lastIndex] as ushort[]);
+                                        var dstArr = Array.CreateInstance(paramEleType, srcArr.Length);
+                                        for (int n = 0; n < srcArr.Length; n++)
+                                        {
+                                            dstArr.SetValue(Convert.ToChar(srcArr[n]), n);
+                                        }
+
+                                        argArrayList[lastIndex] = dstArr;
+                                    }
 
                                 }
 
@@ -935,6 +1112,17 @@ namespace aardio.Interop
 
                                     argArrayList[0] = dstArr;
                                 }
+                                else if ((argEleTypeCode == TypeCode.UInt16) && (paramEleType == CharType))
+                                {
+                                    var srcArr = (argArrayList[0] as ushort[]);
+                                    var dstArr = Array.CreateInstance(paramEleType, srcArr.Length);
+                                    for (int n = 0; n < srcArr.Length; n++)
+                                    {
+                                        dstArr.SetValue(Convert.ToChar(srcArr[n]), n);
+                                    }
+
+                                    argArrayList[0] = dstArr;
+                                }
 
                             }
 
@@ -968,15 +1156,37 @@ namespace aardio.Interop
                 }
             }
 
-            if ((methodName == "Item") && (target is Array arr) )
+            if ((methodName == "Item") && (target is Array arr)  )
             {  
                 if (((BindingFlags)invokeAttr & BindingFlags.GetProperty) == BindingFlags.GetProperty)
                 {
-                    return WrapNonPrimitiveValueToAnyObjectRef(arr.GetValue((int)argArrayList[0]));
+                    if (argArrayList.Count == 1) return WrapNonPrimitiveValueToAnyObjectRef(arr.GetValue((int)argArrayList[0]));
+                    else if (argArrayList.Count > 1)
+                    {
+                        object [] objIndices = argArrayList.ToArray();
+                        int[] indices = new int[objIndices.Length];
+                        for (int i = 0; i < indices.Length; i++)
+                        { 
+                            indices[i] = ((int)objIndices[i]); 
+                        } 
+                         
+                        return WrapNonPrimitiveValueToAnyObjectRef(arr.GetValue(indices));
+                    }
                 }
                 else if (((BindingFlags)invokeAttr & BindingFlags.SetProperty) == BindingFlags.SetProperty)
                 {
-                    arr.SetValue(argArrayList[1], (int)argArrayList[0]);
+                    if (argArrayList.Count == 2) arr.SetValue(argArrayList[1], (int)argArrayList[0]);
+                    else if(argArrayList.Count > 2)
+                    {
+                        object[] objIndices = argArrayList.ToArray();
+                        int[] indices = new int[objIndices.Length-1];
+                        for (int i = 0; i < indices.Length; i++)
+                        { 
+                            indices[i] = ((int)objIndices[i]);
+                        }
+
+                        arr.SetValue(argArrayList[indices.Length], indices);
+                    }
                     return null;
                 } 
             }
@@ -986,12 +1196,31 @@ namespace aardio.Interop
 
         private object CreateInstanceByClassType(Type tClass, ArrayList argArrayList, object target)
         {
-            if( (argArrayList == null)  || (argArrayList.Count == 0))
+            if( argArrayList == null )
             {
                 return WrapNonPrimitiveValueToAnyObjectRef(tClass.InvokeMember("", (BindingFlags)BindingFlags.CreateInstance | BindingFlags.IgnoreReturn, null, target, null));
             }
-        
 
+
+            if (argArrayList.Count == 0)
+            {
+                MethodInfo m2 = null;
+
+                try
+                {
+                    m2 = tClass.GetMethod("", (BindingFlags)BindingFlags.CreateInstance | BindingFlags.IgnoreReturn, null, new Type[0] { }, null);
+                }
+                catch (SystemException)
+                {
+
+                }
+
+                if (m2 != null)
+                {
+                    return WrapNonPrimitiveValueToAnyObjectRef(m2.Invoke(target, null));  
+                }
+            }
+        
             Type[] argTypeArray = new Type[argArrayList.Count]; 
 
             bool hasOutValues = false;
@@ -1311,7 +1540,7 @@ namespace aardio.Interop
                             {
                                 var paramEleType = paramType.GetElementType();
                                 var argEleType = argType.GetElementType();
-                                var argEleTypeCode = Type.GetTypeCode(argEleType);
+                                var argEleTypeCode = Type.GetTypeCode(argEleType); 
 
                                 if ((argEleTypeCode == TypeCode.Double) && IsNumericType(paramEleType))
                                 {
@@ -1321,6 +1550,18 @@ namespace aardio.Interop
                                     for (int n = 0; n < srcArr.Length; n++)
                                     {
                                         dstArr.SetValue(Convert.ChangeType(srcArr[n], paramEleType), n);
+                                    }
+
+                                    argArrayList[k] = dstArr;
+                                    continue;
+                                }
+                                else if((argEleTypeCode == TypeCode.UInt16) && (paramEleType == CharType))
+                                {
+                                    var srcArr = (argArrayList[k] as ushort[]);
+                                    var dstArr = Array.CreateInstance(paramEleType, srcArr.Length);
+                                    for (int n = 0; n < srcArr.Length; n++)
+                                    {
+                                        dstArr.SetValue(Convert.ToChar(srcArr[n]), n);
                                     }
 
                                     argArrayList[k] = dstArr;
@@ -1439,6 +1680,18 @@ namespace aardio.Interop
                                         for (int n = 0; n < srcArr.Length; n++)
                                         {
                                             dstArr.SetValue(Convert.ChangeType(srcArr[n], paramEleType), n);
+                                        }
+
+                                        argArrayList[k] = dstArr;
+                                        continue;
+                                    }
+                                    else if ((argEleTypeCode == TypeCode.UInt16) && (paramEleType == CharType))
+                                    {
+                                        var srcArr = (argArrayList[k] as ushort[]);
+                                        var dstArr = Array.CreateInstance(paramEleType, srcArr.Length);
+                                        for (int n = 0; n < srcArr.Length; n++)
+                                        {
+                                            dstArr.SetValue(Convert.ToChar(srcArr[n]), n);
                                         }
 
                                         argArrayList[k] = dstArr;

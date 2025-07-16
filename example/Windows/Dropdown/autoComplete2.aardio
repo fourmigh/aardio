@@ -14,18 +14,18 @@ winform.combobox.items = itemData;
 winform.combobox.onEditChange = function(){ 
  
     var text = winform.combobox.text;
-    var items = table.filter( itemData, lambda(v) string.startWith(v,text) ); 
+    var items = table.filter( itemData, lambda(v) string.startsWith(v,text) ); 
     winform.combobox.autoComplete(items);  
 }
 
 //在下拉列表上用方向键移动选项，或单击回车确认同时变更选项触发
 winform.combobox.onListChange = function(){ 
-	
+	//用 winform.combobox.selText 取当前选中项。	
 }
 
 //用在下拉列表上单击、回车触认选项时触发（即使选项没有变更）
 winform.combobox.onOk = function(){ 
-	
+	//用 winform.combobox.selText 取当前选中项。	
 }
 
 //取消选择，例如直接点击其他控件，或直接按ESC键，直接关闭窗口等等

@@ -1,0 +1,26 @@
+//aardio 嵌入 .NET 图像控件
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="嵌入 .NET 图像控件";right=759;bottom=510)
+winform.add(
+custom={cls="custom";left=25;top=25;right=732;bottom=475;db=1;dl=1;dr=1;dt=1;z=1}
+)
+/*}}*/
+
+import System.Drawing;
+import System.Windows.Forms; 
+
+//创建图像控件
+var pictureBox = System.Windows.Forms.CreateEmbed("PictureBox",winform.custom);  
+
+//转换 aardio 格式的文件路径为完整路径
+var filePath = io.fullpath("~\example\Graphics\.gdip.jpg");
+
+// .NET 控件加载图像
+var img = System.Drawing.Image.FromFile(filePath)
+
+//显示图像
+pictureBox.Image = img;
+
+winform.show();
+win.loopMessage();

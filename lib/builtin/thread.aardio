@@ -4,9 +4,8 @@ self.thread = global.thread;
 
 namespace thread;
 
-var waitForSingleObject = ::Kernel32.api("WaitForSingleObject", "INT(ptr h,INT ms)");
-var waitForMultipleObjects = ::Kernel32.api("WaitForMultipleObjects", "INT(INT count,struct handles,INT bWaitAll,INT ms)");
-var msgWaitForMultipleObjects = ::User32.api("MsgWaitForMultipleObjects", "INT(INT count,struct handles,INT bWaitAll,INT ms,INT wakeMask)");
+var waitForSingleObject = ::Kernel32.api("WaitForSingleObject", "INT(ptr h,INT ms)"); 
+var waitForMultipleObjects = ..__waitForMultipleObjects;//(timeout,waitall,handles,flags)
 
 var threadwait = function( bClose,bAll, ...){
     var threads,timeout = ...;
@@ -22,8 +21,7 @@ var threadwait = function( bClose,bAll, ...){
     var len = #threads
     if(!len) {
     	error("参数未指定线程句柄",3);
-    }
-    var threads_c = ..raw.toarray( threads ,"pointer" ,"array");
+    } 
     var msg,peek,parse,hasMsg;  
     
     var ret; 
@@ -36,7 +34,7 @@ var threadwait = function( bClose,bAll, ...){
 		var tk = tick();
 		
     	do{
-			ret = msgWaitForMultipleObjects(len,threads_c,bAll,timeout, 0x4FF/*_QS_ALLINPUT*/); 
+			ret = waitForMultipleObjects(timeout,false,threads,0x1CFF/*_QS_ALLINPUT*/); 
 			if( ret!=len ) break;
 			
 			if(timeout!=0xFFFFFFFF){
@@ -55,7 +53,7 @@ var threadwait = function( bClose,bAll, ...){
 				}  
 				elseif( hasMsg === null ){
 					..win.quitMessage(msg.wParam); 
-					ret = waitForMultipleObjects(len,threads_c,bAll,timeout);  
+					ret = waitForMultipleObjects(timeout,true,threads);  
 					return;
 				}
 				else {
@@ -65,7 +63,7 @@ var threadwait = function( bClose,bAll, ...){
 		}while( hasMsg!==null ) 
     }  
     else {
-    	ret = waitForMultipleObjects(len,threads_c,bAll,timeout);  
+        ret = waitForMultipleObjects(timeout,true,threads); 
     }
  
 	if( ret == len) {
@@ -127,21 +125,24 @@ self.invoke = function(...){
 	..raw.closehandle( h ); 
 };
 
+serializeForm = function(form,kernelCall){
+	if( kernelCall ){ 
+		if( form[["_parentForm"]] && (!form._defaultProc[[0xACCD/*_WM_THREAD_CALLWND*/]]) ) form.threadCallable();
+		return ..string.format("{hwnd = %d; @thread.callWndMeta;}",form.hwnd);  
+	}
+	else {
+		return ..string.format("{hwnd = %d;}",form.hwnd);  
+	}	
+}
+
 callWndMeta =  {
 	_serialize = function(kernelCall){
-		if( kernelCall ){ 
-			if( owner[["_parentForm"]] && (!owner._defaultProc[[0xACCD/*_WM_THREAD_CALLWND*/]]) ) owner.threadCallable();
-			return ..string.format("{hwnd = %d; @thread.callWndMeta;}",owner.hwnd);  
-		}
-		else {
-			return ..string.format("{hwnd = %d;}",owner.hwnd);  
-		}
-		
+		return serializeForm(owner,kernelCall);
 	};
 	_get = function(k,ownerCall){
 		var hwnd = owner.hwnd;
 		if(ownerCall){
-			if( ..string.startWith(k,"each") ){
+			if( ..string.startsWith(k,"each") ){
 				owner[[k]] = getWnd(hwnd,k);
 				return owner[[k]];
 			}
@@ -346,15 +347,16 @@ thread.stillActive(__) = 线程是否未退出,参数为线程句柄
 thread.callWndMeta = 跨线程传输的窗口对象元表,用于支持跨线程调用
 thread._callableSerialize = 界面线程内非窗口对象 _serialize 元方法设定为此函数,可支持跨线程调用,\n绑定此元方法后，对象传入其他线程后所有成员调用都将回到界面线程执行
 thread.callable(__) = 开启界面线程非窗口对象的多线程界面回调功能。\n此函数会将对象的_serialize 元方法指定为 thread._callableSerialize,\n用于在界面线程内启用对象跨线程调用支持,注意启用后无法撤消,\n启用此特性后,对象传入其他线程后所有成员调用都将回到界面线程执行,\n\n参数指定 talbe 类型对象\n如果成功、或者对象已支持跨线程调用返回 true \n失败返回null或false
+thread.serializeForm(.(winform,kernelCall) = 用于在 _serialize 元方法内部返回序列化的窗体对象。\n窗体对象的 _serialize 元方法已默认调用此函数。\n显式调用此函数通常用于在线程间序列化对象传递其他窗体对象以替代自身。\n用法可参考 winex.loading 源码。\n\n参数 winform 必须指定一个窗体对象或者 hwnd 字段值为窗体句柄的表对象。\nkernelCall 参数必须是 _serialize 元方法的回调参数。
 thread.init(.(k,v) = 如果参数k指定名称的线程共享变量为空值,\n则初始化该变量值为参数v指定的值
 thread.add(.(k,v) = 对参数k指定线程共享变量名称的数值增加参数v指定的计数\n参数v可以使用负数执行减操作
 thread.var( = 创建线程共享变量 - 可直接作为调用参数传入其他线程
-thread.var(.(name,value) = 可选用参数@1指定共享变量名称,可选在参数@2中指定初始化值,\n如果不指定共享变量名，则自动分配共享变量名,\n\n线程共享变量不会自动释放,调用 set 函数设为 null 可删除线程变量,\n如果确认没有线程再使用该变量，可调用 relase 函数释放共享变量名,\nthread.var以及 thread.table 自动分配的线程共享变量名上限为\n:0x3FFFFFFFFFFFFC0000000000000 个。\n应及时调用返回对象的 release 函数释放不需要的线程共享变量
+thread.var(.(name,value) = 可选用参数@1指定共享变量名称,可选在参数 @2 中指定初始化值,\n如果不指定共享变量名，则自动分配共享变量名,\n\n线程共享变量不会自动释放,调用 set 函数设为 null 可删除线程变量,\n如果确认没有线程再使用该变量，可调用 relase 函数释放共享变量名,\nthread.var以及 thread.table 自动分配的线程共享变量名上限为\n:0x3FFFFFFFFFFFFC0000000000000 个。\n应及时调用返回对象的 release 函数释放不需要的线程共享变量
 thread.var() = !threadvar.
 thread.invokeAndWait(func,->->->) = @.invokeAndWait(\n	function(){\n		import win;\n		__/*创建工作线程执行参数@1指定的线程函数,\n参数@1之后的其他可选参数会作为调用线程函数的参数。\n调用并等待线程函数执行完毕,然后获取此线程函数的返回值,\n在界面线程等待时界面仍可响应用户操作，线程函数的返回值会返回给调用线程,\n线程函数拥有独立的全局变量，并应遵守多线程调用规则*/\n	} \n)
-thread.delay(__) = 参数指定延时值,单位毫秒,参数不可省略,\n导入 win 库的界面线程内会执行 win.delay，\n否则执行 sleep 函数。\n\n如果当前线程导入了 win 库则退出消息循环返回null,否则返回true\n否则调用 sleep 函数并总是返回 true
+thread.delay(__) = 参数指定延时值，单位毫秒，不可省略，\n导入 win 或 win.ui 库的界面线程内会执行 win.delay，否则执行 sleep 函数。\n调用 win.delay 并且退出消息循环返回 null ，否则总是返回 true。
 !threadvar.get() = 获取值
-!threadvar.set(__) = 在参数@1中指定新的值,\n不使用时一定要设置值为null以删除该变量\n如果使用了共享变量名,\n即使删除共享变量也不会再重复分配该变量名给新的线程变量,\n除非调用release函数释放该变量名
-!threadvar.add(__) = 增加数值,\n共享变量之前必须是数值或者null值,\n可以在参数中指定负数执行减操作
+!threadvar.set(__) = 在参数 @1 中指定新的值，\n不使用时一定要设置值为 null 以删除该变量\n如果使用了共享变量名,\n即使删除共享变量也不会再重复分配该变量名给新的线程变量,\n除非调用 release 函数释放该变量名。
+!threadvar.add(__) = 增加数值,\n共享变量之前必须是数值或者 null 值。\n可以在参数中指定负数执行减操作。
 !threadvar.release() = 返回变量原来的值,\n同时设为 null 并删除该变量。\n应及时释放不再使用的线程共享变量
 end intellisense**/

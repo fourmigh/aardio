@@ -136,6 +136,8 @@ class sqlite {
 		return tab;
 	};
 	exec = function(sql,...){
+		if(!sql) error( "参数 @1 必须指定 SQL ，不能是 null 值！",2);
+		
 		if( ... !== null )  sql = format(sql,...); 
 		var failed,err = exec(this.db,sql);
 		if(failed) checkResult(failed,err,,this.db); 
@@ -475,7 +477,7 @@ open = function(filename,pwd,flag=0x10006/*SQLITE_OPEN_NOMUTEX|OPEN_CREATE|SQLIT
 	if( !filename ) error("数据库路径不能为空",2)
 	 
 	//https://www.sqlite.org/uri.html
-	if(..string.startWith(filename,"file:",true)){
+	if(..string.startsWith(filename,"file:",true)){
 		if(type(pwd)=="table") filename = ..inet.url.appendExtraInfo(filename,pwd);
  		var scheme,path,ex = ..string.match(filename,"(file\:)\s*<//>?\s*([^\?\#]*)(.*)")
 		if(!(path[3]===':'# && path[1]=='/'#)){ 
@@ -614,25 +616,31 @@ escape = function(v,nested){
 	return ..string.replace(tostring(v),"\p","");
 };
 
-format = function(sql,...) { 
-	if( type( ... ) == "table" ){
-		var param = ...;
-		if(#param){
-			var i = 0;
-			sql = (..string.replace(sql,"\?\?*",
-				function(name) {
-					i++;
-					if( name == "?" ) return escape(param[i]);
-					else return escapeId(param[i])
-				}
-			));	
-		}
-		
-		return (..string.replace(sql,"\@(<:+>|<\w+>[^\s\p]*)",
-				lambda(name) escape(param[name])
-		));
+format = function(sql,...) {
+	var param = ...;
+	if( type( param ) != "table" ){
+		if( param && !..string.indexOf(sql,"%") && ..string.indexOf(sql,"?") ){
+			param = {...}
+		}	
+		else {
+			return ..string.format(sql,...);
+		} 
 	}
-	return ..string.format(sql,...);
+	
+	if(#param){
+		var i = 0;
+		sql = (..string.replace(sql,"\?\?*",
+			function(name) {
+				i++;
+				if( name == "?" ) return escape(param[i]);
+				else return escapeId(param[i])
+			}
+		));	
+	}
+	
+	return (..string.replace(sql,"\@(<:+>|<\w+>[^\s\p]*)",
+			lambda(name) escape(param[name])
+	)); 
 }
 formatSqlParameters =  format;
  
@@ -801,7 +809,7 @@ namespace column{
 		if( p && len ){
 			var buf = raw_buffer(len,p);
 			if( buf[1] == '/'# && buf[2] == '*'#  ){
-				if( ..string.startWith(buf,'/*aardio.table=*/' ) ){
+				if( ..string.startsWith(buf,'/*aardio.table=*/' ) ){
 					return eval(buf);
 				}
 			}

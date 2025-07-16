@@ -4,9 +4,11 @@
 
 以下内置函数属于保留函数，保留函数全局有效且不能修改。 <a id="reserved-functions" href="#reserved-functions">&#x23;</a>
 
-- eval 计算表达式
 - import 导入库
 - type 类型检测
+- tostring 转换参数为字符串
+- topointer  转换参数为指针
+- tonumber 转换参数为数值
 - assert 断言
 - assert2 断言并指定抛出异常的调用级别 
 - assertf 反断言
@@ -15,19 +17,18 @@
 - rget 在多返回值中获取指定返回值
 - callex 调用函数，并可自定义 owner 参数与错误处理函数
 - call 调用函数且不会抛出异常，可用首个返回值判断调用是否成功
-- invoke 调用函数，并可自定义 owner 参数，失败直接抛出异常。
-- dumpcode 编译 aardio 代码
-- collectgarbage 回收内存
-- tostring 转换参数为字符串
-- topointer  转换参数为指针
-- tonumber 转换参数为数值
-- sleep 休眠
-- execute 调用系统命令行
-- setlocale 区域设置
-- setprivilege 指定进程权限
+- invoke 调用函数，并可自定义 owner 参数，失败直接抛出异常
+- switch 根据条件值选择调用函数
+- eval 计算表达式
 - loadcode 加载 aardio 代码或代码文件
 - loadcodex 直接执行 aardio 代码或代码文件
+- dumpcode 编译 aardio 代码
+- setlocale 区域设置
+- setprivilege 指定进程权限
+- collectgarbage 回收内存
 - reduce 对数组中的每个值从左到右开始缩减，并计算为一个值
+- sleep 休眠
+- execute 调用系统命令行
 
 保留函数特点：
 

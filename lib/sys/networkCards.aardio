@@ -44,7 +44,7 @@ each = function(...){
 			var netConnectionId = regAdapter.queryValue("Name");
 			if(pnpInstanceId && netConnectionId){
 				for(i=1;#hardwareIds;1){
-					if(..string.startWith(pnpInstanceId,hardwareIds[i],true)){
+					if(..string.startsWith(pnpInstanceId,hardwareIds[i],true)){
 						..table.push(result,{
 							netConnectionId = netConnectionId;
 							pnpInstanceId = pnpInstanceId;

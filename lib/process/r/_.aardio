@@ -1,5 +1,5 @@
 ﻿import win.reg;
-import web.json;
+import JSON;
 import process.popen;
 import process.rpc.jsonClient;
 import process.job.limitKill;
@@ -14,7 +14,7 @@ class r{
 		  
 		var args = ...;
 		if((args !== null) && type(args)!="table" ){
-			if( ! (type.isString(args) && ..string.startWith(args,"--") ) ) {
+			if( ! (type.isString(args) && ..string.startsWith(args,"--") ) ) {
 				args = ..table.assign(,options);
 			}
 			else args = {};
@@ -22,7 +22,7 @@ class r{
 			..table.push(args,...);
 			for(k,v in args){
 				 if(type(v)=="table"){
-				 	args[k] = ..web.json.stringify(v);
+				 	args[k] = ..JSON.stringify(v);
 				 }
 			}
 		}
@@ -81,7 +81,7 @@ namespace r{
 		var out,err = exec(code,...);
 		if(#out ){
 			if(!err){
-				if( !..string.match(out,"\[\d+\]\s+") ) return ..web.json.tryParse(out) || out;
+				if( !..string.match(out,"\[\d+\]\s+") ) return ..JSON.tryParse(out) || out;
 				return out;	
 			}
 			return null,err;

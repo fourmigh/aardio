@@ -11,3 +11,4 @@ orphanWindow=orphanWindow.aardio
 自适应缩放事件=adjust.aardio
 分层透明窗口=layered.aardio
 控件重叠=overlapping.aardio
+窗口样式=dumpStyle.aardio

@@ -1,30 +1,34 @@
 //硬件信息
-//相关范例: 范例\COM 组件\WMI\获取系统信息;范例\操作系统\系统版本信息
-
-import console; 
+//范例 » COM组件 » WMI » 系统信息: file://~/example/COM/WMI/SysInfo.aardio
+//范例 » 操作系统 » 系统版本信息: file://aardioexample/System/sysInfo.aardio
 
 import sys.baseBoard;
-console.log("主板",sys.baseBoard.getFullName())
+print("主板",sys.baseBoard.getFullName())
+
+import sys.storage;
+var hdInfo = sys.storage.queryProperty();//参数可指定设备序号或设备路径，省略参数取系统硬盘信息
+print("系统硬盘名称:", hdInfo.productId )
+print("系统硬盘序列号:", hdInfo.serialNumber )
 
 import sys.cpu;
-console.log("CPU:",sys.cpu.getBrand());
-console.log("CPU 当前速度:",sys.cpu.getFrequence(true));
+var cpuProductName = sys.cpu.getBrand()
+print("CPU:",cpuProductName);
+print("CPU 当前速度:",sys.cpu.getFrequence(true));
 
 var cpu = sys.cpu.getInfoByWmi()
-console.log(cpu.DeviceID );//CPU
-console.log(cpu.Name);//
-console.log("CPU 核心数："+ cpu.NumberOfLogicalProcessors);
-console.log("CPU 逻辑核心数："+ cpu.NumberOfLogicalProcessors);
-console.log("CPU 最大速度："+ math.round(cpu.MaxClockSpeed/1000,2) + "GHz");
-console.log("CPU 当前速度："+ math.round(cpu.CurrentClockSpeed/1000,2) + "GHz");
-console.log("CPU 位宽：" + cpu.AddressWidth);
-console.more()
+print(cpu.DeviceID );//输出类似 "CPU0"，不适合用来生成机器码
+print(cpu.Name);//
+print("CPU 核心数："+ cpu.NumberOfLogicalProcessors);
+print("CPU 逻辑核心数："+ cpu.NumberOfLogicalProcessors);
+print("CPU 最大速度："+ math.round(cpu.MaxClockSpeed/1000,2) + "GHz");
+print("CPU 当前速度："+ math.round(cpu.CurrentClockSpeed/1000,2) + "GHz");
+print("CPU 位宽：" + cpu.AddressWidth);
 
 import sys.mem;
-console.log("Total Memory:",sys.mem.getInfo().totalPhys.formatSize);
+print("Total Memory:",sys.mem.getInfo().totalPhys.formatSize);
 
 import sys.display;
-console.log("Display Adapter:",sys.display.getAdapter().Description)
+print("Display Adapter:",sys.display.getAdapter().Description)
 
 import sys.device;
 var devInfo = sys.device(/*"{4d36e96c-e325-11ce-bfc1-08002be10318}"*/,"PCI");
@@ -32,7 +36,7 @@ for( index,classGuid,deviceDesc in devInfo.each(
     8/*_SPDRP_CLASSGUID*/,
     0/*_SPDRP_DEVICEDESC*/
     ) ){
-    console.log( index,classGuid,deviceDesc );
+    print( index,classGuid,deviceDesc );
 }
  
 //查找 USB 网卡
@@ -43,13 +47,5 @@ for( index,classGuid,deviceDesc,hardwareId in devices.each(
     1/*_SPDRP_HARDWAREID*/
     ) ){ 
         
-    console.log( index,classGuid,deviceDesc,hardwareId[1] );
+    print( index,classGuid,deviceDesc,hardwareId[1] );
 }
-
-/*
-相关范例：
-范例\COM 组件\WMI\获取系统信息
-范例\操作系统\硬件信息\查询硬件信息
-*/
-
-console.pause(true);

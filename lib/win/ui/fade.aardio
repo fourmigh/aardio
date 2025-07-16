@@ -9,7 +9,7 @@ class fade{
 			return;
 		}
 			
-		winform.transparent( 1 ); 
+		winform.opacity = 1; 
 		winform.show(); 
 		
 		var timestamp = 0; 
@@ -17,9 +17,9 @@ class fade{
 			function(){
 				var trans = easeOutQuad( timestamp, 0, 255, duration) 
 				timestamp = timestamp + interval;
-				winform.transparent( trans );  
+				winform.opacity = trans ;  
 				if( trans > 245 ){
-					winform.transparent(false);
+					winform.transparent = false;
 					return false;
 				}
 			},interval 
@@ -37,7 +37,7 @@ class fade{
 						shadow._form.close(); 
 						shadow = null;
 					}
-					winform.transparent( trans ) ;
+					winform.opacity = trans;
 					
 					if( trans < 10 ){
 						winform.onClose = null;

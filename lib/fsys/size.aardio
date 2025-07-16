@@ -1,11 +1,6 @@
 //size 文件大小
 namespace fsys.size;
- 
-GB = 0x40000000;
-MB = 0x100000;
-KB = 0x400;
-bytes = 1;
-  
+
 unitNames = { 
     [0x40000000]="GB";[0x100000]="MB";[0x400]="KB";[1]="bytes";
 }
@@ -30,10 +25,7 @@ format = function(low=0,high=0,unit,precision=2){
 	return ..math.round( size,precision ),unit,unitNames[unit];
 }
 
-/**intellisense(fsys.size)
-GB = 0x40000000;
-MB = 0x100000;
-KB = 0x400;
-bytes = 1;
-format(.(长度,长度高位,单位大小,精度) = 格式化大小,所有参数可选\n默认自动计算最大单位大小,精度默认为最大2位小数\n返回值依次为:大小,单位大小,单位名称\n\n建议改用math.size64实现此函数的功能
+/**intellisense()
+fsys.size = 格式化用于表示文件体积大小的数值
+fsys.size.format(.(字节长度低位,长度高位,单位大小,精度) = 格式化用于表示文件体积大小的数值，所有参数可选。\n默认自动计算最大单位大小，精度默认为最大 2 位小数。\n返回值依次为:大小，单位大小，单位名称。\n\n\n更简单快捷的方法是使用内置对象 math.size64 的 format 方法。\n仅在需要自定义显示单位时才需要用到 fsys.size.format 函数。
 end intellisense**/

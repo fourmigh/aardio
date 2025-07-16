@@ -46,7 +46,7 @@ class tabs{
 		
 		this.mode = "tabs";
 		
-		if(#this.tabList<2) error('至少要指定2个已创建的plus控件模板\n创建高级选项卡以后可以调用clear函数清空控件模板',2);
+		if(!(this.tabList[1] && this.tabList[2]) )error('至少要指定2个已创建的plus控件模板\n创建高级选项卡以后可以调用clear函数清空控件模板',2);
 		
 		var defRc = this.tabList[1]._defRect;
 		var defRc2 = this.tabList[2]._defRect;
@@ -338,8 +338,16 @@ class tabs{
 		if(defaultStyle){
 			this.tabList[1].setTimeout( 
 				function(){
-					if(!this.style){
-						this.skin( ..table.clone(defaultStyle))
+					if(!this.style && this.tabList[1]){
+						var $fixDefaultStyle = {
+							color = this.tabList[1].argbColor;
+							foreground = this.tabList[1].foreground;
+						}
+						
+						this.skin( ..table.clone(defaultStyle));
+						
+						//避免将默认字体修改为白色，用户自定义样式又指定了白色背景且没有指定字体颜色
+						this.$fixDefaultStyle = $fixDefaultStyle;
 					}
 				},100
 			)			
@@ -385,36 +393,37 @@ class tabs{
 	setItemTexts = function(items,limit,selIndex){
 		return this.setItems( ..table.map(items,lambda(v){text=v}),limit,selIndex);
 	};
-	add = function(tabConfig,...){
+	add = function(tabProperties,...){
+		if(type(tabProperties)=="string") tabProperties = {text=tabProperties}
 		 
-		if(#tabConfig && type(tabConfig[1])=="table"){
-			for(i=1;#tabConfig;1){ this.add(tabConfig[i],...); }
+		if(#tabProperties && type(tabProperties[1])=="table"){
+			for(i=1;#tabProperties;1){ this.add(tabProperties[i],...); }
 			return;
 		}  
 		
 		var isPopup = this.isPopup();
-		tabConfig = ..table.assign({},this.template,tabConfig);
+		tabProperties = ..table.assign({},this.template,tabProperties);
 		if(isPopup){ 
-			tabConfig.dt = 1;
-			tabConfig.dl = 1;
+			tabProperties.dt = 1;
+			tabProperties.dl = 1;
 		}
 		
 		var last = this.tabList[#this.tabList];
 		var rcDesignTime = last ? last._defRect : this.designTimeBeginRect;
 		if(this.horizontal){
-			tabConfig.top = rcDesignTime.top;
-			tabConfig.bottom = rcDesignTime.bottom;
-			tabConfig.left = rcDesignTime.right + 	this.itemMargin;
-			tabConfig.right = tabConfig.left + rcDesignTime.width();
+			tabProperties.top = rcDesignTime.top;
+			tabProperties.bottom = rcDesignTime.bottom;
+			tabProperties.left = rcDesignTime.right + 	this.itemMargin;
+			tabProperties.right = tabProperties.left + rcDesignTime.width();
 		}
 		else {
-			tabConfig.left = rcDesignTime.left;
-			tabConfig.right = rcDesignTime.right;
-			tabConfig.top = rcDesignTime.bottom + 	this.itemMargin;
-			tabConfig.bottom = tabConfig.top + rcDesignTime.height();
+			tabProperties.left = rcDesignTime.left;
+			tabProperties.right = rcDesignTime.right;
+			tabProperties.top = rcDesignTime.bottom + 	this.itemMargin;
+			tabProperties.bottom = tabProperties.top + rcDesignTime.height();
 		}
 	 
-		var tab =  this._form.add( { tabConfig } )[[1]];
+		var tab =  this._form.add( { tabProperties } )[[1]];
 		if( tab ){
 			if(this.itemRegion) this.itemRegion.updateWindow(tab.hwnd,true,true)
 			
@@ -436,15 +445,7 @@ class tabs{
 			tab.onFocusGot = this._preFocusGot; 
 			tab.onFocusLost = this._preFocusLost;
 			tab.onMouseActivate = this._preMouseActivate
-			if(...){
-				var frm = this.forms[idx];	
-				if( frm ) {
-					frm.close();	
-				}
-				
-				this.forms[idx]= this.panel.preloadForm(...);
-			}
-			
+			 
 			if(isPopup){
 				tab.orphanWindow(this.transparent);
 				return;
@@ -488,6 +489,16 @@ class tabs{
 			
 			tab.predraw();
 			tab.show(4/*_SW_SHOWNOACTIVATE*/);
+			
+			if(...){
+				
+				var frm = this.forms[idx];	
+				if( frm ) {
+					frm.close();	
+				}
+				
+				this.forms[idx]= this.panel.preloadForm(...);
+			}
 			return idx;
 		}
 	};
@@ -687,8 +698,8 @@ class tabs{
 		if(show!==null) form.show(show);
 		return form.this(); //fake window 自动初始化。
 	};
-	create = function(tabConfig){
-		var idx = this.add(tabConfig);
+	create = function(tabProperties){
+		var idx = this.add(tabProperties);
 		if( idx ) this.forms[idx]= this.panel.loadForm( ..win.form(parent = this.panel) ); 
 		return this.tabList[idx],this.forms[idx];
 	};
@@ -825,6 +836,12 @@ class tabs{
 				}
 			} 
 		}
+	};
+	set = function(tabIndex,tabProperties){
+		var tab = this.tabList[tabIndex];
+		if(!tab) error("参数 @1 指定了错误的选项索引");
+		
+		..table.assign( tab,tabProperties ); 
 	};
 	setTabs = function(name,values){
 		for(i=1;#values;1) this.tabList[i][name] = values[i];
@@ -1069,6 +1086,18 @@ class tabs{
 		return show; 
 	};
 	skin = function(style){
+		if(this.$fixDefaultStyle){
+			if( style.foreground && style.foreground.default === null ){
+				style.foreground.default = this.$fixDefaultStyle.foreground;
+			}
+			
+			if( style.color && style.color.default === null ){
+				style.color.default = this.$fixDefaultStyle.color;
+			}  
+			
+			this.$fixDefaultStyle = null;
+		}
+		 
 		style.group = this._radioGroup;
 		for(i=1;#this.tabList;1){
 			this.tabList[i].skin(style);
@@ -1154,7 +1183,8 @@ namespace tabs{
 				
 				tab.checked = true;
 				
-				if( owner.onSelchange ) owner.onSelchange(i,owner.tabList[i],owner.forms[i]); 
+				var f = owner.onSelChange || owner.onSelChanged || owner.onSelchange;
+				if( f ) invoke(f,owner,i,owner.tabList[i],owner.forms[i]);
 			} 	
 		};
 		selTab = {
@@ -1235,8 +1265,11 @@ namespace tabs{
 				owner.selTab.disabled = v;
 			}
 		};
-		count = function(){
-			return #(owner.tabList);
+		count = {
+			_get = function(ownerCall){ 
+				if(ownerCall) return lambda () #(owner.tabList);
+				return #(owner.tabList)
+			} 
 		};
 		lastVisibleIndex= function(){
 			var tabList = owner.tabList;
@@ -1283,6 +1316,10 @@ namespace tabs{
 			};
 			_get = function(){ return owner[["(onDrawEnd)"]]; };
 		};
+		
+    )
+    
+    with _metaProperty{
 		container = { //@Deprecated
 			_set = lambda(v)  owner.panel = v;
 			_get = lambda() owner.panel;
@@ -1290,8 +1327,13 @@ namespace tabs{
 		strips = { //@Deprecated
 			_set = lambda(v)  owner.tabList = v;
 			_get = lambda() owner.tabList;
+		};	
+		getForm = function(i){ //@Deprecated
+			return owner.forms[i]
 		};
-    )
+		getChild = getForm;//@Deprecated
+		remove = delete;//@Deprecated
+    }
     
     dropButtonStyle = {   
 		color = { 
@@ -1302,9 +1344,10 @@ namespace tabs{
 	}
 	
 	defaultStyle = {
+		
 		foreground={
 			active=0xFFFFFFFF;
-			default=0x00FFFFFF;
+			default=0xE60089E4;
 			hover=0x38FFFFFF
 		};
 		color = {
@@ -1322,8 +1365,8 @@ namespace tabs{
 //@guide [高级选项卡使用指南](doc://library-guide/std/win/ui/tabs/_.md)
 
 /**intellisense()
-win.ui.tabs = 高级选项卡（ tab plus ）。\n高级选项卡并不是一个控件，而是用于管理一组 plus 控件（ win.ui.ctrl.plus ）以实现选项卡效果的管理组件。
-win.ui.tabs( = 创建高级选项卡（ tab plus ）。\n自动查找附近合适的 custom 控件作为页面容器。\n优先选择未禁用、未隐藏、未设置透明的 custom 控件。\n如果是水平选项卡，应在下侧放置 custom 控件作为页面容器,\n如果是垂直选项卡,应在右侧放置 custom 控件作为页面容器。\n\n为了避免在启动软件时一次性加载大量子窗口导致启动速度慢,\n为每一个选项卡添加子窗口时，win.ui.tabs 默认会创建并返回伪窗口。\n直到点击该选项卡或访问伪窗口的属性与方法（fake 属性除外）时才会真正初始化相应的子窗口
+win.ui.tabs = 高级选项卡（ win.ui.tabs ）。\n高级选项卡并不是一个控件，而是用于管理一组 plus 控件（ win.ui.ctrl.plus ）以实现选项卡效果的管理组件。
+win.ui.tabs( = 创建高级选项卡（ win.ui.tabs ）。\n自动查找附近合适的 custom 控件作为页面容器。\n优先选择未禁用、未隐藏、未设置透明的 custom 控件。\n如果是水平选项卡，应在下侧放置 custom 控件作为页面容器,\n如果是垂直选项卡,应在右侧放置 custom 控件作为页面容器。\n\n为了避免在启动软件时一次性加载大量子窗口导致启动速度慢,\n为每一个选项卡添加子窗口时，win.ui.tabs 默认会创建并返回伪窗口。\n直到点击该选项卡或访问伪窗口的属性与方法（fake 属性除外）时才会真正初始化相应的子窗口
 win.ui.tabs(.(headerTab1,headerTab2) = 创建高级选项卡。\n参数必须指定至少2个已创建的 plus 控件模板,对象创建成功可选清除模板\n如果不需要动态增删选项卡,参数中的 plus 控件无需保持均匀间隔,\n\n动态增加选项卡时会根据模板控件的样式与位置,\n自动分析是水平排列还是垂直排列,自动分析排列间距，\n并动态添加选项卡,可选显示删除选项卡的按钮\n\n添加的选项卡数目超出显示范围时可自动折叠到下拉菜单，\n自动折叠功能会保证新增选项卡、当前选项卡位于可见位置,\n这会导致选项卡在必要时自动调整位置,\n所以同一索引并不一定指向同一选项卡
 win.ui.tabs() = !win_ui_tabs.
 win.ui.tabs.defaultStyle = @.defaultStyle = {\n	foreground={\n		active=0xFFFFFFFF;\n		default=0x00FFFFFF;\n		hover=0x38FFFFFF\n	};\n	color = {\n		default=0xFFFFFFFF; \n	};\n	checked={\n		foreground={default=0xFFFFFFFF;}; \n		color={default=0xFF42A875;};__/*默认选项卡样式*/\n	}\n}
@@ -1336,8 +1379,8 @@ keepSpace = 是否保持选项之间的间距不变,\n该属性建议由aardio�
 dropButtonMargin = 下拉菜单按钮边距
 itemMargin = 选项卡间隔距离,可以为负数
 updateItemRegion(__) = 更新选项卡绘图区域,\n参数必须是兼容 win.region.png 接口的对象
-selIndex = 获取或指定当前选中项索引,设为null清除当前选项,\n如果新的选中项已被自动折叠,则会自动移动到可见位置\n所以设置selIndex时可能导致selIndex移动位置
-selTab = 获取或指定当前选中的选项卡按钮\n指定null或不存在于tabs中的控件时清除选中项,\n!ui_ctrl_plus.
+selIndex = 获取或指定当前选中项索引,设为 null 清除当前选项,\n如果新的选中项已被自动折叠,则会自动移动到可见位置\n所以设置selIndex时可能导致selIndex移动位置
+selTab = 获取或指定当前选中的选项卡按钮\n指定 null 或不存在于 tabs 中的控件时清除选中项,\n!ui_ctrl_plus.
 selText = 获取当前选中项文本,\n也可以指定一个文本用于切换到显示该文本的选项卡
 selForm = 当前选中的子窗口\n!winform.
 lastVisibleIndex = 最后一个显示状态的选项卡索引\n在这后面是因为超出显示范围被自动隐藏的选项卡
@@ -1354,101 +1397,102 @@ adjust() = @.adjust = function(){
     var x,y,cx,cy = owner.getPos();
 	__/*选项卡已重新调整布局*/
 }
-showDropButton(true) = 参数为true显示下拉菜单按钮\n参数为false隐式该按钮\n高级选项卡会在需要的时候自动调用此函数
-swap(.(a,b) = 交换两个索引的选项卡位置\n参数a,b应当是有效的选项卡索引\n这个函数如果没有弄清楚原理最好不要使用,\n高级选项卡会在需要的时候自动调用此函数,\n成功返回true,失败返回null
+showDropButton(true) = 参数为true显示下拉菜单按钮\n参数为 false 隐式该按钮\n高级选项卡会在需要的时候自动调用此函数
+swap(.(tabIndex,tabIndex2) = 交换两个索引的选项卡位置\n参数 tabIndex,tabIndex2 应当是有效的选项卡索引\n这个函数如果没有弄清楚原理最好不要使用,\n高级选项卡会在需要的时候自动调用此函数,\n成功返回true,失败返回null
 loadForm( = 加载窗体到高级选项卡的页面容器控件，并绑定选项卡。\n选项卡必须已经匹配到可用的页面容器，\n也就是说 panel 属性不为空值。\n\n高级选项卡默认会自动查找附近合适的 custom 控件作为页面容器\n也可以手动指定 panel 指向的窗口\n\nloadForm 函数默认会加载延迟创建实际窗口的伪窗口。\n访问伪窗口的任何属性或方法都会自动创建真实窗口。
-loadForm(.(index,"请输入窗体代码文件路径") = 在页面容器控件内预加载创建子窗体的代码文件，\n并绑定到参数 @index 指定索引的选项卡。\n参数 @index 可用负索引表示倒计数，-1 表示最后一个选项卡。\n在开发环境中,请注意保存外部窗体文件以后测试运行。\n\n默认会创建并返回一个伪窗口对象，\n并延迟到用户切换到所属选项卡时才会真正创建窗口。\n访问伪窗口除 fake 以外的任何属性方法也会立即创建窗口。
-loadForm(.(index,winform) = 将 @winform 指定的子窗体添加到页面容器，\n并绑定到参数 @index 指定索引的选项卡。\n参数 @index 可用负索引表示倒计数，-1 表示最后一个选项卡。\n如果不指定索引（可省略参数占位）则默认取 forms 属性的数组长度并加 1 作为索引。\n返回参数 @2 指定的窗体对象。
-loadForm(.(index,@tParam) = 在页面容器控件内创建子窗体并绑定到参数@1指定索引的选项卡。\n参数 @index 可用负索引表示倒计数，-1 表示最后一个选项卡。\n\n默认会创建并返回一个伪窗口对象，\n并延迟到用户切换到所属选项卡时才会真正创建窗口。\n访问伪窗口除 fake 以外的任何属性方法也会立即创建窗口。
-loadForm(.(index) = 在页面容器控件创建默认子窗体并绑定到指定的选项卡。\n数 @index 指定索引，可用负索引表示倒计数，-1 表示最后一个选项卡。\n如果不指定索引则默认取 forms 属性的数组长度并加 1 作为索引。\n与其他函数同的是：此函数省略参数 @1 可不用占位，允许参数 @2 写为 参数 @1。\n省略参数 @2 则立即创建默认子窗体并加载到页面，然后返回该窗体。
+loadForm(.(tabIndex,"请输入窗体代码文件路径") = 在页面容器控件内预加载创建子窗体的代码文件，\n并绑定到参数 @tabIndex 指定索引的选项卡。\n参数 @tabIndex 可用负索引表示倒计数，-1 表示最后一个选项卡。\n在开发环境中,请注意保存外部窗体文件以后测试运行。\n\n默认会创建并返回一个伪窗口对象，\n并延迟到用户切换到所属选项卡时才会真正创建窗口。\n访问伪窗口除 fake 以外的任何属性方法也会立即创建窗口。
+loadForm(.(tabIndex,winform) = 将 @winform 指定的子窗体添加到页面容器，\n并绑定到参数 @tabIndex 指定索引的选项卡。\n参数 @tabIndex 可用负索引表示倒计数，-1 表示最后一个选项卡。\n如果不指定索引（可省略参数占位）则默认取 forms 属性的数组长度并加 1 作为索引。\n返回参数 @2 指定的窗体对象。
+loadForm(.(tabIndex,@tParam) = 在页面容器控件内创建子窗体并绑定到参数@1指定索引的选项卡。\n参数 @tabIndex 可用负索引表示倒计数，-1 表示最后一个选项卡。\n\n默认会创建并返回一个伪窗口对象，\n并延迟到用户切换到所属选项卡时才会真正创建窗口。\n访问伪窗口除 fake 以外的任何属性方法也会立即创建窗口。
+loadForm(.(tabIndex) = 在页面容器控件创建默认子窗体并绑定到指定的选项卡。\n数 @tabIndex 指定索引，可用负索引表示倒计数，-1 表示最后一个选项卡。\n如果不指定索引则默认取 forms 属性的数组长度并加 1 作为索引。\n与其他函数同的是：此函数省略参数 @1 可不用占位，允许参数 @2 写为 参数 @1。\n省略参数 @2 则立即创建默认子窗体并加载到页面，然后返回该窗体。
 loadForm(.() = 在页面容器控件创建默认子窗体并绑定到最后一个选项卡。\n返回创建的子窗口对象。
 setItemTexts( = 使用文本数组更新选项卡数组,\n此函数可重用已创建的选项卡，所以有更好的性能
 setItemTexts(.(texts,limit,selIndex) = 使用参数@texts指定的字符串数组创建选项卡数组,\n其中的每个字符串用于指定选项卡上的显示文本。\n可选用@limit参数指定最大显示条数,\n可选用@selIndex参数指定默认选中索引,\n此函数返回实际显示条数
 setItems( = 使用控件初始化选项数组更新选项卡数组,\n此函数可重用已创建的选项卡，所以有更好的性能
 setItems(.(items,limit,selIndex) = 使用参数@items指定的选项数组更新选项卡数组, \n每个选项提供控件的初始化属性并将被传入add函数。\n可选用@limit参数指定最大显示条数,\n可选用@selIndex参数指定默认选中索引,\n此函数返回实际显示条数
-add(tabConfig) = @.add({\n	text="标题文本";\n	iconText='\uF0AD';\n	foreground="\res\images\icon.png";\n	hasCloseButton=true;__/*添加选项卡按钮 - 使用plus控件创建,\n参数@1可以指定部分创建 plus 控件的参数,未指定的参数自动补全,\ntext字段可用于指定显示文本,foreground 字段可用于指定前景图标\n如果指定 hasCloseButton 为 true，鼠标悬停会显示关闭按钮,\n参数@1也可以使用一个数组指定创建多个选项卡的选项\n\n如果存在多个参数,\n自参数 @2 开始作为 loadForm 函数的参数加载窗体并绑定当前选项卡\n\n此函数成功返回新增的选项卡索引,注意如果超出显示范围,\n新增选项卡会自动替换到可显示位置*/\n})
-addItems(.(options) = 参数@option指定一个数组，\n遍历数组中的项并作为参数调用add函数创建多个选项卡,\n参数为null或空数组时忽略不执行任何操作
-create(.(参数表) = 此函数与add函数用法相同\n但创建选项卡以后会同时创建对应的子窗口,\n返回2个值,分别为创建的选项卡对象、子窗体对象\n\n注意,调用add,create函数添加选项卡,\n如果超出可见范围,会自动折叠其他选项卡,并将新增的选项卡移动到可见位置\n所以增加选项卡可能导致选项卡调整位置,索引发生变化
+add(tabButtonPropertiesTable) = @.add({\n	text="选项卡按钮标题";\n	iconText='\uF0AD';\n	foreground="\res\images\icon.png";\n	hasCloseButton=true;__/*添加选项卡按钮（plus 控件） 。\n参数 @1 可以用一个表（table）指定部分创建 plus 控件的属性，未指定的属性自动补全,\ntext 属性可用于指定显示文本,foreground 属性可用于指定前景图标。\n如果指定 hasCloseButton 属性为 true，鼠标悬停在选项卡按钮上会显示关闭按钮,\n参数 @1 也可以传入一个 plus 按件初始化属性表数组，用于同时创建多个选项卡按钮。\n\n如果存在多个调用参数，\n自参数 @2 开始作为 loadForm 的调用参数以执行高级选项卡的 loadForm 方法加载子窗体，并绑定当前选项卡按钮。\n\n此函数成功返回新增的选项卡按钮索引。\n如果超出显示范围，新增选项卡按钮会自动替换到最后一个显示位置，\n并将被替换的选项卡按钮移入到下拉菜单内。*/\n})
+addItems(.(arrayTabPropertiesTable) = 参数 @arrayTabPropertiesTable 指定一个属性表数组，\n遍历数组中的控件属性表并作为参数调用高级选项卡的 add 方法创建多个选项卡。\n调用参数 @arrayTabPropertiesTable 为 null 或空数组时忽略不执行任何操作
+create(.(参数表) = 此函数与 add 函数用法相同\n但创建选项卡以后会同时创建对应的子窗口,\n返回 2 个值,分别为创建的选项卡按钮对象、子窗体对象。\n\n注意,调用 add,create 函数添加选项卡按钮,\n如果超出可见范围,会自动折叠其他选项卡按钮,并将新增的选项卡按钮移动到可见位置。\n所以增加选项卡按钮可能导致选项卡按钮调整位置,选项卡按钮的原索引发生变化
 create() = !ui_ctrl_plus.
-delete(__) = 删除指定索引的选项卡\n参数用数值指定选项所在位置索引
-deleteByTab(__) = 删除指定的选项卡\n参数指定选项卡按钮对象
-deleteByForm(__) = 删除指定的选项卡\n参数指定相同索引位置的子窗体对象
-prev() = 切换到上一个
-next() = 切换到下一个
+delete(__/*tabIndex*/)) = 删除指定索引的选项卡按钮。\n参数用数值指定选项所在位置索引
+deleteByTab(__/*tabButton*/)) = 删除指定的选项卡按钮。\n参数指定选项卡按钮对象
+deleteByForm(__/*formPage*/) = 删除指定的选项卡按钮。\n参数指定相同索引位置的子窗体对象
+prev() = 切换到上一个选项
+next() = 切换到下一个选项
 initPopup(.(handleCtrl,transparent) =  初始化为弹出菜单样式\n@handleCtrl指定接收输入事件的控件,\n自动修改该控件的checked属性为是否弹出状态,\ntransparent指定菜单是否透明,\n所有参数可选
 popup( = 切换到弹出列表模式，\n用于显示简单的弹出列表或菜单，\n如果当前项目列表数组为空,则无论传入什么参数都会切换到隐藏状态
 popup(.(true,x,y) = 弹出列表\n可选使用x,y指定列表左上角在屏幕上的坐标
 popup(.(true,ctrl,mode) = 弹出列表\nctrl指定控件，弹出列表显示在该控件边上,\n自动修改该控件的checked属性为是否弹出状态,\n可选使用mode参数指定"up","down","left","right"等显示位置
 popup(.(false) = 隐藏列表，并将selIndex置为null\n如果当前项目列表数组为空,则无论传入什么参数都会切换到隐藏状态
-show(__/*可选输入显示参数*/) = 显示或隐藏所有选项卡,可选输入以_SW_为前缀的显示参数\n参数@1也可以传入true,false控制是否显示选项卡
+show(__/*可选输入显示参数*/) = 显示或隐藏所有选项卡按钮,可选输入以 _SW_ 为前缀的显示参数（数值）。\n参数@1也可以传入 true,false 控制是否显示选项卡
 skin = @.skin({\n	background = { \n		hover = "/res/images/button-hover.png";\n		focus = "/res/images/button-focus.png";\n		active = "/res/images/button-active.png";\n		disabled = 0xFFCCCCCC; \n	};\n	color = {\n		hover = 0xF00000FF;__/*用格式为0xAARRGGBB的16进制数值,指定鼠标放到控件上的字体颜色,\nAA为透明度,RR为红色分量,GG为绿色分量,BB为蓝色分量*/ \n	};\n	border = { \n		hover = {left=5;color=0xFFFF0000;padding=15;} \n	}; \n})
-clear() = 清空所有选项卡、清空所有加载的子窗口
+clear() = 清空所有选项卡按钮、清空所有加载的子窗口
 isVisible() = 选项卡是否可见
 onPopup(showing) = @.onPopup = function(showing){
 	__/*弹出状态变更时触发此事件\n弹出状态@showing参数为true，显示为弹出状态@showing参数为false*/
 } 
 onVisualStateChanged(showing) = @.onVisualStateChanged = function(showing){
-	__/*显示或隐藏时触发此事件\n显示@showing参数为true，隐藏@showing参数为false*/
+	__/*显示或隐藏时触发此事件\n显示 @showing 参数为 true，隐藏 @showing 参数为false*/
 }
-beforeShowCloseButton(tab,rcTabItem,rcCloseButton,dpiScaleX,dpiScaleY) = @.beforeShowCloseButton = function(tab,rcTab,rcCloseButton){
-    __/*返回关闭按钮显示的x,y坐标,需要返回2个值\n不返回值取消显示\n\n参数 tab 为请求显示关闭按钮的选项卡\nrcTab为选项卡所在的区块,::RECT对象,\nrcCloseButton为关闭按钮所在的的区块,::RECT对象\ndpiScaleX,dpiScaleY为X,Y轴上的DPI缩放比例,1表示100%*/
+beforeShowCloseButton(tabButton,rcTabItem,rcCloseButton,dpiScaleX,dpiScaleY) = @.beforeShowCloseButton = function(tabButton,rcTab,rcCloseButton){
+    __/*返回关闭按钮显示的x,y坐标,需要返回2个值\n不返回值取消显示\n\n参数 tabButton 为请求显示关闭按钮的选项卡按钮。\nrcTab 为选项卡按钮所在的位置区块,::RECT对象,\nrcCloseButton为关闭按钮所在的的区块,::RECT对象\ndpiScaleX,dpiScaleY为X,Y轴上的DPI缩放比例,1表示100%*/
 }
-onMouseHover(tab,wParam,lParam) = @.onMouseHover = function(tab,wParam,lParam){
-    __/*鼠标正悬浮于选项卡对象 tab 之上,\nwParam,lParam为窗口消息参数*/
+onMouseHover(tabButton,wParam,lParam) = @.onMouseHover = function(tabButton,wParam,lParam){
+    __/*鼠标正悬浮于选项卡按钮 tabButton 之上,\nwParam,lParam为窗口消息参数*/
 }
-onMouseLeave(tab,wParam,lParam) = @.onMouseLeave = function(tab,wParam,lParam){
-    __/*鼠标离开选项卡对象 tab,\nwParam,lParam为窗口消息参数*/
+onMouseLeave(tabButton,wParam,lParam) = @.onMouseLeave = function(tabButton,wParam,lParam){
+    __/*鼠标离开选项卡按钮 tabButton,\nwParam,lParam为窗口消息参数*/
 }
-onMouseLeave(tab,wParam,lParam) = @.onMouseLeave = function(tab,wParam,lParam){
-    __/*鼠标离开选项卡对象 tab,\nwParam,lParam为窗口消息参数*/
+onMouseLeave(tabButton,wParam,lParam) = @.onMouseLeave = function(tabButton,wParam,lParam){
+    __/*鼠标离开选项卡按钮 tabButton,\nwParam,lParam为窗口消息参数*/
 }
 onFocusGot(hLostFocus) = @.onFocusGot = function(hLostFocus){
 	..win.setFocus(hLostFocus);__/*得到焦点触发此事件,hLostFocus为失去焦点的窗口句柄*/
 }
 onFocusLost(hFocus) = @.onFocusLost = function(hFocus){
-	__/*失去焦点触发此事件,hFocus为得到焦点的窗口句柄*/
+	__/*失去焦点触发此事件,hFocus 为得到焦点的窗口句柄*/
 }
-onSelchange(idx,tab,form) = @.onSelchange = function(idx,tab,form){
-	__/*切换选项卡会触发此事件,idx 为当前选中索引\ntab 为当前选项卡,form 为当前子窗口。\n如果在这里禁用选项卡或 tab，则不会自动触发 tab 的其他事件。*/
+onSelChange(tabIndex,tabButton,formPage) = @.onSelChange = function(tabIndex,tabButton,formPage){
+	__/*切换选项会触发此事件,tabIndex 为当前选中索引\ntabButton 为当前选项卡按钮对象，formPage 为当前子窗口。\n如果在这里禁用选项卡或 tabButton，则不会自动触发 tabButton 的其他事件。*/
 }
-onOk(tab) = @.onOk = function(tab){
+onOk(tabButton) = @.onOk = function(tabButton){
 	__/*用户在弹出列表中选择并确认选项,且即将关闭弹出列表*/
 }
 onCancel() = @.onCancel = function(){
 	__/*用户关闭弹出列表﻿并且未确认选项*/
 }
-oncommand(tab,id,event) = @.oncommand = function(tab,id,event){
-	__/*点击选项卡触发此函数\ntab 为触发事件的选项卡\nid为控件id,event目前值总是0*/
+oncommand(tabButton,id,event) = @.oncommand = function(tabButton,id,event){
+	__/*点击选项卡按钮触发此函数\ntabButton 为触发事件的选项卡按钮对象（plus 控件）。\nid 为 按钮的控件 id,event目前值总是 0*/
 }
-onMouseDown(tab,wParam,lParam) = @.onMouseDown = function(tab,wParam,lParam){
-    __/*在选项卡对象 tab 上按下鼠标,即将切换当前选项卡,\nwParam,lParam为窗口消息参数*/
+onMouseDown(tabButton,wParam,lParam) = @.onMouseDown = function(tabButton,wParam,lParam){
+    __/*在选项卡按钮 tabButton（plus 控件） 上按下鼠标，即将切换当前选项卡。\nwParam,lParam为窗口消息参数*/
 }
-onMouseUp(tab,wParam,lParam) = @.onMouseUp = function(tab,wParam,lParam){
-    __/*在选项卡对象 tab 上放开鼠标,选项卡切换操作已完成,\nwParam,lParam为窗口消息参数*/
+onMouseUp(tabButton,wParam,lParam) = @.onMouseUp = function(tabButton,wParam,lParam){
+    __/*在选项卡按钮 tabButton（plus 控件） 上放开鼠标，选项卡切换操作已完成,\nwParam,lParam为窗口消息参数*/
 }
 onDrawString(->->->) = @.onDrawString = function(graphics,text,font,rectf,strformat,brush){
     graphics.drawString(text,font,rectf,strformat,brush); 
-    __/*自绘所有选项卡控钮上的文本\n注意owner参数指向当前选项卡按钮*/
+    __/*自绘所有选项卡控钮上的文本。\n注意 owner 参数指向当前选项卡按钮*/
 }
 onDrawForegroundEnd = @.onDrawForegroundEnd = function(graphics,rc,rcContent){
-	__/*背景前景绘制后,绘制文本前触发此事件,\ngraphics 为gdip.graphics对象(GDI+画板),\nrc为客户区RECT结构体,rcContent为去掉内边距后的RECT结构体*/
+	__/*背景前景绘制后,绘制文本前触发此事件,\ngraphics 为 gdip.graphics 对象（GDI+ 画板）,\nrc为客户区 RECT 结构体,rcContent 为去掉内边距后的RECT结构体*/
 }
 onDrawEnd = @.onDrawEnd = function(graphics,rc){
 	__/*所有绘制操作结束触发此事件,\ngraphics 为gdip.graphics对象(GDI+画板),\nrc为客户区RECT结构体*/
 }
-indexOfTab(__) = 获取选项卡所在的索引位置\n参数指定选项卡按钮对象
-indexOfForm(__) = 获取子窗口所在的选项卡索引位置\n参数指定相同索引位置的子窗体对象
-closeButton = 选项卡上关闭按钮,plus控件\n可调用skin函数自定义外观样式\n可通过beforeShowCloseButton事件自定义显示坐标\n注意这是一个orphanWindow浮动窗口\n!ui_ctrl_plus.
-dropButton = 下拉菜单按钮,\n如果存在超出显示范围的选项卡,这个控件会自动显示\n这是一个plus控件对象\n!ui_ctrl_plus.
-each() = @for(tab,form,idx in ??.each() ){
-	__/*遍历所有选项卡,\ntab 为选项卡对象,form为对应的子窗口,idx为索引位置\n遍历时不应当执行删除、新增选项卡,设置当前选项卡等改变索引位置的操作*/
+indexOfTab(__) = 获取选项卡按钮所在的索引位置\n参数指定选项卡按钮对象
+indexOfForm(__) = 获取子窗口所在的选项索引位置\n参数指定相同索引位置的子窗体对象
+closeButton = 选项卡按钮上动态显示的关闭按钮，这是一个 plus 控件。\n可调用 skin 函数自定义外观样式。\n可通过 beforeShowCloseButton 事件自定义显示坐标。\n注意这是一个 orphanWindow 浮动窗口。\n!ui_ctrl_plus.
+dropButton = 下拉菜单按钮。\n如果存在超出显示范围的选项卡按钮，这个 dropButton 控件会自动显示。\ndropButton 是一个 plus 控件对象。\n!ui_ctrl_plus.
+each() = @for(tabButton,formPage,tabIndex in ??.each() ){
+	__/*遍历高级选项卡的所有选项。\ntabButton 为当前选项卡按钮,formPage 为对应的子窗口,tabIndex 为索引位置\n遍历时不应当执行删除、新增选项，更改当前选项等所有可能改变高级选项卡索引的操作。*/
 }
-query(查询属性) = @.query(\n	text = "标题";\n	tabsName = "名字";__/*使用选项卡的指定属性查询对应的子窗口,\n如果子窗口没有加载将会立即加载,\n选项卡的任一属性值与查询条件相同即可\n自定义属性建议加上tabs前缀以避免冲突\n也可以用一个字符串参数直接查询选项卡标题,\n返回窗口对象,以及所在索引*/\n)
+query(查询属性表) = @.query(\n	text = "标题";\n	tabsName = "名字";__/*使用选项卡按钮的指定属性查询对应的子窗口（formPage）。\n如果子窗口是延迟加载状态则会立即加载。\n选项卡的任一属性值与查询条件相同即可，不需要匹配所有查询属性。\n自定义属性建议加上 data 前缀以避免与控件属性混淆。\n也可以用一个字符串参数直接查询选项卡按钮的标题。\n返回选项卡按钮对应的子窗口对象,以及所在选项索引（数值）.*/\n)
 query() = !winform.
-queryTab(查询属性) = @.queryTab(text = "标题"__/*使用选项卡的指定属性查询对应的选项卡,\n选项卡的任一属性值与查询条件相同即可\n自定义属性建议加上tabs前缀以避免冲突\n也可以用一个字符串参数直接查询选项卡标题,\n返回选项卡对象,以及所在索引*/)
+queryTab(查询属性表) = @.queryTab(text = "标题"__/*使用控件的指定属性查询对应的选项卡按钮，\n选项卡按钮的任一属性值与查询条件匹配即可，不需要满足所有查询条件。\n用户自定义属性建议加上 data 前缀以避免以控件已有属性名称冲突。\n也可以用一个字符串参数直接查询选项卡按钮的标题,\n返回选项卡按钮对象,以及所在索引数值*/)
 queryTab() = !ui_ctrl_plus.
-setTabs(.(属性名,属性值数组) = 设置所有选项卡的指定属性值
-count() = 返回选项卡总数
-disabledText = @.disabledText = {'\uF254';'\uF251';'\uF252';'\uF253';'\uF250'}__/*指定文本时,指定为文本或文本数组则禁用当前选项并显示指定文本，\n同时也会禁止所有选项响应事件（但其他选项不显示禁用样式），禁止切换选项。\n此属性指定为一个文本数组时,当前选项将创建动画逐帧显示数组里的文字图标。\n如果当前选项卡配置了图标文本则使用图标文本（ iconText ）显示数组内的文字图标,\n\n此属性指定为 null 时，启用当前选项，并恢复控禁用之前的 text、iconText 属性。\n同时其他所有选项也会切换到允许响应事件（notify 属性恢复为 true ）。\n如果尚未指定当前选项，则获取此属性时总是为 null。*/
-disabled = 是否禁用选项卡。\n仅当前选项会切换禁用样式，其他选项仅切换是否允许响应事件属性（notify）。\n如果尚未指定当前选项，则获取此属性时总是为 false 。
+set(.(tabIndex,tabProperties) = 设置 @tabIndex 参数指定索引的选项卡按钮属性。\n@tabProperties 参数指定控件属性表。
+setTabs(.(属性名,属性值数组) = 批量设置所有选项卡按钮（plus 控件）的指定属性值。\n参数 @2 应传入一个属性值数组，函数会遍历属性值数组，并设置相同索引的选项卡按钮。\n第 1 个选项卡按钮设置第 1 个属性值，第 2 个选项卡按钮设置第 2 个属性值，\n依此类推。
+count = 返回高级选项卡包含的选项总数
+disabledText = @.disabledText = {'\uF254';'\uF251';'\uF252';'\uF253';'\uF250'}__/*指定文本时,指定为文本或文本数组则禁用当前选项按钮并显示指定文本，\n同时也会禁止所有选项卡按钮响应事件（但其他选项卡按钮不显示禁用样式），禁止切换选项。\n此属性指定为一个文本数组时,当前选项卡按钮将创建动画逐帧显示数组里的文字图标。\n如果当前选项卡按钮配置了图标文本则使用图标文本（ iconText ）显示数组内的文字图标,\n\n此属性指定为 null 时，启用当前选项，并恢复控禁用之前的 text、iconText 属性。\n同时其他所有选项卡按钮也会切换到允许响应事件（notify 属性恢复为 true ）。\n如果尚未指定当前选项，则获取此属性时总是为 null。*/
+disabled = 是否禁用选项卡。\n仅当前选项卡按钮会切换禁用样式，其他选项按钮仅切换是否允许响应事件属性（notify）。\n如果尚未指定当前选项，则获取此属性时总是为 false 。
 end intellisense**/

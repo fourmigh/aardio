@@ -11,11 +11,11 @@ editConst={cls="richedit";left=28;top=53;right=805;bottom=562;db=1;dl=1;dr=1;dt=
 editDoc={cls="richedit";left=27;top=53;right=804;bottom=562;db=1;dl=1;dr=1;dt=1;edge=1;font=LOGFONT(h=-15);hscroll=1;multiline=1;vscroll=1;z=9};
 editEnum={cls="richedit";left=27;top=53;right=804;bottom=562;db=1;dl=1;dr=1;dt=1;edge=1;font=LOGFONT(h=-15);hscroll=1;multiline=1;vscroll=1;z=11};
 editOcxPath={cls="edit";left=27;top=606;right=701;bottom=635;align="right";db=1;dl=1;dr=1;edge=1;z=7};
-navCode={cls="plus";text="调用代码";left=27;top=562;right=107;bottom=594;border={top=1;color=-16744448};db=1;dl=1;z=3};
-navConst={cls="plus";text="常量列表";left=188;top=562;right=268;bottom=594;border={top=1;color=-16744448};db=1;dl=1;notify=1;z=12};
-navDocument={cls="plus";text="控件文档";left=107;top=562;right=187;bottom=594;border={top=1;color=-16744448};db=1;dl=1;notify=1;z=14};
-navEnum={cls="plus";text="枚举列表";left=268;top=562;right=348;bottom=594;border={top=1;color=-16744448};db=1;dl=1;notify=1;z=13};
-navRight={cls="plus";left=348;top=562;right=638;bottom=563;bgcolor=16777215;border={color=-16744448};db=1;dl=1;dr=1;forecolor=32768;linearGradient=180;z=6};
+navCode={cls="plus";text="调用代码";left=27;top=562;right=107;bottom=594;border={top=1;color=0xFF008000};db=1;dl=1;z=3};
+navConst={cls="plus";text="常量列表";left=188;top=562;right=268;bottom=594;border={top=1;color=0xFF008000};db=1;dl=1;notify=1;z=12};
+navDocument={cls="plus";text="控件文档";left=107;top=562;right=187;bottom=594;border={top=1;color=0xFF008000};db=1;dl=1;notify=1;z=14};
+navEnum={cls="plus";text="枚举列表";left=268;top=562;right=348;bottom=594;border={top=1;color=0xFF008000};db=1;dl=1;notify=1;z=13};
+navRight={cls="plus";left=348;top=562;right=638;bottom=563;bgcolor=0xFFFFFF;border={color=0xFF008000};db=1;dl=1;dr=1;forecolor=0x008000;linearGradient=180;z=6};
 static={cls="static";text="可嵌入的COM控件：";left=307;top=17;right=456;bottom=38;align="right";dl=1;dr=1;dt=1;transparent=1;z=4}
 )
 /*}}*/
@@ -39,7 +39,7 @@ tbs.skin({
 	}
 });
 
-tbs.onSelchange = function(idx,strip,form){
+tbs.onSelChange = function(idx,strip,form){
 	winform.editEnum.hide  = idx!=4;
 	winform.editConst.hide  = idx!=3;
 	winform.editDoc.hide  = idx!=2;

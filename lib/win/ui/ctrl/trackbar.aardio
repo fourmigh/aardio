@@ -144,16 +144,21 @@ namespace trackbar{
 	)
 }
 
+with trackbar._metaProperty{
+	value = pos;
+}
+
 /***intellisense() 
 win.ui.ctrl.trackbar() = 跟踪条控件\nXP 系统不支持透明背景，之后的系统都支持\n!trackbar.
 ?win.ui.ctrl.trackbar = !trackbar.
 !trackbar.tooltip = 提示文本,只写属性,\n值如果不是指针会自动调用 tostring 函数转为字符串,\n可用于在 oncommand 事件中修改提示文本
 !trackbar.cls = 设计时类名
 !trackbar.className = 运行时类名
-!trackbar.pos = 滑块当前刻度,注意不能大于0xFFFF,不要使用负数
+!trackbar.pos = 滑块当前刻度,注意不能大于 0xFFFF,不要使用负数
+!trackbar.value = 滑块当前刻度,注意不能大于 0xFFFF,不要使用负数
 !trackbar.hwnd = 控件句柄
 !trackbar.id = 控件ID
-!trackbar._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!trackbar._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !trackbar.getParent() = 返回父窗口\n!static.
 !trackbar.setParent(__/*控件对象*/) = 改变父窗口 
 !trackbar.hide = 控件是否隐藏

@@ -36,10 +36,10 @@ winform.button.oncommand = function(id,event){
 		winform.edit.text = ocrRet.text;
 		winform.edit.text = "";
 		
-		import web.json;
+		import JSON;
 		for i,block in table.eachIndex(ocrRet.blocks){
 			winform.edit.print(block.text);
-			winform.edit.print(web.json.stringify(block.points,false));
+			winform.edit.print(JSON.stringify(block.points,false));
 		}
 	}
 }

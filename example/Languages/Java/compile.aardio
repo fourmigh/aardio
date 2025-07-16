@@ -1,0 +1,58 @@
+﻿//aardio 编译 Java 代码
+//文档说明: doc://library-guide/std/java/_.md#jdk
+import console; //提前打开控制台
+console.utf8 = false;
+console.open();
+
+import java; 
+
+//待编译的 Java 源代码
+var javaCode = /****
+package aardio.sample; 
+import java.io.*; 
+
+public class HelloworldApp{   
+	static native String aardio(String code); 
+	 
+	public static String main(String[] args) {   
+		System.out.println("Hello this is a simply test"); //输出字符串,字符串用引号括起来 
+		System.out.println( args[0]  );  
+		System.out.println( args[1]  ); 
+		return "aardio,你好,这是给你的返回值"; 
+	}  
+	public String name = "HelloworldApp2";
+	public static int static_num = 123;
+	public int test(int a) {   
+		return a + 123;
+	} 
+	public String test_aardio() {  
+		return aardio("import win;win.msgbox('我是Java,我正在执行aardio代码');return true;") ; 
+	}      
+}  
+****/
+
+/*
+Java 中的包相当于 aardio 中的库,
+Java 中的 package 语句类似 aardio 中用 namespace 语句定义名字空间。
+
+Java 与 aardio 一样,都要求包（或库）的名字空间与文件名保持一致。
+aardio 到 lib 目录下查找库,而 Java 则到预设的 `CLASSPATH` 中去查找包。
+
+例如 aardio.sample.HelloworldApp 这个 JAVA 类，
+我们就需要把它保存到 "/java/aardio/sample/HelloworldApp.java" 这个位置，
+编译后就会生成 "/java/aardio/sample/HelloworldApp.class" 。
+*/
+string.save("\java\aardio\sample\HelloworldApp.java",javaCode )  
+
+//可自定义 JDK 路径
+//java.path.setJdkHome("C:\Program Files (x86)\Java\jdk1.6.0_45") 
+//import java.jre.v8 或导入标准库自动配置 JDK，找不到 JDK 会自动下载安装。
+
+//编译 Java 代码
+var prcs = java.compile("\java\aardio\sample\HelloworldApp.java")
+prcs.logResponse(); //这是一个管道进程（  process.popen 对象 ）。
+prcs.close();
+
+console.log("高版本 JDK 编译的程序不能在低版本 JRE 中运行。")
+console.log("如果控制台没有显示错误，则编译成功") 
+console.pause()

@@ -1,5 +1,5 @@
 ﻿//dlMgr 下载更新文件
-import web.json;
+import JSON;
 import thread.command;
 import fsys.version;
 import process.mutex;
@@ -92,7 +92,7 @@ class dlMgr{
 
 			var updateInfo = ..string.load( ..io.joinpath(saveDir,"update-info") );
 			if(updateInfo){
-				updateInfo = ..web.json.tryParse(updateInfo);
+				updateInfo = ..JSON.tryParse(updateInfo);
 				if(updateInfo){
 					var latestVersion = updateInfo.version && ..fsys.version(updateInfo.version);
 					if( latestVersion && latestVersion.valid() && (appVersion < latestVersion) ){
@@ -141,7 +141,7 @@ namespace dlMgr{
 		import fsys.version;
 		import thread.command;
 		import sevenZip.lzma;
-		import web.json;
+		import JSON;
 		
 		var send = ..thread.command.send;
 		var sendIdle = ..thread.command.sendIdle;
@@ -174,7 +174,7 @@ namespace dlMgr{
 		http.close();
 		
 		if( !json ) return null,"网络连接失败",updateUrl; 
-		if( json ) updateInfo = ..web.json.tryParse(json);
+		if( json ) updateInfo = ..JSON.tryParse(json);
 		if( !updateInfo  ) return null,"网络连接失败",updateUrl; 
 		
 		if(!updateInfo.url){
@@ -348,7 +348,7 @@ namespace dlMgr{
 		updateInfo.main = ..io.fullpath(..io.joinpath(appDir,updateInfo.main));
 		updateInfo.updateFileCount = #updateFiles;
 		
-		..string.save(infoPath, ..web.json.stringify(updateInfo) );
+		..string.save(infoPath, ..JSON.stringify(updateInfo) );
 		
 		return true,{
 			..io.fullpath(updater);

@@ -2,7 +2,7 @@
 import win;
 import inet.http;
 import process.mutex;
-import web.json;
+import JSON;
 import win.ui.ctrl.edit;
 import winex;
 import string.args;
@@ -57,6 +57,9 @@ namespace ide{
 						error('安装扩展库:' + libName + '失败！\n\n无法连接扩展库服务器：\napi.aardio.com \ndownload.aardio.com\n\n建议您联系网络管理员。\n或在可正常联网的环境下载扩展库，\n然后复制 ~\\lib\\ 目录下的库文件到当前系统即可。',3 );
 					}
 					else {
+						if(libName=="win.form"){
+							error('导入库失败,未找到扩展库: win.form ！\n---------------------------------------------------\n请改用 import win.ui 导入 win.form 窗口类。');
+						}
 						error('导入库失败,未找到扩展库:' + libName+ '！\n\n在开发环境中运行代码会自动安装缺少的扩展库，\n也可运行「工具 > 扩展库」查看或安装扩展库。\n\n如果无法安装扩展库，请检查网络故障或稍后重试。\n或在可正常联网的环境下载扩展库，然后复制 ~\\lib\\ 目录下的\n库文件到当前系统即可。',3 );
 					}
 				}
@@ -82,10 +85,10 @@ namespace ide{
 		
 		if(  ( !#askTitle ) || ..win.msgboxTest( askTitle ,"aardio") ){ 
 		
-			var mutex = ..process.mutex("{5C6E466D-0DF1-4ABC-BFAD-9B890AA358FC}.lock.import." + libName,false,false);
+			var mutex = ..process.mutex("{0A6F9303-F2A0-456E-936D-DB9BD4909987}.lock.import." + libName,false,false);
 			mutex.wait(); {
 			
-				if( ..string.endWith( downloadUrl,".tar.lzma",true) ){
+				if( ..string.endsWith( downloadUrl,".tar.lzma",true) ){
 					import sevenZip.lzma.httpFile;
 					var ok = sevenZip.lzma.httpFile.download(downloadUrl,"aardio- 下载 "+libName+" 扩展库","~/download/lib/" , ,downloadLibName + ".tar.lzma");
 					if(ok){
@@ -96,7 +99,7 @@ namespace ide{
 						}	
 					}
 				} 
-				elseif( ..string.endWith( downloadUrl,".aardio",true) ){
+				elseif( ..string.endsWith( downloadUrl,".aardio",true) ){
 					var bin = ..inet.http().get(downloadUrl);
 					if(bin){
 						var libPath,libDir = ..io.libpath(libName)
@@ -260,7 +263,7 @@ namespace ide{
 		}; 
 		var openDocument = openDocument;
 		self.openDocument =  function(path,...){
-			if(..string.endWith(path,".md",true) || ..string.startWith(path,"doc://",true) ){
+			if(..string.endsWith(path,".md",true) || ..string.startsWith(path,"doc://",true) ){
 				return createProcess("~\doc\index.aardio",{____search_doc__path=path},,getMainHwnd());
 			}  
 			else {
@@ -334,11 +337,11 @@ namespace ide{
 		}
 	 
 		openDocument =  function(path,...){   
-			if(..string.endWith(path,".aproj",true) ){ 
+			if(..string.endsWith(path,".aproj",true) ){ 
 				..ide.command.post("dispatchIdeCommand","openDocument",path ? ..io.fullpath(path),... );
 				..thread.delay(500); 
 			}
-			elseif(..string.endWith(path,".md",true) || ..string.startWith(path,"doc://",true)){ 
+			elseif(..string.endsWith(path,".md",true) || ..string.startsWith(path,"doc://",true)){ 
 				return createProcess("~\doc\index.aardio",{____search_doc__path=path},,getMainHwnd());
 			}  
 			else {

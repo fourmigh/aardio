@@ -1,26 +1,27 @@
-//文件读写
-import console;
+//读写 FTP 文件流
 import inet.ftp;
+import console;
+console.showLoading("正在连接 FTP 服务器");
 
-console.log("正在连接")
-ftp = inet.ftp("服务器IP","用户名","密码");
-if(!ftp){
-	console.log("请输入正确的服务器参数");
-	console.pause();
-	return;
-}
+var ftp = inet.ftp("ftp.scene.org");
+if(!ftp) return console.errorPause("请输入正确的服务器参数");
  
 //显示当前目录
 console.log( ftp.getCurDir() )
 
-//关闭服务器UTF8编码
-ftp.command("OPTS UTF8 off")
+//设置服务器启用 UTF8 编码
+console.log( ftp.command("OPTS UTF8 ON") )
 
-file = ftp.open("/目录/文件名.txt","wb") 
+var file = ftp.open("/welcome.msg","rt");
+console.log( file.readAll() );
+file.close();
+
+var file,err = ftp.open("/pub/parties/2025/temp25/temp.txt","wb");
+console.assert(file,err);
 
 //支持文件流方式上传数据,使用循环即可控制上传进度
-file.write("写数据","写更多数据",'\r\n') 
-file.write("写数据","写更多数据",'\r\n') 
+file.write("写数据","写更多数据",'\r\n'); 
+file.write("写数据","写更多数据",'\r\n') ;
  
 ftp.close();
 console.pause();

@@ -3,7 +3,7 @@ import win.ui;
 /*DSG{{*/
 var winform = win.form(text="aardio form";right=349;bottom=249)
 winform.add(
-treeview={cls="treeview";left=10;top=11;right=336;bottom=233;asel=false;bgcolor=16777215;chkBox=1;edge=1;z=1}
+treeview={cls="treeview";left=10;top=11;right=336;bottom=233;asel=false;bgcolor=0xFFFFFF;chkBox=1;edge=1;z=1}
 )
 /*}}*/
 

@@ -15,11 +15,11 @@ import win.reg;
 var v = win.reg.queryWow64( "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform"
 		,"BackupProductKeyDefault" ) 
 		
-//方法二：禁用 WoW64 重定向，打开  64 位注册表
-var reg = win.regWow64("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform",true)
-if(reg){
-	var v = reg.queryValue("BackupProductKeyDefault"); 
-}
+//方法二：禁用 64 位重定向，打开  64 位注册表键，
+var regKey = win.regWow64("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+var installDate = regKey.queryValue("InstallDate");// 获取操作系统安装时间
+installDate = time(installDate); //转换为 time 对象
+print(installDate)
 
 /*
 其他禁用 WoW64 重定向有关的库与函数：

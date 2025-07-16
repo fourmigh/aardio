@@ -60,10 +60,6 @@ tabs.add({
 },"\forms\web\webform.aardio")
 
 tabs.add({
-    text="SciterJS"; 
-},"\forms\web\sciter.aardio")
-
-tabs.add({
     text="HTMLayout"; 
 },"\forms\web\htmlayout.aardio")
 

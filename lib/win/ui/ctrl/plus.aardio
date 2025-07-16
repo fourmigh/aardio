@@ -1,16 +1,16 @@
 ﻿//plus 高级图像控件
-import win.ui.ctrl.metaProperty;
 import win.ui.tracker;
 import win.ui.ctrl.richedit;
-import gdip.graphics;
+import win.ui.ctrl.metaProperty;
+import gdip.font;
+import gdip.textureBrush;
 import gdip.solidBrush;
 import gdip.lineBrush;
-import gdip.pen;
-import gdip.stringformat;
-import gdip.font;
-import gdip.path;
-import gdip.textureBrush;
 import gdip.pathGradientBrush;
+import gdip.stringformat;
+import gdip.path;
+import gdip.pen;
+import gdip.graphics;
 
 namespace win.ui.ctrl;
 
@@ -68,12 +68,18 @@ class plus {
 		this.clipBk = true;
 		
 		if(tParam.bgcolor!==null){
-			this.backgroundColor = ..gdi.rgbReverse( tParam.bgcolor ) |  0xFF000000;
+			if(!(tParam.bgcolor & 0xFF000000)){
+				this.backgroundColor = ..gdi.rgbReverse( tParam.bgcolor ) |  0xFF000000;
+			}
+			else this.backgroundColor = tParam.bgcolor;
 			tParam.bgcolor = null;
 		}
 		
 		if(tParam.forecolor!==null){
-			this.foregroundColor = ..gdi.rgbReverse( tParam.forecolor ) |  0xFF000000;
+			if(!(tParam.forecolor & 0xFF000000)){
+				this.foregroundColor = ..gdi.rgbReverse( tParam.forecolor ) |  0xFF000000;
+			}
+			else this.foregroundColor = tParam.forecolor;
 			tParam.forecolor = null;
 		}
 		
@@ -96,7 +102,7 @@ class plus {
 			tParam.style= tParam.style &~0x200000/*_WS_VSCROLL*/; 
 		}
 		
-		if(tParam.iconColor){
+		if((tParam.iconColor!==null) && !(tParam.iconColor & 0xFF000000) ){
 			tParam.iconColor = ..gdi.argbReverse(tParam.iconColor);
 		}
 	}; 
@@ -182,6 +188,8 @@ class plus {
 		var clipBkRect;
 		if( clipBk && winform.background ){ 
 			var hdc = graphics.getDc();
+			if(!hdc) return;
+			
 			clipBkRect = ..win.getRect(owner.hwnd);
 			if( this.parent != winform) ..win.mapRect(this.parent.hwnd,winform.hwnd,clipBkRect);
 			winform.background.drawRect(hdc, clipBkRect);
@@ -251,27 +259,27 @@ class plus {
 		var paddingTop,paddingBottom,paddingLeft,paddingRight = owner.paddingTop*dpiScaleY,owner.paddingBottom*dpiScaleY
 			,owner.paddingLeft*dpiScaleX,owner.paddingRight*dpiScaleX;
 			
+		var rcText;
+		var text = this[["(text)"]];
+		if( #text or this.onDrawString ){ 
+			var x,y = paddingLeft,paddingTop;
+			if( ( background ? this.state[["active"]] ? (!this[["(progress-range)"]])  ) ) { x++;y++; };
+			rcText = ::RECTF(x,y,width - x - paddingRight,height - y - paddingBottom);
+		}
+			
 		var rcContent = ::RECT();
 		rcContent.right = rc.right - paddingRight;
 		rcContent.bottom = rc.bottom - paddingBottom;
 		rcContent.left = paddingLeft;
 		rcContent.top = paddingTop;
-			
+		
 		cancel = false;
 		if( this.onDrawContent ){
-			cancel = this.onDrawContent(graphics,rc,this.argbColor,rcContent,this.foregroundColor)
+			cancel = this.onDrawContent(graphics,rc,this.argbColor,rcContent,this.foregroundColor,this[["(font)"]])
 		}
 		
-		var rcText;
 		if( ! cancel ){
 			var hasForeground = foreground ? foreground.isValid();
-			var text = this[["(text)"]];
-			if( #text or this.onDrawString ){ 
-				var x,y = paddingLeft,paddingTop;
-				if( ( background ? this.state[["active"]] ? (!this[["(progress-range)"]])  ) ) { x++;y++; };
-				rcText = ::RECTF(x,y,width - x - paddingRight,height - y - paddingBottom);
-			}
-			
 			var pixelOffsetMode = graphics.pixelOffsetMode;
 			graphics.pixelOffsetMode = 2/*_PixelOffsetModeHighQuality*/
 			
@@ -593,9 +601,7 @@ class plus {
 			strformat.delete();
 		}
 		
-		if( rcText ){  
-			
-			var text = this[["(text)"]];
+		if( rcText ){ 
 			var strformat = ..gdip.stringformat();  
 			strformat.align = __stringAlignment[ this.align : "center" ] 
 			strformat.lineAlign = __stringAlignment[ this.valign : "center" ] 
@@ -970,8 +976,7 @@ namespace plus {
 			}
 			_set = function (v) {
 				if(v!=owner.state.checked){
-					if( !owner.notify ) owner.notify = true;
-					..win.ui.tracker(owner);
+					owner.notify = true;
 			
 					if( v ? owner.radioGroup ){ owner.radioClick() }
 					else owner.state.checked = v;
@@ -979,8 +984,48 @@ namespace plus {
 				}
 			}
 		};
-		skin = function(s,clone){ 
-			if( type(s) != type.table ) error("参数@1类型错误",2);
+		oncommand = {
+			_get = lambda () null;
+			_set = function(v){ 
+				owner.notify = true;
+				owner[["oncommand"]] = v;
+			} 
+		};
+		notify = {
+			_get = lambda () null;
+			_set = function(v){ 
+				if( v && !owner.notify ) { 
+					..win.ui.tracker(owner);
+				}
+				owner[["notify"]] = v;
+			} 
+		};
+		skin = {
+			_get = function(ownerCall){
+				if(ownerCall) return owner.setSkin;
+				else return owner.getSkin();
+			} 
+			_set = function(v){
+				owner.setSkin(v);
+			} 
+		};
+		getSkin = lambda () (owner[["(skin-setting)"]] || {
+			background = { default = owner.background};
+			foreground = { default = owner.foreground};
+			color = { default = owner.argbColor};
+			iconColor = owner.iconColor; 
+			iconStyle = owner.iconStyle;  
+		});
+		setSkin = function(s,clone){ 
+			if( type(s) != "table" ) { 
+				error("参数 @1 类型错误",2);
+			}
+			
+			if(s.hwnd){
+				s = s[["(skin-setting)"]]
+				if(!s) error("参数 @1 指定的源控件没有找到可复制的样式！",2);
+			}
+			
 			if( s.group ) owner.radioGroup = s.group;
 			if(clone){
 				s = ..table.clone(s);
@@ -988,18 +1033,33 @@ namespace plus {
 			
 			owner[["(checked-text)"]] = null;
 			owner[["(checked-iconText)"]] = null;
+			if(s.iconStyle ) owner.iconStyle = s.iconStyle;
 				
 			if( s.checked ){
 				if( type(s.checked) != type.table) error("checked字段必须是表对象",2); 
 				if( !s.checked.color ) s.checked.color = {}; 
 				
-				if( #s.checked.iconText ){
+				var iconTextChk = s.checked.iconText;
+				if( #iconTextChk ){
 					if(!owner[["(unchecked-iconText)"]]  ){
 						owner[["(unchecked-iconText)"]] = s.iconText : owner.iconText;
+						if(!owner[["(unchecked-iconText)"]] ){ //@Deprecated
+							if(iconTextChk=='\uF14A') owner[["(unchecked-iconText)"]] = '\uF0C8' //@Deprecated
+							elseif(iconTextChk=='\uF058') owner[["(unchecked-iconText)"]]  = '\uF111' //@Deprecated
+							
+							if(owner[["(unchecked-iconText)"]]) {  //@Deprecated
+								owner.iconTextRenderingHint = 3; //@Deprecated
+								
+								if(!owner.iconStyle){ //@Deprecated
+									owner.iconStyle = {align="left";font=LOGFONT(h=-15;name='FontAwesome')};
+								}
+							} 
+						}
 					}
 					 
-					owner[["(checked-iconText)"]] = s.checked.iconText;	
+					owner[["(checked-iconText)"]] = iconTextChk;	
 				}
+				
 				if( #s.checked.text ){
 					
 					var current = owner[["(unchecked-text)"]] : owner.text;
@@ -1029,12 +1089,12 @@ namespace plus {
 			}
 			
 			if(!owner[["(checked-text)"]]) {
-				if(owner[["(unchecked-text)"]]  ) owner.text=owner[["(unchecked-text)"]];
+				if(owner[["(unchecked-text)"]]  ) owner.text = owner[["(unchecked-text)"]];
 				owner[["(unchecked-text)"]] = null;
 			}
 			
 			if(!owner[["(checked-iconText)"]]) {
-				if(owner[["(unchecked-iconText)"]]  ) owner.text=owner[["(unchecked-iconText)"]];
+				if(owner[["(unchecked-iconText)"]]  ) owner.text = owner[["(unchecked-iconText)"]];
 				owner[["(unchecked-iconText)"]] = null;
 			}
 			
@@ -1072,10 +1132,7 @@ namespace plus {
 			owner[["(skin-setting)"]] = s;
 			
 			//开启[事件回调属性
-			if( !owner.notify ) {
-				owner.notify = true;
-				..win.ui.tracker(owner);
-			}
+			owner.notify = true;
 			
 			owner._onStateChange(owner.state);
 		};
@@ -1270,8 +1327,8 @@ namespace plus {
 			owner.translateCommand();
 			
 			owner[["(editable)"]] = param.cls="richedit"?1:"edit";			
-			if( !owner.notify )  owner.notify = true;
-			..win.ui.tracker(owner);
+			
+			owner.notify = true; 
 			
 			var this = owner;
 			owner[["editBox"]]._onStateChange = function(state){
@@ -1434,7 +1491,11 @@ namespace plus {
 				return ..gdi.rgbReverse(owner.argbColor : 0)
 			}
 			_set = function(v){
-				owner.argbColor = ..gdi.argbReverse( v!=-1? v : 0 );
+				v = v!=-1? v : 0;
+				
+				if(!(v&0xFF000000)) v = ..gdi.argbReverse(v);//@Deprecated
+				owner.argbColor = v;
+				
 				if(owner[["editBox"]]) owner[["editBox"]].color = v;
 				else owner.redrawTransparent();
 			}
@@ -1498,6 +1559,7 @@ namespace plus {
 			
 			//宽大于高则为水平滑块
 			if( w > h ){
+				
 				owner.onMouseDrag = function(wParam,lParam){
 					var dpiScaleX,dpiScaleY = (owner.dpiScaleX : 1) ,(owner.dpiScaleY : 1);
 					
@@ -1557,10 +1619,7 @@ namespace plus {
 			}
 			
 			//开启[事件回调]属性
-			if( !owner.notify ) {
-				owner.notify = true;
-				..win.ui.tracker(owner);
-			}
+			owner.notify = true;
 		};
 		setPieRange = function(min,max){
 			if( type(min) != "number") error("参数@1不是有效的数值",2)
@@ -1674,18 +1733,28 @@ namespace plus {
 				owner.iconStyle.font = ::LOGFONT(v);
 			}
 		};
-		startAnimation = function(interval,beginning,change){
-			if(owner.animationId) owner.clearInterval(owner.animationId)
+		startAnimation = function(interval,beginning,change,duration){
+			if(owner.animationId) owner.stopAnimation();
+			
 			var this = owner;
 			this.animationState = (beginning === null ? true : beginning );
 			
-			var timestamp = ..time.tick();
-			if( this.onAnimation ) this.animationState = this.onAnimation(this.animationState,beginning,change,0);
+			var tkStart = ..time.tick();
+			if( this.onAnimation ) {
+				this.animationState = this.onAnimation(this.animationState,beginning,change,0,duration);
+				owner.redrawTransparent();
+				if(this.animationState===null) return;
+			}
+
 			owner.animationId = owner.setInterval(function(){
 			
 				if( this.onAnimation ){
-					this.animationState = this.onAnimation(this.animationState,beginning,change,..time.tick() - timestamp);
-					if( !this.animationState ) return this.stopAnimation()
+					var timestamp = ..time.tick() - tkStart;
+				
+					this.animationState = this.onAnimation(this.animationState,beginning,change,timestamp,duration);
+					if( this.animationState === null ){
+						return this.stopAnimation()
+					}
 				}
 				this.redrawTransparent();
 			},interval)
@@ -1756,6 +1825,11 @@ namespace plus {
 		};
 	);
 	
+	with _metaProperty{
+		forecolor = {_set = lambda () error("plus 控件请改用 foreground 属性修改前景色（颜色格式 0xAARRGGBB）",2)};
+		bgcolor = {_set = lambda () error("plus 控件请改用 background 属性修改背景色（颜色格式 0xAARRGGBB）",2)};
+	}
+	
 	__cursor_hand  = ::LoadCursor(,topointer(32649/*_IDC_HAND*/));
 	__stringAlignment = { 
 		top =0/*_GdipStringAlignmentNear*/ ;bottom = 2/*_GdipStringAlignmentFar*/ ;
@@ -1781,7 +1855,7 @@ stringFormatFlags = @.stringFormatFlags = _GdipStringFormatFlagsMeasureTrailingS
 hotkeyPrefix = @.hotkeyPrefix = _GdipHotkeyPrefixShow__;
 isHyperlink() = 控件不设置背景、前景\n但设置了显示文本,并启用事件回调则该值返回真
 checked = 该属性可用于切换选取状态
-radioGroup = 用于指定单选按钮分组名称\n也可以在skin函数的group属性中指定该值
+radioGroup = 用于指定单选按钮分组名称。\n也可以在 skin 函数参数表的 group 字段中指定此属性值。
 radioValue() = 单选模式下选中控件的文本
 radioClick() = 单选模式下选中控件
 progressPercentage = 进度条当前百分比。\n如果用户正在控件上按下鼠标（例如拖动滑块），设置此属性会被忽略
@@ -1849,8 +1923,8 @@ onnotify = @.onnotify = function(id,code,ptr){
 onPosChanged = @.onPosChanged = function( pos,triggeredByUser ){
 	__/*进度值变更,pos 参数为当前进度数值,\n如果此事件由用户拖动滑块或按键盘方向键触发,则 triggeredByUser 参数为 true*/
 }
-onDrawContent = @.onDrawContent = function(graphics,rc,txtColor,rcContent,foreColor){
-	__/*自绘前景,\ngraphics 为gdip.graphics对象(GDI+画板),\ntxtColor 为文本色,ARGB 格式数值,\nforeColor 为当前状态前景色,ARGB 格式数值,\nrc为客户区RECT结构体,rcContent为去掉内边距后的RECT结构体,\n返回真取消绘制文本、前景等默认操作*/
+onDrawContent = @.onDrawContent = function(graphics,rc,txtColor,rcContent,foregroundColor,font){
+	__/*自绘前景,\ngraphics 为gdip.graphics对象（GDI+画板）,\ntxtColor 为文本色,ARGB 格式（0xAARRGGBB）数值,\nforeColor 为当前状态前景色,ARGB 格式数值,\nrc为客户区RECT结构体,rcContent为去掉内边距后的 RECT 结构体,\n返回真则取消绘制默认前景的操作（包含进度条、滑块等涉及前景绘制的操作）。*/
 }
 onDrawForegroundEnd = @.onDrawForegroundEnd = function(graphics,rc,rcContent){
 	__/*背景前景绘制后,绘制文本前触发此事件,\ngraphics 为gdip.graphics对象(GDI+画板),\nrc为客户区RECT结构体,rcContent为去掉内边距后的RECT结构体*/
@@ -1858,7 +1932,7 @@ onDrawForegroundEnd = @.onDrawForegroundEnd = function(graphics,rc,rcContent){
 onDrawEnd = @.onDrawEnd = function(graphics,rc,bmpMem){
 	__/*所有绘制操作结束触发此事件,\ngraphics 为gdip.graphics对象(GDI+画板),\nrc 为客户区RECT结构体,\nbmpMem 为当前正在绘制的 gdip.bitmap 对象，\n要注意此函数退出后不可继续使用 bmpMem，\n可使用 bmpMem.clone,bmpMem.copy,bmpMem.getThumbnail 等复制图像*/
 }
-onDrawBackground = @.onDrawBackground = function(graphics,rc,bkColor,foreColor){
+onDrawBackground = @.onDrawBackground = function(graphics,rc,backgroundColor,foregroundColor){
 	__/*自绘背景,\ngraphics 为gdip.graphics对象(GDI+画板),\nrc为绘图区块,\nbkColor为当前状态背景色,AGGB格式,可能为null\nforeColor为当前状态前景色,ARGB格式,不会出现null值\n返回真取消默认的背景绘图*/
 }
 onDrawString = @.onDrawString = function(graphics,text,font,rectf,strformat,brush){
@@ -1942,30 +2016,31 @@ onFocusLost(hFocus) = @.onFocusLost = function(hFocus){
 onStateChange = @.onStateChange = function(state){
 	__/*状态已改变*/
 }
-onSelectChange = @.onSelectChange = function(prev){
-	__/*单选模式下已选中当前控件,prev 为同一分组之前选中的控件\n同一分组之前没有选中控件时 prev 为 null*/
+onSelectChange = @.onSelectChange = function(prev,current){
+	__/*单选模式下已选中当前控件,prev 为同一分组之前选中的控件。\n同一分组之前没有选中控件时 prev 为 null 。\ncurrent 为当前选中控件。*/
 }
 onMouseActivate = @.onMouseActivate = function(hwndTop,hitTest,message){\n	return _MA___/*鼠标点击并且将要激活窗口时触发此事件\nhwndTop表示被激活的顶层窗口,\nhitTest参数请参考WM_NCHITTEST消息\nmessage为鼠标消息ID\n返回值的作用请参数MSDN*/\n}
 onDropFiles = @.onDropFiles = function(files){\n	__/*接受系统拖放,files是拖放的所有文件路径名数组,嵌入编辑框必须是edit控件,richedit*/\n}
-skin(样式表,是否禁止共享样式) = @.skin({\n	foreground = { \n		hover = "/res/images/button-hover.png";\n		focus = "/res/images/button-focus.png";\n		active = "/res/images/button-active.png";\n		disabled = 0xFFCCCCCC; \n	};\n	color = {\n		hover = 0xF00000FF;__/*用格式为0xAARRGGBB的16进制数值,指定鼠标放到控件上的字体颜色,\nAA为透明度,RR为红色分量,GG为绿色分量,BB为蓝色分量*/ \n	};\n	border = { \n		hover = {left=5;color=0xFFFF0000;padding=15;} \n	}; \n})
+skin(styleTable,clone) = @.skin({\n	foreground = { \n		hover = "/res/images/button-hover.png";\n		focus = "/res/images/button-focus.png";\n		active = "/res/images/button-active.png";\n		disabled = 0xFFCCCCCC; \n	};\n	color = {\n		hover = 0xF00000FF;__/*styleTable 指定样式表，可选用 clone 参数指定是复制样式表（默认为 false）。\nskin 函数内所有颜色字段都使用 0xAARRGGBB 格式的颜色值。\nAA 部分为不透明度,RR 为红色分量,GG 为绿色分量,BB 为蓝色分量。\n关于 skin 函数更详细的说明请查看 plus 控件使用指南。*/ \n	};\n	border = { \n		hover = {left=5;color=0xFFFF0000;padding=15;} \n	}; \n})
 cls = 设计时类名
 className = 运行时类名
 hwnd = 控件句柄
 id = 控件ID
 text = 控件文本
+value = 控件文本，text 属性的别名。
 animation = 是否允许自动播放 GIF 动画，\n指定为 false 禁止自动播放。
-disabledText = @.disabledText = {'\uF254';'\uF251';'\uF252';'\uF253';'\uF250';text=''}__/*指定文本时，禁用此控件并显示指定文本。\n指定一个字符串数组时，控件将创建动画逐帧显示数组里的文字图标。\n如果控件配置了 iconStyle 属性,则用图标文本（iconText）显示文字图标。\n\n此属性指定为 null 时启用此控件，并恢复控件禁用之前的 text、iconText 属性*/
-getForm() = 如果是窗体返回自身\n如果是控件则返回_parentForm\n!winform.
-isForm = 标准库中所有控件以及窗体对象都拥有此同名函数\n窗体返回true,控件返回false
-getForm() = 标准库中所有控件都拥有此同名函数用于返回控件所在窗口,\n窗口对象实现了同名函数用于返回窗口自身
-_parentForm = 控件所在的父窗口(指win.form对象)\n!winform.
-getParent() = 返回父窗口\n
+disabledText = @.disabledText = ['\uF254','\uF251','\uF252','\uF253','\uF250',text='']__/*disabledText 属性可以指定 3 种类型的值：\n1. 如果 disabledText 指定字符串值，则禁用此控件并显示指定文本。\n2. 如果指定一个字符串数组则创建动画逐帧显示数组里的文字图标，\n'\uF254'到'\uF250'的字符用于显示 FontAwesome 字体的沙漏动画。\n如果控件配置了 iconStyle 属性,则用图标属性（iconText）显示文字图标。\n字符串数组也可用 text 字段指定禁用状态显示的文本。\n3. 此属性指定为 null 取消禁用并恢复控件禁用之前的 text、iconText 属性*/
+isForm = 标准库 win.ui 创建的所有窗体与控件对象都拥有此属性。\nwin.form 创建的窗体对象返回 true,其他控件对象返回 false 。
+getForm() = 标准库 win.ui 创建的所有窗体与控件对象都拥有此属性。\nwin.form 创建的窗体对象返回自身，其他控件对象返回创建控件的容器窗口（ _parentForm 属性 ）
+_parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
+getParent() = 返回父窗口
 setParent(__/*控件对象*/) = 改变父窗口 
 autoResize = 是否允许跟随父窗体自动缩放
-addCtrl = @.addCtrl(\n	button={ cls="button";text="button";left=33;top=32;right=126;bottom=81;autoResize=false }  \n)
+addCtrl(controlsPropertiesTable) = @.addCtrl(\n	cls="plus";\n	marginRight=0;marginBottom=2;\n	width=32; \n	iconText = '\uF023';\n	iconStyle={\n		align="right";font=LOGFONT(h=-15;name='FontAwesome');padding={top=3}\n	}\n	__/*在 plus 控件内部添加子控件。\n	参数 @1 可指定以下三种类型参数：\n	- 指定包含名值对的表，名为添加到父窗体的控件名称，值为控件构造参数表。返回值为名值对（值为控件对象）。\n	- 包含一个或多个创建匿名控件参数表的数组。返回值为数组（数组元素为创建的控件对象）。\n	- 直接指定创建单个控件的构造参数表，必须指定 cls 字段。返回创建的控件对象。\n	*/\n)
 isDialogMessage = @.isDialogMessage = function(hParent,msg){__/*在控件范围内替代父窗口的 isDialogMessage，\n可用于在控件范围内屏蔽对话框快捷键*/}
 translateAccelerator = @.translateAccelerator = function(msg){ \n	__/*返回是否快捷键*/\n}  
-adjust = @.adjust = function( cx,cy,wParam ) {	 \n	__/*窗口缩放时会自动触发此函数。\ncx 参数为窗口宽度,cy 参数为窗口高度,\nwParam 参数请参考 _WM_SIZE 消息参数说明,一般不用管。\n\n所有 win.form 创建的窗体和控件都支持此事件,\n重复赋值只会追加而不会覆盖此事件。\n一般不建议添加一个 wndproc 仅仅是为了处理  _WM_SIZE 消息，\n定义 adjust 事件是更好的选择。\n\n可主动调用此事件,省略参数时 cx,cy 参数默认设为窗口大小*/  \n}; 
+onSize = @.onSize = function( width,height,wParam ) {	 \n	__/*父窗口改变大小后会自动触发此事件函数。\n注意 onSize 是 adjust 事件的别名，作用相同\n所有 win.form 创建的窗体和控件都支持 onSize（或 adjust）事件,\n重复赋值 onSize（或 adjust）会追加事件触发器而非替换原来的值。\n\nwidth 参数为窗口客户区宽度,height 参数为窗口客户区高度,\nwParam 参数来自 _WM_SIZE 消息的 wParam 参数，一般不用管。\n一般不建议添加一个 wndproc 仅仅是为了处理  _WM_SIZE 消息，\n定义 onSize 事件是更好的选择。\n \n};*/ 
+adjust = @.adjust = function( cx,cy,wParam ) {	 \n	__/*父窗口改变大小后会自动触发此事件函数。\n注意 onSize 是 adjust 事件的别名，作用相同。\n所有 win.form 创建的窗体和控件都支持 adjust 事件,\n重复赋值 adjust 会追加事件触发器而非替换原来的值。\n\ncx 参数为窗口客户区宽度,cy 参数为窗口客户区高度,\nwParam 参数来自 _WM_SIZE 消息的 wParam 参数，一般不用管。\n一般不建议添加一个 wndproc 仅仅是为了处理  _WM_SIZE 消息，\n定义 adjust 事件是更好的选择。\n\n如果主动调用此函数，则检查并执行所有之前添加的 adjust 事件函数。\n省略调用参数时 cx,cy 参数默认设为窗口大小*/  \n}; 
 preadjust = @.preadjust = function( cx,cy,wParam ) {	 \n	__/*窗口缩放后重绘前、触发 adjust 事件之前触发此事件。\n所有 win.form 创建的窗体和控件都支持此事件,\n与 adjust 事件不同，对 preadjust 重复赋值则覆盖而不是追加事件。 \n\ncx 参数为窗口宽度,cy 参数为窗口高度,\nwParam 为 _WM_SIZE 消息参数。*/  \n};
 resize(.(宽度,高度) = 如果指定了参数则调整窗口大小,\n无论是否实际调整窗口大小,发送 _WM_SIZE 消息给窗口
 _embedObject = 嵌入 COM 控件的容器对象\n!embedObject.
@@ -1998,6 +2073,8 @@ getRect(true) = 控件屏幕区块位置(::RECT结构体)
 setRect(rc) = 设置控件区块位置(::RECT结构体)  
 setRect(rc,true) = 设置控件屏幕区块位置(::RECT结构体)
 getClientRect() =  控件客户区块位置(::RECT结构体)\n!rect.
+clientWidth = 控件窗口客户区宽度，只读属性。
+clientHeight = 控件窗口客户区宽度，只读属性
 getFont() = 返回控件 LOGFONT 字体，\n返回对象的 h 值会按控件的 DPI 缩放设置自动还原为缩放前大小。\n!logfont.
 getFont(true) = 返回控件 LOGFONT 字体，\n返回对象的 h 值为字体实际大小，不会按控件 DPI 设置还原。\n返回字体会设置 noScale 属性为 true,\n使用控件的 setFont 函数或赋值 font 属性时，\nnoScale 属性为 true 的字体同样不会进行自动 DPI 缩放\n!logfont.
 setFont(__/*指定字体*/) = 指定 LOGFONT 字体对象,或逻辑字体句柄\n如果不指定 point 值并指定 h 值，字体会按控件的 DPI 缩放设置自动缩放。
@@ -2023,17 +2100,29 @@ setInterval(回调函数,延时毫秒数,->->->) = @.setInterval( \n	function(){
 changeInterval(.(定时器ID,间隔时间,回调函数) = 重新设置间隔时间或回调函数
 clearTimeout(.(定时器ID) =  删除定时器。\n参数如果为 null 则忽略不执行，\n否则定时器ID必须是 setInterval 函数或setTimeout函 数的返回值。\n\n请注意如果定时器被删除，ID 可能被重新分配给其他定时器。\n在定时器回调函数中返回 0,false 以删除定时器是更稳妥的方式
 clearInterval(.(定时器ID) =  删除定时器。\n参数如果为 null 则忽略不执行，\n否则定时器ID必须是 setInterval 函数或setTimeout函数的返回值。\n\n请注意如果定时器被删除，ID 可能被重新分配给其他定时器。\n在定时器回调函数中返回 0,false 以删除定时器是更稳妥的方式
+msgbox(.(text,title,style,timeout) = 弹出对话框\n1. 参数 @text 指定显示的数据，如果指表对象则先序列化为文本。\n参数 @text 是其他类型则调用 tostring 转换为文本。\n2. 可选参数 @title 用于指定信息框标题。\n3. 可选参数 @style 可用字符串或数值指定图标样式（参考 _MB_ 前缀常量值，设为 0 去掉图标与提示音），也可以指定字符串值：\n    * "error","stop","hand" 错误图标\n    * "question" 询问图标，显示是、否、取消按钮，返回值为 `6/*_IDYES*/,7/*_IDNO*/, 2/*_IDCANCEL*/` 之一。\n    * "confirm","test" 询问图标，显示确定与取消按钮，返回值为 `1/*_IDOK*/,2/*_IDCANCEL*/` 之一。\n- "warn" 警告图标\n    * "info" 信息图标。\n4. 可选用参数 @timeout 限定显示时间，以毫秒为单位，超时自动关闭。
+msgboxErr(.(text,title) = 弹出错误对话框\n参数 @text 指定显示的信息，如果指定表对象先序列化为文本。\n其他对象调用 tostring 转换为文本\n可选参数 @title 用于指定信息框标题。\n\n此函数调用 win.msgbox，并设定所有者窗口为当前窗体。
+msgboxTest(.(text,title) = 弹出询问对话框\n参数 @text 指定显示的信息，如果指定表对象先序列化为文本。\n其他对象调用 tostring 转换为文本\n可选参数 @title 用于指定信息框标题。\n\n此函数调用 win.msgbox，并设定所有者窗口为当前窗体。
+msgInfo(.(text,timeout) = 显示提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @timeout 指定延时自动关闭提示框的毫秒数。\n请先导入 win.dlg.message 库以安装此函数
+msgWarn(.(text,timeout) = 显示警告提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @timeout 指定延时自动关闭提示框的毫秒数。\n请先导入 win.dlg.message 库以安装此函数
+msgOk(.(text,timeout) = 显示正确提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @timeout 指定延时自动关闭提示框的毫秒数。\n请先导入 win.dlg.message 库以安装此函数
+msgErr(.(text,timeout) = 显示错误提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @timeout 指定延时自动关闭提示框的毫秒数。\n请先导入 win.dlg.message 库以安装此函数
+msgGreat(.(text,timeout) = 显示竖大拇指图标提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @timeout 指定延时自动关闭提示框的毫秒数。\n请先导入 win.dlg.message 库以安装此函数
+sgSorry(.(text,timeout) = 显示倒竖大拇指图标提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @timeout 指定延时自动关闭提示框的毫秒数。\n请先导入 win.dlg.message 库以安装此函数
+msgSmile(.(text,timeout) = 显示微笑图标提示框。\n参数 @text 指定要显示的文本信息。\n可选使用参数 @timeout 指定延时自动关闭提示框的毫秒数。\n请先导入 win.dlg.message 库以安装此函数
+msgFrown(.(text,timeout) = 显示皱眉图标提示框。\n参数 @text 指定要显示的文本信息。\n可选用参数 @2 指定延时关闭的毫秒数,\n请先导入 win.dlg.message 库以安装此函数
+msgAsk(.(text) = 显示询问提示框。\n参数 @text 指定要显示的文本信息。\n用户按确定或回车返回 true ，其他返回 false 或 null 。\n请先导入 win.dlg.message 库以安装此函数
 orphanWindow( = 如果当前是子窗口,\n移除窗口的WS_CHILD样式，使窗口孤立出来悬浮于原位置,\n悬浮窗口如影随形的跟随父窗口移动或改变大小,控件原来的固定边距等参数仍然有效
 orphanWindow(.(transparent,hwndBuddy) = 创建悬浮窗口,\n悬浮窗口仍然显示在原来的位置,\n可选参数 @transparent 如果为 true 则转换为分层透明窗口,\n可选利用 @buddy 参数将只有句柄的窗口托管在悬浮窗口之上实现相同的效果,\n伙伴窗口总是会保持在悬浮窗口前面，并保持相同的大小、位置
 animationState =  此属性表示动画当前状态值,值null或false表示动画已停止
-onAnimation(state,beginning,change,timestamp) = @.onAnimation = function(state,beginning,change,timestamp){
-    __/*动画触发此函数,state 参数是上次返回的值\n可以使用plus控件的animationState属性获取这里的返回值,\nbeginning,change为调用startAnimation指定的参数,\ntimestamp 参数为动画已执行的时间,\n返回值为false或null停止动画*/
-	return state
+onAnimation(state,beginning,change,timestamp,duration) = @.onAnimation = function(state,beginning,change,timestamp,duration){
+    __/*startAnimation 函数启动的动画将定时回调此函数。\n参数 @state 是上次返回的值。\n可以使用 plus 控件的 animationState 属性获取 @state 最新的值。\n参数 @timestamp 为动画已执行的时间\n其他参数为调用 startAnimation 指定的参数,\n返回值恒等于 null 则停止动画，返回其他值继续执行动画。*/
+	return state;
 }
-startAnimation( = 启动动画定时器,\n可以在控件的onAnimation动画事件函数中修改外观,\n或者在控件的onDrawContent等绘图事件函数中直接输出动画 
-startAnimation(.(interval,beginning,change) = 启动动画定时器,\ninterval参数指定动画时间间隔，以毫秒为单位,\n@beginning 指定初始状态值,@change 指定动画完成后的状态值,\n可选参数 @beginning,@change 会传给 onAnimation 回调函数作为调用参数
+startAnimation( = 启动动画定时器，立即运行一次动画并且定时继续运行动画。\n此函数负责定时调用 onAnimation 并且定时重绘控件外观。\n可选在控件的 onAnimation 动画事件函数中修改外观，\n或者在控件的 onDrawContent 等绘图事件函数中直接输出动画。 
+startAnimation(.(interval,beginning,change,duration) = 创建动画，\n定时执行 onAnimation 动画事件回调函数并重绘控件。\n调用此函数后立即运行一次动画，然后定时运行动画。\n参数 @interval 指定动画时间间隔，以毫秒为单位。\n参数 @beginning 指定初始状态值,\n参数 @change 指定动画完成后的状态值。\n参数 @duration 指定动画持续时间\n除参数 @interval 以外的参数会传给 onAnimation 回调函数作为调用参数。
 stopAnimation() = 停止动画定时器
-startProgress() = 启动进度条动画,并显示进度条,\n可选用参数@1指定间隔毫秒,可选用参数@2指定每次推进的进度\n必须调用setProgressRange函数事先指定进度范围\n必须指定前景色、或前景图
+startProgress() = 启动进度条动画,并显示进度条,\n可选用参数@1指定间隔毫秒,可选用参数@2指定每次推进的进度。\n必须先调用 setProgressRange 函数事先指定进度范围。\n必须指定前景色、或前景图
 stopProgress() = 停止进度条动画,并隐藏进度条
 animationId = 动画定时器ID\n不可改动，可用于判断动画是否启动
 saveScale() = 根据控件当前位置、缩放比例，更新控件的设计时位置参数。\n以避免下次窗口缩放自适应调整控件当前位置更改被清除，\n控件所有调整位置的属性或成员函数已自动调用此函数。
@@ -2041,7 +2130,7 @@ reloadScale() = 按设计时位置参数、重新调整控件位置以适应窗�
 threadCallable() = 开启此控件的跨线程调用功能
 x = 前景x坐标,仅用于point绘图模式,\n1、0到1之间的小数表示百分比，负数表示右侧反向坐标
 y = 前景y坐标,仅用于point绘图模式,\n1、0到1之间的小数表示百分比，负数表示底部反向坐标
-measureString() = 返回文本输出后的区出大小,返回值为RECTF对象\n可选在参数中指定要输出的文本,不指定则取当前显示文本,\n!rectf.
+measureString() = 返回文本输出后的区块大小,返回值为 RECTF 对象\n可选在参数中指定要输出的文本,不指定则取当前显示文本,\n!rectf.
 fitContent () = 控件调整大小调整到适应当前显示字数
 textPadding = @.textPadding = {
 	left = 0;
@@ -2064,7 +2153,7 @@ paddingBottom = 前景下边距\n可限制前景以及文本,文本还可以使�
 reduce(array,callback,debounce) = @.reduce(\n	{__/*@array 参数指定要循环处理每个元素的数组或表。\n@array 指定为 false 则取消之前创建的防抖单例循环。\n\n@callback 指定回调函数。\n回调函数中可返回本次间隔延时，以毫秒为单位。\n返回 0、null、false、以及不能转换为非 0 数的值中断处理。\n回调参数为下一个元素的值和索引,处理到数组尾部时回调参数为 null,\n如果此时仍然返回可转换为非 0 数的值,将转到第一个数组元素重复循环\n@callback 指定回调函数。\n\n@debounce 指定是否创建为防抖单例循环，默认为 true。*/},\n	function(value,index){\n		if(value){\n			return 50\n		}\n	} \n)
 imageAttributes = 可选使用一个gdip.imageAttributes对象对前景图像进行自动调色\n如果需要在不同状态下调色,可以在onStateChange事件里动态设置调色矩阵\n!gdip_imgattr.
 iconText = 指定文本图标\n使用iconStyle指定字体与样式
-iconColor = 字体图标颜色,支持半透明,\n支持使用skin函数动态切换此样﻿式,\n此颜色存储为ARGB格式，即:0xAARRGGBB,注意在创建控件的初始化参数中必须传入RGB格式颜色值,\n\n请注意在未指定指属性时,图标字体默认与字体使用相同的颜色
+iconColor = 字体图标颜色，支持半透明。\n支持使用 skin 函数动态切换此样﻿式,\n此颜色值在运行时使用 ARGB 格式，即:0xAARRGGBB，在创建控件的初始化参数中则必须指定 0xBBGGRR 格式 颜色值。\n\n请注意在未指定指属性时，图标字体默认与字体使用相同的颜色
 iconStyle = @.iconStyle = {
     font=LOGFONT(h=-38;name='FontAwesome'); 
     align="left";valign="top";padding={bottom=50}__/*用于指定 iconText 显示样式\n\n如 font 指向控件已使用的 iconStyle.font，则控件不会刷新字体。\nfont 如不是 ::LOGFONT 字体，控件将自动转换为 ::LOGFONT 字体。\n对 iconFont 属性赋值以修改 iconStyle.font 则总是会刷新字体*/
@@ -2072,12 +2161,13 @@ iconStyle = @.iconStyle = {
 align = 文本水平对齐,\n左对齐："left"\n居中："center"\n右对齐："right"\n\n图标文本请使用 iconStyle 属性的 align 字段指定水平对齐
 valign = 文本垂直对齐,\n顶对齐："top"\n居中："center"\n底对齐："bottom"\n\n图标文本对齐请使用 iconStyle 属性的 align 字段指定垂直对齐
 enableDpiScaling(false) = 禁用DPI自动缩放,\n不指定参数启用DPI自动缩放,默认已启用
-dpiScaleX = 窗口当前使用的DPI横坐标缩放系数,\n该值由界面系统自动维护，任何情况下都不应手动修改,\n\n这是一个以小数表示百分比的数，例如 1.25 表示 125%,\n窗口未使用缩放或未完成缩放初始化时，值可能为 null，\n如果要获取屏幕缩放设置应改用 gdi.getDpiScale 函数
-dpiScaleY = 窗口当前使用的DPI纵坐标缩放系数,\n该值由界面系统自动维护，任何情况下都不应手动修改,\n\n这是一个以小数表示百分比的数，例如 1.25 表示 125%,\n窗口未使用缩放或未完成缩放初始化时，值可能为 null，\n如果要获取屏幕缩放设置应改用 gdi.getDpiScale 函数
+dpiScaleX = 窗口当前使用的 DPI 横坐标缩放系数,\n该值由界面系统自动维护，任何情况下都不应手动修改,\n\n这是一个以小数表示百分比的数，例如 1.25 表示 125%,\n窗口未使用缩放或未完成缩放初始化时，值可能为 null，\n如果要获取屏幕缩放设置应改用 gdi.getDpiScale 函数
+dpiScaleY = 窗口当前使用的 DPI 纵坐标缩放系数,\n该值由界面系统自动维护，任何情况下都不应手动修改,\n\n这是一个以小数表示百分比的数，例如 1.25 表示 125%,\n窗口未使用缩放或未完成缩放初始化时，值可能为 null，\n如果要获取屏幕缩放设置应改用 gdi.getDpiScale 函数
 dpiScale(.(x,y) = 将 @x,@y 表示的像素值乘以窗体当前 DPI 缩放倍数并返回,\n省略 @y 参数时仅返回 @x 转换后的值
 getRoot() = 获取顶层父窗口，这个函数会查找 orphanWindow 的父窗口
 translateCommand() = 允许转发转发子窗口的命令（_WM_COMMAND）与通知（_WM_NOTIFY）消息，\n避免子窗口 oncommand，onnotify 等回调失效。\n同时会处理子窗口的 _WM_CTLCOLORSTATIC 等消息，\n以避免部分外观属性失。\n\n启用嵌入编辑框功能时已自动调用此函数
 valid = 窗口是否有效，\n窗口未关闭返回 true ，\n窗口已关闭或正在关闭返回 false
+addCtrl() = !ui_ctrl_plus.
 end intellisense***/
 
 /**intellisense()

@@ -1,31 +1,24 @@
-//web.json 库 -  特殊数据类型
+//JSON 库 -  特殊数据类型
 import console;
-import web.json;
-
-/*
-在 aardio 中对象与数组的数据类型都是 "table"。
-所以在 aardio 中空对象与空数组都是 {} 。
-
-使用 table.array() 则可以创建 JSON 兼容的空数组。 
-web.json 也会将 JSON 中的 "[]" 解析为 table.array() 创建的空数组。
-*/
+import JSON;
 
 //定义 JSON
 var json = "{ items = [] }";
 
-//转换为对象，items 解析为 table.array() 创建的空数组。
-var object = web.json.parse(json);
+//转换为对象，items 解析为 纯数组。
+var object = JSON.parse(json);
 
 //添加数组字段
-object.items2 = table.array(); //空数组
-object.items3 = {1,2,3}; //非空数组直接兼容
+object.items2 = []; //空数组
+object.items3 = [1,2,3]; //纯数组。
+object.items4 = {1,2,3}; //包含数组成员的表对象转换为 JSON 数组
 
-//转换为数组
-var json = web.json.stringify(object);
+//转换为 JSON
+var json = JSON.stringify(object);
 console.log(json)
 
-//web.json.stringifyArray 总是将参数视为数组处理。
-var json = web.json.stringifyArray({});
+//JSON.stringifyArray 总是将参数视为数组处理。
+var json = JSON.stringifyArray({});
 console.log(json)
  
 /*
@@ -35,17 +28,17 @@ console.log(json)
 而在 JSON 中我们有时候需要保存 null 值。
 aardio 通过在元表的 _defined 字段中指定必须保存 null 值的字段名。
 可以调用 table.define() 定义需要保留 null 值的键名（可以重复调用以添加键名）。
-web.json 或 table.eachName 支持 _defined 元属性。
+JSON 或 table.eachName 支持 _defined 元属性。
 */
  
 //定义 JSON
 var json = "{name:null,age:22}";
 
 //解析为对象
-var object = web.json.parse(json);
+var object = JSON.parse(json);
 
 //生成 JSON 
-var json = web.json.stringify(object);
+var json = JSON.stringify(object);
 
 console.log(json);
 
@@ -59,10 +52,10 @@ time 对象与 JS 一样只负责字符串化,不负责在解析 JSON 时自动�
 var object = { time = time() };
 
 //生成 JSON 
-var json = web.json.stringify(object);
+var json = JSON.stringify(object);
 
 //解析为对象
-var object = web.json.parse(json);
+var object = JSON.parse(json);
 
 var tm = time.iso8601(object.time);
 console.log( tostring(tm,"%c")  )
@@ -82,10 +75,10 @@ buffer,
 var buffer = raw.buffer("abc");
 
 //生成 JSON 
-var json = web.json.stringify(buffer);
+var json = JSON.stringify(buffer);
 
 //解析为对象
-var bufferObject = web.json.parse(json);
+var bufferObject = JSON.parse(json);
 
 //可以作为参数快速还原为 buffer
 var buffer = raw.buffer(bufferObject)

@@ -2,7 +2,7 @@
 import fonts.fontAwesome;
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="PowerShell Cmdlet 反编译工具";right=491;bottom=311;bgcolor=16777215;max=false)
+var winform = win.form(text="PowerShell Cmdlet 反编译工具";right=491;bottom=311;bgcolor=0xFFFFFF;max=false)
 winform.add(
 btnDecompile={cls="plus";text="反编译";left=366;top=11;right=479;bottom=41;align="left";bgcolor=-5197169;font=LOGFONT(h=-13);iconStyle={align="left";font=LOGFONT(h=-13;name='FontAwesome');padding={left=20}};iconText='\uF121';notify=1;textPadding={left=39};z=2};
 cmdlets={cls="combobox";left=19;top=14;right=350;bottom=40;edge=1;items={};mode="dropdown";z=4};
@@ -22,7 +22,7 @@ winform.onOk = function(){
 winform.cmdlets.onEditChange = function(){ 
     if(winform.cmdlets.data){
          var text = winform.cmdlets.text;
-    	 var items = table.filter( winform.cmdlets.data, lambda(v) string.startWith(v,text,true) ); 
+    	 var items = table.filter( winform.cmdlets.data, lambda(v) string.startsWith(v,text,true) ); 
     	 if(!#items){
     	 	items = table.filter( winform.cmdlets.data, lambda(v) string.find(v,"@@"+text) ); 
     	 }
@@ -48,7 +48,7 @@ winform.btnDecompile.oncommand = function(id,event){
 				result = string.trim(result);
 				winform.edit.text = result;
 				
-				if(..string.endWith(result,".dll",true) && io.exist(result)){
+				if(..string.endsWith(result,".dll",true) && io.exist(result)){
 					import dotNet.ilSpy; 
 					dotNet.ilSpy(result);
 				}

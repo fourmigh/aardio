@@ -1,0 +1,6 @@
+﻿消息框=msgbox.aardio
+简单提示框=~/example/plus/msg.aardio
+倒计时提示框=~/example/plus/countdown.aardio
+输入框=inputBox.aardio
+文件对话框=~/example/File/Dialog/fsys.dlg.aardio
+调色与取色对话框=colorPicker.aardio

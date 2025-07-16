@@ -1,0 +1,40 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="多线程操作 Excel";right=757;bottom=467)
+winform.add(
+edit={cls="edit";left=30;top=39;right=719;bottom=425;edge=1;multiline=1;z=1}
+)
+/*}}*/
+
+winform.edit.text = "正在启动 Excel ……";
+winform.show();
+
+//com.excel 入门: file://~/example/Excel/com.excel.aardio
+import com.excel;
+var excel,err = com.excel(); 
+var book = excel.WorkBooks.Add(); 
+var sheet = excel.ActiveWorkbook.Sheets(1);
+
+import thread.command;
+var listener = thread.command();
+
+/*
+Excel 不允许多线程并发操作，
+可以让一个线程负责操作 Excel ，其他线程发送调用命令。
+下面添加线程命令，首字符为 $ 表示异步回调。
+*/
+listener.$setExcelData = function(row,col,data){
+	sheet.Cells(row,col).Value = data; 
+	winform.edit.text = "已修改值：" + 	sheet.Cells[row,col].Value; 
+}
+
+//创建工作线程
+thread.invoke(function(listener){
+	
+	//Excel 接口本身依赖消息循环，必须用异步回调以避免阻塞接口。
+	//调用界面线程命令，以 $ 字符开头的命令函数不等待执行结果。
+	listener.$setExcelData(1,1,"你好");
+	
+},listener);
+
+win.loopMessage();

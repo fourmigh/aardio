@@ -29,7 +29,7 @@ class manager{
     open = function(serviceName,desiredAccess){
         if(!this.handle) return ; 
         if( type(serviceName) != type.string || !#serviceName ) error("请指定服务名",2);  
-        if( desiredAccess === null ) desiredAccess = 0x4/*_SERVICE_QUERY_STATUS*/
+        if( desiredAccess === null ) desiredAccess = 4/*_SERVICE_QUERY_STATUS*/
         return ::Advapi32.OpenServiceW(this.handle, serviceName, desiredAccess ); 
     };
     start =function(serviceName,...){
@@ -139,7 +139,7 @@ class manager{
     isExist = function(serviceName){ 
         if(!this.handle) return ; 
         if( type(serviceName) != type.string || !#serviceName ) error("请指定服务名",2);  
-        var hService = this.open(serviceName, 0x4/*_SERVICE_QUERY_STATUS*/)
+        var hService = this.open(serviceName, 4/*_SERVICE_QUERY_STATUS*/)
         if (hService) { 
             ::Advapi32.CloseServiceHandle(hService);
             return true; 
@@ -148,7 +148,7 @@ class manager{
     queryStatus = function(serviceName){ 
         if(!this.handle) return ; 
         if( type(serviceName) != type.string || !#serviceName ) error("请指定服务名",2);  
-        var hService = this.open(serviceName, 0x4/*_SERVICE_QUERY_STATUS*/)
+        var hService = this.open(serviceName, 4/*_SERVICE_QUERY_STATUS*/)
         if (hService) {
             var status = SERVICE_STATUS_PROCESS();
             var cbBytesNeeded = {INT value};
@@ -246,7 +246,7 @@ class manager{
     	if(!this.handle) return ; 
     	if( type(serviceName) != type.string || !#serviceName ) error("请指定服务名",2);  
     	if( !struct[["_struct"]] ) error("参数@3必须是结构体",2)
-    	var hService = this.open(serviceName, 0x1/*_SERVICE_QUERY_CONFIG*/)
+    	var hService = this.open(serviceName, 1/*_SERVICE_QUERY_CONFIG*/)
     	if (hService) {
     		var needSize = {INT size};
         	::Advapi32.QueryServiceConfig2W(hService,infoLevel,null,0,needSize); 
@@ -321,7 +321,7 @@ class manager{
         
         if(!this.handle) return ; 
         if( type(serviceName) != type.string || !#serviceName ) error("请指定服务名",2);  
-        var hService = this.open(serviceName, 0x8/*_SERVICE_ENUMERATE_DEPENDENTS*/)
+        var hService = this.open(serviceName, 8/*_SERVICE_ENUMERATE_DEPENDENTS*/)
         if (!hService) return;
         
         var cbBytesNeeded = {INT size};
@@ -505,6 +505,26 @@ each = function(serviceType,serviceState,groupName){
 _serveiceTableEntry = {};
 //服务没有结束前此函数不会返回,注册的入口函数启动服务以后应当首先调用registerServiceCtrlHandler
 startDispatchThread = function( disp ){ 
+	
+	if(type(disp)!="table"){
+		if(type(disp)=="boolean"){
+			error("service.startDispatchThread 函数接收到的参数类型错误，
+参数表的首个键名如果放在下标操作符 [] 内，则不能省略包围表的  { } 符号。
+
+正确格式：
+
+service.startDispatchThread( {
+	[service.serviceName] = function(serviceName,argv){ 
+	
+	}
+} )",2);
+		}
+		else{
+			error("service.startDispatchThread 函数的参数必须是表对象")
+		}
+		
+	}
+	
     for(serviceName,serviceProc in disp){
         ..table.push( _serveiceTableEntry,{ustring serviceName = serviceName; pointer lpServiceProc = ..thread.tostdcall(
             function(argc,argv){
@@ -585,6 +605,9 @@ msgbox = function(str,title,timeout,style,sid){
     if( sid === null ) sid = activeSessionId();
     if(sid===null) return;
     
+    if(style===null) style = 0x40 //_MB_OK|_MB_ICONINFORMATION;
+    else style = ({"error":0x10,stop:0x10,hand:0x10,question:0x23,confirm:0x21,test:0x21,warn:0x30,info:0x40})[style]||tonumber(style)||0;
+    
     if( type(str) == type.table) str = ..table.tostring(str);
     str = ..string.toUtf16(tostring(str));
     title = ..string.toUtf16(tostring(title : self.serviceName : "service" ) );
@@ -604,19 +627,34 @@ msgboxTest = function(str,title,timeout){
 	return msgbox(str,title,0x1 | 0x20 /*_MB_OKCANCEL|_MB_ICONQUESTION*/ ,timeout:10000 ) == 1/*_IDOK*/;	
 }
 
+/**details(说明)
+发布为 EXE 以后，在桌面上直接双击运行就会显示控制台。  
+在控制台窗口按 <kbd>Y</kbd> 注册系统服务，按 <kbd>N</kbd> 卸载系统服务。
+操作系统开机就会自动启动注册成功的后台服务。  
+
+服务进程不能在用户桌面上直接显示界面，  
+新系统在 ~~服务管理器中勾选 【允许与桌面交互】~~ 是无效的。  
+但可以通过 service.msgbox,service.msgboxErr,service.msgboxTest 等函数向用户桌面发送对话框。
+
+记录运行时数据或错误信息的一些方法：
+- 使用 fsys.log 读写日志文件
+- 简单写数据到文件可以使用 io.file.write 或 string.save 函数
+- 可使用 JSON.save  函数将对象以 JSON 格式输出到文件。
+end details**/
+
 /**intellisense()
-service = NT服务操作\n部分操作需要管理权限
-service.serviceName = 当前服务线程中运行的NT服务名，\n主线程应自行指定
+service = NT 服务操作\n部分操作需要管理权限
+service.serviceName = 当前服务线程中运行的 NT 服务名，\n主线程应自行指定
 service.isExist(.("服务名") = 是否存在指定的服务
-service.start(.("服务名") = 启动服务,\n成功返回true,\n失败请使用lasterr函数获取错误信息
-service.restart(.("服务名",停止超时,启动超时) = 重新启动服务,成功返回true,\n超时以秒为单位，省略则不限时间等待操作完成\n停止超时达到时间后服务未正常停止则强制中断服务进程
-service.stop(.("服务名") = 停止服务,\n成功返回true,\n失败请使用lasterr函数获取错误信息
-service.stop(.("服务名",true) = 停止服务,如果失败就强制中断服务进程,\n成功返回true,\n失败请使用lasterr函数获取错误信息
-service.terminate(.("服务名") = 强制中断服务进程,\n成功返回true,
+service.start(.("服务名") = 启动服务,\n成功返回 true,\n失败请使用 lasterr 函数获取错误信息
+service.restart(.("服务名",停止超时,启动超时) = 重新启动服务,成功返回 true ,\n超时以秒为单位，省略则不限时间等待操作完成\n停止超时达到时间后服务未正常停止则强制中断服务进程
+service.stop(.("服务名") = 停止服务,\n成功返回 true ,\n失败请使用 lasterr 函数获取错误信息
+service.stop(.("服务名",true) = 停止服务,如果失败就强制中断服务进程,\n成功返回 true ,\n失败请使用 lasterr 函数获取错误信息
+service.terminate(.("服务名") = 强制中断服务进程,\n成功返回 true ,
 service.isStopped(.("服务名") = 服务是否已停止
 service.isRunning(.("服务名") = 服务是否正在运行
-service.pause(.("服务名") = 暂停服务,\n成功返回true,\n失败请使用lasterr函数获取错误信息
-service.resume(.("服务名") = 暂停状态恢复运行,\n成功返回true,\n失败请使用lasterr函数获取错误信息
+service.pause(.("服务名") = 暂停服务,\n成功返回 true ,\n失败请使用 lasterr 函数获取错误信息
+service.resume(.("服务名") = 暂停状态恢复运行,\n成功返回 true ,\n失败请使用 lasterr 函数获取错误信息
 service.create(.(启动路径,服务名,显示全名,服务描述) = 创建服务,\n参数@1可为空,默认使用当前应用程序路径,\n其他可选参数未列出请查看函数源码
 service.delete(.("服务名") = 删除服务\n注意删除服务前最好关闭服务管理器
 service.manager(.(desiredAccess,machineName,databaseName) = 创建管理器
@@ -625,12 +663,12 @@ service.manager() = !ntsrvmgr.
 !ntsrvmgr.open(serviceName,desiredAccess) = 打开服务句柄
 !ntsrvmgr.close() = 关闭
 !ntsrvmgr.isExist(.("服务名") = 是否存在指定的服务
-!ntsrvmgr.start(.("服务名") = 启动服务,\n成功返回true,\n失败请使用lasterr函数获取错误信息
-!ntsrvmgr.stop(.("服务名") = 停止服务,\n成功返回true,\n失败请使用lasterr函数获取错误信息
-!ntsrvmgr.stop(.("服务名",true) = 停止服务,如果失败就强制中断服务进程,\n成功返回true,\n失败请使用lasterr函数获取错误信息
-!ntsrvmgr.terminate(.("服务名") = 强制中断服务进程,\n成功返回true,
-!ntsrvmgr.pause(.("服务名") = 暂停服务,\n成功返回true,\n失败请使用lasterr函数获取错误信息
-!ntsrvmgr.resume(.("服务名") = 暂停状态恢复运行,\n成功返回true,\n失败请使用lasterr函数获取错误信息
+!ntsrvmgr.start(.("服务名") = 启动服务,\n成功返回 true ,\n失败请使用 lasterr 函数获取错误信息
+!ntsrvmgr.stop(.("服务名") = 停止服务,\n成功返回 true ,\n失败请使用 lasterr 函数获取错误信息
+!ntsrvmgr.stop(.("服务名",true) = 停止服务,如果失败就强制中断服务进程,\n成功返回 true ,\n失败请使用 lasterr 函数获取错误信息
+!ntsrvmgr.terminate(.("服务名") = 强制中断服务进程,\n成功返回 true ,
+!ntsrvmgr.pause(.("服务名") = 暂停服务,\n成功返回 true ,\n失败请使用 lasterr 函数获取错误信息
+!ntsrvmgr.resume(.("服务名") = 暂停状态恢复运行,\n成功返回 true ,\n失败请使用 lasterr 函数获取错误信息
 !ntsrvmgr.delete(.("服务名") = 删除服务\n注意删除服务前最好关闭服务管理器
 !ntsrvmgr.control(.(serviceName,desiredAccess,control) = 控制服务
 !ntsrvmgr.queryStatus(.("服务名") = 成功返回一个表示服务状态的表对象
@@ -684,59 +722,66 @@ service.each() = !ntsrvsta2.
 !ntsrvconfig.dependencies = dependencies
 !ntsrvconfig.serviceStartName = serviceStartName
 !ntsrvconfig.displayName = displayName
-service.sessions() = 返回操作系统所有登录用户会话,\n更多会话控制请参考标准库 win.ts
+service.sessions() = 返回操作系统所有登录用户会话，\n更多会话控制请参考标准库 win.ts
 service.eachSession（） = @for id,station,state in service.eachSession(){
-	if( state == 0 ) return id;__/*遍历操作系统所有登录用户会话，\nid为会话ID，station为会话名,state为会话状态\nstate为0为登录激活状态,1为已连接,4为断开状态*/
+	if( state == 0 ) return id;__/*遍历操作系统所有登录用户会话，\nid 为会话 ID，station 为会话名，state 为会话状态。\nstate 为 0 表示登录激活状态，1 为已连接，4 为断开状态*/
 } 
 service.activeSessionId（) = 返回操作系统活动用户会话ID,\n更多会话控制请参考标准库 win.ts
-service.msgboxErr(.("文本","标题") = 弹出错误对话框\n所有者窗口参数可选\n如果参数@1是表对象,自动调用table.tostring序列化为文本\n其他类型调用tostring转为字符串
-service.msgbox(.("文本","标题",等待超时值,样式) = 弹出对话框\n返回用户操作ID,如果不指定超时值返回IDASYNC 32001\n超时值以毫秒为单位,超时为0表示一直等待,不指定超时则不等待用户操作,\n除参数一以外,其他所有参数可选\n如果参数@1是表对象,自动调用table.tostring序列化为文本\n其他类型调用tostring转为字符串
-service.msgboxTest(.("文本","标题")  = 返回布尔值表示用户是否按了“确定”按钮。\n标题,所有者窗口参数可选
+service.msgboxErr(.("文本","标题") = 弹出错误对话框。\n所有者窗口参数可选。\n如果参数 @1 是表对象，则自动调用 table.tostring 序列化为文本。\n其他类型调用 tostring 转为字符串。
+service.msgbox(.("文本","标题",等待超时值,样式) = 弹出对话框。\n返回用户操作 ID，如果不指定超时值则不等待用户操作，并总是返回 32001/*_IDASYNC*/。\n超时值以毫秒为单位，超时为 0 表示一直等待，。不指定超时则不等待用户操作。\n除参数 @1 以外，其他所有参数可选。\n如果参数 @1 是表对象，自动调用 table.tostring 序列化为文本。\n参数 @1 是其他类型则调用 tostring 转为字符串。\n\n可选参数 @4 可用字符串或数值指定图标样式（参考 _MB_ 前缀常量值，设为 0 去掉图标与提示音），可选字符串值：\n- "error","stop","hand" 错误图标\n- "question" 询问图标，显示是、否、取消按钮，返回值为 `6/*_IDYES*/,7/*_IDNO*/, 2/*_IDCANCEL*/` 之一。\n- "confirm","test" 询问图标，显示确定与取消按钮，返回值为 `1/*_IDOK*/,2/*_IDCANCEL*/` 之一。\n- "warn" 警告图标\n- "info" 信息图标。
+service.msgboxTest(.("文本","标题")  = 返回布尔值表示用户是否按了“确定”按钮。\n标题，所有者窗口参数可选
 end intellisense**/
 
 /**intellisense()
-_SERVICE_FILE_SYSTEM_DRIVER=@0x2/*_SERVICE_FILE_SYSTEM_DRIVER*/ 
-_SERVICE_KERNEL_DRIVER=@0x1/*_SERVICE_KERNEL_DRIVER*/
+_SERVICE_FILE_SYSTEM_DRIVER=@2/*_SERVICE_FILE_SYSTEM_DRIVER*/ 
+_SERVICE_KERNEL_DRIVER=@1/*_SERVICE_KERNEL_DRIVER*/
 _SERVICE_WIN32_OWN_PROCESS=@0x10/*_SERVICE_WIN32_OWN_PROCESS*/
 _SERVICE_WIN32_SHARE_PROCESS=@0x20/*_SERVICE_WIN32_SHARE_PROCESS*/
-_SERVICE_CONTINUE_PENDING=@0x5/*_SERVICE_CONTINUE_PENDING*/
-_SERVICE_PAUSE_PENDING=@0x6/*_SERVICE_PAUSE_PENDING*/
-_SERVICE_PAUSED=@0x7/*_SERVICE_PAUSED*/
-_SERVICE_RUNNING=@0x4/*_SERVICE_RUNNING*/
-_SERVICE_START_PENDING=@0x2/*_SERVICE_START_PENDING*/
-_SERVICE_STOP_PENDING=@0x3/*_SERVICE_STOP_PENDING*/
-_SERVICE_STOPPED=@0x1/*_SERVICE_STOPPED*/
+_SERVICE_CONTINUE_PENDING=@5/*_SERVICE_CONTINUE_PENDING*/
+_SERVICE_PAUSE_PENDING=@6/*_SERVICE_PAUSE_PENDING*/
+_SERVICE_PAUSED=@7/*_SERVICE_PAUSED*/
+_SERVICE_RUNNING=@4/*_SERVICE_RUNNING*/
+_SERVICE_START_PENDING=@2/*_SERVICE_START_PENDING*/
+_SERVICE_STOP_PENDING=@3/*_SERVICE_STOP_PENDING*/
+_SERVICE_STOPPED=@1/*_SERVICE_STOPPED*/
 _SERVICE_ACCEPT_NETBINDCHANGE=@0x10/*_SERVICE_ACCEPT_NETBINDCHANGE*/
-_SERVICE_CONTROL_NETBINDADD=@0x7/*_SERVICE_CONTROL_NETBINDADD*/
-_SERVICE_CONTROL_NETBINDREMOVE=@0x8/*_SERVICE_CONTROL_NETBINDREMOVE*/
-_SERVICE_CONTROL_NETBINDENABLE=@0x9/*_SERVICE_CONTROL_NETBINDENABLE*/
+_SERVICE_CONTROL_NETBINDADD=@7/*_SERVICE_CONTROL_NETBINDADD*/
+_SERVICE_CONTROL_NETBINDREMOVE=@8/*_SERVICE_CONTROL_NETBINDREMOVE*/
+_SERVICE_CONTROL_NETBINDENABLE=@9/*_SERVICE_CONTROL_NETBINDENABLE*/
 _SERVICE_CONTROL_NETBINDDISABLE=@0xA/*_SERVICE_CONTROL_NETBINDDISABLE*/
-_SERVICE_ACCEPT_PARAMCHANGE=@0x8/*_SERVICE_ACCEPT_PARAMCHANGE*/
-_SERVICE_CONTROL_PARAMCHANGE=@0x6/*_SERVICE_CONTROL_PARAMCHANGE*/
-_SERVICE_ACCEPT_PAUSE_CONTINUE=@0x2/*_SERVICE_ACCEPT_PAUSE_CONTINUE*/
-_SERVICE_CONTROL_PAUSE=@0x2/*_SERVICE_CONTROL_PAUSE*/
-_SERVICE_CONTROL_CONTINUE=@0x3/*_SERVICE_CONTROL_CONTINUE*/
-_SERVICE_ACCEPT_SHUTDOWN=@0x4/*_SERVICE_ACCEPT_SHUTDOWN*/
-_SERVICE_CONTROL_SHUTDOWN=@0x5/*_SERVICE_CONTROL_SHUTDOWN*/
-_SERVICE_ACCEPT_STOP=@0x1/*_SERVICE_ACCEPT_STOP*/
-_SERVICE_CONTROL_STOP=@0x1/*_SERVICE_CONTROL_STOP*/
+_SERVICE_ACCEPT_PARAMCHANGE=@8/*_SERVICE_ACCEPT_PARAMCHANGE*/
+_SERVICE_CONTROL_PARAMCHANGE=@6/*_SERVICE_CONTROL_PARAMCHANGE*/
+_SERVICE_ACCEPT_PAUSE_CONTINUE=@2/*_SERVICE_ACCEPT_PAUSE_CONTINUE*/
+_SERVICE_CONTROL_PAUSE=@2/*_SERVICE_CONTROL_PAUSE*/
+_SERVICE_CONTROL_CONTINUE=@3/*_SERVICE_CONTROL_CONTINUE*/
+_SERVICE_ACCEPT_SHUTDOWN=@4/*_SERVICE_ACCEPT_SHUTDOWN*/
+_SERVICE_CONTROL_SHUTDOWN=@5/*_SERVICE_CONTROL_SHUTDOWN*/
+_SERVICE_ACCEPT_STOP=@1/*_SERVICE_ACCEPT_STOP*/
+_SERVICE_CONTROL_STOP=@1/*_SERVICE_CONTROL_STOP*/
+_SERVICE_CONTROL_INTERROGATE=@4/*_SERVICE_CONTROL_INTERROGATE*/
 _SERVICE_ACCEPT_HARDWAREPROFILECHANGE=@0x20/*_SERVICE_ACCEPT_HARDWAREPROFILECHANGE*/
 _SERVICE_CONTROL_HARDWAREPROFILECHANGE=@0xC/*_SERVICE_CONTROL_HARDWAREPROFILECHANGE*/
 _SERVICE_ACCEPT_POWEREVENT=@0x40/*_SERVICE_ACCEPT_POWEREVENT*/
 _SERVICE_CONTROL_POWEREVENT=@0xD/*_SERVICE_CONTROL_POWEREVENT*/
 _SERVICE_ACCEPT_SESSIONCHANGE=@0x80/*_SERVICE_ACCEPT_SESSIONCHANGE*/
 _SERVICE_CONTROL_SESSIONCHANGE=@0xE/*_SERVICE_CONTROL_SESSIONCHANGE*/ 
-_SERVICE_RUNS_IN_SYSTEM_PROCESS=@0x1/*_SERVICE_RUNS_IN_SYSTEM_PROCESS*/
-_SERVICE_AUTO_START=@0x2/*_SERVICE_AUTO_START*/
-_SERVICE_BOOT_START=@0x0/*_SERVICE_BOOT_START*/
-_SERVICE_DEMAND_START=@0x3/*_SERVICE_DEMAND_START*/
-_SERVICE_DISABLED=@0x4/*_SERVICE_DISABLED*/
-_SERVICE_SYSTEM_START=@0x1/*SERVICE_SYSTEM_START*/
-_SERVICE_ADAPTER=@0x4/*_SERVICE_ADAPTER*/
-_SERVICE_FILE_SYSTEM_DRIVER=@0x2/*_SERVICE_FILE_SYSTEM_DRIVER*/
-_SERVICE_KERNEL_DRIVER=@0x1/*_SERVICE_KERNEL_DRIVER*/
-_SERVICE_RECOGNIZER_DRIVER=@0x8/*_SERVICE_RECOGNIZER_DRIVER*/
+_SERVICE_RUNS_IN_SYSTEM_PROCESS=@1/*_SERVICE_RUNS_IN_SYSTEM_PROCESS*/
+_SERVICE_AUTO_START=@2/*_SERVICE_AUTO_START*/
+_SERVICE_BOOT_START=@0/*_SERVICE_BOOT_START*/
+_SERVICE_DEMAND_START=@3/*_SERVICE_DEMAND_START*/
+_SERVICE_DISABLED=@4/*_SERVICE_DISABLED*/
+_SERVICE_SYSTEM_START=@1/*SERVICE_SYSTEM_START*/
+_SERVICE_ADAPTER=@4/*_SERVICE_ADAPTER*/
+_SERVICE_FILE_SYSTEM_DRIVER=@2/*_SERVICE_FILE_SYSTEM_DRIVER*/
+_SERVICE_KERNEL_DRIVER=@1/*_SERVICE_KERNEL_DRIVER*/
+_SERVICE_RECOGNIZER_DRIVER=@8/*_SERVICE_RECOGNIZER_DRIVER*/
 _SERVICE_WIN32_OWN_PROCESS=@0x10/*_SERVICE_WIN32_OWN_PROCESS*/
 _SERVICE_WIN32_SHARE_PROCESS=@0x20/*_SERVICE_WIN32_SHARE_PROCESS*/
 _SERVICE_WIN32 =@0x30/*_SERVICE_WIN32*/
+_SERVICE_ACTIVE=@1/*_SERVICE_ACTIVE*/
+_SERVICE_CHANGE_CONFIG=@2/*_SERVICE_CHANGE_CONFIG*/
+_SERVICE_INACTIVE=@2/*_SERVICE_INACTIVE*/
+_SERVICE_INTERROGATE=@0x80/*_SERVICE_INTERROGATE*/ 
+_SERVICE_PAUSE_CONTINUE=@0x40/*_SERVICE_PAUSE_CONTINUE*/
+_SERVICE_USER_DEFINED_CONTROL=@0x100/*_SERVICE_USER_DEFINED_CONTROL*/
 end intellisense**/

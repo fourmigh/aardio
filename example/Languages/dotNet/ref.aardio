@@ -18,7 +18,7 @@ compiler.import("CSharpLibrary"); //自程序集导入名字空间
 
 /*
 以下函数都可以创建创建原生 .NET 对象，
-这些原生对象会被封包到 DispatchableObject 对象内以避免被自动转换为 aardio 对象。
+这些原生对象会被封包到.NET 对象 DispatchableObject 对象内以避免被自动转换为 aardio 对象。
 
 DispatchableObject 对象传入 aardio 会被自动封包为 dotNet.object 对象。
 这些对象传回 .NET 会被自动解包为原生 .NET 对象。
@@ -46,13 +46,24 @@ var num = dotNet.double(12.5,true);//创建 .NET 对象，返回 dotNet.object �
 //也可以创建 .NET 数组 
 var arr = dotNet.int({1,2,3}); //创建 .NET 对象，返回 dotNet.object 对象而不是普通数组。
 
+//支持迭代器: file://~/example/Languages/dotNet/each.aardio
+for i,v in arr.each(){
+	print(i,v)
+}
+
 //调用函数, dotNet.object 对象可以直接作为 .NET 函数参数使用。
 CSharpLibrary.Object.Test(num,arr); 
 
 import console;
 console.log( arr[1] ) //在 aardio 中这种数组可用下标直接读写数组成员。
  
-//DispatchableObject 对象如果存储的是 Primitive,enum,string 类型或这些类型的普通数组则可使用 Value 属性读写原始值
+/*
+dotNet.object(DispatchableObject 对象)如果存储的是:
+.NET 里的 Primitive,enum,string 类型或这些类型的普通数组则可使用 Value 属性读写原始值。
+
+如果 DispatchableObject 是 System.Object 数组，
+但实际存储的值可转换为 aardio 数组，也可以使用 Value 属性读写原始数组值。
+*/
 console.log( num.Value ); 
 
 //支持 tostring(),tonumber() 转换。

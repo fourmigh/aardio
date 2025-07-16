@@ -1,0 +1,38 @@
+﻿import crypt.jwt;
+import web.rest.jsonClient;
+
+namespace web.rest.gcp;
+
+class jwtBearerToken{
+	ctor(keyData){ 
+		if(type.isString(keyData)){
+			keyData = ..JSON.parse(keyData);
+		}
+		
+		var jwt = ..crypt.jwt.sign({ 
+    		iss = keyData.client_email,
+    		scope = keyData.scope || "https://www.googleapis.com/auth/cloud-platform",
+    		aud = keyData.token_uri,
+    		exp = tonumber(..time()) + 60, 
+    		iat = ..time()
+		}, keyData.private_key, "RS256");
+		
+		var http = ..web.rest.jsonClient();
+		
+		var tokenResponse,err = http.post(
+			keyData.request_uri || keyData.token_uri, {
+    		grant_type = "urn:ietf:params:oauth:grant-type:jwt-bearer",
+    		assertion = jwt
+		});
+		
+		if(tokenResponse){
+			return tokenResponse.access_token,tokenResponse.expires_in,keyData;
+		}
+		
+		return null,err;
+	};
+}
+
+/*****intellisense()
+web.rest.gcp.jwtBearerToken(__/*keyData*/) = 获取 GCP 访问令牌（可用于调用 Vertex AI 接口）。\n成功返回 3 个值，分别为：访问令牌，过期时间，传入参数表（传入 JSON 也会返回表）。\n过期时间固定为 3600 秒。\n\n参数 @1 必须用一个表对象指定密钥数据（在 GCP 创建密钥并下载 JSON 数据）。\n并至少定 client_email,private_key, token_uri 这几个字段的值。\n可选增加 request_uri 字段替换 token_uri 作为实际请求的 URL。\n可选在参数表中用 scope 字段指定一个表示许可范围的网址
+end intellisense*****/

@@ -46,8 +46,12 @@ console.log(bs)
 
 console.log( bs.str() )
 
-//可如下与结构体连接
+//string.builder 对象可以与结构体、字符串、buffer 等直接连接（其他非 null 类型自动转换为字符串，null 值忽略）
 bs += {BYTE x[] ='dbcd\0'}
+
+//bs.write 函数可以写入任意个任意类型的参数，遇 null 值停止写入。
+bs.write( "abc",{BYTE x[] ='dbcd\0'},123,true,raw.buffer("buf"));
+
 console.log( bs.toUtf16() )
 
 console.pause(true);

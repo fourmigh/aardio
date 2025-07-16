@@ -3,7 +3,7 @@ import win.ui;
 /*DSG{{*/
 var winform = win.form(text="listbox自绘(GDI方式)";right=757;bottom=467)
 winform.add(
-listbox={cls="listbox";left=12;top=11;right=745;bottom=457;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;items={};ownerDraw=1;vscroll=1;z=1}
+listbox={cls="listbox";left=12;top=11;right=745;bottom=457;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;items={};ownerDraw=1;vscroll=1;z=1}
 )
 /*}}*/
 

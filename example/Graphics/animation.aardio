@@ -1,4 +1,6 @@
 //自绘动画
+//窗口绘图基础: doc://library-guide/std/win/ui/drawing.html
+//倒计时动画按钮: file://~/example/plus/countdown.aardio
 import win.ui;
 /*DSG{{*/
 var winform = win.form(text="自定义动画演示";right=577;bottom=419)
@@ -7,40 +9,44 @@ plus={cls="plus";left=446;top=143;right=646;bottom=343;z=1}
 )
 /*}}*/
 
-//绘图函数
-winform.plus.onDrawContent = function(graphics,rc){
-    
-    //旋转画板 
-	graphics.rotateRect(rc,winform.plus.animationState);
- 
- 	//创建画刷
-    var brush = gdip.solidBrush(0xFF84FF26);
-    var brush2 = gdip.solidBrush(0xFF0080FF);
-    
-    //画左右半圆
-    var w,h = rc.width(),rc.height();
-    graphics.fillPie(brush, 0, 0, w, h, 90, 180);
-    graphics.fillPie(brush2, 0, 0, w, h, 90, -180);
-    
- 	//画鱼头
-    graphics.fillPie(brush, w/4-1, h/2, w/2, h/2, 90, -180);
- 	graphics.fillPie(brush2, w/4+1, 0, w/2, h/2, 90, 180);
-    
-    //画鱼眼
-    graphics.fillEllipse(brush, w/2-10, h/4-10, 20, 20);
-    graphics.fillEllipse(brush2, w/2-10, h/4*3-10, 20, 20);
-       
-    brush.delete();
-    brush2.delete();
+//在前景里绘制动画：旋转的太极图
+winform.plus.onDrawContent = function(graphics,rc,txtColor,rcContent,foreColor){
+	if(owner.animationState===null ) return;
+	
+	//旋转画板 
+	graphics.rotateRect(rc,owner.animationState);
+	
+	//创建画刷
+	var brush = gdip.solidBrush(0xFF84FF26);
+	var brush2 = gdip.solidBrush(0xFF0080FF);
+	
+	//画左右半圆
+	var w,h = rc.width(),rc.height();
+	graphics.fillPie(brush, 0, 0, w, h, 90, 180);
+	graphics.fillPie(brush2, 0, 0, w, h, 90, -180);
+	
+	//画鱼头
+	graphics.fillPie(brush, w/4-1, h/2, w/2, h/2, 90, -180);
+		graphics.fillPie(brush2, w/4+1, 0, w/2, h/2, 90, 180);
+	
+	//画鱼眼
+	graphics.fillEllipse(brush, w/2-10, h/4-10, 20, 20);
+	graphics.fillEllipse(brush2, w/2-10, h/4*3-10, 20, 20);
+		
+	brush.delete();
+	brush2.delete();	 
 }
 
 //动画状态控制函数
-winform.plus.onAnimation = function(state){
-	return state + 3;
+winform.plus.onAnimation = function(state,beginning,change,timestamp,duration){
+	//if(state>change-1) return; //返回 null 值停止
+	
+	var x = timestamp/duration;  
+	return beginning+change*(-x*x + 2*x);
 }
 
-//开始动画
-winform.plus.startAnimation(12,0);
+//开始动画，参数：interval,beginning,change,duration
+winform.plus.startAnimation(12,0,360,2000);
 
 //悬浮控件窗口
 winform.plus.orphanWindow(true);

@@ -8,3 +8,4 @@ RUNAS//无线连接=wlanEnumInterfaces.aardio
 端口映射管理=sys.upnp.nat.aardio
 RUNAS//防火墙=firewall.aardio
 端口状态=netstat.aardio
+Ping=ping.aardio

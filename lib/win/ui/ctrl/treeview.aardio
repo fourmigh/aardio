@@ -696,6 +696,8 @@ namespace treeview{
 		getTreeItem = getItem;
 		setTreeItem = setItem;
 		editLable = editLabel; 
+		removeItem = delItem;
+		deleteItem = delItem;
 	};
  
  	_LPSTR_TEXTCALLBACK = topointer(-1)/*_LPSTR_TEXTCALLBACK*/;
@@ -777,6 +779,8 @@ namespace treeview{
 	_TVI_LAST = topointer(-0x0FFFE)
 }
 
+//@guide [treeview 入门示例](doc://example/Windows/TreeView/treeview.html)
+
 /**intellisense(!treeview)  
 getNotifyMessage() = !NMTREEVIEW.
 getNotifyDispInfo() = !TV_DISPINFO.
@@ -835,9 +839,10 @@ getSelection() = 返回当前选中节点
 getDropHilight() ＝ 返回拖放操作的目标项目;
 getRoot() = 返回根节点( TVI_ROOT )\n注意TVI_ROOT的子节点并没有父节点
 getFirst() = 返回树视图中的第一个节点\n也即_TVI_ROOT的第一个子节点
-insertItem(.("插入文本",父项,前面的子项) = 参数@1可以是普通文本,\n可使用数组添加多个兄弟节点,使用children成员添加多个子节点\n参数@2指定父项(可省略),参数@3指定插入位置前面的子项(可省略)\n返回新节点句柄,示例\nvar item = winform.treeview.insertItem("子节点",item)
-insertItem(.(插入TVITEM结构体,父项,前面的子项) = 参数@1可以是TVITEM结构体或指定部分成员的table对象\n参数@1可使用数组添加多个兄弟节点,使用children成员添加多个子节点\n此函数可自动检测非空成员并自动设定相应mask位\n参数@2指定父项(可省略),参数@3指定插入位置前面的子项(可省略)\n返回新节点句柄,示例\n\nvar item = winform.treeview.insertItem( text = "根目录" )
-insertItem(.(数据表,父项,前面的子项) = 参数@1可以使用string.xml对象,\n或者使用相同结构的普通表对象,\n每个节点对象必须指定tagName或text属性,\ntreeview按text,label,title,name,tagName的顺序确定显示标题\n每个节点可以用数组包含子节点(但节点本身必须指定tagName或text属性)\n也可以使用children成员指向一个数组表示多个子节点\n参数@2指定父项(可省略),参数@3指定插入位置前面的子项(可省略)\n返回新节点句柄,\n\n此用法请参考aardio范例中的treeview控件演示、\n以及fsys.asar下面几个库的treeData函数
+insertItem(.("插入文本",父项,前面的子项) = 参数 @1 可以是普通文本，\n也可传入文本数组以循环插入多个节点。\n可选用参数 @2 指定父节点句柄,可选用参数 @3 指定插入位置前面的节点句柄。\n返回值为新节点句柄。
+insertItem(.(TVITEM,父项,前面的子项) = 参数 @1 可以是 TVITEM 结构体或指定部分成员的 table 对象。\n参数 @1 可传入 TVITEM 数组以循环插入多个节点。\n此函数可自动检测非空成员并自动设定 TVITEM 的 mask 字段。\n可选用参数 @2 指定父节点句柄,可选用参数 @3 指定插入位置前面的节点句柄。\n返回值为新节点句柄。
+insertItem(.(数据表,父项,前面的子项) = 参数 @1 可以使用 string.xml 对象或相同结构的表对象。\n\n表可以指定要插入的单个节点或节点数组：\n- 如果传入数组则以数组元素作为参数 @1 循环调用 insertItem 函数，\n数组元素可以是文本、TVITEM、表、数组等函数支持的对象。\n- 如果传入表示插入单个节点的表，必须指定 tagName 或 text 字段,\ntreeview 按 text，label，title，name，tagName 的顺序确定显示标题。\n单个节点如果包含数组成员，或者其 children 字段指定一个数组。\n则以该数组为参数继续调用 insertItem 函数递归插入下级子节点。\n\n可选用参数 @2 指定父节点句柄，可选用参数 @3 指定插入位置前面的节点句柄。\n返回值为新节点句柄。
+insertItem(.(数组,父项,前面的子项) = 传入数组则以数组元素作为参数 @1 循环调用 insertItem 函数，\n数组元素可以是文本、TVITEM、表、数组等函数支持的对象。
 insertTable( = 显示表对象中的名值对以及数组
 insertTable(.(tab,hParent) = 显示表对象中的名值对以及数组,\n支持显示嵌套表，表中不应出现循环引用的成员,\n可选用hParent指定父节点句柄
 cls = 设计时类名
@@ -845,7 +850,7 @@ className = 运行时类名
 hwnd = 控件句柄
 id = 控件ID
 text = 控件文本
-_parentForm = 控件所在的父窗口(指win.form对象)\n!winform.
+_parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 getParent() = 返回父窗口\n
 setParent(__/*控件对象*/) = 改变父窗口 
 addCtrl = @.addCtrl(\n	button={ cls="button";text="button";left=33;top=32;right=126;bottom=81;autoResize=false }  \n)
@@ -866,6 +871,8 @@ getRect(true) = 控件屏幕区块位置(::RECT结构体)
 setRect(rc) = 设置控件区块位置(::RECT结构体)  
 setRect(rc,true) = 设置控件屏幕区块位置(::RECT结构体)
 getClientRect() =  控件客户区块位置(::RECT结构体)\n!rect.
+clientWidth = 控件窗口客户区宽度，只读属性。
+clientHeight = 控件窗口客户区宽度，只读属性。
 getFont() = 控件字体(::LOGFONT结构体)\n!logfont.
 setFont(__/*指定字体*/) = 指定LOGFONT字体对象,或逻辑字体句柄 
 setFont(混入字体属性) = @.setFont(point=10;name="宋体");

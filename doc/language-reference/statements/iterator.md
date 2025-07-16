@@ -229,7 +229,7 @@ console.pause();
 
 使用  for in 语句直接迭代表对象时并不保证迭代的顺序。
 
-表是一个纯数组（所有成员的“键”都是从 1 开始、有序、连续的数值）时 for in 才会按索引顺序循环，否则改用普通的 [计数 for 循环](looping.md#numeric-for) 才能保证按索引顺序循环 —— 并且不会遍历到表的非数组成员，示例：  
+表是一个纯数组（所有成员的“键”都是从 1 开始、有序、连续的数值）时 for in 才会按索引顺序循环，否则改用普通的 [计数 for 循环](looping.md#numeric-for) 才能保证按索引顺序循环 —— 并且不会遍历到表的非稠密数组成员，示例：  
 
 ```aardio
 import console;
@@ -242,22 +242,21 @@ for(i=1;#arr;1){
 console.pause()
 ```  
 
-如果表包含非数组成员，可以使用特定的迭代器以控制迭代的顺序与细节：
+aardio 提供了一些特定的迭代器：
 
 - 如果要按键名的名称排序表中的名值对，可用 table.eachName 创建迭代器。
 - 如果要按表中的值排序遍历结果，可用 table.eachValue 创建迭代器；  
-- 如果要按顺序遍历表中包含的数组，可用 table.eachIndex 创建迭代器。  
-  
-table.eachIndex 不仅仅是可以简单地用于遍历表的数组成员，而是提供了一些增强的功能。table.eachIndex 支持一些来自于外部接口的可兼容数组，保以识别表的 `length` 属性或` _length `元方法指定数组长度，也可以使用 `_startIndex` 元方法自定义起始下标。参考 [元方法](../datatype/table/meta.md) 。
+- 如果要按顺序遍历数组或 [伪数组](../datatype/table/_.md#pseudo-array)，可用 table.eachIndex 创建迭代器。  table.eachIndex 支持用  [`length` 元属性（或元方法）](../datatype/table/meta.md#length) 或者 `length`,`Length` 字段自定义最小数组长度，并支持用 `_startIndex` 元方法自定义数组起始索引。
+
 
 示例：
 
 ```aardio
 import console;
 
-var arr = {12,56,89}
+var arr = {12,56,89,length=5}
 for i,v in table.eachIndex(arr){
-    console.log(i,v)
+    console.log(i,v) //i 从 1 输出到 5 
 }
 
 console.pause()

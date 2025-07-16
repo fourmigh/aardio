@@ -28,7 +28,10 @@ aardio 可以使用 table 定义结构体(struct)，在结构体中可以定义�
 | INT | size\_t | C.size\_t | uint |
 | pointer | void \* |  | unsafe.Pointer |
 
-要特别注意 Go 的 bool 类型只有 1 个字节，相当于 aardio 中的 BYTE，而 aardio 中的 bool 类型则是 32 位 4 个字节，相当于 WinAPI 定义的 BOOL 类型。
+注意：
+
+- aardio 支持 int,int8,int32,int64,uint8,uint32,uint64,float32,float64 这几个原生类型，名称、作用、位长与 Go 语言兼容。
+- Go 的 bool 类型只有 1 个字节，而 aardio 中的 bool 类型则是 32 位 4 个字节，相当于 Windows API 里定义的 BOOL 类型。在 API 函数原型声明里这两个不同位长的 bool 类型是相互兼容的。但是在结构体里必须使用位长完全一致的类型，例如 Go 结构体里使用了 bool 类型，在 aardio 里必须改为相同位长的 byte 类型。不过在结构体里很少会用到 bool 类型，一般不用管。
 
 aardio 调用 Go 示例，首先调用 Go 编译器生成 DLL 文件： 
 
@@ -59,7 +62,7 @@ type MyStruct struct {
     Uint64Field uint64
     Float32Field float32
     Float64Field float64
-    pStr *C.char 
+    PStr *C.char 
 }
 
 //在注释里用 export 声明为 DLL 导出函数  
@@ -72,7 +75,7 @@ func SetStruct(p uintptr) {
     //Go 用 fmt.Println 打印变量很方便，可传入多个任意类型的参数。 
     fmt.Println( "在 Go 中打印结构体：",st );
     
-    var str = C.GoString(st.pStr);
+    var str = C.GoString(st.PStr);
     fmt.Printf("Go says: %s!\n", str) 
 }
 
@@ -90,22 +93,45 @@ go.buildShared("/.go/testStruct.go");
 
 ```aardio
 import console.int;
-//加载 Go 编译的 DLL，注意要指定 cdecl 调用约定。 
+
+/*
+加载 Go 编译的 DLL，注意要指定 cdecl 调用约定。 
+如果已经生成 DLL，用$操作符可以嵌入 DLL 到代码中实现内存加载（发布后不需要带 DLL 文件）。
+*/
 var goDll = raw.loadDll($"/.go/testStruct.dll",,"cdecl");
-//如果已经生成 DLL，用$操作符可以嵌入 DLL 到代码中实现内存加载（发布后不需要带 DLL 文件）。
-//声明结构体
+
+/*
+声明结构体，
+注意 aardio 代码里类型写在字段名前面。
+而在 Go 代码里类型名是写在字段名后面。
+*/
 class myStruct {
-    byte Int8Field;//Go类型 int8
-    word Int16Field;//Go类型 int16
-    int32 Int32Field;//Go类型 int32
-    long64 Int64Field;//Go类型 int64 
-    BYTE Uint8Field;//Go类型 uint8
-    WORD Uint16Field;//Go类型 uint16
-    INT32 Uint32Field;//Go类型 uint32
-    LONG64 Uint64Field;//Go类型 uint64
-    float Float32Field;//Go类型 float32
-    double Float64Field;//Go类型 float64
-    string pStr = "这是 aardio 字符串"
+    byte Int8Field;//Go 类型 int8
+    word Int16Field;//Go 类型 int16
+    int Int32Field;//Go 类型 int32
+    long Int64Field;//Go 类型 int64 
+    BYTE Uint8Field;//Go 类型 uint8
+    WORD Uint16Field;//Go 类型 uint16
+    INT32 Uint32Field;//Go 类型 uint32
+    LONG Uint64Field;//Go 类型 uint64
+    float Float32Field;//Go 类型 float32
+    double Float64Field;//Go 类型 float64
+    string PStr = "这是 aardio 字符串"
+}
+
+// aardio 也支持下面这些与 Go 兼容的原生类型名（ 这在 aardio 中属于非标准的兼容写法 ）
+class myStruct {
+    int8 Int8Field;//Go 类型 int8
+    int16 Int16Field;//Go 类型 int16
+    int32 Int32Field;//Go 类型 int32
+    int64 Int64Field;//Go 类型 int64 
+    uint8 Uint8Field;//Go 类型 uint8
+    uint16 Uint16Field;//Go 类型 uint16
+    uint32 Uint32Field;//Go 类型 uint32
+    uint64 Uint64Field;//Go 类型 uint64
+    float32 Float32Field;//Go 类型 float32
+    float64 Float64Field;//Go 类型 float64
+    string PStr = "这是 aardio 字符串"
 }
 
 //创建结构体

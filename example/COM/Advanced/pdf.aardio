@@ -23,9 +23,8 @@ if( "IAcroAXDocShim" == winform.pdfCtrl.getControlTypeName() ){
 	}
 }
 else {
-	pdf.Navigate("about:请稍候......")
+	pdf.Navigate("about:请先安装最新版 Adobe Reader ")
 	winform.text = "请先安装最新版Adobe Reader"
-	pdf.Navigate("https://get.adobe.com/reader/?loc=cn&promoid=KQZEN");
 }
 
 winform.show(3/*_SW_SHOWMAXIMIZED*/) 

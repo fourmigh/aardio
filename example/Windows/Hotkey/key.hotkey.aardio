@@ -5,7 +5,7 @@ import win.ui;
 var winform = win.form(text="超级热键演示";right=796;bottom=434;bgcolor=16777215)
 winform.add(
 edit={cls="edit";left=8;top=8;right=784;bottom=360;edge=1;multiline=1;z=1};
-editLog={cls="edit";left=9;top=375;right=784;bottom=427;bgcolor=16777215;multiline=1;z=2}
+editLog={cls="edit";left=9;top=375;right=784;bottom=427;bgcolor=0xFFFFFF;multiline=1;z=2}
 )
 /*}}*/
 
@@ -14,10 +14,7 @@ var superHotkey = key.hotkey() //只能在界面线程创建超级热键
 
 //批量加载热键配置表
 superHotkey.loadTable({
-	(function(){
-		//这里的代码可以直接执行	
-	})();
-	
+
 	/* 大写金额(可输入数学表达式)、日期、时间  */
 	["Ctrl+$"] = function(hFocus){  
 		win.dlg.chineseNumber().show();

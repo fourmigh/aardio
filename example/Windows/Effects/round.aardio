@@ -1,26 +1,63 @@
 import win.ui;
+import win.ui.simpleWindow;
+import win.region.round;
 /*DSG{{*/
-var winform = win.form(text="圆角无边框窗口";right=759;bottom=469;border="none")
+var winform = win.form(text="圆角无边框深色窗口"; right=800; bottom=600; bgcolor=0x2D2D30; border="none")
 winform.add(
-bkplus={cls="bkplus";left=-5;top=-3;right=763;bottom=38;bgcolor=12632256;dl=1;dr=1;dt=1;z=1}
-)
+    titleBarBackground = {cls="bk"; left=0; top=0; right=800; bottom=32; bgcolor=0x1E1E1E; dl=1; dr=1; dt=1; z=1}
+);
 /*}}*/
 
 /*
-创建圆角无边框窗口。
+启用圆角窗口。
 参数必须指定无边框窗口（也就是创建窗体的参数表里 border 属性为 "none"）
 */
-import win.region.round;
-win.region.round(winform,,,8,8);
+win.region.round(winform);
 
-//添加圆角阴影
-import win.ui.shadow;
-win.ui.shadow( winform,70,9,5,5); 
- 
-//添加标题栏与拖动边框
-import win.ui.simpleWindow;
-win.ui.simpleWindow(winform);
+// 为无边框窗口添加标题栏和阴影边框
+var sw = win.ui.simpleWindow(winform);
+
+// 单独设置边框窗口的标题栏关闭按钮（plus 控件）样式
+sw.titlebarClose.skin(
+    background = {
+        hover = 0x80FF4444; 
+        active = 0xA0CC2222;
+        default = 0x00000000;
+    };
+    color = {
+        hover = 0xFFFFFFFF;
+        active = 0xFFFFFFFF;
+        default = 0xFFC0C0C0;
+    }
+);
+
+// 单独设置边框窗口的标题栏最小化按钮（plus 控件）样式
+sw.titlebarMin.skin(
+    background = {
+        hover = 0x30007ACC; 
+        active = 0x50005A99;
+        default = 0x00000000;
+    };
+    color = {
+        hover = 0xFFFFFFFF;
+        active = 0xFFFFFFFF;
+        default = 0xFFC0C0C0;
+    }
+);
+
+// 单独设置边框窗口的标题栏最大化按钮（plus 控件）样式
+sw.titlebarMax.skin(
+    background = {
+        hover = 0x3000AA44; 
+        active = 0x50008833;
+        default = 0x00000000;
+    };
+    color = {
+        hover = 0xFFFFFFFF;
+        active = 0xFFFFFFFF;
+        default = 0xFFC0C0C0;
+    }
+);
 
 winform.show();
 win.loopMessage();
-

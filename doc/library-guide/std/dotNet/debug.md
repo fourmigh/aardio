@@ -1,5 +1,7 @@
 # .NET 程序集调试指南
 
+[✅ .NET 交互入门](_.md)  [💻 .NET 运行时版本](clr.md)
+
 ## 一、dotNet.loadFile 函数：
 
 `dotNet.loadFile(dll,pdbPath) `

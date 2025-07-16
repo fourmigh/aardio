@@ -1,7 +1,8 @@
 //基于 plus 控件的简单提示框 win.dlg.message
+//倒计时消息框: file://~/example/Windows/Timer/msgCountdown.aardio
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="简单提示框演示";right=759;bottom=469;bgcolor=8421504)
+var winform = win.form(text="简单提示框演示";right=759;bottom=469;bgcolor=0x808080)
 winform.add(
 plus={cls="plus";text="显示简单提示框";left=451;top=378;right=576;bottom=403;font=LOGFONT(h=-15);notify=1;z=1}
 )
@@ -14,6 +15,7 @@ msgDlg.cancelLabel = '\uF165 不好'
 
 winform.plus.skin(msgDlg.buttonStyle)
 winform.plus.oncommand = function(id,event){
+	
 	if( msgDlg.ask("你觉得这个简单提示框好用吗")  ){
 		win.delay(100);
 	  	msgDlg.smile("谢谢！")
@@ -21,7 +23,7 @@ winform.plus.oncommand = function(id,event){
 	else {
 		win.delay(100);
 		
-		var form = msgDlg.create('很遗憾你会这么想,但是\nwin.dlg.message提供了很多自定义外观样式的选项\n您可以根据自己的喜好进行调整',,true)
+		var form = msgDlg.create('很遗憾你会这么想，但是\nwin.dlg.message 提供了很多自定义外观样式的选项。\n您可以根据自己的喜好进行调整',,true)
 		
 		for(i=1;100;1){
 			if(!form.valid){ break; }
@@ -33,6 +35,11 @@ winform.plus.oncommand = function(id,event){
 }
 
 winform.show() 
-winform.msgOk('win.dlg.message自动安装\nmsgOk,msgErr,msgAsk,msgInfo ......\n等函数到所有窗口',1000) 
+
+/*
+参数 @1 指定要显示的文本信息。
+可选用参数 @2 指定窗口的显示时间（以毫秒为单位，超时自动关闭）.
+*/
+winform.msgInfo('win.dlg.message 自动安装以下函数：\nmsgOk,msgErr,msgAsk,msgInfo ......\n等函数到所有窗口。',1000) 
 
 win.loopMessage();

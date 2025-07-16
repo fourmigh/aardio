@@ -97,7 +97,7 @@ saveRes = function(srcDir="/",target="/"){
 		
 	return enum(
 		function(module,resType,resName){
-			if( ..string.startWith(resName,srcDir) ){
+			if( ..string.startsWith(resName,srcDir) ){
 				var str = ..string.load( resName )
 				var path = ..io.joinpath(target,resName)
 				..fsys.createDir( ..fsys.getParentDir(path)  )

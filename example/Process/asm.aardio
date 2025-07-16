@@ -1,0 +1,46 @@
+/*
+可使用「 aardio 工具 » 其他 » 其他编译器 » INTEL汇编语言 » 汇编转机器码 」
+自动生成以下代码。
+*/
+import process;
+
+//打开 32 位目标进程，可用参数 @1 指定程序路径或进程 ID 。
+var app = process();//不指定参数打开当前运行的进程自身。
+
+/*
+写入机器码（适用 32 位目标进程），并返回 cdecl 调用约定的 C 函数对象。
+参数 @1 指定函数原型（与声明原生 API 的语法相同）。
+参数 @2 开始可用一个或多个参数指定机器码，机器码可以是字符串、buffer、结构体、数值、原生指针。
+
+如果仅在参数 @2 用一个字符串参数指定机器码，并且首个字节是大写的 16 进制字符，
+则逐行解析 16 进制编码的机器码，规则：
+- 忽略每一行前面的空白字符，忽略机器码之后的内容。
+- 每两个连续的大写 16 进制字等表示一个机器码，多个机器码之间必须用半角空格分开。
+*/
+var rawCdeclFunction = app.asmCdecl("void( INT id, struct & cpuid )","
+	55  push ebp ;这里可以写注释
+	89 E5  mov ebp, esp
+	81 EC C0 00 00 00  sub esp, 0xc0
+	53  push ebx
+	51  push ecx
+	52  push edx
+	56  push esi
+	8B 45 08  mov eax, [ebp+0x8]
+	8B 75 0C  mov esi, [ebp+0xc]
+	0F A2  cpuid
+	89 06  mov [esi], eax
+	89 5E 04  mov [esi+0x4], ebx
+	89 4E 08  mov [esi+0x8], ecx
+	89 56 0C  mov [esi+0xc], edx
+	5E  pop esi
+	5A  pop edx
+	59  pop ecx
+	5B  pop ebx
+	89 EC  mov esp, ebp
+	5D  pop ebp
+	C3  ret
+")
+
+//调用原生 C 函数。
+var cpuid = rawCdeclFunction( 0,{ INT eax;BYTE ebx[4];BYTE ecx[4];BYTE edx[4] });
+print( cpuid.ebx ++ cpuid.edx ++ cpuid.ecx );

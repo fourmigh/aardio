@@ -1,8 +1,8 @@
-﻿拆分复杂字符串=splitEx.aardio
-编码转换=fromto.aardio
+﻿编码转换=fromto.aardio
+模式匹配=matching.aardio
+拆分复杂字符串=splitEx.aardio
 怪异编码转换=IMultiLanguage2.aardio
 简繁转换演示=conv.aardio
-模式匹配=matching.aardio
 正则表达式( preg )=regex.aardio
 多字节字符=wchar.aardio
 中文分词=mmseg.aardio

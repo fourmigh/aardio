@@ -8,7 +8,7 @@ class pinyin{
 			if(chars){ return chars;}
 			
 			for(py,chars in pyToChars){
-				if(..string.startWith(py,q) ){
+				if(..string.startsWith(py,q) ){
 					return chars;
 				}
 			}

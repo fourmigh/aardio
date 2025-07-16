@@ -1,4 +1,4 @@
-﻿import web.json;
+﻿import JSON;
 import fsys.stream;
 
 namespace fsys.asar;
@@ -32,7 +32,7 @@ class reader{
 			var json = this.file.read(h.headerJson.size);
 			if(json) {
 				this.header = h;
-				this.info = ..web.json.tryParse(json); 
+				this.info = ..JSON.tryParse(json); 
 			} 
 		}
 		
@@ -155,7 +155,7 @@ class reader{
 			if(#data < f.size ) f.size = #data;
 			elseif (#data > f.size ) return null,"数据不能超出原来的存储长度,请检查是不是多了回车符等字节";
 			
-			var json = ..web.json.stringify(rawInfo);
+			var json = ..JSON.stringify(rawInfo);
 			if(#json> (this.header.headerJson.pickleOjectSize-4) )
 				return null,"写入asar文件头错误";
 				
@@ -312,9 +312,9 @@ namespace reader{
 }
 
 /**intellisense()
-fsys.asar = asar是electron里的一种打包文件格式
-fsys.asar.reader = asar是electron里的一种打包文件格式
-fsys.asar.reader = asar格式文件解析器\n支持内存文件,资源文件,硬盘文件等\n支持解析asar格式文件，直接加载到treeview控件，单独提取文件，\n提取全部文件并获取展开进度，支持直接编辑文件数据，\n替换文件内容(不用解包再打包)
+fsys.asar = asar 格式文件打包与解包。
+fsys.asar.reader = 用于读取 asar 格式文件。
+fsys.asar.reader = asar 格式文件解析器。\n支持内存文件,资源文件,硬盘文件等\n支持解析asar格式文件，直接加载到treeview控件，单独提取文件，\n提取全部文件并获取展开进度，支持直接编辑文件数据，\n替换文件内容(不用解包再打包)
 fsys.asar.reader(__) = 创建asar格式文件解析器,\n参数中输入asar文件路径
 fsys.asar.reader() = !fsys_unasar_reader.
 end intellisense**/

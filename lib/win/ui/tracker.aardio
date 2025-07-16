@@ -191,7 +191,8 @@ namespace tracker{
 			if(prev._onStateChange) prev._onStateChange(prev.state);
 		} 
 		
-		if(owner.onSelectChange) owner.onSelectChange(prev);
+		if(owner.onSelect) owner.onSelect(prev,owner);// @Deprecated
+		if(owner.onSelectChange) owner.onSelectChange(prev,owner);
 	}
 }
 
@@ -282,8 +283,8 @@ win.ui.tracker() = !winUiTracker.
 !winUiTracker.onStateChange = @.onStateChange = function(){
 	__/*状态已改变*/
 }
-!winUiTracker.onSelectChange = @.onSelectChange = function(prev){
-	__/*单选模式下已选中当前控件,prev 为同一分组之前选中的控件\n同一分组之前没有选中控件时 prev 为 null*/
+!winUiTracker.onSelectChange = @.onSelectChange = function(prev,current){
+	__/*单选模式下已选中当前控件,prev 为同一分组之前选中的控件。\n同一分组之前没有选中控件时 prev 为 null。\ncurrent 为当前选中控件。*/
 } 
 !winUiTracker.onMouseActivate = @.onMouseActivate = function(hwndTop,hitTest,message){\n	return _MA___/*鼠标点击并且将要激活窗口时触发此事件\nhwndTop表示被激活的顶层窗口,\nhitTest参数请参考WM_NCHITTEST消息\nmessage为鼠标消息ID\n返回值的作用请参数MSDN*/\n}
 end intellisense**/

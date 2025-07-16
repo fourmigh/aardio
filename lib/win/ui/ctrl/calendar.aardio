@@ -8,10 +8,30 @@ class calendar{
     	if(tParam){
     		tParam.cls  = "SysMonthCal32";
 			if(tParam.edge) tParam.exstyle |= 0x200/*_WS_EX_CLIENTEDGE*/;	
- 		
+ 			if(tParam.msel){
+ 				tParam.style |= 2/*_MCS_MULTISELECT*/
+ 			}
 			this.pos2 = 0;
 		}
     }
+    _prenotify = {
+		[0xFFFFFD13/*_MCN_SELCHANGE*/] = function(id,code,ptr,nmhdr){
+			if( owner.onDateTimeChanged ){
+				var nm = ..raw.convert(ptr,{
+					struct hdr = ::NMHDR();
+					struct selStart = ..time(,this.$setTimeFormat);
+					struct selEnd = ..time(,this.$setTimeFormat);
+				});
+				owner.onDateTimeChanged(nm. selStart,nm.selEnd,nm);
+			}
+		};
+		[0xFFFFFFF8/*_NM_KILLFOCUS*/] = function(id,code,ptr,nmhdr){
+			if( owner.onKillFocus )owner.onKillFocus();
+		};
+		[0xFFFFFFF9/*_NM_SETFOCUS*/] = function(id,code,ptr,nmhdr){
+			if( owner.onSetFocus )owner.onSetFocus();
+		};
+	}
 	@_metaProperty;
 }
  
@@ -42,11 +62,16 @@ calendar._metaProperty = metaProperty(
 		_get = function(){ 
 			var tm = ..time(,"%x")
 			var hour,second,minute = tm.hour,tm.second,tm.minute
-			var re,tm = ::SendMessageByStruct(owner.hwnd, 0x1001/*_MCM_GETCURSEL*/,0,..time(,"%x"));
+			var re,tm = ::SendMessageByStruct(owner.hwnd, 0x1001/*_MCM_GETCURSEL*/,0,..time(,owner.$setTimeFormat));
      		return ..table.assign(tm,{ hour = hour; second = second; minute = minute; } )
 		}
 		_set = function( v ){
-			assert( ..time.istime(v),"无效的time对象")
+			if(! ..time.istime(v)){
+				v = ..time(v);
+				if(! ..time.istime(v)) error("无效的time对象",2);
+			}
+			
+			owner.$setTimeFormat = v.format;
 		    ::SendMessageByStruct(owner.hwnd, 0x1002/*_MCM_SETCURSEL*/,0, v);
 		} 	
 	};
@@ -84,19 +109,23 @@ calendar._metaProperty = metaProperty(
 	}; 
 )
  
+with calendar._metaProperty {
+	value = time;	
+}
 
 /***intellisense() 
 ?win.ui.ctrl.calendar =!calendar.
 win.ui.ctrl.calendar() = 日历控件\n!calendar.
 !calendar.cls = 设计时类名
 !calendar.className = 运行时类名
-!calendar.time = 获取或设置时间\n!time.
+!calendar.time = 获取或设置时间，值为 time 对象。\n写入属性值时支持可使用 time 构造函数转换为时间对象的参数。\n在读取此属性值时，保留上次设置此属性的时间对象使用的 format 字段\n!time.
+!calendar.value = 获取或设置时间，值为 time 对象。\n写入属性值时支持可使用 time 构造函数转换为时间对象的参数。\n在读取此属性值时，保留上次设置此属性的时间对象使用的 format 字段\n!time.
 !calendar.setRange(.(时间下限,时间上限) = 设置时间范围,参数为time()对象\n可省略其中一个参数,仅指定下限或仅指定上限
 !calendar.getRange() = 返回两个time()对象:时间范围下限,时间范围上限\n如果未调用setRange()指定上限或下限,相应值返回为空
 !calendar.hwnd = 控件句柄
 !calendar.id = 控件ID
 !calendar.text = 控件文本
-!calendar._parentForm = 创建该控件的父窗口（win.form对象）,\n设计时窗体容器是所有拖放在窗体上的控件的 _parentForm,\n\n即使窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示,\n控件的 _parentForm 始终都不会改变\n!winform.
+!calendar._parentForm = 返回创建控件的容器窗口（win.form对象），所有窗口控件都拥有此只读属性。\n对于使用窗体设计器创建的窗口，也就是返回设计时窗体容器。\n\n即使子窗口移除子窗口样式、更改父子关系，或以 orphanWindow显示，\n控件的 _parentForm 始终都不会改变\n!winform.
 !calendar.getParent() = 返回父窗口\n!static.
 !calendar.setParent(__/*控件对象*/) = 改变父窗口 
 !calendar.hide = 控件是否隐藏
@@ -130,6 +159,10 @@ win.ui.ctrl.calendar() = 日历控件\n!calendar.
 !calendar.getPos() = 返回相对坐标,宽,高\nx,y,cx,cy=win.getPos(hwnd)
 !calendar.sendMessage(.(msg,wParam,lParam) = 发送窗口消息\n此函数用法请参考 ::User32.SendMessage
 !calendar.postMessage(.(msg,wParam,lParam) = 投递窗口消息到消息队列中\n此函数用法请参考 ::User32.PostMessage
+!calendar.onDateTimeChanged = @.onDateTimeChanged = function(startTime,endTime){
+	__/*日期改变时触发此事件，\nstartTime 为开始日期，endTime 为结束日期。\n如果创建控件时指定了 msel 为 true 则允许多选时间范围（不超过一周）。*/
+}
+
 _MCM_FIRST=@0x1000/*_MCM_FIRST*/ 
 end intellisense***/
 

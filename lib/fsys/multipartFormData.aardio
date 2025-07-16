@@ -167,12 +167,12 @@ class multipartFormData{
 ::Ntdll := ..raw.loadDll("Ntdll.dll");
 
 /**intellisense()
-fsys.multipartFormData = multipart/form-data格式文件解析器
+fsys.multipartFormData = fsys.multipartFormData 用于解析 `multipart/form-data` 格式的上传文件表单。\n如果需要构建此格式的数据请使用 web.multipartFormData 库。
 fsys.multipartFormData(.("文件路径","分隔符") = 解析文件返回表对象\n可选在参数@3中指定读写缓冲区大小
-fsys.multipartFormData() = !stdfsysmultipartFormData
+fsys.multipartFormData() = !fsysMultipartFormData.
 end intellisense**/
 
-/**intellisense(!stdfsysmultipartFormData)
+/**intellisense(!fsysMultipartFormData)
 ? = multipart/form-data对象的每个键名下保存每个字段的信息\n!stdfsysmultipartFormField.
 getPath() = 参数中指定的文件路径
 end intellisense**/

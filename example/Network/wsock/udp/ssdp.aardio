@@ -9,7 +9,7 @@ edit={cls="edit";left=15;top=23;right=1021;bottom=625;db=1;dl=1;dr=1;dt=1;edge=1
 )
 /*}}*/
 
-import web.json;
+import JSON;
 import wsock.udp.ssdpClient;
 var ssdpClient = wsock.udp.ssdpClient(); 
 

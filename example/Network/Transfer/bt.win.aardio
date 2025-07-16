@@ -1,10 +1,10 @@
 //BT 下载 / WinForm
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="aria2 下载 —— 如果 BT 下载没速度，先找个热门种子下载就可以了";right=921;bottom=537;bgcolor=16777215;)
+var winform = win.form(text="aria2 下载 —— 如果 BT 下载没速度，先找个热门种子下载就可以了";right=921;bottom=537;bgcolor=0xFFFFFF;)
 winform.add(
 btnAdd={cls="button";text="调用 aria2 下载文件";left=605;top=332;right=747;bottom=368;db=1;dr=1;z=3;};
-listview={cls="listview";left=12;top=7;right=912;bottom=318;bgcolor=16777215;db=1;dl=1;dr=1;dt=1;edge=1;fullRow=1;z=1;};
+listview={cls="listview";left=12;top=7;right=912;bottom=318;bgcolor=0xFFFFFF;db=1;dl=1;dr=1;dt=1;edge=1;fullRow=1;z=1;};
 txtData={cls="edit";left=32;top=336;right=585;bottom=367;align="right";db=1;dl=1;dr=1;edge=1;z=2;};
 txtMessage={cls="edit";left=8;top=380;right=909;bottom=523;db=1;dl=1;dr=1;edge=1;hscroll=1;multiline=1;vscroll=1;z=4;};
 

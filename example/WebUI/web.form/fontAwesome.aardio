@@ -1,0 +1,53 @@
+import fonts.fontAwesome;//导入 FontAwesome 字体图标，支持 web.form。
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="web.form 使用 FontAwesome 字体")
+/*}}*/
+
+import web.form;
+var wb = web.form(winform);
+wb.html = /**
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" /> 
+    <style>
+    	body{
+    		line-height: 1.5;
+    		margin: 0;
+    		padding: 10px;
+    		font-family:  "Segoe UI","Microsoft YaHei", "微软雅黑", Arial, sans-serif,"Segoe UI Emoji";
+    	}
+    	code{
+    	    color: #333;
+    	    background: #eaeaea;
+    	    padding: 0.2em 0.4em;
+    	    border-radius: 3px;
+    	    font-family: Consolas, Monaco, 'Andale Mono', monospace;
+    	}
+    	.fontAwesome{
+    		font-family: 'FontAwesome'; 
+    		font-size: 24px; 
+    		color: #FF0000;
+    	}
+    </style>
+</head>
+<body>
+
+<pre>
+在 web.form 中使用 fontAwesome 字体图标的方法：
+1. 在 aardio 中执行 <code>import fonts.fontAwesome</code> 导入 fontAwesome 字体。
+fonts.fontAwesome 库不但支持传统窗口控件、plus 控件，也自动支持 web.form 浏览器控件（网页不需要再引入 FontAwesome 字体）。
+2. 在 HTML 元素的字体样式中指定 <code>font-family: 'FontAwesome'</code> 。
+3. 使用 NCR 编码（16 进制）表示字体图标，例如 <code>&amp;#xF015;</code> 。
+可以使用「 aardio 工具 » 界面 » 字体图标 」 工具查看 FontAwesome 图标对应的 NCR 编码。
+</pre>  
+
+示例: <span class="fontAwesome"> &#xF015;</span>
+</body>
+</html>
+**/
+
+winform.show();
+win.loopMessage();

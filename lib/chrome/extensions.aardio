@@ -1,5 +1,5 @@
 ﻿//extensions 浏览器扩展
-import web.json;
+import JSON;
 import fsys.latest;
 import fsys;
 
@@ -71,7 +71,7 @@ get = function(profile,extensionsPath){
 		var manifestData = ..string.load( ..io.joinpath(fullpath,"manifest.json") )
 		 
 		if(manifestData){
-			var manifestInfo = ..web.json.parse(manifestData); 
+			var manifestInfo = ..JSON.parse(manifestData); 
 			manifestInfo.id = name;
 			manifestInfo.fullpath = fullpath;
 			..table.push(result,manifestInfo);

@@ -1,0 +1,51 @@
+//accesss 或 MSSSQL( SQL Server ) 数据库插入二进制数据。
+import access;
+
+//创建数据库
+var db = access("/test-binary.mdb")
+
+//创建表
+if(!db.existsTable("Chunks") ){
+	db.exec("CREATE TABLE Chunks(ID integer identity NOT NULL, Photo LONGBINARY NULL)")
+}
+
+//参数化插入数据
+var cmd = db.createCommand( "INSERT INTO Chunks(Photo) VALUES(@Photo)" );  
+
+//设置所有 SQL 命令参数的值
+cmd.bind(  
+    //用 string.loadBuffer 函数加载二进制字节数组。
+    Photo = string.loadBuffer( "~\example\Graphics\.gdip.jpg" );
+)
+
+//执行命令
+cmd.Execute()
+
+/*
+
+//下面这样写是错的，因为 db.exec 唯一的功能是执行 SQL，而 SQL 只是一个字符串。
+db.exec(  "INSERT INTO Chunks(Photo) VALUES(@Photo)" ,{ 
+	Photo = string.loadBuffer( "~\example\Graphics\.gdip.jpg" );
+})
+
+*/
+
+import gdip;
+for(rs,fields in db.each("SELECT * FROM Chunks") ){
+    var bin = rs("Photo").value; //读取二进制数据
+    if(bin){
+        var hdc = ::GetDC(0);
+        var graphics = gdip.graphics( hdc );
+        
+        var img = gdip.image(bin);
+        graphics.drawImage( img ); //画到屏幕上看看
+        
+        img.dispose();
+        graphics.delete();
+        ::ReleaseDC(0,hdc);
+        
+        break;
+    }
+}
+
+db.close();

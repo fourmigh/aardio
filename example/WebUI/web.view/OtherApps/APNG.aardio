@@ -1,0 +1,32 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="WebView2 - 在同一窗口加载多个网页浏览器控件";right=966;bottom=622)
+winform.add(
+customWb={cls="custom";left=77;top=49;right=570;bottom=282;z=1};
+customWb2={cls="custom";left=77;top=360;right=326;bottom=484;z=2};
+staticWb={cls="static";text="用 WebView2 控件显示 APNG 动画：";left=8;top=15;right=234;bottom=43;align="right";transparent=1;z=4};
+staticWb2={cls="static";text="用 WebView2 控件显示 WebP 动画：";left=8;top=323;right=234;bottom=351;align="right";transparent=1;z=3}
+)
+/*}}*/
+
+import web.view;
+var wb = web.view(winform.customWb);
+wb.defaultBackgroundColor = 0x00FFFFFF;
+
+//web.view 控件显示 APNG 图像
+wb.html = /***
+<img style="max-width: 100%;max-height: 100%;" src="https://apng.onevcat.com/assets/elephant.png">
+***/
+
+var wb2 = web.view(winform.customWb2);
+wb2.defaultBackgroundColor = 0x00FFFFFF;
+
+//web.view 控件显示 APNG 图像
+wb2.html = `
+<img style="max-width: 100%;max-height: 100%;" src="https://res.cloudinary.com/demo/image/upload/fl_awebp,q_40/bored_animation.webp">
+`
+
+//Lottie 动画: doc://example/WebUI/web.view/OtherApps/lottie.html
+
+winform.show();
+win.loopMessage();
